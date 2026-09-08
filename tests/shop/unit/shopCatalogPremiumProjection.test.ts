@@ -24,6 +24,7 @@ const mockedAliases = new Set([
   "@/lib/shopCatalogLegacyVehicleIds.server",
   "@/lib/shopEuropePricing",
   "@/lib/shopWarehouseInventory",
+  "@/lib/shopWarehouseInventory.server",
   "@/lib/eventuriSharedIntake",
   "@/lib/shopProductDisplayBrand",
 ]);

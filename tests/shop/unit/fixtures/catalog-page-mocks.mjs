@@ -161,3 +161,7 @@ export function getProductDisplayBrand(value) {
 export function isEuropePricingCountry(country) {
   return country === "DE";
 }
+
+export async function getShopWarehouseProducts() {
+  return prisma.shopProduct.findMany();
+}

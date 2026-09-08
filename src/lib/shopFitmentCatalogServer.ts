@@ -1,4 +1,4 @@
-import { boundedCatalogPages } from "@/lib/boundedCatalogPages";
+import { boundedCatalogPages, readCatalogRowsWithSizeFallback } from "@/lib/boundedCatalogPages";
 import type { ShopMoneySet, ShopProduct } from "@/lib/shopCatalog";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
@@ -32,10 +32,11 @@ export async function getShopFitmentCatalogProducts(
   // consumed by the fitment extractor while omitting that unrelated DB payload.
   const includeCommerce = !options.evidenceOnly;
   const products: ShopProduct[] = [];
-  // Keep each rich response capped at 250 rows, while overlapping four reads.
+  // Rich card reads retain 250-row pages. Text-only evidence uses larger
+  // windows to reduce database round trips, splitting on byte-limit errors.
   // ID windows are keyset-paginated; avoid increasingly expensive OFFSET scans.
   const pages = boundedCatalogPages({
-    pageSize: PAGE_SIZE,
+    pageSize: options.evidenceOnly ? 1_000 : PAGE_SIZE,
     concurrency: 4,
     readIds: async (after, limit) => {
       const rows = await prisma.shopProduct.findMany({
@@ -47,86 +48,88 @@ export async function getShopFitmentCatalogProducts(
       return rows.map((row) => row.id);
     },
     readRows: (ids) =>
-      prisma.shopProduct.findMany({
-        where: { id: { in: ids }, isPublished: true, status: "ACTIVE" },
-        orderBy: { id: "asc" },
-        select: {
-          id: true,
-          slug: true,
-          sku: true,
-          scope: true,
-          brand: true,
-          vendor: true,
-          productType: true,
-          tags: true,
-          titleUa: true,
-          titleEn: true,
-          categoryUa: true,
-          categoryEn: true,
-          shortDescUa: true,
-          shortDescEn: true,
-          collectionUa: true,
-          collectionEn: true,
-          stock: true,
-          priceEur: includeCommerce,
-          priceUsd: includeCommerce,
-          priceUah: includeCommerce,
-          priceEurEurope: includeCommerce,
-          priceEurB2b: includeCommerce,
-          priceUsdB2b: includeCommerce,
-          priceUahB2b: includeCommerce,
-          compareAtEur: includeCommerce,
-          compareAtUsd: includeCommerce,
-          compareAtUah: includeCommerce,
-          compareAtEurB2b: includeCommerce,
-          compareAtUsdB2b: includeCommerce,
-          compareAtUahB2b: includeCommerce,
-          image: includeCommerce,
-          collections: {
-            select: {
-              sortOrder: true,
-              collection: {
-                select: {
-                  id: true,
-                  handle: true,
-                  titleUa: true,
-                  titleEn: true,
-                  brand: true,
-                  isUrban: true,
+      readCatalogRowsWithSizeFallback(ids, (batchIds) =>
+        prisma.shopProduct.findMany({
+          where: { id: { in: batchIds }, isPublished: true, status: "ACTIVE" },
+          orderBy: { id: "asc" },
+          select: {
+            id: true,
+            slug: true,
+            sku: true,
+            scope: true,
+            brand: true,
+            vendor: true,
+            productType: true,
+            tags: true,
+            titleUa: true,
+            titleEn: true,
+            categoryUa: true,
+            categoryEn: true,
+            shortDescUa: true,
+            shortDescEn: true,
+            collectionUa: true,
+            collectionEn: true,
+            stock: true,
+            priceEur: includeCommerce,
+            priceUsd: includeCommerce,
+            priceUah: includeCommerce,
+            priceEurEurope: includeCommerce,
+            priceEurB2b: includeCommerce,
+            priceUsdB2b: includeCommerce,
+            priceUahB2b: includeCommerce,
+            compareAtEur: includeCommerce,
+            compareAtUsd: includeCommerce,
+            compareAtUah: includeCommerce,
+            compareAtEurB2b: includeCommerce,
+            compareAtUsdB2b: includeCommerce,
+            compareAtUahB2b: includeCommerce,
+            image: includeCommerce,
+            collections: {
+              select: {
+                sortOrder: true,
+                collection: {
+                  select: {
+                    id: true,
+                    handle: true,
+                    titleUa: true,
+                    titleEn: true,
+                    brand: true,
+                    isUrban: true,
+                  },
                 },
               },
             },
-          },
-          variants: {
-            orderBy: { position: "asc" },
-            select: {
-              id: true,
-              title: true,
-              sku: true,
-              position: true,
-              option1Value: true,
-              option2Value: true,
-              option3Value: true,
-              inventoryQty: includeCommerce,
-              image: includeCommerce,
-              isDefault: true,
-              priceEur: includeCommerce,
-              priceUsd: includeCommerce,
-              priceUah: includeCommerce,
-              priceEurEurope: includeCommerce,
-              priceEurB2b: includeCommerce,
-              priceUsdB2b: includeCommerce,
-              priceUahB2b: includeCommerce,
-              compareAtEur: includeCommerce,
-              compareAtUsd: includeCommerce,
-              compareAtUah: includeCommerce,
-              compareAtEurB2b: includeCommerce,
-              compareAtUsdB2b: includeCommerce,
-              compareAtUahB2b: includeCommerce,
+            variants: {
+              orderBy: { position: "asc" },
+              select: {
+                id: true,
+                title: true,
+                sku: true,
+                position: true,
+                option1Value: true,
+                option2Value: true,
+                option3Value: true,
+                inventoryQty: includeCommerce,
+                image: includeCommerce,
+                isDefault: true,
+                priceEur: includeCommerce,
+                priceUsd: includeCommerce,
+                priceUah: includeCommerce,
+                priceEurEurope: includeCommerce,
+                priceEurB2b: includeCommerce,
+                priceUsdB2b: includeCommerce,
+                priceUahB2b: includeCommerce,
+                compareAtEur: includeCommerce,
+                compareAtUsd: includeCommerce,
+                compareAtUah: includeCommerce,
+                compareAtEurB2b: includeCommerce,
+                compareAtUsdB2b: includeCommerce,
+                compareAtUahB2b: includeCommerce,
+              },
             },
           },
-        },
-      }),
+        })
+      ),
   });
 
   for await (const rows of pages) {

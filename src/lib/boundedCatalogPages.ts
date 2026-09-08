@@ -1,4 +1,29 @@
 /** Read a small ID window, then its payload pages concurrently in stable order. */
+export async function readCatalogRowsWithSizeFallback<T>(
+  ids: string[],
+  readRows: (ids: string[]) => Promise<T[]>
+): Promise<T[]> {
+  try {
+    return await readRows(ids);
+  } catch (error) {
+    // Prisma Postgres/Accelerate P6009 means the response exceeded its byte
+    // limit. Split only that failure; auth, connection and SQL errors propagate.
+    if (
+      !error ||
+      typeof error !== "object" ||
+      !("code" in error) ||
+      error.code !== "P6009" ||
+      ids.length < 2
+    )
+      throw error;
+    const middle = Math.ceil(ids.length / 2);
+    // Sequential children preserve the outer page worker's concurrency budget.
+    const first = await readCatalogRowsWithSizeFallback(ids.slice(0, middle), readRows);
+    const second = await readCatalogRowsWithSizeFallback(ids.slice(middle), readRows);
+    return first.concat(second);
+  }
+}
+
 export async function* boundedCatalogPages<T>(options: {
   pageSize: number;
   concurrency: number;

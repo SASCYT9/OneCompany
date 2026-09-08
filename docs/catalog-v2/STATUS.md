@@ -916,3 +916,37 @@ Commit `fc97f8ba` additionally requires complete durable clause coverage and rej
 Commit `9b60ecc0` routes every projection query containing text through the native SQL matcher, restoring exact variant-SKU lookup for text-only searches. Commit `6cf69360` makes Catalog V2 filter transitions preserve the complete storefront query state (multi-brand, price, stock, scope, type/kind, strict and facet mode) while retaining canonical URL ordering and descendant reset behavior. The expanded regression suite is **425/425**.
 
 The acceptance matrix was rerun on clean commit `1e3dcee8`: all build/runtime/browser/HTTP checks passed across UA/EN and 390×844/1440×1000. Runtime TTFB p95 was 25.282 ms (UA) and 25.746 ms (EN); the highest browser filter-navigation p95 was 523.368 ms, with no application console errors or unexpected failed responses. Fitment remained the expected bounded `SELECTOR_NOT_READY` response until selector publication.
+
+### 2026-09-08 � approved UI restored; search cache verification
+
+Owner requested the existing premium catalog, with UI changes subject to approval.
+The public `/ua|en/shop/catalog` URL now internally serves the existing stock
+catalog presentation even when the fast data reader is enabled. Experimental SSR
+presentation additionally requires `SHOP_CATALOG_V2_SSR_UI=1`; do not enable it
+without owner approval. Search API optimization remains independently enabled by
+`SHOP_CATALOG_V2_READER_MODE=ssr`.
+
+Verification on local Next production build with the existing configured remote
+DB (read-only requests):
+
+- API and SSR ID-set parity: BMW M5 G90 52, BMW M3 G80 154, Audi A4 B9 94,
+  Porsche 911 992 28; all pages checked, no missing/extra/duplicate IDs.
+  This proves reader parity only, NOT correctness of imported fitment.
+- Shared cache measurement: first M5 API 5939 ms, repeat 351 ms; page after API
+  331 ms instead of a second independent 6571 ms load. Other repeat API samples
+  192�472 ms. Cold browser run under concurrent selector/image load still 8239 ms.
+  Cold performance is NOT solved; do not claim production latency guarantees.
+- Approved UI browser check at canonical URL: actual 24 first-page cards, total52,
+  no JavaScript page errors. Screenshot and timing artifacts are ignored under
+  artifacts/catalog-v2-storefront/approved-catalog-*.
+- 445 selected regression tests passed; 32 focused tests also passed on Node22.
+  UI routing follow-up: 16 focused tests plus full Next build passed (590 pages).
+
+Open correctness finding: Burger products cmnev7ulw02eue9mgnutchs07 and
+cmnevvawv08aee9mghkrhlq46 (Kia/Hyundai/Genesis titles) have imported generated
+`fits-make:bmw`, M3/M5/7-Series tags derived from colliding G70/G80/G90 codes.
+Their BMW applications are NEEDS_REVIEW with null model/chassis, and they have no
+projection clauses. Legacy extraction trusts the generated dedicated tags before
+the title, so they leak into BMW results. Fix source-priority/collision handling
+with fixtures across makes; do not hardcode these product IDs or claim all52 are
+valid BMW matches. No remote data was edited, no deployment performed.

@@ -178,9 +178,10 @@ test("catalog page serves projection SSR only behind the reader guard", () => {
   assert.match(premium, /name="fuel"|params\.set\("fuel"/);
 });
 
-test("flag-off catalog is internally rewritten without coupling legacy client code to V2", () => {
+test("approved catalog design is preserved unless the separate SSR UI is explicitly enabled", () => {
   const config = readFileSync("next.config.ts", "utf8");
   assert.match(config, /\["ssr", "canary"\]/);
+  assert.match(config, /process\.env\.SHOP_CATALOG_V2_SSR_UI !== "1" \|\|/);
   assert.match(config, /source: "\/:locale\(ua\|en\)\/shop\/catalog"/);
   assert.match(config, /destination: "\/:locale\/shop\/stock"/);
 });
@@ -190,6 +191,7 @@ test("canary routing is request-bound and the page still fails closed without it
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
   const suggest = readFileSync("src/app/api/shop/catalog/suggest/route.ts", "utf8");
   assert.match(proxy, /evaluateShopCatalogCanary/);
+  assert.match(proxy, /catalogMatch && process\.env\.SHOP_CATALOG_V2_SSR_UI !== "1"/);
   assert.match(proxy, /NextResponse\.rewrite\(legacyUrl\)/);
   assert.match(proxy, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
   assert.match(proxy, /Vary", "Cookie/);

@@ -19,11 +19,8 @@ import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
-import {
-  isShopWarehouseInStockProduct,
-  SHOP_WAREHOUSE_IN_STOCK_SKUS,
-  SHOP_WAREHOUSE_IN_STOCK_SLUGS,
-} from "@/lib/shopWarehouseInventory";
+import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
+import { getShopWarehouseProducts } from "@/lib/shopWarehouseInventory.server";
 import {
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   EVENTURI_SHARED_V8_INTAKE_SLUGS,
@@ -103,23 +100,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       : resolveLegacyVehicleProductIds(vehiclePlan.constraints)
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
-  const warehouseProductsPromise = measure(
-    "warehouse",
-    prisma.shopProduct.findMany({
-      where: {
-        isPublished: true,
-        status: "ACTIVE",
-        OR: [
-          ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
-            { sku: { equals: sku, mode: "insensitive" as const } },
-            { variants: { some: { sku: { equals: sku, mode: "insensitive" as const } } } },
-          ]),
-          { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
-        ],
-      },
-      select: { id: true, sku: true, slug: true },
-    })
-  );
+  const warehouseProductsPromise = measure("warehouse", getShopWarehouseProducts());
   const [settingsRecord, warehouseProducts, session, vehicleProductIds] = await Promise.all([
     measure("settings", getOrCreateShopSettings(prisma)),
     warehouseProductsPromise,

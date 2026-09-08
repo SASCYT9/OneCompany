@@ -69,8 +69,9 @@ test("vehicle results expire and unrelated vehicle keys do not share answers", a
   assert.equal(mock.state.applicationCalls, 1);
   const other = await resolveLegacyVehicleProductIds({ ...input, generation: "F90" });
   assert.ok(!other?.includes("projection-id"));
-  assert.equal(mock.state.applicationCalls, 2);
+  // Different chassis reuses make/year evidence, but must resolve its own IDs.
+  assert.equal(mock.state.applicationCalls, 1);
   now += 60_001;
   await resolveLegacyVehicleProductIds(input);
-  assert.equal(mock.state.applicationCalls, 3);
+  assert.equal(mock.state.applicationCalls, 2);
 });

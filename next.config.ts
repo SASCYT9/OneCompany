@@ -7,7 +7,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const isProd = process.env.NODE_ENV === "production";
 const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
 const catalogV2ReaderMode = process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase();
-const shouldRewriteCatalogV2ToLegacy = !["ssr", "canary"].includes(catalogV2ReaderMode ?? "");
+// Faster search data must not silently replace the approved storefront design.
+// The experimental SSR presentation requires its own explicit opt-in.
+const shouldRewriteCatalogV2ToLegacy =
+  process.env.SHOP_CATALOG_V2_SSR_UI !== "1" ||
+  !["ssr", "canary"].includes(catalogV2ReaderMode ?? "");
 
 const STATIC_REMOTE_IMAGE_HOSTS = [
   "cdn.shopify.com",
@@ -518,8 +522,8 @@ const nextConfig: NextConfig = {
         ...(shouldRewriteCatalogV2ToLegacy
           ? [
               {
-                // Preserve the public catalog URL while the V2 reader is off,
-                // without importing the large legacy client tree into V2.
+                // Keep the approved catalog at its public URL. Its search API
+                // can use the fast reader independently of the presentation.
                 source: "/:locale(ua|en)/shop/catalog",
                 destination: "/:locale/shop/stock",
               },

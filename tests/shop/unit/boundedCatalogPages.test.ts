@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { boundedCatalogPages } from "../../../src/lib/boundedCatalogPages";
+import {
+  boundedCatalogPages,
+  readCatalogRowsWithSizeFallback,
+} from "../../../src/lib/boundedCatalogPages";
 
 test("bounded reads preserve all rows and order, including an empty payload page", async () => {
   const ids = Array.from({ length: 23 }, (_, index) => String(index).padStart(3, "0"));
@@ -56,5 +59,43 @@ test("empty catalogs and exact windows terminate without duplicate rows", async 
     }))
       actual.push(...page);
     assert.deepEqual(actual, ids);
+  }
+});
+
+test("oversized responses split without losing IDs or multiplying concurrency", async () => {
+  const ids = ["a", "b", "c", "d", "e", "f", "g"];
+  let active = 0;
+  let peak = 0;
+  let splits = 0;
+  const result = await readCatalogRowsWithSizeFallback(ids, async (batch) => {
+    peak = Math.max(peak, ++active);
+    await new Promise((resolve) => setImmediate(resolve));
+    active--;
+    if (batch.length > 2) {
+      splits++;
+      throw Object.assign(new Error("response too large"), { code: "P6009" });
+    }
+    return batch;
+  });
+  assert.deepEqual(result, ids);
+  assert.equal(splits, 3);
+  assert.equal(peak, 1);
+});
+
+test("size fallback propagates unrelated errors and a single oversized record", async () => {
+  for (const [ids, code] of [
+    [["a", "b"], "P6004"],
+    [["a"], "P6009"],
+  ] as const) {
+    const error = Object.assign(new Error(code), { code });
+    let calls = 0;
+    await assert.rejects(
+      readCatalogRowsWithSizeFallback([...ids], async () => {
+        calls++;
+        throw error;
+      }),
+      (actual) => actual === error
+    );
+    assert.equal(calls, 1);
   }
 });

@@ -111,3 +111,7 @@ export async function queryShopCatalogProjectionStockSummary(query) {
   state.countQueries.push(query);
   return state.stockSummary;
 }
+
+export async function getShopWarehouseProducts() {
+  return prisma.shopProduct.findMany();
+}

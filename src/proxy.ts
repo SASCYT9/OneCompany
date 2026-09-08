@@ -39,6 +39,7 @@ function withCatalogCanaryCookie(response: NextResponse, rolloutId: string, sele
 function routeCatalogCanary(req: NextRequest, pathname: string) {
   if (process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() !== "canary") return null;
   const catalogMatch = pathname.match(/^\/(ua|en)\/shop\/catalog$/);
+  if (catalogMatch && process.env.SHOP_CATALOG_V2_SSR_UI !== "1") return null;
   const isSuggestion = pathname === "/api/shop/catalog/suggest";
   if (!catalogMatch && !isSuggestion) return null;
 

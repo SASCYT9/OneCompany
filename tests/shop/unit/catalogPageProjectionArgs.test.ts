@@ -13,6 +13,7 @@ const aliases = [
   "@/lib/prisma",
   "@/lib/shopPricingContext.server",
   "@/lib/shopWarehouseInventory",
+  "@/lib/shopWarehouseInventory.server",
   "@/lib/shopCatalogVehicleSearchPlan",
   "@/lib/shopCatalogLegacyVehicleIds.server",
   "@/lib/eventuriSharedIntake",

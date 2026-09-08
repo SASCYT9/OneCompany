@@ -26,6 +26,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdmin
 import { prisma } from "@/lib/prisma";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
+import { getShopWarehouseProducts } from "@/lib/shopWarehouseInventory.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
@@ -35,10 +36,6 @@ import {
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
-import {
-  SHOP_WAREHOUSE_IN_STOCK_SKUS,
-  SHOP_WAREHOUSE_IN_STOCK_SLUGS,
-} from "@/lib/shopWarehouseInventory";
 import CatalogV2Server from "./CatalogV2Server";
 
 export { generateMetadata } from "./metadata";
@@ -153,24 +150,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     > =
       query.stock === "all"
         ? Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>)
-        : prisma.shopProduct.findMany({
-            where: {
-              isPublished: true,
-              status: "ACTIVE",
-              OR: [
-                ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
-                  { sku: { equals: sku, mode: "insensitive" as const } },
-                  {
-                    variants: {
-                      some: { sku: { equals: sku, mode: "insensitive" as const } },
-                    },
-                  },
-                ]),
-                { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
-              ],
-            },
-            select: { id: true, sku: true, slug: true },
-          });
+        : getShopWarehouseProducts();
     const shouldReadSharedEventuri =
       query.stock === "all" &&
       (!query.make || matchesEventuriSharedV8Application(query.make, query.model));
