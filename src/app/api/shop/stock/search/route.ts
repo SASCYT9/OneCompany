@@ -5,7 +5,7 @@ import {
 import { after, NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
-import { getShopProductsByIdsServer, getShopProductsServer } from "@/lib/shopCatalogServer";
+import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import {
   extractProductFitment,
   isExpectedChassisForMakeModel,
@@ -13,15 +13,13 @@ import {
 } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import {
-  getOrCreateShopSettings,
-  getShopSettingsRuntime,
-  type ShopCurrencyCode,
-} from "@/lib/shopAdminSettings";
+import { type ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import {
   buildShopSearchText,
+  canonicalizeShopSearchQuery,
   tokenizeShopSearchQuery,
   normalizeShopSearchText,
 } from "@/lib/shopSearch";
@@ -33,6 +31,7 @@ import {
   compactShopCode,
   enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
+  filterVehicleSearchResidualTokens,
   isStructuredPartQuery,
   projectCatalogVehicleResolutionItems,
   scoreVehicleSearchItem,
@@ -66,6 +65,7 @@ import {
   mergePersistedFitment,
   NORMALIZED_FITMENT_KEY,
   NORMALIZED_FITMENT_NAMESPACE,
+  parseNormalizedFitment,
   resolveSearchFitments,
   type NormalizedFitmentSource,
   type NormalizedFitmentStatus,
@@ -92,6 +92,7 @@ import {
   resolveShopCatalogDeploymentCommit,
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
+import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
@@ -148,6 +149,7 @@ let cachedProductsWithFitment: Array<{
   searchText: string;
   titleText: string;
   skuText: string;
+  brandText: string;
   compactSkuText: string;
   fitmentText: string;
   yearRanges: Fitment["yearRanges"];
@@ -156,6 +158,7 @@ let cachedProductsWithFitment: Array<{
     searchText: string;
     titleText: string;
     skuText: string;
+    brandText: string;
     compactSkuText: string;
     fitmentText: string;
     yearRanges: Fitment["yearRanges"];
@@ -177,21 +180,26 @@ function indexProductWithFitment(
   const supplierNormalized = supplierContract
     ? supplierContractToNormalizedFitment(supplierContract)
     : null;
+  const persistedNormalized = parseNormalizedFitment(persisted?.manual);
   const automaticSafetyValue =
     automaticNormalized.status === "needs_review" || automaticNormalized.status === "universal"
       ? JSON.stringify(automaticNormalized)
       : null;
   const effectivePersistedValue =
-    persisted?.manual ??
-    (supplierNormalized ? JSON.stringify(supplierNormalized) : automaticSafetyValue);
+    (persistedNormalized?.source === "manual"
+      ? persisted?.manual
+      : supplierNormalized
+        ? JSON.stringify(supplierNormalized)
+        : persisted?.manual) ?? automaticSafetyValue;
   const normalizedFitment = mergePersistedFitment(
-    supplierNormalized ?? automaticNormalized,
-    persisted?.manual
+    supplierNormalized ?? persistedNormalized ?? automaticNormalized,
+    persistedNormalized?.source === "manual" ? persisted?.manual : null
   );
   const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
   const fitment = fitments[0];
   const displayBrand = getProductDisplayBrand(product.brand);
   const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
+  const brandText = buildShopSearchText([displayBrand, product.vendor]);
   const skuText = buildShopSearchText([
     product.sku,
     ...(product.variants ?? []).flatMap((variant: any) => [variant.sku, variant.title]),
@@ -208,6 +216,13 @@ function indexProductWithFitment(
       value.make,
       ...value.models,
       ...value.chassisCodes,
+      ...(value.engines ?? []),
+      value.fuel,
+      ...(value.bodyStyles ?? []),
+      ...(value.drivetrains ?? []),
+      ...(value.markets ?? []),
+      value.transmission,
+      value.opfGpf,
       ...value.yearRanges.map((range) =>
         range.to === null
           ? `${range.from}+`
@@ -246,6 +261,15 @@ function indexProductWithFitment(
       variant.optionValues?.join(" "),
     ]),
     ...fitments.flatMap((value) => [value.make, ...value.models, ...value.chassisCodes]),
+    ...fitments.flatMap((value) => [
+      ...(value.engines ?? []),
+      value.fuel,
+      ...(value.bodyStyles ?? []),
+      ...(value.drivetrains ?? []),
+      ...(value.markets ?? []),
+      value.transmission,
+      value.opfGpf,
+    ]),
     ...(product.tags ?? []),
   ]);
 
@@ -259,6 +283,7 @@ function indexProductWithFitment(
     searchText,
     titleText,
     skuText,
+    brandText,
     compactSkuText,
     fitmentText,
     yearRanges: fitment.yearRanges,
@@ -267,6 +292,7 @@ function indexProductWithFitment(
       searchText,
       titleText,
       skuText,
+      brandText,
       compactSkuText,
       fitmentText: buildFitmentText(value),
       yearRanges: value.yearRanges,
@@ -346,6 +372,7 @@ function consolidateEventuriSharedV8IntakeItems(
       searchText: consolidated.searchText,
       titleText: consolidated.titleText,
       skuText: consolidated.skuText,
+      brandText: consolidated.brandText,
       compactSkuText: consolidated.compactSkuText,
       fitmentText: buildShopSearchText([fitment.make, ...fitment.models, ...fitment.chassisCodes]),
       yearRanges: fitment.yearRanges,
@@ -368,7 +395,11 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
     return (await getShopProductsWithFitments()).filter((item) => idSet.has(item.product.id));
   }
   const [products, fitmentOverrides] = await Promise.all([
-    getShopProductsByIdsServer(uniqueIds),
+    // Vehicle resolution already narrowed the IDs. Reuse the compact fitment
+    // projection instead of hydrating PDP-only media, options, metafields and
+    // bundle graphs for every result. Search cards only need the scalar card
+    // fields plus variants for SKU/fitment evidence.
+    getShopFitmentCatalogProducts({ productIds: uniqueIds }),
     prisma.shopProductMetafield.findMany({
       where: {
         productId: { in: uniqueIds },
@@ -590,6 +621,15 @@ function narrowVehicleSearchResults<
               )
             );
           if (!chassisMatches) return false;
+          const engineMatches =
+            expandedQuery.engines.length === 0 ||
+            (fitment.engines ?? []).some((engine) =>
+              expandedQuery.engines.some(
+                (queryEngine) =>
+                  normalizeShopSearchText(engine) === normalizeShopSearchText(queryEngine)
+              )
+            );
+          if (!engineMatches) return false;
           return (
             expandedQuery.years.length === 0 ||
             expandedQuery.years.some((year) => shopVehicleYearAllows(fitment, year))
@@ -601,7 +641,11 @@ function narrowVehicleSearchResults<
   if (hasStructuredVehicleTarget) {
     // Once make + model/chassis were parsed, never relax back to token-only
     // matching. An honest no-match is safer than a neighbouring vehicle.
-    return structuredMatches;
+    // Any remaining words are product intent (`Eventuri`, `Burger Motorsports`,
+    // a SKU fragment, etc.) and must also match the candidate. This prevents a
+    // vehicle-only result set from pretending that a brand-specific query was
+    // understood when it was not.
+    return filterVehicleSearchResidualTokens(structuredMatches, expandedQuery);
   }
 
   if (!hasStructuredMatches && expandedQuery.requiredTokens.length > 0) {
@@ -1004,7 +1048,7 @@ export async function GET(request: NextRequest) {
       return await queryPremiumCatalogProjection(searchParams);
     }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
-    const q = searchParams.get("q")?.trim() || "";
+    const q = canonicalizeShopSearchQuery(searchParams.get("q")?.trim() || "");
     const category = searchParams.get("category")?.trim() || "";
     const rawProductType = searchParams.get("productType")?.trim() || "";
     const productType = rawProductType.length <= 120 ? rawProductType : "";
@@ -1048,6 +1092,13 @@ export async function GET(request: NextRequest) {
       requestedFuel ||
       requestedOpfGpf
     );
+    const queryVehiclePlan = buildShopCatalogVehicleSearchPlan(searchParams, {
+      readerMode: "legacy",
+    });
+    const resolvedVehicleMake = queryVehiclePlan.constraints.make ?? "";
+    const resolvedVehicleModel = queryVehiclePlan.constraints.model ?? "";
+    const resolvedVehicleChassis = queryVehiclePlan.constraints.generation ?? "";
+    const resolvedVehicleYear = queryVehiclePlan.constraints.year;
     const strictCatalogApplied =
       strictMatch &&
       (strictCatalogConstraints.invalid || strictCatalogConstraints.hasKnowledgeConstraints);
@@ -1096,15 +1147,17 @@ export async function GET(request: NextRequest) {
           },
         }).catch((error: unknown) => ({ error }) as const);
 
-    const [settingsRecord, session, canonicalVehicleProductIds, strictCatalogResolution] =
+    const [settings, session, canonicalVehicleProductIds, strictCatalogResolution] =
       await Promise.all([
-        getOrCreateShopSettings(prisma),
+        // Public catalog settings are tag-cached and invalidated by the admin
+        // settings routes. This removes one live DB read from every search.
+        getPublicShopSettingsRuntime(),
         getCurrentShopCustomerSession(),
         resolveCanonicalVehicleProductIds({
-          make,
-          model,
-          chassis,
-          year: requestedYear,
+          make: resolvedVehicleMake,
+          model: resolvedVehicleModel,
+          chassis: resolvedVehicleChassis,
+          year: resolvedVehicleYear,
           engine: requestedEngine,
           fuel: requestedFuel,
           opfGpf: requestedOpfGpf,
@@ -1167,7 +1220,6 @@ export async function GET(request: NextRequest) {
       return inferShopAiProductKind(evidence, categoryGroup.id) === productKind;
     };
 
-    const settings = getShopSettingsRuntime(settingsRecord);
     const pricingContext = await buildShopViewerPricingContextServer({
       prisma,
       settings,
@@ -1674,6 +1726,39 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Serialize output for frontend
+    // The compact fitment projection intentionally omits galleries. Fetch
+    // image media only for the visible page so a stale KW primary URL can
+    // recover from the same product's gallery without bloating the 17k-row
+    // catalog cache or adding media joins to every fitment scan.
+    const visibleProductIds =
+      paginatedItems.length <= MAX_STOCK_SEARCH_LIMIT
+        ? Array.from(
+            new Set(
+              paginatedItems
+                .filter(({ product }) => {
+                  const brand = normalizeShopSearchText(getProductDisplayBrand(product.brand));
+                  return !product.image || brand.includes("kw");
+                })
+                .map(({ product }) => product.id)
+                .filter((id): id is string => Boolean(id))
+            )
+          )
+        : [];
+    const visibleMediaRows = visibleProductIds.length
+      ? await prisma.$queryRaw<Array<{ productId: string; src: string }>>(Prisma.sql`
+          SELECT DISTINCT ON ("productId") "productId", "src"
+          FROM "ShopProductMedia"
+          WHERE "productId" IN (${Prisma.join(visibleProductIds)})
+            AND "mediaType" = 'IMAGE'
+          ORDER BY "productId" ASC, "position" ASC, "createdAt" ASC, "id" ASC
+        `)
+      : [];
+    const visibleMediaByProduct = new Map<string, string[]>();
+    for (const media of visibleMediaRows) {
+      const sources = visibleMediaByProduct.get(media.productId) ?? [];
+      if (media.src?.trim()) sources.push(media.src.trim());
+      visibleMediaByProduct.set(media.productId, sources);
+    }
     const sanitizedItems = paginatedItems.map(
       ({ product, fitments, fitmentStatus, fitmentSource }) => {
         const pricing = getProductPricing(product);
@@ -1742,7 +1827,21 @@ export async function GET(request: NextRequest) {
               ? product.shortDescription?.en || product.shortDescription?.ua || ""
               : product.shortDescription?.ua || product.shortDescription?.en || "",
           category: sourceCategory || getShopStockCategoryLabelForProduct({ product }, locale),
-          thumbnail: product.image || null,
+          // Keep the primary image first, but retain the product's own gallery
+          // as a deterministic fallback when a CDN URL is stale or unavailable.
+          imageSources: Array.from(
+            new Set(
+              [
+                product.image,
+                ...(Array.isArray(product.gallery) ? product.gallery : []),
+                ...(product.id ? (visibleMediaByProduct.get(product.id) ?? []) : []),
+                ...(product.variants ?? []).map((variant: any) => variant.image),
+              ]
+                .map((value) => String(value ?? "").trim())
+                .filter(Boolean)
+            )
+          ),
+          thumbnail: product.image || product.gallery?.[0] || null,
           inStock: isShopWarehouseInStockProduct(product.sku, product.slug),
           price: dealerPrice,
           priceUsd: effectivePriceSet.usd,
@@ -1774,6 +1873,13 @@ export async function GET(request: NextRequest) {
                   models: fitment.models,
                   chassisCodes: fitment.chassisCodes,
                   yearRanges: fitment.yearRanges,
+                  engines: fitment.engines ?? [],
+                  fuel: fitment.fuel ?? null,
+                  bodyStyles: fitment.bodyStyles ?? [],
+                  drivetrains: fitment.drivetrains ?? [],
+                  markets: fitment.markets ?? [],
+                  transmission: fitment.transmission ?? null,
+                  opfGpf: fitment.opfGpf ?? "unknown",
                   confidence: fitment.confidence,
                 })),
               }

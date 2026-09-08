@@ -49,6 +49,12 @@ export type NormalizedFitment = {
   verifiedAt: string | null;
   verifiedBy: string | null;
   note: string | null;
+  evidence?: {
+    source: "description" | "title" | "structured";
+    fragment: string;
+    processorVersion: string;
+    sourceFingerprint?: string;
+  } | null;
   dependency?: { type: "parent_product"; parentSku: string | null } | null;
 };
 
@@ -70,6 +76,8 @@ const MOTORCYCLE_SIGNAL =
   /\b(?:motorcycle|motorbike|moto|panigale|diavel|streetfighter|multistrada|superduke|ninja|fireblade|s\s?1000\s?rr|m\s?1000\s?rr|r\s?1250\s?gs|r\s?1300\s?gs)\b/i;
 const EXPLICIT_UNIVERSAL_SIGNAL =
   /\b(?:universal|universal fit|fits all|all vehicles|універсальн(?:ий|а|е|і))\b/i;
+const EXPLICIT_UNIVERSAL_NEGATION =
+  /\b(?:not|isn't|is not|doesn't|does not|never)\s+(?:a\s+)?universal\b|\bне\s+універсальн/i;
 const MERCH_SIGNAL =
   /\b(?:t-?shirt|hoodie|sweatshirt|cap|hat|beanie|mug|sticker|keychain|lanyard|мерч|футболк|худі|кепк|шапк|чашк|наліпк|брелок)\b/i;
 
@@ -82,6 +90,10 @@ function productEvidenceText(product: ShopProduct) {
     product.productType,
     product.collection?.ua,
     product.collection?.en,
+    product.shortDescription?.ua,
+    product.shortDescription?.en,
+    product.longDescription?.ua,
+    product.longDescription?.en,
     ...(product.tags ?? []),
   ]
     .filter(Boolean)
@@ -98,6 +110,7 @@ function inferVehicleType(product: ShopProduct, fitment: Fitment): NormalizedVeh
 function isExplicitlyUniversal(product: ShopProduct, fitment: Fitment) {
   if (fitment.make || fitment.models.length || fitment.chassisCodes.length) return false;
   const evidence = productEvidenceText(product);
+  if (EXPLICIT_UNIVERSAL_NEGATION.test(evidence)) return false;
   return EXPLICIT_UNIVERSAL_SIGNAL.test(evidence) || MERCH_SIGNAL.test(evidence);
 }
 
@@ -145,7 +158,11 @@ function legacyApplication(
   make: string | null,
   models: string[],
   chassisCodes: string[],
-  yearRanges: VehicleYearRange[]
+  yearRanges: VehicleYearRange[],
+  attributes?: Pick<
+    Fitment,
+    "engines" | "fuel" | "bodyStyles" | "drivetrains" | "markets" | "transmission" | "opfGpf"
+  >
 ) {
   if (!make) return [];
   return [
@@ -155,10 +172,13 @@ function legacyApplication(
       models,
       chassisCodes,
       yearRanges,
-      engines: [],
-      bodyStyles: [],
-      drivetrains: [],
-      markets: [],
+      engines: attributes?.engines ?? [],
+      fuel: attributes?.fuel ?? null,
+      bodyStyles: attributes?.bodyStyles ?? [],
+      drivetrains: attributes?.drivetrains ?? [],
+      markets: attributes?.markets ?? [],
+      transmission: attributes?.transmission ?? null,
+      opfGpf: attributes?.opfGpf ?? "unknown",
     },
   ];
 }
@@ -180,6 +200,7 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
       verifiedAt: null,
       verifiedBy: null,
       note: disposition.reason,
+      evidence: null,
       dependency: { type: "parent_product", parentSku: disposition.parentSku },
     };
   }
@@ -199,6 +220,7 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
       verifiedAt: null,
       verifiedBy: null,
       note: disposition.reason,
+      evidence: null,
       dependency: null,
     };
   }
@@ -218,6 +240,7 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
       verifiedAt: null,
       verifiedBy: null,
       note: null,
+      evidence: null,
       dependency: null,
     };
   }
@@ -247,6 +270,7 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
       verifiedAt: null,
       verifiedBy: null,
       note: `Cross-make model conflict: ${fitment.make} / ${incompatibleModels.join(", ")}`,
+      evidence: fitment.evidence ?? null,
     };
   }
   return {
@@ -257,12 +281,20 @@ export function classifyProductFitment(product: ShopProduct, fitment: Fitment): 
     models,
     chassisCodes,
     yearRanges,
-    applications: legacyApplication(vehicleType, fitment.make, models, chassisCodes, yearRanges),
+    applications: legacyApplication(
+      vehicleType,
+      fitment.make,
+      models,
+      chassisCodes,
+      yearRanges,
+      fitment
+    ),
     confidence: fitment.confidence,
     source: "automatic",
     verifiedAt: null,
     verifiedBy: null,
     note: null,
+    evidence: fitment.evidence ?? null,
   };
 }
 
@@ -320,6 +352,25 @@ export function parseNormalizedFitment(value: string | null | undefined): Normal
       verifiedAt: parsed.verifiedAt ? String(parsed.verifiedAt) : null,
       verifiedBy: parsed.verifiedBy ? String(parsed.verifiedBy) : null,
       note: parsed.note ? String(parsed.note).trim() || null : null,
+      evidence:
+        parsed.evidence && typeof parsed.evidence === "object"
+          ? {
+              source: ["description", "title", "structured"].includes(
+                String((parsed.evidence as Record<string, unknown>).source)
+              )
+                ? (String((parsed.evidence as Record<string, unknown>).source) as
+                    "description" | "title" | "structured")
+                : "description",
+              fragment: String((parsed.evidence as Record<string, unknown>).fragment ?? ""),
+              processorVersion: String(
+                (parsed.evidence as Record<string, unknown>).processorVersion ?? "unknown"
+              ),
+              sourceFingerprint:
+                String(
+                  (parsed.evidence as Record<string, unknown>).sourceFingerprint ?? ""
+                ).trim() || undefined,
+            }
+          : null,
       dependency:
         parsed.dependency && typeof parsed.dependency === "object"
           ? {
@@ -371,6 +422,13 @@ export function resolveSearchFitments(
     chassisCodes: application.chassisCodes,
     yearRanges: application.yearRanges,
     confidence,
+    engines: application.engines,
+    fuel: application.fuel ?? null,
+    bodyStyles: application.bodyStyles,
+    drivetrains: application.drivetrains,
+    markets: application.markets,
+    transmission: application.transmission ?? null,
+    opfGpf: application.opfGpf ?? "unknown",
   }));
   return fitments.length
     ? fitments
@@ -381,6 +439,13 @@ export function resolveSearchFitments(
           chassisCodes: persisted.chassisCodes,
           yearRanges: persisted.yearRanges,
           confidence,
+          engines: [],
+          fuel: null,
+          bodyStyles: [],
+          drivetrains: [],
+          markets: [],
+          transmission: null,
+          opfGpf: "unknown",
         },
       ];
 }
@@ -439,6 +504,7 @@ export function normalizeManualFitment(
       verifiedAt: isConfirmed ? now.toISOString() : null,
       verifiedBy: isConfirmed ? actor : null,
       note: String(source.note ?? "").trim() || null,
+      evidence: null,
       dependency: null,
     },
     errors: [],

@@ -1,7 +1,10 @@
 import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
-import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
+import {
+  getRacechipProductBySlugLightServer,
+  getTopProductSlugsByBrand,
+} from "@/lib/shopCatalogServer";
 import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -31,11 +34,9 @@ export async function generateMetadata({
 }) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const product = await requireCanonicalStorefrontProduct({
-    locale: resolvedLocale,
-    slug,
-    mode: "racechip",
-  });
+  const product =
+    (await getRacechipProductBySlugLightServer(slug)) ??
+    (await requireCanonicalStorefrontProduct({ locale: resolvedLocale, slug, mode: "racechip" }));
 
   const title = localizeShopProductTitle(resolvedLocale, product);
   return buildPageMetadata(resolvedLocale, `shop/racechip/products/${slug}`, {
@@ -56,11 +57,9 @@ export default async function RacechipProductPage({
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
 
-  const product = await requireCanonicalStorefrontProduct({
-    locale: resolvedLocale,
-    slug,
-    mode: "racechip",
-  });
+  const product =
+    (await getRacechipProductBySlugLightServer(slug)) ??
+    (await requireCanonicalStorefrontProduct({ locale: resolvedLocale, slug, mode: "racechip" }));
 
   // Recommendations load near the viewport, outside the ISR render.
   const settingsRuntime = await getPublicShopSettingsRuntime();

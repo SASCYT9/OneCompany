@@ -9,6 +9,92 @@ import {
 } from "@/lib/shopVehicleTaxonomy";
 import type { ShopStockVehicleScope } from "@/lib/shopStockVehicleScope";
 
+// Dynamic supplier labels are only an alias-enrichment step. Keep them in the
+// warm function process so repeated searches do not rescan every projection
+// constraint row. The canonical application/policy query remains authoritative
+// and still runs for every request, so this cache cannot hide product edits.
+const DYNAMIC_ALIAS_CACHE_TTL_MS = 5 * 60 * 1000;
+const dynamicAliasCache = new Map<string, { values: string[]; expiresAt: number }>();
+const dynamicAliasInflight = new Map<string, Promise<string[]>>();
+
+function dynamicAliasKey(kind: "model" | "chassis", value: string, make = "") {
+  return `${kind}:${make.trim().toLocaleLowerCase()}|${value.trim().toLocaleLowerCase()}`;
+}
+
+async function getDynamicModelAliases(make: string, value: string): Promise<string[]> {
+  const key = dynamicAliasKey("model", value, make);
+  const now = Date.now();
+  const cached = dynamicAliasCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.values;
+  const inflight = dynamicAliasInflight.get(key);
+  if (inflight) return inflight;
+
+  const promise = prisma.shopCatalogProjectionConstraint
+    .findMany({
+      where: {
+        dimension: "MODEL",
+        state: "EXACT",
+        textValue: { not: null },
+      },
+      distinct: ["textValue"],
+      select: { textValue: true },
+    })
+    .then((rows) =>
+      rows
+        .map((row) => row.textValue)
+        .filter((candidate): candidate is string => {
+          if (!candidate) return false;
+          return shopVehicleModelsMatch(candidate, value, make);
+        })
+    );
+  dynamicAliasInflight.set(key, promise);
+  try {
+    const values = await promise;
+    dynamicAliasCache.set(key, { values, expiresAt: Date.now() + DYNAMIC_ALIAS_CACHE_TTL_MS });
+    return values;
+  } finally {
+    if (dynamicAliasInflight.get(key) === promise) dynamicAliasInflight.delete(key);
+  }
+}
+
+async function getDynamicChassisAliases(value: string): Promise<string[]> {
+  const key = dynamicAliasKey("chassis", value);
+  const now = Date.now();
+  const cached = dynamicAliasCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.values;
+  const inflight = dynamicAliasInflight.get(key);
+  if (inflight) return inflight;
+
+  const promise = prisma.shopCatalogProjectionConstraint
+    .findMany({
+      where: {
+        dimension: { in: ["GENERATION", "CHASSIS"] },
+        state: "EXACT",
+        textValue: { contains: value, mode: "insensitive" },
+      },
+      distinct: ["textValue"],
+      select: { textValue: true },
+    })
+    .then((rows) =>
+      rows
+        .map((row) => row.textValue)
+        .filter((candidate): candidate is string => {
+          if (!candidate) return false;
+          return splitVehicleChassisCodes(candidate).some(
+            (code) => code.toLocaleLowerCase() === value.toLocaleLowerCase()
+          );
+        })
+    );
+  dynamicAliasInflight.set(key, promise);
+  try {
+    const values = await promise;
+    dynamicAliasCache.set(key, { values, expiresAt: Date.now() + DYNAMIC_ALIAS_CACHE_TTL_MS });
+    return values;
+  } finally {
+    if (dynamicAliasInflight.get(key) === promise) dynamicAliasInflight.delete(key);
+  }
+}
+
 export function isMissingStrictCatalogSchema(error: unknown) {
   const code = String((error as { code?: unknown })?.code ?? "");
   const message = String((error as { message?: unknown })?.message ?? "");
@@ -58,52 +144,17 @@ export async function resolveCanonicalVehicleProductIds(input: {
         mode: "insensitive" as const,
       },
     });
+    // Model and chassis alias discovery is independent; overlap both scans so
+    // a cold request pays the slower query once instead of their sum.
+    const [dynamicModelAliases, dynamicChassisAliases] = await Promise.all([
+      input.model ? getDynamicModelAliases(input.make, input.model) : Promise.resolve<string[]>([]),
+      input.chassis ? getDynamicChassisAliases(input.chassis) : Promise.resolve<string[]>([]),
+    ]);
     const modelAliases = input.model
-      ? [
-          ...vehicleModelAliases(input.make, input.model),
-          ...(
-            await prisma.shopCatalogProjectionConstraint.findMany({
-              where: {
-                dimension: "MODEL",
-                state: "EXACT",
-                textValue: { not: null },
-              },
-              distinct: ["textValue"],
-              select: { textValue: true },
-            })
-          )
-            .map((row) => row.textValue)
-            .filter(
-              (value): value is string =>
-                Boolean(value) && shopVehicleModelsMatch(value!, input.model, input.make)
-            ),
-        ]
+      ? [...vehicleModelAliases(input.make, input.model), ...dynamicModelAliases]
       : [];
     const uniqueModelAliases = [...new Set(modelAliases)];
-    const chassisAliases = input.chassis
-      ? [
-          input.chassis,
-          ...(
-            await prisma.shopCatalogProjectionConstraint.findMany({
-              where: {
-                dimension: { in: ["GENERATION", "CHASSIS"] },
-                state: "EXACT",
-                textValue: { contains: input.chassis, mode: "insensitive" },
-              },
-              distinct: ["textValue"],
-              select: { textValue: true },
-            })
-          )
-            .map((row) => row.textValue)
-            .filter(
-              (value): value is string =>
-                Boolean(value) &&
-                splitVehicleChassisCodes(value!).some(
-                  (code) => code.toLocaleLowerCase() === input.chassis.toLocaleLowerCase()
-                )
-            ),
-        ]
-      : [];
+    const chassisAliases = input.chassis ? [input.chassis, ...dynamicChassisAliases] : [];
     const uniqueChassisAliases = [...new Set(chassisAliases)];
     const canonicalClauseConstraints = [
       ...(input.scope ? [exactTextConstraint("SCOPE", input.scope)] : []),
@@ -151,8 +202,8 @@ export async function resolveCanonicalVehicleProductIds(input: {
           ]
         : []),
     ];
-    const [applicationRows, policyRows] = await Promise.all([
-      prisma.shopVehicleApplication.findMany({
+    const readApplicationRows = async () =>
+      await prisma.shopVehicleApplication.findMany({
         where: {
           isActive: true,
           isUniversal: false,
@@ -180,8 +231,9 @@ export async function resolveCanonicalVehicleProductIds(input: {
         },
         distinct: ["productId"],
         select: { productId: true },
-      }),
-      prisma.shopCatalogProjectionClause.findMany({
+      });
+    const readPolicyRows = async () =>
+      await prisma.shopCatalogProjectionClause.findMany({
         where: {
           policy: { mode: { not: "UNIVERSAL" } },
           product: { isPublished: true, status: "ACTIVE" },
@@ -191,7 +243,10 @@ export async function resolveCanonicalVehicleProductIds(input: {
         },
         distinct: ["productId"],
         select: { productId: true },
-      }),
+      });
+    const [applicationRows, policyRows] = await Promise.all([
+      readApplicationRows(),
+      readPolicyRows(),
     ]);
     return [...new Set([...applicationRows, ...policyRows].map((row) => row.productId))];
   } catch (error) {

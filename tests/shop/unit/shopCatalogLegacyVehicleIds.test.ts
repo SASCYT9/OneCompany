@@ -37,7 +37,10 @@ test("coalesces concurrent vehicle resolutions and reuses the bounded result", a
   assert.equal(mock.state.projectionCalls, 1);
   assert.equal(mock.state.catalogCalls, 1);
   assert.equal(mock.state.applicationArgs[0].where.AND.length, 2);
-  assert.equal(mock.state.projectionArgs[0].where.AND.length, 1);
+  // Evidence is narrowed to the selected year, model, and chassis before the
+  // legacy bridge returns IDs. This keeps unrelated clauses out of the hot
+  // path and makes the cache key safe for each vehicle selection.
+  assert.equal(mock.state.projectionArgs[0].where.AND.length, 3);
   assert.deepEqual(await resolveLegacyVehicleProductIds(input), first);
   assert.equal(mock.state.applicationCalls, 1);
   assert.equal(mock.state.projectionCalls, 1);
@@ -69,9 +72,10 @@ test("vehicle results expire and unrelated vehicle keys do not share answers", a
   assert.equal(mock.state.applicationCalls, 1);
   const other = await resolveLegacyVehicleProductIds({ ...input, generation: "F90" });
   assert.ok(!other?.includes("projection-id"));
-  // Different chassis reuses make/year evidence, but must resolve its own IDs.
-  assert.equal(mock.state.applicationCalls, 1);
+  // Different chassis must not reuse evidence for the previous vehicle.
+  assert.equal(mock.state.applicationCalls, 2);
   now += 60_001;
   await resolveLegacyVehicleProductIds(input);
-  assert.equal(mock.state.applicationCalls, 2);
+  // The original vehicle answer expires after one minute and is refreshed.
+  assert.equal(mock.state.applicationCalls, 3);
 });

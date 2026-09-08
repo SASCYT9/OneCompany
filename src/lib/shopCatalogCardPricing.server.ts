@@ -1,4 +1,5 @@
 import type { ShopMoneySet } from "@/lib/shopCatalog";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 
@@ -12,6 +13,7 @@ export type ShopCatalogCardPricing = Readonly<{
   brand: string | null;
   sku: string | null;
   primaryMediaUrl: string | null;
+  imageSources: string[];
   defaultVariantId: string | null;
 }>;
 
@@ -23,6 +25,122 @@ const money = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
 
 const present = (value: ShopMoneySet) =>
   value.eur > 0 || value.usd > 0 || value.uah > 0 ? value : null;
+
+// Search, pagination and mobile back-navigation can ask for the same visible
+// page concurrently. Coalesce only the in-flight read; successful values are
+// never retained, so a price edit remains visible on the next request.
+const cardPricingFlights = new Map<string, Promise<ShopCatalogCardPricing[]>>();
+
+type ShopCatalogCardPricingRow = {
+  id: string;
+  brand: string | null;
+  vendor: string | null;
+  image: string | null;
+  sku: string | null;
+  priceEur: unknown;
+  priceEurEurope: unknown;
+  priceUsd: unknown;
+  priceUah: unknown;
+  priceEurB2b: unknown;
+  priceUsdB2b: unknown;
+  priceUahB2b: unknown;
+  compareAtEur: unknown;
+  compareAtUsd: unknown;
+  compareAtUah: unknown;
+  compareAtEurB2b: unknown;
+  compareAtUsdB2b: unknown;
+  compareAtUahB2b: unknown;
+  variantId: string | null;
+  variantSku: string | null;
+  variantImage: string | null;
+  variantPriceEur: unknown;
+  variantPriceEurEurope: unknown;
+  variantPriceUsd: unknown;
+  variantPriceUah: unknown;
+  variantPriceEurB2b: unknown;
+  variantPriceUsdB2b: unknown;
+  variantPriceUahB2b: unknown;
+  variantCompareAtEur: unknown;
+  variantCompareAtUsd: unknown;
+  variantCompareAtUah: unknown;
+  variantCompareAtEurB2b: unknown;
+  variantCompareAtUsdB2b: unknown;
+  variantCompareAtUahB2b: unknown;
+  mediaSrc: string | null;
+};
+
+/**
+ * Read only the card fields needed after projection pagination. A nested
+ * Prisma include can issue several relation queries and hydrate arrays for
+ * every visible product; this single statement keeps the same precedence
+ * while bounding the work to one default variant and one image per ID.
+ */
+async function readShopCatalogCardPricingRows(
+  uniqueIds: readonly string[]
+): Promise<ShopCatalogCardPricingRow[]> {
+  return prisma.$queryRaw<ShopCatalogCardPricingRow[]>(Prisma.sql`
+    SELECT
+      product."id",
+      product."brand",
+      product."vendor",
+      product."image",
+      product."sku",
+      product."priceEur",
+      product."priceEurEurope",
+      product."priceUsd",
+      product."priceUah",
+      product."priceEurB2b",
+      product."priceUsdB2b",
+      product."priceUahB2b",
+      product."compareAtEur",
+      product."compareAtUsd",
+      product."compareAtUah",
+      product."compareAtEurB2b",
+      product."compareAtUsdB2b",
+      product."compareAtUahB2b",
+      variant."id" AS "variantId",
+      variant."sku" AS "variantSku",
+      variant."image" AS "variantImage",
+      variant."priceEur" AS "variantPriceEur",
+      variant."priceEurEurope" AS "variantPriceEurEurope",
+      variant."priceUsd" AS "variantPriceUsd",
+      variant."priceUah" AS "variantPriceUah",
+      variant."priceEurB2b" AS "variantPriceEurB2b",
+      variant."priceUsdB2b" AS "variantPriceUsdB2b",
+      variant."priceUahB2b" AS "variantPriceUahB2b",
+      variant."compareAtEur" AS "variantCompareAtEur",
+      variant."compareAtUsd" AS "variantCompareAtUsd",
+      variant."compareAtUah" AS "variantCompareAtUah",
+      variant."compareAtEurB2b" AS "variantCompareAtEurB2b",
+      variant."compareAtUsdB2b" AS "variantCompareAtUsdB2b",
+      variant."compareAtUahB2b" AS "variantCompareAtUahB2b",
+      media."src" AS "mediaSrc"
+    FROM "ShopProduct" product
+    LEFT JOIN LATERAL (
+      SELECT
+        candidate."id", candidate."sku", candidate."image",
+        candidate."priceEur", candidate."priceEurEurope", candidate."priceUsd", candidate."priceUah",
+        candidate."priceEurB2b", candidate."priceUsdB2b", candidate."priceUahB2b",
+        candidate."compareAtEur", candidate."compareAtUsd", candidate."compareAtUah",
+        candidate."compareAtEurB2b", candidate."compareAtUsdB2b", candidate."compareAtUahB2b"
+      FROM "ShopProductVariant" candidate
+      WHERE candidate."productId" = product."id"
+      ORDER BY candidate."isDefault" DESC, candidate."position" ASC, candidate."id" ASC
+      LIMIT 1
+    ) variant ON true
+    LEFT JOIN LATERAL (
+      SELECT candidate."src"
+      FROM "ShopProductMedia" candidate
+      WHERE candidate."productId" = product."id"
+        AND candidate."mediaType" = 'IMAGE'
+      ORDER BY candidate."position" ASC, candidate."createdAt" ASC, candidate."id" ASC
+      LIMIT 1
+    ) media ON true
+    WHERE product."id" IN (${Prisma.join(uniqueIds)})
+      AND product."isPublished" = true
+      AND product."status" = 'ACTIVE'
+  `);
+}
 
 /**
  * Fresh, bounded storefront pricing read for an already-resolved catalog page.
@@ -36,95 +154,81 @@ export async function getShopCatalogCardPricingByIds(
   if (uniqueIds.length === 0) return [];
   if (uniqueIds.length > 100) throw new RangeError("Catalog card pricing is limited to 100 IDs");
 
-  const rows = await prisma.shopProduct.findMany({
-    where: { id: { in: uniqueIds }, isPublished: true, status: "ACTIVE" },
-    select: {
-      id: true,
-      brand: true,
-      vendor: true,
-      image: true,
-      sku: true,
-      priceEur: true,
-      priceEurEurope: true,
-      priceUsd: true,
-      priceUah: true,
-      priceEurB2b: true,
-      priceUsdB2b: true,
-      priceUahB2b: true,
-      compareAtEur: true,
-      compareAtUsd: true,
-      compareAtUah: true,
-      compareAtEurB2b: true,
-      compareAtUsdB2b: true,
-      compareAtUahB2b: true,
-      variants: {
-        orderBy: [{ isDefault: "desc" }, { position: "asc" }],
-        take: 1,
-        select: {
-          id: true,
-          sku: true,
-          image: true,
-          priceEur: true,
-          priceEurEurope: true,
-          priceUsd: true,
-          priceUah: true,
-          priceEurB2b: true,
-          priceUsdB2b: true,
-          priceUahB2b: true,
-          compareAtEur: true,
-          compareAtUsd: true,
-          compareAtUah: true,
-          compareAtEurB2b: true,
-          compareAtUsdB2b: true,
-          compareAtUahB2b: true,
-        },
-      },
-      media: {
-        where: { mediaType: "IMAGE" },
-        orderBy: [{ position: "asc" }, { createdAt: "asc" }],
-        take: 1,
-        select: { src: true },
-      },
-    },
+  const flightKey = uniqueIds.join("\u001f");
+  const existing = cardPricingFlights.get(flightKey);
+  if (existing) return existing;
+
+  const promise = readShopCatalogCardPricing(uniqueIds).finally(() => {
+    if (cardPricingFlights.get(flightKey) === promise) cardPricingFlights.delete(flightKey);
   });
+  cardPricingFlights.set(flightKey, promise);
+  return promise;
+}
+
+async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
+  const rows = await readShopCatalogCardPricingRows(uniqueIds);
   const order = new Map(uniqueIds.map((id, index) => [id, index]));
 
   return rows
     .map((row) => {
-      const variant = row.variants[0];
+      const variant = {
+        id: row.variantId,
+        sku: row.variantSku,
+        image: row.variantImage,
+        priceEur: row.variantPriceEur,
+        priceEurEurope: row.variantPriceEurEurope,
+        priceUsd: row.variantPriceUsd,
+        priceUah: row.variantPriceUah,
+        priceEurB2b: row.variantPriceEurB2b,
+        priceUsdB2b: row.variantPriceUsdB2b,
+        priceUahB2b: row.variantPriceUahB2b,
+        compareAtEur: row.variantCompareAtEur,
+        compareAtUsd: row.variantCompareAtUsd,
+        compareAtUah: row.variantCompareAtUah,
+        compareAtEurB2b: row.variantCompareAtEurB2b,
+        compareAtUsdB2b: row.variantCompareAtUsdB2b,
+        compareAtUahB2b: row.variantCompareAtUahB2b,
+      };
       return {
         productId: row.id,
         price: money(
-          row.priceEur ?? variant?.priceEur,
-          row.priceUsd ?? variant?.priceUsd,
-          row.priceUah ?? variant?.priceUah
+          row.priceEur ?? variant.priceEur,
+          row.priceUsd ?? variant.priceUsd,
+          row.priceUah ?? variant.priceUah
         ),
-        europePrice: present(money(row.priceEurEurope ?? variant?.priceEurEurope, 0, 0)),
+        europePrice: present(money(row.priceEurEurope ?? variant.priceEurEurope, 0, 0)),
         b2bPrice: present(
           money(
-            row.priceEurB2b ?? variant?.priceEurB2b,
-            row.priceUsdB2b ?? variant?.priceUsdB2b,
-            row.priceUahB2b ?? variant?.priceUahB2b
+            row.priceEurB2b ?? variant.priceEurB2b,
+            row.priceUsdB2b ?? variant.priceUsdB2b,
+            row.priceUahB2b ?? variant.priceUahB2b
           )
         ),
         compareAt: present(
           money(
-            row.compareAtEur ?? variant?.compareAtEur,
-            row.compareAtUsd ?? variant?.compareAtUsd,
-            row.compareAtUah ?? variant?.compareAtUah
+            row.compareAtEur ?? variant.compareAtEur,
+            row.compareAtUsd ?? variant.compareAtUsd,
+            row.compareAtUah ?? variant.compareAtUah
           )
         ),
         b2bCompareAt: present(
           money(
-            row.compareAtEurB2b ?? variant?.compareAtEurB2b,
-            row.compareAtUsdB2b ?? variant?.compareAtUsdB2b,
-            row.compareAtUahB2b ?? variant?.compareAtUahB2b
+            row.compareAtEurB2b ?? variant.compareAtEurB2b,
+            row.compareAtUsdB2b ?? variant.compareAtUsdB2b,
+            row.compareAtUahB2b ?? variant.compareAtUahB2b
           )
         ),
         brand: resolveShopProductBrand(row) || null,
-        sku: row.sku ?? variant?.sku ?? null,
-        primaryMediaUrl: row.image ?? variant?.image ?? row.media[0]?.src ?? null,
-        defaultVariantId: variant?.id ?? null,
+        sku: row.sku ?? variant.sku ?? null,
+        primaryMediaUrl: row.image?.trim() || variant.image?.trim() || row.mediaSrc?.trim() || null,
+        imageSources: [
+          ...new Set(
+            [row.image, variant.image, row.mediaSrc]
+              .map((src) => src?.trim())
+              .filter((src): src is string => Boolean(src))
+          ),
+        ],
+        defaultVariantId: variant.id ?? null,
       } satisfies ShopCatalogCardPricing;
     })
     .sort(

@@ -39,8 +39,8 @@ const currentProduct: AdminProductImportMergeRecord = {
     },
   ],
   metafields: [
-    { id: "metafield-1", namespace: "custom", key: "vehicle" },
-    { id: "metafield-unmentioned", namespace: "custom", key: "keep_me" },
+    { id: "metafield-1", namespace: "custom", key: "vehicle", value: "" },
+    { id: "metafield-unmentioned", namespace: "custom", key: "keep_me", value: "" },
   ],
 };
 

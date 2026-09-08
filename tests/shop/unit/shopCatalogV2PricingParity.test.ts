@@ -29,9 +29,10 @@ test("Catalog V2 cards use the shared regional and B2B pricing engine", () => {
 test("fresh card pricing uses one narrow bounded query", () => {
   const catalog = read("src/lib/shopCatalogCardPricing.server.ts");
   assert.match(catalog, /uniqueIds\.length > 100/);
-  assert.match(catalog, /prisma\.shopProduct\.findMany\(/);
-  assert.match(catalog, /variants: \{[\s\S]*take: 1/);
-  assert.match(catalog, /media: \{[\s\S]*take: 1/);
+  assert.match(catalog, /prisma\.\$queryRaw/);
+  assert.match(catalog, /LEFT JOIN LATERAL/);
+  assert.match(catalog, /candidate\.\"isDefault\" DESC/);
+  assert.match(catalog, /candidate\.\"mediaType\" = 'IMAGE'/);
   assert.match(catalog, /primaryMediaUrl: row\.image/);
   assert.doesNotMatch(catalog, /include:/);
 });

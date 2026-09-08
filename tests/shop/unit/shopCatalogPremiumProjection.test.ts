@@ -12,6 +12,7 @@ const mocks = pathToFileURL(
 ).href;
 const mockedAliases = new Set([
   "@/lib/shopAdminSettings",
+  "@/lib/shopPublicSettings",
   "@/lib/shopCatalogCardPricing.server",
   "@/lib/shopCatalogProjectionQuery.server",
   "@/lib/shopKwCardPresentation",
@@ -243,4 +244,38 @@ test("native auto, moto and engine/fuel/OPF queries never build legacy ID lists"
     if (oldMode === undefined) delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
     else process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = oldMode;
   }
+});
+
+test("KW cards reuse bounded pricing media without a separate gallery query", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  mock.state.items = [
+    {
+      productId: "kw-1",
+      slug: "kw-1",
+      title: "KW suspension",
+      brandLabel: "KW",
+      brandKey: "kw",
+      normalizedSku: "KW1",
+      primaryMediaUrl: "/old.jpg",
+    },
+  ];
+  mock.state.prices = [
+    {
+      productId: "kw-1",
+      primaryMediaUrl: "/current.jpg",
+      imageSources: ["/current.jpg", "/variant.jpg", "/gallery.jpg"],
+      defaultVariantId: "v1",
+    },
+  ];
+  const response = await queryPremiumCatalogProjection(params({ brand: "KW" }));
+  const body = await response.json();
+  assert.equal(body.data[0].thumbnail, "/current.jpg");
+  assert.deepEqual(body.data[0].imageSources, [
+    "/current.jpg",
+    "/old.jpg",
+    "/variant.jpg",
+    "/gallery.jpg",
+  ]);
 });

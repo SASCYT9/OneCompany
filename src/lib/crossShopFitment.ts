@@ -1660,8 +1660,23 @@ export type Fitment = {
   chassisCodes: string[];
   /** Explicit model-year evidence extracted from product-owned fitment text. */
   yearRanges: VehicleYearRange[];
+  /** Optional powertrain/body constraints extracted from explicit evidence. */
+  engines?: string[];
+  fuel?: string | null;
+  bodyStyles?: string[];
+  drivetrains?: string[];
+  markets?: string[];
+  transmission?: string | null;
+  opfGpf?: "with" | "without" | "unknown";
   /** Deterministic data-quality level, never a compatibility guarantee. */
   confidence: "high" | "medium" | "low" | "unknown";
+  /** Optional provenance for deterministic extraction from a product description. */
+  evidence?: {
+    source: "description" | "title" | "structured";
+    fragment: string;
+    processorVersion: string;
+    sourceFingerprint?: string;
+  };
 };
 
 function uniq<T>(values: ReadonlyArray<T>): T[] {
@@ -1714,6 +1729,120 @@ function buildSearchText(product: ShopProduct): string {
     .join(" | ");
 }
 
+function stripDescriptionMarkup(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildDescriptionFitmentEvidenceText(product: ShopProduct): string {
+  const description = [
+    product.longDescription?.en,
+    product.longDescription?.ua,
+    product.shortDescription?.en,
+    product.shortDescription?.ua,
+  ]
+    .map((value) => stripDescriptionMarkup(String(value ?? "")))
+    .filter(Boolean)
+    .join(" | ");
+  if (!description) return "";
+
+  // Only use sentences that explicitly describe fitment. Marketing copy may
+  // mention neighbouring models and must never become a compatibility fact.
+  return description
+    .split(/(?<=[.!?;])\s+|\s*[|]\s+/)
+    .filter((part) =>
+      /(?:\b(?:fit(?:s|ment)?|compatible|application|designed\s+for|for\s+the)\b|підход|сумісн|призначен|для\s+авто)/i.test(
+        part
+      )
+    )
+    .join(" | ");
+}
+
+const KNOWN_ENGINE_CODES = new Set([
+  "B48",
+  "B57",
+  "B58",
+  "B63",
+  "B64",
+  "B67",
+  "B68",
+  "EA888",
+  "EA825",
+  "N54",
+  "N55",
+  "N63",
+  "S55",
+  "S58",
+  "S63",
+  "S68",
+  "EA855",
+]);
+
+function extractFitmentAttributes(text: string) {
+  const engines = Array.from(
+    new Set(
+      (text.match(/\b(?:B\d{2,3}|N\d{2,3}|S\d{2,3}|EA\d{3,4})\b/gi) ?? [])
+        .map((value) => value.toUpperCase())
+        .filter((value) => KNOWN_ENGINE_CODES.has(value))
+    )
+  );
+  const bodyStyles = Array.from(
+    new Set(
+      (
+        text.match(
+          /(?:sedan|saloon|coupe|coupé|touring|wagon|estate|convertible|cabrio|suv|hatchback|седан|купе|універсал|кабріолет|позашляховик)/gi
+        ) ?? []
+      ).map((value) => value.toLowerCase())
+    )
+  );
+  const drivetrains = Array.from(
+    new Set(
+      (
+        text.match(
+          /(?:xdrive|quattro|awd|fwd|rwd|4wd|rear[-\s]wheel drive|front[-\s]wheel drive|all[-\s]wheel drive|заднім приводом|задній привід|переднім приводом|передній привід|повним приводом|повний привід)/gi
+        ) ?? []
+      ).map((value) => {
+        const normalized = value.toLowerCase();
+        if (/xdrive/.test(normalized)) return "xDrive";
+        if (/quattro/.test(normalized)) return "quattro";
+        if (/rear|задн|rwd/.test(normalized)) return "RWD";
+        if (/front|передн|fwd/.test(normalized)) return "FWD";
+        if (/all[-\s]wheel|повн|awd|4wd/.test(normalized)) return "AWD";
+        return normalized;
+      })
+    )
+  );
+  const markets = Array.from(
+    new Set(
+      (text.match(/\b(?:EU|US|USA|UK|Europe|ЄС|США|Європа)\b/gi) ?? []).map((value) =>
+        value.toUpperCase()
+      )
+    )
+  );
+  const transmissionMatch = text.match(
+    /\b(?:DCT|DSG|PDK|8HP|automatic|manual|автомат(?:ична)?|механічна)\b/i
+  );
+  const fuelMatch = text.match(
+    /\b(?:petrol|gasoline|diesel|hybrid|electric|бензин|дизель|гібрид|електро)\b/i
+  );
+  const withoutOpf = /(?:without|no|без)\s*(?:an?\s*)?(?:opf|gpf)|без\s+(?:opf|gpf)/i.test(text);
+  const withOpf = /(?:with|including|з)\s*(?:an?\s*)?(?:opf|gpf)|з\s+(?:opf|gpf)/i.test(text);
+  return {
+    engines,
+    fuel: fuelMatch?.[0]?.toLowerCase() ?? null,
+    bodyStyles,
+    drivetrains,
+    markets,
+    transmission: transmissionMatch?.[0]?.toLowerCase() ?? null,
+    opfGpf: withoutOpf ? ("without" as const) : withOpf ? ("with" as const) : ("unknown" as const),
+  };
+}
+
 function buildFitmentEvidenceText(product: ShopProduct): string {
   return [
     product.title?.en,
@@ -1728,6 +1857,35 @@ function buildFitmentEvidenceText(product: ShopProduct): string {
     .map((value) => String(value ?? "").trim())
     .filter(Boolean)
     .join(" | ");
+}
+
+function buildAutomaticFitmentEvidence(
+  product: ShopProduct,
+  fitment: Pick<Fitment, "make" | "models" | "chassisCodes">
+): Fitment["evidence"] | undefined {
+  if (!fitment.make && fitment.models.length === 0 && fitment.chassisCodes.length === 0) {
+    return undefined;
+  }
+
+  const structured = [
+    ...(product.tags ?? []).filter((tag) =>
+      /(?:vehicle|fit(?:ment)?|make|model|chassis|application)\s*[:=]/i.test(tag)
+    ),
+    ...(product.collections ?? []).flatMap((item) => [item.handle, item.title?.en, item.title?.ua]),
+  ]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+  const title = [product.title?.en, product.title?.ua]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+  const source = structured.length > 0 ? "structured" : "title";
+  const fragment =
+    (source === "structured" ? structured : title).join(" | ") || buildFitmentEvidenceText(product);
+  return {
+    source,
+    fragment: fragment.slice(0, 500),
+    processorVersion: "fitment-extractor-v2",
+  };
 }
 
 function detectMakeGeneric(text: string): string | null {
@@ -2911,6 +3069,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   // often mention adjacent models, comparison vehicles or brand portfolios and
   // therefore are useful for semantic search, but unsafe as hard fitment facts.
   const fitmentEvidenceText = buildFitmentEvidenceText(product);
+  const descriptionFitmentEvidenceText = buildDescriptionFitmentEvidenceText(product);
+  const fitmentAttributes = extractFitmentAttributes(
+    [descriptionFitmentEvidenceText, fitmentEvidenceText].filter(Boolean).join(" | ")
+  );
   const productBrandKey = String(product.brand ?? "")
     .trim()
     .toLowerCase();
@@ -2924,7 +3086,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         normalized.startsWith("model:"))
     );
   });
-  const yearRanges = extractVehicleYearRanges(fitmentEvidenceText);
+  let yearRanges = extractVehicleYearRanges(fitmentEvidenceText);
+  let descriptionDerived = false;
+  let descriptionAmbiguous = false;
+  let descriptionEvidenceFragment = "";
   const brand = String(product.brand ?? "")
     .trim()
     .toLowerCase();
@@ -3024,6 +3189,81 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   if (chassis.length === 0) {
     chassis = extractChassisFromText(fitmentEvidenceText);
+  }
+
+  // Descriptions are a useful second source when the product identity fields
+  // contain no fitment. Keep this conservative: one make and one chassis can
+  // be activated automatically; multiple vehicle identities stay unknown and
+  // therefore require review instead of being presented as compatible.
+  if (!make && models.length === 0 && chassis.length === 0 && descriptionFitmentEvidenceText) {
+    const descriptionMakes = Array.from(
+      new Set(
+        MAKE_PATTERNS.filter((entry) =>
+          entry.patterns.some((pattern) => pattern.test(descriptionFitmentEvidenceText))
+        ).map((entry) => entry.label)
+      )
+    );
+    const descriptionChassis = extractChassisFromText(descriptionFitmentEvidenceText);
+    const descriptionModels =
+      descriptionMakes.length === 1
+        ? detectModelsFromText(descriptionFitmentEvidenceText, descriptionMakes[0])
+        : [];
+    const descriptionYears = extractVehicleYearRanges(descriptionFitmentEvidenceText);
+    const hasExclusion =
+      /\b(?:not\s+for|does\s+not\s+fit|excluding|except|не\s+підход|крім|за\s+винятком)\b/i.test(
+        descriptionFitmentEvidenceText
+      );
+    descriptionAmbiguous =
+      hasExclusion || descriptionMakes.length !== 1 || descriptionChassis.length > 1;
+    if (
+      !descriptionAmbiguous &&
+      descriptionMakes.length === 1 &&
+      descriptionChassis.length <= 1 &&
+      (descriptionChassis.length === 1 || descriptionModels.length === 1)
+    ) {
+      make = descriptionMakes[0];
+      models = descriptionModels;
+      chassis = descriptionChassis;
+      yearRanges = descriptionYears;
+      descriptionDerived = true;
+      descriptionEvidenceFragment = descriptionFitmentEvidenceText.slice(0, 500);
+    }
+  }
+
+  // An explicit description is also a contradiction check when the title or
+  // tags already supplied an identity. Never let a negative or multi-vehicle
+  // description silently confirm the title's single vehicle.
+  if (descriptionFitmentEvidenceText && (make || models.length || chassis.length)) {
+    const descriptionMakes = Array.from(
+      new Set(
+        MAKE_PATTERNS.filter((entry) =>
+          entry.patterns.some((pattern) => pattern.test(descriptionFitmentEvidenceText))
+        ).map((entry) => entry.label)
+      )
+    );
+    const descriptionChassis = extractChassisFromText(descriptionFitmentEvidenceText);
+    const makeConflict = Boolean(
+      make &&
+      descriptionMakes.length > 0 &&
+      !descriptionMakes.some(
+        (candidate) => normalizeFitmentKey(candidate) === normalizeFitmentKey(make ?? "")
+      )
+    );
+    const chassisConflict = Boolean(
+      chassis.length > 0 &&
+      descriptionChassis.length > 1 &&
+      !descriptionChassis.some((candidate) =>
+        chassis.some((known) => normalizeFitmentKey(known) === normalizeFitmentKey(candidate))
+      )
+    );
+    const exclusionConflict =
+      /(?:not\s+for|does\s+not\s+fit|excluding|не\s+підход|крім|за\s+винятком)/i.test(
+        descriptionFitmentEvidenceText
+      ) &&
+      [...chassis, ...models, ...(make ? [make] : [])].some((identity) =>
+        descriptionFitmentEvidenceText.toLowerCase().includes(identity.toLowerCase())
+      );
+    descriptionAmbiguous ||= makeConflict || chassisConflict || exclusionConflict;
   }
 
   // Fallback 3: Infer make from unique chassis codes if make is still null
@@ -3693,10 +3933,11 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   }
 
   const normalizedChassisCodes = uniq(finalChassis.map((c) => c.toUpperCase()).filter(Boolean));
-  const confidence =
-    cleanMake &&
-    normalizedModels.length > 0 &&
-    (normalizedChassisCodes.length > 0 || yearRanges.length > 0)
+  const confidence = descriptionAmbiguous
+    ? "unknown"
+    : cleanMake &&
+        normalizedModels.length > 0 &&
+        (normalizedChassisCodes.length > 0 || yearRanges.length > 0)
       ? "high"
       : cleanMake && (normalizedModels.length > 0 || normalizedChassisCodes.length > 0)
         ? "medium"
@@ -3704,12 +3945,27 @@ export function extractProductFitment(product: ShopProduct): Fitment {
           ? "low"
           : "unknown";
 
+  const evidence =
+    descriptionDerived || descriptionAmbiguous
+      ? {
+          source: "description" as const,
+          fragment: (descriptionEvidenceFragment || descriptionFitmentEvidenceText).slice(0, 500),
+          processorVersion: "description-fitment-v1",
+        }
+      : buildAutomaticFitmentEvidence(product, {
+          make: cleanMake,
+          models: normalizedModels,
+          chassisCodes: normalizedChassisCodes,
+        });
+
   return {
     make: cleanMake,
     models: normalizedModels,
     chassisCodes: normalizedChassisCodes,
     yearRanges,
+    ...fitmentAttributes,
     confidence,
+    ...(evidence ? { evidence } : {}),
   };
 }
 

@@ -1,6 +1,8 @@
 export const state =
   globalThis.__premiumProjectionMockState ??
   (globalThis.__premiumProjectionMockState = {
+    items: [],
+    prices: [],
     legacyCalls: 0,
     queries: [],
     facetQueries: [],
@@ -12,6 +14,8 @@ export const state =
 
 export function reset() {
   state.stockSummary = { totalItems: 0, inStock: 0, preOrder: 0 };
+  state.items = [];
+  state.prices = [];
   state.legacyCalls = 0;
   state.queries.length = 0;
   state.facetQueries.length = 0;
@@ -34,6 +38,10 @@ export const prisma = {
 };
 
 export async function getOrCreateShopSettings() {
+  state.settingsCalls += 1;
+  return { currencyRates: { EUR: 1, USD: 1, UAH: 40 } };
+}
+export async function getPublicShopSettingsRuntime() {
   state.settingsCalls += 1;
   return { currencyRates: { EUR: 1, USD: 1, UAH: 40 } };
 }
@@ -85,12 +93,12 @@ export function resolveCheckoutAudience() {
   return "b2c";
 }
 export async function getShopCatalogCardPricingByIds() {
-  return [];
+  return state.prices;
 }
 
 export async function queryShopCatalogProjection(query) {
   state.queries.push(query);
-  return { items: [], hasMore: false, nextCursor: null, source: "catalog_v2_projection" };
+  return { items: state.items, hasMore: false, nextCursor: null, source: "catalog_v2_projection" };
 }
 export async function queryShopCatalogProjectionFacets(query) {
   state.facetQueries.push(query);

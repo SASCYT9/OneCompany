@@ -8,6 +8,7 @@ import {
 
 import { prisma } from "./prisma";
 import {
+  canonicalizeShopSearchQuery,
   matchesShopSearchQuery,
   normalizeShopSearchText,
   tokenizeShopSearchQuery,
@@ -66,13 +67,14 @@ export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestion
   if (query.length > SHOP_CATALOG_SUGGESTION_LIMITS.queryMax) {
     throw new TypeError(`query exceeds ${SHOP_CATALOG_SUGGESTION_LIMITS.queryMax} characters`);
   }
+  const canonicalQuery = canonicalizeShopSearchQuery(query);
   const scope = input.scope?.trim() || null;
   if (scope && scope.length > 64) throw new TypeError("scope exceeds 64 characters");
   return {
     locale: input.locale,
     query,
-    normalizedQuery: normalizeShopSearchText(query),
-    normalizedSku: compactShopCode(query),
+    normalizedQuery: normalizeShopSearchText(canonicalQuery),
+    normalizedSku: compactShopCode(canonicalQuery),
     scope,
   };
 }
@@ -160,7 +162,7 @@ export async function queryShopCatalogSuggestions(
   // A contiguous phrase is too strict for reordered vehicle queries (for
   // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
   // products. Exact normalized SKUs remain a separate high-priority match.
-  const queryTokens = tokenizeShopSearchQuery(input.query);
+  const queryTokens = tokenizeShopSearchQuery(input.normalizedQuery);
   const tokenConditions = queryTokens.map(
     (token) => Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(token)}%`} ESCAPE '\\'`
   );

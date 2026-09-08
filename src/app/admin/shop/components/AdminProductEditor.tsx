@@ -29,6 +29,7 @@ import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminProductVariantCard } from "./AdminProductVariantCard";
 import { ProductMediaUpload } from "./ProductMediaUpload";
 import { productEditorSlug as slugify } from "@/lib/admin/productEditorSlug";
+import type { NormalizedFitment, VehicleApplication } from "@/lib/shopFitmentQuality";
 
 type ProductStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 type ProductMediaType = "IMAGE" | "VIDEO" | "EXTERNAL_VIDEO";
@@ -102,6 +103,31 @@ type MetafieldFormItem = {
   valueType: string;
 };
 
+type FitmentApplicationForm = {
+  vehicleType: "car" | "motorcycle";
+  make: string;
+  modelsText: string;
+  chassisCodesText: string;
+  yearRangesText: string;
+  yearFrom: string;
+  yearTo: string;
+  enginesText: string;
+  fuel: string;
+  bodyStylesText: string;
+  drivetrainsText: string;
+  marketsText: string;
+  transmission: string;
+  opfGpf: "with" | "without" | "unknown";
+};
+
+type FitmentFormState = {
+  mode: "automatic" | "verified" | "universal" | "needs_review";
+  applications: FitmentApplicationForm[];
+  note: string;
+  source: string;
+  evidenceFragment: string;
+};
+
 type CollectionOption = {
   id: string;
   handle: string;
@@ -150,6 +176,7 @@ type VariantBulkState = {
 };
 
 type ProductFormState = {
+  catalogVersion: string;
   slug: string;
   sku: string;
   scope: "auto" | "moto";
@@ -203,6 +230,7 @@ type ProductFormState = {
   options: OptionFormItem[];
   variants: VariantFormItem[];
   metafields: MetafieldFormItem[];
+  fitment: FitmentFormState;
   weight: string;
   length: string;
   width: string;
@@ -214,6 +242,7 @@ const DEFAULT_RATES = { EUR: 1, USD: 1.152174, UAH: 53 };
 
 type ProductResponse = {
   id: string;
+  catalogVersion?: string;
   slug: string;
   sku: string | null;
   scope: string;
@@ -328,6 +357,7 @@ type ProductResponse = {
     value: string;
     valueType: string;
   }>;
+  fitment?: NormalizedFitment | null;
 };
 
 type CatalogPublicationStatus = {
@@ -412,6 +442,73 @@ function emptyMetafield(): MetafieldFormItem {
   return { namespace: "custom", key: "", value: "", valueType: "single_line_text_field" };
 }
 
+function emptyFitmentApplication(): FitmentApplicationForm {
+  return {
+    vehicleType: "car",
+    make: "",
+    modelsText: "",
+    chassisCodesText: "",
+    yearRangesText: "",
+    yearFrom: "",
+    yearTo: "",
+    enginesText: "",
+    fuel: "",
+    bodyStylesText: "",
+    drivetrainsText: "",
+    marketsText: "",
+    transmission: "",
+    opfGpf: "unknown",
+  };
+}
+
+function fitmentApplicationToForm(application: VehicleApplication): FitmentApplicationForm {
+  const range = application.yearRanges[0];
+  return {
+    vehicleType: application.vehicleType === "motorcycle" ? "motorcycle" : "car",
+    make: application.make,
+    modelsText: application.models.join(", "),
+    chassisCodesText: application.chassisCodes.join(", "),
+    yearRangesText: application.yearRanges
+      .map((range) => `${range.from}-${range.to ?? ""}`)
+      .join(", "),
+    yearFrom: range ? String(range.from) : "",
+    yearTo: range?.to == null ? "" : String(range.to),
+    enginesText: application.engines.join(", "),
+    fuel: application.fuel ?? "",
+    bodyStylesText: application.bodyStyles.join(", "),
+    drivetrainsText: application.drivetrains.join(", "),
+    marketsText: application.markets.join(", "),
+    transmission: application.transmission ?? "",
+    opfGpf: application.opfGpf ?? "unknown",
+  };
+}
+
+function fitmentToForm(fitment?: NormalizedFitment | null): FitmentFormState {
+  if (!fitment) {
+    return {
+      mode: "automatic",
+      applications: [],
+      note: "",
+      source: "automatic",
+      evidenceFragment: "",
+    };
+  }
+  return {
+    mode:
+      fitment.status === "universal"
+        ? "universal"
+        : fitment.source === "manual" && fitment.status !== "inferred"
+          ? fitment.status
+          : fitment.status === "needs_review"
+            ? "needs_review"
+            : "automatic",
+    applications: fitment.applications.map(fitmentApplicationToForm),
+    note: fitment.note ?? "",
+    source: fitment.source,
+    evidenceFragment: fitment.evidence?.fragment ?? "",
+  };
+}
+
 function createEmptyVariantBulk(): VariantBulkState {
   return {
     inventoryQty: "",
@@ -483,6 +580,7 @@ function cartesianProduct<T>(groups: T[][]): T[][] {
 
 function createEmptyForm(): ProductFormState {
   return {
+    catalogVersion: "",
     slug: "",
     sku: "",
     scope: "auto",
@@ -536,6 +634,7 @@ function createEmptyForm(): ProductFormState {
     options: [],
     variants: [emptyVariant()],
     metafields: [],
+    fitment: fitmentToForm(),
     weight: "",
     length: "",
     width: "",
@@ -546,6 +645,7 @@ function createEmptyForm(): ProductFormState {
 
 function productToForm(product: ProductResponse): ProductFormState {
   return {
+    catalogVersion: product.catalogVersion ?? "",
     slug: product.slug,
     sku: product.sku ?? "",
     scope: product.scope === "moto" ? "moto" : "auto",
@@ -667,6 +767,7 @@ function productToForm(product: ProductResponse): ProductFormState {
       value: item.value,
       valueType: item.valueType,
     })),
+    fitment: fitmentToForm(product.fitment),
   };
 }
 
@@ -682,8 +783,24 @@ function intOrNull(value: string): number | null {
   return parsed == null ? null : Math.trunc(parsed);
 }
 
+function parseYearRangesText(value: string) {
+  return value
+    .split(/[;,]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .flatMap((entry) => {
+      const match = entry.match(/^(\d{4})\s*(?:[-–—]|\b(?:to|до)\b)?\s*(\d{4})?$/i);
+      if (!match) return [];
+      const from = Number(match[1]);
+      const to = match[2] ? Number(match[2]) : null;
+      if (from < 1886 || from > 2200 || (to !== null && (to < from || to > 2200))) return [];
+      return [{ from, to }];
+    });
+}
+
 function buildPayload(form: ProductFormState) {
   return {
+    catalogVersion: form.catalogVersion || undefined,
     slug: form.slug,
     sku: form.sku || null,
     scope: form.scope,
@@ -816,6 +933,31 @@ function buildPayload(form: ProductFormState) {
         value: item.value,
         valueType: item.valueType.trim() || "single_line_text_field",
       })),
+    normalizedFitment:
+      form.fitment.mode === "automatic"
+        ? null
+        : {
+            status: form.fitment.mode,
+            applications: form.fitment.applications.map((item) => ({
+              vehicleType: item.vehicleType,
+              make: item.make.trim(),
+              models: cleanArrayText(item.modelsText),
+              chassisCodes: cleanArrayText(item.chassisCodesText),
+              yearRanges: parseYearRangesText(item.yearRangesText).length
+                ? parseYearRangesText(item.yearRangesText)
+                : intOrNull(item.yearFrom) == null
+                  ? []
+                  : [{ from: intOrNull(item.yearFrom), to: intOrNull(item.yearTo) }],
+              engines: cleanArrayText(item.enginesText),
+              fuel: item.fuel.trim() || null,
+              bodyStyles: cleanArrayText(item.bodyStylesText),
+              drivetrains: cleanArrayText(item.drivetrainsText),
+              markets: cleanArrayText(item.marketsText),
+              transmission: item.transmission.trim() || null,
+              opfGpf: item.opfGpf,
+            })),
+            note: form.fitment.note.trim() || null,
+          },
   };
 }
 
@@ -1216,6 +1358,48 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
   const addMetafield = () => {
     setForm((current) => ({ ...current, metafields: [...current.metafields, emptyMetafield()] }));
+  };
+
+  const updateFitment = (patch: Partial<FitmentFormState>) => {
+    setForm((current) => ({ ...current, fitment: { ...current.fitment, ...patch } }));
+  };
+
+  const updateFitmentApplication = (index: number, patch: Partial<FitmentApplicationForm>) => {
+    setForm((current) => ({
+      ...current,
+      fitment: {
+        ...current.fitment,
+        mode: current.fitment.mode === "automatic" ? "needs_review" : current.fitment.mode,
+        applications: current.fitment.applications.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, ...patch } : item
+        ),
+      },
+    }));
+  };
+
+  const addFitmentApplication = () => {
+    setForm((current) => ({
+      ...current,
+      fitment: {
+        ...current.fitment,
+        mode: current.fitment.mode === "automatic" ? "needs_review" : current.fitment.mode,
+        applications: [...current.fitment.applications, emptyFitmentApplication()],
+      },
+    }));
+  };
+
+  const removeFitmentApplication = (index: number) => {
+    setForm((current) => ({
+      ...current,
+      fitment: {
+        ...current.fitment,
+        // Deleting an automatically inferred row is an explicit manager
+        // decision. Persist a review state so the next automatic refresh does
+        // not silently put the removed application back.
+        mode: current.fitment.mode === "automatic" ? "needs_review" : current.fitment.mode,
+        applications: current.fitment.applications.filter((_, itemIndex) => itemIndex !== index),
+      },
+    }));
   };
 
   const setDefaultVariant = (index: number) => {
@@ -1708,6 +1892,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             <a href="#media">Медіа</a>
             <a href="#pricing">Ціни</a>
             <a href="#variants">Варіанти · {form.variants.length}</a>
+            <a href="#compatibility">Сумісність</a>
             <a href="#seo">Пошукова видача</a>
             <a href="#publication">Публікація</a>
           </nav>
@@ -2103,6 +2288,252 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)"
                     checked={form.isDimensionsEstimated}
                     onChange={(value) => updateField("isDimensionsEstimated", value)}
+                  />
+                </div>
+              </AdminCollapsibleSection>
+
+              <AdminCollapsibleSection
+                id="compatibility"
+                title="Сумісність"
+                description="Автоматично витягнута сумісність із товарних даних або ручна перевірка менеджера."
+              >
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-end justify-between gap-4 rounded-none border border-white/10 bg-white/[0.02] p-4">
+                    <div>
+                      <div className="text-sm font-medium text-zinc-100">Джерело сумісності</div>
+                      <p className="mt-1 text-xs leading-5 text-zinc-500">
+                        {form.fitment.mode === "automatic"
+                          ? "Використовується автоматичний результат із опису, тегів та структурованих даних."
+                          : "Ручна редакція має пріоритет над імпортом і автоматичним розбором."}
+                      </p>
+                      {form.fitment.source !== "manual" && form.fitment.evidenceFragment ? (
+                        <details className="mt-2 text-xs text-zinc-500">
+                          <summary className="cursor-pointer text-zinc-300">
+                            Показати фрагмент джерела
+                          </summary>
+                          <p className="mt-2 max-w-3xl whitespace-pre-wrap leading-5 text-zinc-500">
+                            {form.fitment.evidenceFragment}
+                          </p>
+                        </details>
+                      ) : null}
+                    </div>
+                    <SelectField
+                      label="Режим"
+                      value={form.fitment.mode}
+                      onChange={(value) =>
+                        updateFitment({
+                          mode: value as FitmentFormState["mode"],
+                          applications: value === "universal" ? [] : form.fitment.applications,
+                        })
+                      }
+                      options={[
+                        { label: "Автоматично", value: "automatic" },
+                        { label: "Підтверджено менеджером", value: "verified" },
+                        { label: "Потребує перевірки", value: "needs_review" },
+                        { label: "Універсальний товар", value: "universal" },
+                      ]}
+                    />
+                  </div>
+
+                  {form.fitment.mode === "universal" ? (
+                    <div className="rounded-none border border-emerald-500/20 bg-emerald-500/[0.06] p-4 text-sm text-emerald-200">
+                      Товар явно позначений як універсальний. Порожня таблиця тут означає
+                      універсальність лише тому, що це обрано вручну.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {form.fitment.applications.map((application, index) => (
+                        <div
+                          key={`fitment-${index}`}
+                          className="rounded-none border border-white/10 bg-black/30 p-4"
+                        >
+                          <div className="mb-4 flex items-center justify-between gap-3">
+                            <div className="text-sm font-medium text-zinc-100">
+                              Автомобіль #{index + 1}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    fitment: {
+                                      ...current.fitment,
+                                      mode:
+                                        current.fitment.mode === "automatic"
+                                          ? "needs_review"
+                                          : current.fitment.mode,
+                                      applications: [
+                                        ...current.fitment.applications.slice(0, index + 1),
+                                        { ...application },
+                                        ...current.fitment.applications.slice(index + 1),
+                                      ],
+                                    },
+                                  }))
+                                }
+                                className="inline-flex items-center gap-1 border border-white/10 px-2 py-1 text-xs text-zinc-300 hover:bg-white/5"
+                              >
+                                <Copy className="h-3.5 w-3.5" /> Дублювати
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeFitmentApplication(index)}
+                                className="border border-red-500/25 p-2 text-red-300 hover:bg-red-500/10"
+                                aria-label={`Видалити сумісність ${index + 1}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid gap-4 md:grid-cols-3">
+                            <SelectField
+                              label="Тип транспорту"
+                              value={application.vehicleType}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, {
+                                  vehicleType: value as FitmentApplicationForm["vehicleType"],
+                                })
+                              }
+                              options={[
+                                { label: "Автомобіль", value: "car" },
+                                { label: "Мотоцикл", value: "motorcycle" },
+                              ]}
+                            />
+                            <InputField
+                              label="Марка"
+                              value={application.make}
+                              onChange={(value) => updateFitmentApplication(index, { make: value })}
+                              placeholder="BMW"
+                            />
+                            <InputField
+                              label="Модель"
+                              value={application.modelsText}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, { modelsText: value })
+                              }
+                              placeholder="M3, M4"
+                            />
+                            <InputField
+                              label="Кузов / chassis"
+                              value={application.chassisCodesText}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, { chassisCodesText: value })
+                              }
+                              placeholder="G80, G81"
+                            />
+                            <InputField
+                              label="Роки від"
+                              type="number"
+                              value={application.yearFrom}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, { yearFrom: value })
+                              }
+                              placeholder="2021"
+                            />
+                            <InputField
+                              label="Роки до"
+                              type="number"
+                              value={application.yearTo}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, { yearTo: value })
+                              }
+                              placeholder="порожньо = далі"
+                            />
+                            <InputField
+                              label="Додаткові діапазони років"
+                              value={application.yearRangesText}
+                              onChange={(value) =>
+                                updateFitmentApplication(index, { yearRangesText: value })
+                              }
+                              placeholder="2015-2018, 2020-2023"
+                            />
+                          </div>
+                          <details className="mt-4">
+                            <summary className="cursor-pointer text-xs uppercase tracking-[0.12em] text-zinc-500">
+                              Додаткові характеристики
+                            </summary>
+                            <div className="mt-4 grid gap-4 md:grid-cols-3">
+                              <InputField
+                                label="Двигун"
+                                value={application.enginesText}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { enginesText: value })
+                                }
+                                placeholder="S58, B58"
+                              />
+                              <InputField
+                                label="Паливо"
+                                value={application.fuel}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { fuel: value })
+                                }
+                                placeholder="petrol"
+                              />
+                              <InputField
+                                label="Кузовне виконання"
+                                value={application.bodyStylesText}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { bodyStylesText: value })
+                                }
+                                placeholder="sedan, coupe"
+                              />
+                              <InputField
+                                label="Привід"
+                                value={application.drivetrainsText}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { drivetrainsText: value })
+                                }
+                                placeholder="xDrive, RWD"
+                              />
+                              <InputField
+                                label="Ринок"
+                                value={application.marketsText}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { marketsText: value })
+                                }
+                                placeholder="EU, US"
+                              />
+                              <InputField
+                                label="Коробка"
+                                value={application.transmission}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, { transmission: value })
+                                }
+                                placeholder="DCT"
+                              />
+                              <SelectField
+                                label="OPF / GPF"
+                                value={application.opfGpf}
+                                onChange={(value) =>
+                                  updateFitmentApplication(index, {
+                                    opfGpf: value as FitmentApplicationForm["opfGpf"],
+                                  })
+                                }
+                                options={[
+                                  { label: "Не зазначено", value: "unknown" },
+                                  { label: "З OPF / GPF", value: "with" },
+                                  { label: "Без OPF / GPF", value: "without" },
+                                ]}
+                              />
+                            </div>
+                          </details>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addFitmentApplication}
+                        className="inline-flex items-center gap-2 border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+                      >
+                        <Plus className="h-4 w-4" /> Додати автомобіль
+                      </button>
+                    </div>
+                  )}
+                  <TextareaField
+                    label="Внутрішня примітка"
+                    value={form.fitment.note}
+                    onChange={(value) => updateFitment({ note: value })}
+                    rows={2}
+                    placeholder="Чому ця сумісність підтверджена або потребує перевірки"
                   />
                 </div>
               </AdminCollapsibleSection>

@@ -87,6 +87,7 @@ type StockItem = {
   partNumber: string;
   description: string;
   thumbnail: string | null;
+  imageSources?: string[];
   inStock: boolean;
   price: number | null;
   priceUsd?: number;
@@ -106,6 +107,24 @@ type StockItem = {
   missingFacts?: string[];
   matchReason?: string;
   matchedApplicationId?: string | null;
+  fitmentStatus?: "inferred" | "verified" | "universal" | "needs_review";
+  fitmentSource?: "automatic" | "manual" | "import";
+  fitments?: StockFitmentApplication[];
+};
+
+type StockFitmentApplication = {
+  make: string;
+  models: string[];
+  chassisCodes: string[];
+  yearRanges: Array<{ from: number; to: number | null }>;
+  engines: string[];
+  fuel?: string | null;
+  bodyStyles: string[];
+  drivetrains: string[];
+  markets: string[];
+  transmission?: string | null;
+  opfGpf?: "with" | "without" | "unknown";
+  confidence?: "high" | "medium" | "low" | "unknown";
 };
 
 type StockFilter = "all" | "inStock" | "preOrder";
@@ -165,6 +184,79 @@ type StockSearchResponse = {
   filterStats?: FilterStats;
   globalFilterStats?: FilterStats;
 };
+
+function FitmentExplanation({
+  item,
+  vehicleLabel,
+  isUa,
+}: {
+  item: StockItem;
+  vehicleLabel: string;
+  isUa: boolean;
+}) {
+  if (!vehicleLabel) return null;
+  const application = item.fitments?.[0];
+  const needsReview =
+    item.fitmentStatus === "needs_review" || item.matchStatus === "requires_verification";
+  const sourceLabel =
+    item.fitmentSource === "manual"
+      ? isUa
+        ? "ручна перевірка"
+        : "manual review"
+      : item.fitmentSource === "import"
+        ? isUa
+          ? "дані постачальника"
+          : "supplier data"
+        : isUa
+          ? "каталог сумісності"
+          : "compatibility catalog";
+  const detailParts = application
+    ? [
+        application.make,
+        ...application.models,
+        ...application.chassisCodes,
+        ...application.engines,
+        ...application.yearRanges.map((range) =>
+          range.to == null ? `${range.from}+` : `${range.from}-${range.to}`
+        ),
+      ].filter(Boolean)
+    : [];
+
+  return (
+    <details className="group/fitment rounded-[7px] border border-foreground/[0.1] bg-foreground/[0.025] text-[9px] text-foreground/65">
+      <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 px-2.5 py-1.5 outline-hidden marker:hidden focus-visible:ring-1 focus-visible:ring-foreground/45">
+        {needsReview ? (
+          <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+        ) : (
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        )}
+        <span className="min-w-0 flex-1 truncate">
+          {needsReview
+            ? isUa
+              ? "Сумісність потребує уточнення"
+              : "Fitment needs review"
+            : isUa
+              ? "Підібрано для вашого авто"
+              : "Selected for your vehicle"}
+        </span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-foreground/40 transition-transform group-open/fitment:rotate-180" />
+      </summary>
+      <div className="space-y-1 border-t border-foreground/[0.08] px-2.5 py-2 leading-relaxed text-foreground/55">
+        <p>
+          {isUa ? "Автомобіль:" : "Vehicle:"} {vehicleLabel}
+        </p>
+        {detailParts.length > 0 ? (
+          <p>
+            {isUa ? "Збіг:" : "Match:"} {detailParts.join(" · ")}
+          </p>
+        ) : null}
+        <p>
+          {isUa ? "Джерело:" : "Source:"} {sourceLabel}
+        </p>
+      </div>
+    </details>
+  );
+}
 
 const getCatalogProductPresentation = (item: StockItem, locale: "ua" | "en") => {
   const name = item.name.trim();
@@ -642,18 +734,34 @@ function StockCardCartControl({
 /* ========= Safe Product Image with Error Fallback & URL Cleanup ========= */
 function SafeProductImage({
   src,
+  fallbackSrcs = [],
   alt,
   className,
   isMini = false,
 }: {
   src: string | null | undefined;
+  fallbackSrcs?: string[];
   alt: string;
   className?: string;
   isMini?: boolean;
 }) {
-  const [error, setError] = useState(false);
+  const cleanUrl = (value: string) =>
+    value.replace(/(https?:\/\/)|(\/)+/g, (match, protocol) => {
+      if (protocol) return protocol;
+      return "/";
+    });
+  const sources = Array.from(
+    new Set([src, ...fallbackSrcs].map((value) => String(value ?? "").trim()).filter(Boolean))
+  ).map(cleanUrl);
+  const sourceKey = sources.join("|");
+  const [sourceIndex, setSourceIndex] = useState(0);
 
-  if (error || !src) {
+  useEffect(() => {
+    setSourceIndex(0);
+  }, [sourceKey]);
+
+  const activeSrc = sources[sourceIndex];
+  if (!activeSrc) {
     return isMini ? (
       <Package className="h-6 w-6 shrink-0 text-foreground/20" />
     ) : (
@@ -661,15 +769,9 @@ function SafeProductImage({
     );
   }
 
-  // Clean up any double slashes in URL path (except protocol)
-  const cleanSrc = src.replace(/(https?:\/\/)|(\/)+/g, (match, protocol) => {
-    if (protocol) return protocol;
-    return "/";
-  });
-
   return (
     <Image
-      src={cleanSrc}
+      src={activeSrc}
       alt={alt}
       width={720}
       height={480}
@@ -680,7 +782,7 @@ function SafeProductImage({
       }
       quality={75}
       loading="lazy"
-      onError={() => setError(true)}
+      onError={() => setSourceIndex((current) => Math.min(current + 1, sources.length))}
       className={className}
     />
   );
@@ -753,6 +855,9 @@ function StockPageContent() {
   const searchFocusedRef = useRef(false);
   const searchResponseCacheRef = useRef(
     new Map<string, { timestamp: number; data: StockSearchResponse }>()
+  );
+  const suggestionResponseCacheRef = useRef(
+    new Map<string, { timestamp: number; data: StockSuggestion[] }>()
   );
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -890,6 +995,25 @@ function StockPageContent() {
   );
   const mobileFiltersDialogRef = useRef<HTMLElement | null>(null);
   const mobileFiltersCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Preserve the catalog position when a customer opens a product and comes
+  // back with the browser Back button. The URL remains the source of truth for
+  // filters; this session-only value restores only the visual position.
+  useEffect(() => {
+    const key = `onecompany:catalog-scroll:${window.location.pathname}${window.location.search}`;
+    const saved = Number(window.sessionStorage.getItem(key));
+    if (Number.isFinite(saved) && saved > 0) {
+      window.requestAnimationFrame(() => window.scrollTo({ top: saved, behavior: "auto" }));
+    }
+    const savePosition = () => {
+      window.sessionStorage.setItem(key, String(Math.round(window.scrollY)));
+    };
+    window.addEventListener("pagehide", savePosition);
+    return () => {
+      savePosition();
+      window.removeEventListener("pagehide", savePosition);
+    };
+  }, []);
 
   useEffect(() => {
     if (!showWarehouseHero) return;
@@ -1066,6 +1190,10 @@ function StockPageContent() {
       setChassisCodes([]);
       setFitmentYears([]);
       setFitmentEngines([]);
+      setRequestedYear(null);
+      setEngineFilter("");
+      setFuelFilter("");
+      setOpfGpfFilter(null);
       setModelsLoading(false);
       setSubmodelsLoading(false);
       setSuggestions([]);
@@ -1169,6 +1297,14 @@ function StockPageContent() {
 
     const requestKey = `${locale}:${vehicleMode}:${normalizedQuery}`;
     resolvedSuggestionRequestKeyRef.current = "";
+    const cached = suggestionResponseCacheRef.current.get(requestKey);
+    if (cached && Date.now() - cached.timestamp < 120_000) {
+      resolvedSuggestionRequestKeyRef.current = requestKey;
+      setSuggestions(cached.data);
+      setSuggestionsOpen(true);
+      setSuggestionsLoading(false);
+      return;
+    }
 
     const controller = new AbortController();
     suggestionRequestRef.current = controller;
@@ -1187,7 +1323,16 @@ function StockPageContent() {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Suggestion search failed");
         resolvedSuggestionRequestKeyRef.current = requestKey;
-        setSuggestions(payload.data || []);
+        const nextSuggestions = Array.isArray(payload.data) ? payload.data.slice(0, 10) : [];
+        suggestionResponseCacheRef.current.set(requestKey, {
+          timestamp: Date.now(),
+          data: nextSuggestions,
+        });
+        if (suggestionResponseCacheRef.current.size > 30) {
+          const oldestKey = suggestionResponseCacheRef.current.keys().next().value;
+          if (oldestKey) suggestionResponseCacheRef.current.delete(oldestKey);
+        }
+        setSuggestions(nextSuggestions);
         if (searchFocusedRef.current) setSuggestionsOpen(true);
         setActiveSuggestionIndex(-1);
       } catch {
@@ -1287,6 +1432,17 @@ function StockPageContent() {
       if (engineFilter.trim()) params.set("engine", engineFilter.trim());
       if (fuelFilter) params.set("fuel", fuelFilter);
       if (opfGpfFilter) params.set("opfGpf", opfGpfFilter);
+      if (
+        make ||
+        model ||
+        chassis ||
+        requestedYear ||
+        engineFilter.trim() ||
+        fuelFilter ||
+        opfGpfFilter
+      ) {
+        params.set("includeFitment", "true");
+      }
       if (productKindFilter) params.set("productKind", productKindFilter);
       if (strictMatch) params.set("strict", "1");
       if (vehicleMode === "moto") params.set("scope", "moto");
@@ -1441,6 +1597,7 @@ function StockPageContent() {
       setChassisCodes([]);
       setFitmentYears([]);
       setFitmentEngines([]);
+      setOpfGpfFilter(null);
       setModelsError(false);
       setSubmodelsError(false);
       setModelsLoading(false);
@@ -1506,6 +1663,10 @@ function StockPageContent() {
       setChassis("");
       setFitmentYears([]);
       setFitmentEngines([]);
+      setOpfGpfFilter(null);
+      setRequestedYear(null);
+      setEngineFilter("");
+      setFuelFilter("");
       setSubmodelsError(false);
       setSubmodelsLoading(false);
       setDetailsLoading(false);
@@ -1515,6 +1676,7 @@ function StockPageContent() {
     setSubmodelsError(false);
     setFitmentYears([]);
     setFitmentEngines([]);
+    setOpfGpfFilter(null);
     const controller = new AbortController();
     const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}`;
     chassisRequestKeyRef.current = requestKey;
@@ -1565,6 +1727,7 @@ function StockPageContent() {
     if (!make || !model) {
       setFitmentYears([]);
       setFitmentEngines([]);
+      setOpfGpfFilter(null);
       setDetailsLoading(false);
       return;
     }
@@ -2000,6 +2163,7 @@ function StockPageContent() {
     setRequestedYear(null);
     setEngineFilter("");
     setFuelFilter("");
+    setOpfGpfFilter(null);
     setSelectedBrands([]);
     setQuery("");
   };
@@ -2155,6 +2319,77 @@ function StockPageContent() {
   );
 
   const selectedVehicleLabel = [make, model, chassis].filter(Boolean).join(" ");
+  const emptyStateActions = useMemo(() => {
+    const actions: Array<{ key: string; ua: string; en: string; run: () => void }> = [];
+    if (query.trim()) {
+      actions.push({
+        key: "query",
+        ua: "Очистити пошук",
+        en: "Clear search",
+        run: () => setQuery(""),
+      });
+    }
+    if (chassis) {
+      actions.push({
+        key: "chassis",
+        ua: "Прибрати кузов",
+        en: "Remove chassis",
+        run: () => setChassis(""),
+      });
+    }
+    if (model) {
+      actions.push({
+        key: "model",
+        ua: "Прибрати модель",
+        en: "Remove model",
+        run: () => {
+          setModel("");
+          setChassis("");
+        },
+      });
+    }
+    if (make) {
+      actions.push({
+        key: "make",
+        ua: "Прибрати марку",
+        en: "Remove make",
+        run: () => {
+          setMake("");
+          setModel("");
+          setChassis("");
+          setRequestedYear(null);
+          setEngineFilter("");
+          setFuelFilter("");
+          setOpfGpfFilter(null);
+        },
+      });
+    }
+    if (selectedBrands.length > 0) {
+      actions.push({
+        key: "brand",
+        ua: "Прибрати бренд товару",
+        en: "Remove product brand",
+        run: () => setSelectedBrands([]),
+      });
+    }
+    if (localCategory) {
+      actions.push({
+        key: "category",
+        ua: "Прибрати групу",
+        en: "Remove category",
+        run: () => setLocalCategory(""),
+      });
+    }
+    if (stockFilter !== "all") {
+      actions.push({
+        key: "stock",
+        ua: "Показати всю наявність",
+        en: "Show all availability",
+        run: () => setStockFilter("all"),
+      });
+    }
+    return actions.slice(0, 4);
+  }, [chassis, localCategory, make, model, query, selectedBrands.length, stockFilter]);
 
   const renderVehicleFitmentFields = (horizontal = false) => {
     const vehicleFieldSurface = horizontal
@@ -2208,6 +2443,8 @@ function StockPageContent() {
               setChassis("");
               setRequestedYear(null);
               setEngineFilter("");
+              setFuelFilter("");
+              setOpfGpfFilter(null);
             }}
             className={`h-11 w-full appearance-none truncate border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${vehicleFieldSurface}`}
           >
@@ -2254,6 +2491,8 @@ function StockPageContent() {
               setChassis(event.target.value);
               setRequestedYear(null);
               setEngineFilter("");
+              setFuelFilter("");
+              setOpfGpfFilter(null);
             }}
             className={`h-11 w-full appearance-none truncate border border-foreground/15 px-3 pr-9 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${vehicleFieldSurface}`}
           >
@@ -2827,6 +3066,7 @@ function StockPageContent() {
               <div className="relative mb-3 flex aspect-[1.55] items-center justify-center overflow-hidden rounded-[9px] border border-foreground/[0.07] bg-background/55 md:aspect-[1.5] dark:bg-[#090a0c]">
                 <SafeProductImage
                   src={item.thumbnail}
+                  fallbackSrcs={item.imageSources}
                   alt={item.name}
                   className={`h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
                     item.brand === "Eventuri"
@@ -2870,6 +3110,10 @@ function StockPageContent() {
                 ) : null}
               </div>
             </Link>
+
+            {make || model || chassis ? (
+              <FitmentExplanation item={item} vehicleLabel={vehicleLabel} isUa={isUa} />
+            ) : null}
 
             <div className="mt-3 space-y-2.5 border-t border-foreground/[0.07] pt-3 md:mt-auto">
               {isB2B ? (
@@ -3585,6 +3829,7 @@ function StockPageContent() {
                     setRequestedYear(null);
                     setEngineFilter("");
                     setFuelFilter("");
+                    setOpfGpfFilter(null);
                   }}
                   className="flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/10 text-foreground/45 transition hover:border-foreground/30 hover:text-foreground"
                   aria-label={
@@ -3811,10 +4056,19 @@ function StockPageContent() {
                       key={value}
                       type="button"
                       onClick={() => {
-                        if (value === chassis) setChassis("");
-                        else if (value === model) {
+                        if (value === chassis) {
+                          setChassis("");
+                          setRequestedYear(null);
+                          setEngineFilter("");
+                          setFuelFilter("");
+                          setOpfGpfFilter(null);
+                        } else if (value === model) {
                           setModel("");
                           setChassis("");
+                          setRequestedYear(null);
+                          setEngineFilter("");
+                          setFuelFilter("");
+                          setOpfGpfFilter(null);
                         } else {
                           setMake("");
                           setModel("");
@@ -3822,6 +4076,7 @@ function StockPageContent() {
                           setRequestedYear(null);
                           setEngineFilter("");
                           setFuelFilter("");
+                          setOpfGpfFilter(null);
                         }
                       }}
                       className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
@@ -4008,27 +4263,38 @@ function StockPageContent() {
                 </p>
               </div>
             ) : hasSearched && items.length === 0 ? (
-              <div className="rounded-none border border-foreground/10 bg-foreground/[0.014] py-32 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)]">
-                <div className="w-20 h-20 mx-auto bg-foreground/[0.03] rounded-none flex items-center justify-center mb-6 ring-1 ring-foreground/10">
-                  <Package className="w-8 h-8 text-foreground/55 dark:text-foreground/30" />
+              <div className="rounded-[12px] border border-foreground/10 bg-foreground/[0.014] px-4 py-20 text-center shadow-[0_12px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl dark:bg-white/[0.014] dark:shadow-[0_12px_30px_rgba(0,0,0,0.22)] sm:px-8 sm:py-24">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-foreground/[0.035] ring-1 ring-foreground/10">
+                  <Package className="h-7 w-7 text-foreground/55 dark:text-foreground/30" />
                 </div>
-                <h3 className="text-xl font-light text-foreground mb-3 tracking-wide">
-                  {isUa ? "За вашим запитом нічого не знайдено" : "No results found"}
+                <h3 className="mb-3 text-xl font-light tracking-wide text-foreground">
+                  {isUa ? "Точних збігів не знайдено" : "No exact matches found"}
                 </h3>
-                <p className="text-foreground/60 dark:text-foreground/40 text-sm font-light mb-6 px-4">
+                <p className="mx-auto mb-6 max-w-xl px-2 text-sm font-light leading-relaxed text-foreground/60 dark:text-foreground/40">
                   {isUa
-                    ? vehicleMode === "moto"
-                      ? "Спробуйте змінити параметри пошуку або обрати інший мотоцикл."
-                      : "Спробуйте змінити параметри пошуку або обрати інший автомобіль."
-                    : vehicleMode === "moto"
-                      ? "Try different filters or another motorcycle."
-                      : "Try different filters or another car."}
+                    ? "Спробуйте послабити один параметр. Ми збережемо ваш пошук і покажемо найближчі варіанти."
+                    : "Try relaxing one parameter. We will keep your search and show the closest options."}
                 </p>
+                {emptyStateActions.length > 0 ? (
+                  <div className="mx-auto mb-4 flex max-w-2xl flex-wrap justify-center gap-2">
+                    {emptyStateActions.map((action) => (
+                      <button
+                        key={action.key}
+                        type="button"
+                        onClick={action.run}
+                        className="inline-flex min-h-9 items-center rounded-[7px] border border-foreground/15 bg-foreground/[0.035] px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-foreground/70 transition hover:border-foreground/35 hover:bg-foreground/[0.07] hover:text-foreground"
+                      >
+                        {isUa ? action.ua : action.en}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <button
+                  type="button"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-2 rounded-none border border-foreground bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-background transition hover:bg-transparent hover:text-foreground"
+                  className="inline-flex items-center gap-2 rounded-[7px] border border-foreground bg-foreground px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-background transition hover:bg-transparent hover:text-foreground"
                 >
-                  <X className="w-3 h-3" /> {isUa ? "Скинути фільтри" : "Clear filters"}
+                  <X className="h-3 w-3" /> {isUa ? "Скинути все" : "Clear all"}
                 </button>
               </div>
             ) : (
@@ -4083,6 +4349,7 @@ function StockPageContent() {
                               <div className="w-14 h-14 rounded-none bg-foreground/[0.035] flex items-center justify-center overflow-hidden border border-foreground/8">
                                 <SafeProductImage
                                   src={item.thumbnail}
+                                  fallbackSrcs={item.imageSources}
                                   alt={item.name}
                                   className={`w-full h-full object-contain p-2 hover:scale-110 transition-transform duration-500 ${
                                     item.brand === "Eventuri"
@@ -4282,6 +4549,7 @@ function StockPageContent() {
                               <div className="w-12 h-12 rounded-none bg-foreground/[0.035] flex items-center justify-center overflow-hidden shrink-0 border border-foreground/8">
                                 <SafeProductImage
                                   src={item.thumbnail}
+                                  fallbackSrcs={item.imageSources}
                                   alt={item.name}
                                   className={`w-full h-full object-contain p-1.5 ${
                                     item.brand === "Eventuri"
@@ -4306,6 +4574,16 @@ function StockPageContent() {
                                 </Link>
                               </div>
                             </div>
+
+                            {make || model || chassis ? (
+                              <div className="mb-3">
+                                <FitmentExplanation
+                                  item={item}
+                                  vehicleLabel={[make, model, chassis].filter(Boolean).join(" ")}
+                                  isUa={isUa}
+                                />
+                              </div>
+                            ) : null}
 
                             {/* Bottom action row: Price & Buy button */}
                             <div className="flex items-center justify-between border-t border-foreground/5 pt-3 mt-auto">

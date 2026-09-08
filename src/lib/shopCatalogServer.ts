@@ -2633,6 +2633,163 @@ export function getRacechipProductsServer() {
 }
 
 /**
+ * Narrow RaceChip PDP reader. The branded product page only needs the product
+ * copy, primary image, tags and purchasable variants. Reusing the generic PDP
+ * include also loads every media row, metafield, collection and recursive
+ * bundle relation for one request, which is wasteful on a high-cardinality
+ * route where most visits are first-time slugs.
+ */
+export const getRacechipProductBySlugLightServer = cache(
+  async function getRacechipProductBySlugLightServer(
+    slug: string
+  ): Promise<ShopProduct | undefined> {
+    const normalizedSlug = slug.trim();
+    if (!normalizedSlug) return undefined;
+    if (isLocalStorefrontMode()) return getShopProductBySlugServer(normalizedSlug);
+
+    try {
+      const queryParams: any = {
+        where: {
+          slug: normalizedSlug,
+          isPublished: true,
+          status: "ACTIVE",
+          OR: [
+            { brand: { equals: "racechip", mode: "insensitive" } },
+            { vendor: { equals: "racechip", mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          slug: true,
+          sku: true,
+          scope: true,
+          brand: true,
+          vendor: true,
+          productType: true,
+          tags: true,
+          titleUa: true,
+          titleEn: true,
+          shortDescUa: true,
+          shortDescEn: true,
+          longDescUa: true,
+          longDescEn: true,
+          bodyHtmlUa: true,
+          bodyHtmlEn: true,
+          categoryUa: true,
+          categoryEn: true,
+          stock: true,
+          image: true,
+          priceEur: true,
+          priceEurEurope: true,
+          priceUsd: true,
+          priceUah: true,
+          priceEurB2b: true,
+          priceUsdB2b: true,
+          priceUahB2b: true,
+          compareAtEur: true,
+          compareAtUsd: true,
+          compareAtUah: true,
+          compareAtEurB2b: true,
+          compareAtUsdB2b: true,
+          compareAtUahB2b: true,
+          variants: {
+            orderBy: { position: "asc" },
+            select: {
+              id: true,
+              title: true,
+              sku: true,
+              position: true,
+              inventoryQty: true,
+              image: true,
+              isDefault: true,
+              priceEur: true,
+              priceEurEurope: true,
+              priceUsd: true,
+              priceUah: true,
+              priceEurB2b: true,
+              priceUsdB2b: true,
+              priceUahB2b: true,
+              compareAtEur: true,
+              compareAtUsd: true,
+              compareAtUah: true,
+              compareAtEurB2b: true,
+              compareAtUsdB2b: true,
+              compareAtUahB2b: true,
+            },
+          },
+        },
+      };
+      if (isAccelerateEnabled) {
+        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+      }
+      const row: any = await getPrismaCachedClient().shopProduct.findFirst(queryParams);
+      if (!row) return undefined;
+
+      const asNumber = (value: unknown) => (value == null ? 0 : Number(value) || 0);
+      const money = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
+        eur: asNumber(eur),
+        usd: asNumber(usd),
+        uah: asNumber(uah),
+      });
+      const empty = { ua: "", en: "" };
+      const variants = (row.variants ?? []).map((variant: any) => ({
+        id: variant.id,
+        title: variant.title,
+        sku: variant.sku,
+        position: variant.position,
+        inventoryQty: variant.inventoryQty,
+        image: variant.image ?? null,
+        isDefault: variant.isDefault,
+        price: money(variant.priceEur, variant.priceUsd, variant.priceUah),
+        europePrice: money(variant.priceEurEurope, null, null),
+        b2bPrice: money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b),
+        compareAt: money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah),
+        b2bCompareAt: money(
+          variant.compareAtEurB2b,
+          variant.compareAtUsdB2b,
+          variant.compareAtUahB2b
+        ),
+      }));
+      const primaryVariant = variants.find((variant: any) => variant.isDefault) ?? variants[0];
+      const product: ShopProduct = {
+        id: row.id,
+        slug: row.slug,
+        sku: row.sku ?? primaryVariant?.sku ?? "",
+        scope: row.scope === "moto" ? "moto" : "auto",
+        brand: row.brand ?? row.vendor ?? "RaceChip",
+        vendor: row.vendor ?? undefined,
+        productType: row.productType ?? undefined,
+        tags: row.tags ?? [],
+        title: { ua: row.titleUa ?? "", en: row.titleEn ?? "" },
+        category: { ua: row.categoryUa ?? "", en: row.categoryEn ?? "" },
+        shortDescription: { ua: row.shortDescUa ?? "", en: row.shortDescEn ?? "" },
+        longDescription: {
+          ua: row.bodyHtmlUa ?? row.longDescUa ?? "",
+          en: row.bodyHtmlEn ?? row.longDescEn ?? "",
+        },
+        leadTime: empty,
+        stock: row.stock === "preOrder" ? "preOrder" : "inStock",
+        collection: empty,
+        price: money(row.priceEur, row.priceUsd, row.priceUah),
+        europePrice: money(row.priceEurEurope, null, null),
+        b2bPrice: money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b),
+        compareAt: money(row.compareAtEur, row.compareAtUsd, row.compareAtUah),
+        b2bCompareAt: money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
+        image: row.image ?? primaryVariant?.image ?? "",
+        highlights: [],
+        variants,
+      };
+      return applyShopProductImageOverrides(product);
+    } catch (error) {
+      if (!isTransientShopCatalogError(error)) throw error;
+      // Preserve the established stale/static fallback semantics during a DB
+      // incident; the fast path is only an optimization for healthy reads.
+      return getShopProductBySlugServer(normalizedSlug);
+    }
+  }
+);
+
+/**
  * Light racechip catalog fetcher — optimized path for the racechip grid view.
  *
  * Why this exists: `getShopProductsByBrandServer` pulls every scalar column of

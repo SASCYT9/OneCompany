@@ -99,3 +99,7 @@ export function vehicleModelKey(value) {
 export function vehicleMakeAliases() {
   return ["BMW", "bmw"];
 }
+
+export function vehicleModelAliases(_make, value) {
+  return [value, String(value ?? "").replace(/\s+/g, "-")];
+}

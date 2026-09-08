@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import {
   enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
+  filterVehicleSearchResidualTokens,
+  getVehicleResidualSearchTokens,
   parseVehicleSearchQuery,
   projectCatalogVehicleResolutionItems,
   scoreVehicleSearchItem,
@@ -62,6 +64,64 @@ test("BMW M5 G90 keeps the current chassis and S68 powertrain correlated", () =>
   assert.deepEqual(expanded.chassis, ["G90"]);
   assert.deepEqual(expanded.engines, ["S68"]);
   assert.equal(expanded.aliasIds.includes("bmw-m5-g90"), true);
+});
+
+test("a generic BMW G20 query is resolved from catalog fitment instead of brand text", () => {
+  const expanded = expandVehicleAliases("BMW G20");
+  assert.equal(expanded.intent, "mixed");
+  assert.equal(shouldEnrichVehicleSearchFromCatalog(expanded), true);
+
+  const resolved = enrichVehicleSearchFromCatalog(expanded, [
+    {
+      titleText: "BMW 3 Series G20 intake",
+      fitment: {
+        make: "BMW",
+        models: ["3 Series"],
+        chassisCodes: ["G20"],
+        yearRanges: [],
+      },
+    },
+    {
+      titleText: "BMW 5 Series G30 intake",
+      fitment: {
+        make: "BMW",
+        models: ["5 Series"],
+        chassisCodes: ["G30"],
+        yearRanges: [],
+      },
+    },
+  ]);
+
+  assert.deepEqual(resolved.makes, ["BMW"]);
+  assert.deepEqual(resolved.chassis, ["G20"]);
+  assert.equal(resolved.intent, "mixed");
+});
+
+test("structured vehicle queries keep their product words as hard filters", () => {
+  const expanded = enrichVehicleSearchFromCatalog(expandVehicleAliases("BMW G20 Eventuri"), [
+    {
+      titleText: "BMW 3 Series G20 intake",
+      fitment: { make: "BMW", models: ["3 Series"], chassisCodes: ["G20"], yearRanges: [] },
+    },
+  ]);
+  assert.deepEqual(getVehicleResidualSearchTokens(expanded), ["eventuri"]);
+  assert.equal(
+    filterVehicleSearchResidualTokens(
+      [
+        { searchText: "eventuri bmw 3 series g20", score: 10 },
+        { searchText: "kw bmw 3 series g20", score: 9 },
+      ],
+      expanded
+    ).length,
+    1
+  );
+  assert.equal(
+    filterVehicleSearchResidualTokens([{ searchText: "eventuri bmw 3 series g20", score: 10 }], {
+      ...expanded,
+      tokens: [...expanded.tokens, "nonexistentword"],
+    }).length,
+    0
+  );
 });
 
 test("BMW M5 without a generation stays broad instead of assuming G90", () => {

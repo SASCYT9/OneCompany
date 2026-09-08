@@ -21,6 +21,10 @@ export function revalidateShopStorefrontProducts(
     else revalidatePath(path);
   }
   for (const tag of plan.tags) revalidateTag(tag, { expire: 0 });
+  // The anonymous warehouse lookup is cached separately from product pages;
+  // invalidate it with the same mutation so stock badges reflect edits
+  // immediately instead of waiting for the shared 60-second TTL.
+  revalidateTag("shop-warehouse-products", { expire: 0 });
 }
 
 /** Invalidates only the canonical and legacy PDP aliases, never a listing. */

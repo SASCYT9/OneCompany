@@ -4,6 +4,7 @@ import { extractProductFitment } from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
 import { prisma } from "@/lib/prisma";
+import { Prisma, ShopCatalogCompatibilityDimension } from "@prisma/client";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
 import {
   canonicalVehicleMakeLabel,
@@ -225,9 +226,18 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
 async function getCachedVehicleEvidence(
   canonicalMake: string,
   makeAliases: string[],
-  year?: number | null
+  year?: number | null,
+  model?: string | null,
+  generation?: string | null
 ) {
-  const key = JSON.stringify([canonicalMake, year ?? null]);
+  const modelAliases = model ? vehicleModelAliases(canonicalMake, model) : [];
+  const generationValue = generation?.trim() || null;
+  const key = JSON.stringify([
+    canonicalMake,
+    model ? vehicleModelKey(model) : null,
+    generationValue ? normalizeShopSearchText(generationValue) : null,
+    year ?? null,
+  ]);
   const cached = sharedCache.evidence.get(key);
   if (cached && cached.expiresAt > Date.now()) {
     sharedCache.evidence.delete(key);
@@ -237,6 +247,55 @@ async function getCachedVehicleEvidence(
   if (cached) sharedCache.evidence.delete(key);
   const pending = sharedCache.pendingEvidence.get(key);
   if (pending) return pending;
+  const clauseAnd: Prisma.ShopCatalogProjectionClauseWhereInput[] = [
+    ...(year
+      ? [
+          {
+            constraints: {
+              some: {
+                dimension: "YEAR" as const,
+                state: "EXACT" as const,
+                AND: [
+                  { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
+                  { OR: [{ yearTo: null }, { yearTo: { gte: year } }] },
+                ],
+              },
+            },
+          },
+        ]
+      : []),
+    ...(modelAliases.length
+      ? [
+          {
+            constraints: {
+              some: {
+                dimension: "MODEL" as const,
+                state: "EXACT" as const,
+                textValue: { in: modelAliases, mode: "insensitive" as const },
+              },
+            },
+          },
+        ]
+      : []),
+    ...(generationValue
+      ? [
+          {
+            constraints: {
+              some: {
+                dimension: {
+                  in: [
+                    ShopCatalogCompatibilityDimension.GENERATION,
+                    ShopCatalogCompatibilityDimension.CHASSIS,
+                  ],
+                },
+                state: "EXACT" as const,
+                textValue: { equals: generationValue, mode: "insensitive" as const },
+              },
+            },
+          },
+        ]
+      : []),
+  ];
   const promise = Promise.all([
     prisma.shopVehicleApplication.findMany({
       where: {
@@ -251,6 +310,10 @@ async function getCachedVehicleEvidence(
                 { OR: [{ yearTo: null }, { yearTo: { gte: year } }] },
               ],
             }
+          : {}),
+        ...(modelAliases.length ? { model: { in: modelAliases, mode: "insensitive" } } : {}),
+        ...(generationValue
+          ? { chassisCode: { equals: generationValue, mode: "insensitive" } }
           : {}),
         product: { isPublished: true, status: "ACTIVE" },
       },
@@ -267,24 +330,7 @@ async function getCachedVehicleEvidence(
             textValue: { in: makeAliases, mode: "insensitive" },
           },
         },
-        ...(year
-          ? {
-              AND: [
-                {
-                  constraints: {
-                    some: {
-                      dimension: "YEAR",
-                      state: "EXACT",
-                      AND: [
-                        { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
-                        { OR: [{ yearTo: null }, { yearTo: { gte: year } }] },
-                      ],
-                    },
-                  },
-                },
-              ],
-            }
-          : {}),
+        ...(clauseAnd.length ? { AND: clauseAnd } : {}),
       },
       select: {
         productId: true,
@@ -320,7 +366,13 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
       ? findLegacyFitmentCandidateIds(input, canonicalMake).catch(() => null)
       : Promise.resolve<string[] | null>(null),
     input.make
-      ? getCachedVehicleEvidence(canonicalMake, makeAliases, input.year)
+      ? getCachedVehicleEvidence(
+          canonicalMake,
+          makeAliases,
+          input.year,
+          input.model,
+          input.generation
+        )
       : Promise.resolve<VehicleEvidence>({ applications: [], clauses: [] }),
   ]);
   // Canonical relation evidence can resolve IDs without loading their product

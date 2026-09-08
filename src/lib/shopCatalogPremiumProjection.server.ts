@@ -2,7 +2,7 @@ import "server-only";
 
 import { NextResponse } from "next/server";
 
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
 import {
   queryShopCatalogProjectionStockSummary,
@@ -30,6 +30,7 @@ import {
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
+import { canonicalizeShopSearchQuery } from "@/lib/shopSearch";
 
 const PAGE_SIZE = 24;
 
@@ -101,13 +102,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
   const warehouseProductsPromise = measure("warehouse", getShopWarehouseProducts());
-  const [settingsRecord, warehouseProducts, session, vehicleProductIds] = await Promise.all([
-    measure("settings", getOrCreateShopSettings(prisma)),
+  const [settings, warehouseProducts, session, vehicleProductIds] = await Promise.all([
+    // Catalog reads only need public pricing/settings data. The tagged cache
+    // avoids a settings row query on every anonymous search while admin
+    // mutations still invalidate `shop-settings`.
+    measure("settings", getPublicShopSettingsRuntime()),
     warehouseProductsPromise,
     measure("session", getCurrentShopCustomerSession()),
     vehicleProductIdsPromise,
   ]);
-  const settings = getShopSettingsRuntime(settingsRecord);
   const useEuropePrice = isEuropePricingCountry(params.get("country"));
   const pricingContext = await measure(
     "pricing_context",
@@ -124,7 +127,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const query: ShopCatalogProjectionQueryInput = {
     locale,
     limit: requestedLimit,
-    text: clean(params.get("q"), 256),
+    // Keep the premium projection aligned with the legacy search route: common
+    // Cyrillic make names ("бмв", "мерседес", etc.) are canonicalized before
+    // the indexed text query is built.
+    text: clean(canonicalizeShopSearchQuery(params.get("q") ?? ""), 256),
     // The established UI uses `auto` as its default tab, while many canonical
     // automotive products intentionally have no explicit scope key. Vehicle
     // constraints already keep auto searches precise. Moto is an actual
@@ -237,6 +243,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
           : priceSet.uah > 0
             ? priceSet.uah / (uahRate / usdRate)
             : 0;
+    const primaryImage = cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null;
+    const imageSources = Array.from(
+      new Set(
+        [cardPrice?.primaryMediaUrl, item.primaryMediaUrl, ...(cardPrice?.imageSources ?? [])]
+          .map((value) => String(value ?? "").trim())
+          .filter(Boolean)
+      )
+    );
     return {
       id: item.productId,
       name: getKwCardTitle({
@@ -248,7 +262,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       partNumber: item.normalizedSku ?? "",
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
-      thumbnail: cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null,
+      imageSources,
+      thumbnail: primaryImage,
       inStock: isShopWarehouseInStockProduct(cardPrice?.sku ?? item.normalizedSku, item.slug),
       price: displayPrice,
       priceUsd: priceSet.usd,

@@ -1,5 +1,8 @@
 import { normalizeShopSearchText } from "@/lib/shopSearch";
-import { SHOP_VEHICLE_MODEL_CORRECTIONS, formatVehicleModelLabel } from "./shopVehicleModelCorrections";
+import {
+  SHOP_VEHICLE_MODEL_CORRECTIONS,
+  formatVehicleModelLabel,
+} from "./shopVehicleModelCorrections";
 import generationAliases from "./shopVehicleGenerationAliases.json";
 
 const VEHICLE_MAKE_ALIAS_GROUPS = {
@@ -24,20 +27,42 @@ const VEHICLE_MAKE_ALIAS_GROUPS = {
 
 const CANONICAL_VEHICLE_MAKE_BY_ALIAS = new Map<string, string>();
 for (const [canonical, aliases] of Object.entries(VEHICLE_MAKE_ALIAS_GROUPS)) {
-  for (const alias of aliases) CANONICAL_VEHICLE_MAKE_BY_ALIAS.set(normalizeShopSearchText(alias), canonical);
+  for (const alias of aliases)
+    CANONICAL_VEHICLE_MAKE_BY_ALIAS.set(normalizeShopSearchText(alias), canonical);
 }
 
 export function canonicalVehicleMakeLabel(value: string) {
   const trimmed = value.trim().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
   if (!trimmed) return "";
-  return CANONICAL_VEHICLE_MAKE_BY_ALIAS.get(normalizeShopSearchText(trimmed)) ??
-    trimmed.replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return (
+    CANONICAL_VEHICLE_MAKE_BY_ALIAS.get(normalizeShopSearchText(trimmed)) ??
+    trimmed.replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
 }
 
 export function vehicleMakeAliases(value: string) {
   const canonical = canonicalVehicleMakeLabel(value);
   const aliases = VEHICLE_MAKE_ALIAS_GROUPS[canonical as keyof typeof VEHICLE_MAKE_ALIAS_GROUPS];
   return aliases ? [...new Set([canonical, ...aliases])] : [canonical];
+}
+
+/** Return canonical makes explicitly mentioned in a free-text vehicle query. */
+export function vehicleMakesMentionedInQuery(value: string) {
+  const normalized = normalizeShopSearchText(value);
+  if (!normalized) return [];
+  return Object.entries(VEHICLE_MAKE_ALIAS_GROUPS)
+    .filter(([, aliases]) =>
+      aliases.some((alias) => {
+        const normalizedAlias = normalizeShopSearchText(alias);
+        return (
+          normalized === normalizedAlias ||
+          normalized.startsWith(`${normalizedAlias} `) ||
+          normalized.includes(` ${normalizedAlias} `) ||
+          normalized.endsWith(` ${normalizedAlias}`)
+        );
+      })
+    )
+    .map(([canonical]) => canonical);
 }
 
 export function canonicalizeVehicleMakes(values: readonly string[]) {
@@ -51,7 +76,9 @@ export function vehicleModelKey(value: string) {
   return normalizeShopSearchText(value).replace(/[^a-z0-9]+/g, "");
 }
 
-const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<
+  Record<string, Readonly<Record<string, readonly string[]>>>
+> = {
   bentley: {
     "Continental GT": ["Continental GT", "Continental Gt Urban"],
     "Flying Spur": ["Flying Spur", "Continental Flying Spur"],
@@ -60,7 +87,11 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     "1 Series M Coupé": ["1 Series M Coupé", "1M", "1 Series M"],
     "1 Series": ["1 Series", "M135i/M140i"],
     "2 Series": ["2 Series", "M235i/M240i"],
-    "2 Series Active Tourer": ["2 Series Active Tourer", "2 Active Tourer", "2-series-active-gran-tourer"],
+    "2 Series Active Tourer": [
+      "2 Series Active Tourer",
+      "2 Active Tourer",
+      "2-series-active-gran-tourer",
+    ],
     "3 Series": ["3 Series", "3-series", "M340i/M340d"],
     "4 Series": ["4 Series", "4-series", "M440i/M440d"],
     "5 Series": ["5 Series", "5-series", "M550i", "520i", "540i"],
@@ -69,7 +100,11 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     i8: ["i8", "I8"],
     Z4: ["Z4", "Z Series", "Z4 Roadster"],
     "2 Gran Coupe": ["2 Gran Coupe", "2-series-gran-coupe"],
-    "2 Series Gran Tourer": ["2 Series Gran Tourer", "2 Gran Tourer", "2-series-active-gran-tourer"],
+    "2 Series Gran Tourer": [
+      "2 Series Gran Tourer",
+      "2 Gran Tourer",
+      "2-series-active-gran-tourer",
+    ],
     "6 Gran Turismo": ["6 Gran Turismo", "6-gran-turismo"],
     M2: ["M2", "m2", "M2 Competition", "M2 CS F87"],
     M3: ["M3", "m3"],
@@ -96,7 +131,14 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     Defender: ["Defender", "Defender Oem Black", "Urban Leather Defender"],
     "Defender 110": ["Defender 110", "Defender 110 Wide"],
     "Discovery 5": ["Discovery 5", "Discovery 5 5", "Discovery 5 Black", "Discovery 5 Urban"],
-    "Range Rover Sport": ["Range Rover Sport", "Sport", "Sport Linear", "Sport Matrix", "Sport Pur", "Sport Sv"],
+    "Range Rover Sport": [
+      "Range Rover Sport",
+      "Sport",
+      "Sport Linear",
+      "Sport Matrix",
+      "Sport Pur",
+      "Sport Sv",
+    ],
   },
   lamborghini: {
     Urus: ["Urus", "Urus Urus"],
@@ -177,7 +219,14 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<Record<string, Readonly<Record<string
     V40: ["V40", "V40 P1", "S40 V40"],
     V50: ["V50", "C30 C70 S40 V50 P1"],
     V60: ["V60", "Sv60 Sv90 Xc60 Xc90 Spa"],
-    V70: ["V70", "850 S70 V70 C70 P80", "S60 V70 S80 Xc70 P2", "S60 V70 Xc60 P3", "S70 V70 C70 Xc70 P80", "V70 S80 Xc70 P3"],
+    V70: [
+      "V70",
+      "850 S70 V70 C70 P80",
+      "S60 V70 S80 Xc70 P2",
+      "S60 V70 Xc60 P3",
+      "S70 V70 C70 Xc70 P80",
+      "V70 S80 Xc70 P3",
+    ],
     V90: ["V90", "960 S90 V90"],
     XC60: ["XC60", "S60 V70 Xc60 P3", "Sv60 Sv90 Xc60 Xc90 Spa"],
     XC70: ["XC70", "S60 V70 S80 Xc70 P2", "S70 V70 C70 Xc70 P80", "V70 S80 Xc70 P3"],
@@ -191,17 +240,25 @@ function modelAliasGroups(make: string) {
   const cached = MODEL_GROUP_CACHE.get(key);
   if (cached) return cached;
   const groups: Record<string, string[]> = Object.fromEntries(
-    Object.entries(VEHICLE_MODEL_ALIAS_GROUPS[key] ?? {}).map(([label, aliases]) => [label, [...aliases]])
+    Object.entries(VEHICLE_MODEL_ALIAS_GROUPS[key] ?? {}).map(([label, aliases]) => [
+      label,
+      [...aliases],
+    ])
   );
   for (const [raw, labels] of Object.entries(SHOP_VEHICLE_MODEL_CORRECTIONS[key] ?? {})) {
-    for (const label of labels) groups[label] = [...new Set([...(groups[label] ?? []), label, raw])];
+    for (const label of labels)
+      groups[label] = [...new Set([...(groups[label] ?? []), label, raw])];
   }
   // Generation remains available through the separate chassis/year selectors.
   // Keep supplier values for queries, while presenting a single model family.
-  for (const [raw, family] of Object.entries(generationAliases[canonicalVehicleMakeLabel(make) as keyof typeof generationAliases] ?? {})) {
+  for (const [raw, family] of Object.entries(
+    generationAliases[canonicalVehicleMakeLabel(make) as keyof typeof generationAliases] ?? {}
+  )) {
     if (!isSelectableVehicleModel(make, raw)) continue;
     const label = formatVehicleModelLabel(family);
-    groups[label] = [...new Set([...(groups[label] ?? []), label, label.replace(/\s+/g, "-"), raw])];
+    groups[label] = [
+      ...new Set([...(groups[label] ?? []), label, label.replace(/\s+/g, "-"), raw]),
+    ];
   }
   MODEL_GROUP_CACHE.set(key, groups);
   return groups;
@@ -226,7 +283,13 @@ function knownCanonicalVehicleModelLabels(make: string, value: string) {
 export function vehicleModelAliases(make: string, value: string) {
   const canonicals = knownCanonicalVehicleModelLabels(make, value);
   const labels = canonicals.length ? canonicals : [value.trim()];
-  return [...new Set([value.trim(), value.trim().replace(/\s+/g, "-"), ...labels.flatMap(label => modelAliasGroups(make)[label] ?? [label])])];
+  return [
+    ...new Set([
+      value.trim(),
+      value.trim().replace(/\s+/g, "-"),
+      ...labels.flatMap((label) => modelAliasGroups(make)[label] ?? [label]),
+    ]),
+  ];
 }
 
 const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {
@@ -297,7 +360,9 @@ export function canonicalizeVehicleModels(make: string, values: readonly string[
   for (const value of values) {
     if (!isSelectableVehicleModel(make, value)) continue;
     const canonicals = knownCanonicalVehicleModelLabels(make, value);
-    for (const canonical of canonicals.length ? canonicals : [canonicalVehicleModelLabel(make, value)]) {
+    for (const canonical of canonicals.length
+      ? canonicals
+      : [canonicalVehicleModelLabel(make, value)]) {
       const key = vehicleModelKey(canonical);
       if (!key) continue;
       byKey.set(key, canonical);
@@ -339,9 +404,38 @@ const BMW_CHASSIS_BY_MODEL: Readonly<Record<string, readonly string[]>> = {
   "1 Series M Coupé": ["E82"],
   "2 Series": ["F22", "F23", "F44", "G42"],
   "2 Series Active Tourer": ["F45", "F46", "U06"],
-  "3 Series": ["E21", "E30", "E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21", "G28"],
+  "3 Series": [
+    "E21",
+    "E30",
+    "E36",
+    "E46",
+    "E90",
+    "E91",
+    "E92",
+    "E93",
+    "F30",
+    "F31",
+    "F34",
+    "G20",
+    "G21",
+    "G28",
+  ],
   "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
-  "5 Series": ["E12", "E28", "E34", "E39", "E60", "E61", "F07", "F10", "F11", "G30", "G31", "G60", "G61"],
+  "5 Series": [
+    "E12",
+    "E28",
+    "E34",
+    "E39",
+    "E60",
+    "E61",
+    "F07",
+    "F10",
+    "F11",
+    "G30",
+    "G31",
+    "G60",
+    "G61",
+  ],
   "6 Gran Turismo": ["G32"],
   "6 Series": ["E24", "E63", "E64", "F06", "F12", "F13"],
   "7 Series": ["E23", "E32", "E38", "E65", "E66", "F01", "F02", "G11", "G12", "G70"],
@@ -378,8 +472,9 @@ export function canonicalizeVehicleChassisCodes(
   const canonicalModel = model ? canonicalVehicleModelLabel(canonicalMake, model) : "";
   const allowed = canonicalMake === "BMW" ? BMW_CHASSIS_BY_MODEL[canonicalModel] : null;
   const filtered = allowed
-    ? normalized.filter((value) => allowed.includes(value === "F87N" ? "F87" : value))
-        .map((value) => value === "F87N" ? "F87" : value)
+    ? normalized
+        .filter((value) => allowed.includes(value === "F87N" ? "F87" : value))
+        .map((value) => (value === "F87N" ? "F87" : value))
     : normalized;
   return [...new Set(filtered)].sort((left, right) =>
     left.localeCompare(right, "en", { numeric: true, sensitivity: "base" })

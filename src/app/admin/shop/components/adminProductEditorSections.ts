@@ -22,6 +22,11 @@ export const ADMIN_PRODUCT_EDITOR_SECTIONS: AdminEditorNavSection[] = [
     description: "Shipping dimensions and AI-estimated flags.",
   },
   {
+    id: "compatibility",
+    label: "Compatibility",
+    description: "Vehicle applications, automatic evidence, and manual overrides.",
+  },
+  {
     id: "seo",
     label: "SEO",
     description: "Search metadata used by storefront pages.",

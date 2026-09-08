@@ -11,6 +11,7 @@ import {
   resolveSearchFitment,
   resolveSearchFitments,
 } from "../../../src/lib/shopFitmentQuality";
+import { extractProductFitment } from "../../../src/lib/crossShopFitment";
 
 function product(overrides: Partial<ShopProduct> = {}): ShopProduct {
   return {
@@ -44,6 +45,105 @@ test("high-confidence vehicle fitment is inferred, not silently verified", () =>
   assert.equal(result.status, "inferred");
   assert.equal(result.vehicleType, "car");
   assert.deepEqual(result.chassisCodes, ["G80"]);
+});
+
+test("description fitment is extracted only from an explicit, unambiguous application", () => {
+  const result = extractProductFitment(
+    product({
+      title: { ua: "Впускна система", en: "Performance intake" },
+      longDescription: {
+        ua: "Підходить для BMW 3 Series G20, роки 2019–2024.",
+        en: "Designed for BMW 3 Series G20, model years 2019–2024.",
+      },
+    })
+  );
+
+  assert.equal(result.make, "BMW");
+  assert.deepEqual(result.chassisCodes, ["G20"]);
+  assert.equal(result.evidence?.source, "description");
+  assert.equal(result.evidence?.processorVersion, "description-fitment-v1");
+});
+
+test("Ukrainian fitment cues are extracted without relying on an English translation", () => {
+  const result = extractProductFitment(
+    product({
+      title: { ua: "Впускна система", en: "Performance intake" },
+      longDescription: {
+        ua: "Підходить для BMW 3 Series G20, роки 2019–2024.",
+        en: "",
+      },
+    })
+  );
+
+  assert.equal(result.make, "BMW");
+  assert.deepEqual(result.chassisCodes, ["G20"]);
+  assert.equal(result.evidence?.source, "description");
+});
+
+test("a negated universal phrase does not turn a product into a universal match", () => {
+  const result = classifyProductFitment(
+    product({
+      title: { ua: "Не універсальний перехідник", en: "This is not a universal adapter" },
+    }),
+    { make: null, models: [], chassisCodes: [], yearRanges: [], confidence: "unknown" }
+  );
+
+  assert.equal(result.status, "needs_review");
+});
+
+test("description constraints keep engine, drivetrain, and OPF evidence", () => {
+  const result = classifyProductFitment(
+    product({
+      title: { ua: "Впуск BMW G20", en: "Intake for BMW 3 Series G20" },
+      longDescription: {
+        ua: "Підходить для BMW 3 Series G20 з двигуном B48, заднім приводом, без OPF, 2019–2024.",
+        en: "",
+      },
+    }),
+    extractProductFitment(
+      product({
+        title: { ua: "Впуск BMW G20", en: "Intake for BMW 3 Series G20" },
+        longDescription: {
+          ua: "Підходить для BMW 3 Series G20 з двигуном B48, заднім приводом, без OPF, 2019–2024.",
+          en: "",
+        },
+      })
+    )
+  );
+
+  assert.equal(result.status, "inferred");
+  assert.deepEqual(result.applications[0]?.engines, ["B48"]);
+  assert.deepEqual(result.applications[0]?.drivetrains, ["RWD"]);
+  assert.equal(result.applications[0]?.opfGpf, "without");
+});
+
+test("description contradictions are kept as review evidence", () => {
+  const item = product({
+    title: { ua: "Впуск BMW G20", en: "Intake for BMW 3 Series G20" },
+    longDescription: {
+      ua: "Не підходить для BMW G20. Підходить лише для BMW G21.",
+      en: "",
+    },
+  });
+  const result = classifyProductFitment(item, extractProductFitment(item));
+
+  assert.equal(result.status, "needs_review");
+  assert.equal(result.evidence?.source, "description");
+});
+
+test("description lists with exclusions or multiple chassis stay unknown", () => {
+  const result = extractProductFitment(
+    product({
+      title: { ua: "Впускна система", en: "Performance intake" },
+      longDescription: {
+        ua: "Підходить для BMW G20 та G21, але не підходить для G28.",
+        en: "Fits BMW G20 and G21, but does not fit G28.",
+      },
+    })
+  );
+
+  assert.equal(result.confidence, "unknown");
+  assert.equal(result.evidence?.source, "description");
 });
 
 test("unknown explicit universal products are separated from review defects", () => {

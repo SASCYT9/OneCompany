@@ -60,6 +60,26 @@ test("OPF selection stays native and is not discarded", () => {
   assert.equal(plan.constraints.opfGpf, "with");
 });
 
+test("typed vehicle search queries reuse structured constraints before catalog loading", () => {
+  const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams("q=BMW%20M3%20G80"));
+  assert.equal(plan.constraints.make, "BMW");
+  assert.equal(plan.constraints.model, "M3");
+  assert.equal(plan.constraints.generation, "G80");
+  assert.equal(plan.canonical, false);
+
+  const chassisOnly = buildShopCatalogVehicleSearchPlan(new URLSearchParams("q=BMW%20G20"));
+  assert.equal(chassisOnly.constraints.make, "BMW");
+  assert.equal(chassisOnly.constraints.model, null);
+  assert.equal(chassisOnly.constraints.generation, "G20");
+
+  // Broad platform aliases must remain lexical until the catalog can resolve
+  // the actual model family; otherwise `G8X` would over-constrain the query.
+  const broad = buildShopCatalogVehicleSearchPlan(new URLSearchParams("q=BMW%20G8X"));
+  assert.equal(broad.constraints.make, null);
+  assert.equal(broad.constraints.model, null);
+  assert.equal(broad.constraints.generation, null);
+});
+
 test("invalid OPF selections fail closed before the legacy bridge can run", () => {
   for (const opfGpf of ["unknown", "with;without", "any"]) {
     assert.throws(

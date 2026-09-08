@@ -6,15 +6,22 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminProductInclude,
   adminProductListSelect,
+  buildAutomaticFitmentFromAdminPayload,
   buildAdminProductCreateData,
   normalizeAdminProductPayload,
   serializeAdminProductListItem,
+  shouldPersistAutomaticFitment,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
 import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductCreation } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import {
+  NORMALIZED_FITMENT_KEY,
+  NORMALIZED_FITMENT_NAMESPACE,
+  normalizeManualFitment,
+} from "@/lib/shopFitmentQuality";
 
 import { Prisma } from "@prisma/client";
 
@@ -95,6 +102,22 @@ export async function POST(request: NextRequest) {
     if (errors.length) {
       return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
     }
+    const hasNormalizedFitment = Object.prototype.hasOwnProperty.call(body, "normalizedFitment");
+    const automaticFitment = buildAutomaticFitmentFromAdminPayload(data);
+    const automaticFitmentValue = shouldPersistAutomaticFitment(automaticFitment)
+      ? JSON.stringify(automaticFitment)
+      : null;
+    let normalizedFitmentValue: string | null = automaticFitmentValue;
+    if (hasNormalizedFitment && body.normalizedFitment !== null) {
+      const normalized = normalizeManualFitment(body.normalizedFitment, session.email);
+      if (normalized.errors.length || !normalized.data) {
+        return NextResponse.json(
+          { error: normalized.errors.join(", ") || "Invalid normalized fitment" },
+          { status: 400 }
+        );
+      }
+      normalizedFitmentValue = JSON.stringify(normalized.data);
+    }
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
         where: { id: data.categoryId },
@@ -124,6 +147,17 @@ export async function POST(request: NextRequest) {
           data: buildAdminProductCreateData(data),
           select: { id: true },
         });
+        if (normalizedFitmentValue) {
+          await tx.shopProductMetafield.create({
+            data: {
+              productId: createdProduct.id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+              value: normalizedFitmentValue,
+              valueType: "json",
+            },
+          });
+        }
         return createdProduct.id;
       },
       async snapshot(tx, productId, initialCatalogVersion) {
@@ -157,10 +191,13 @@ export async function POST(request: NextRequest) {
           limit: 10,
         });
       } catch (error) {
-        console.error("[shop-catalog.product-create] immediate publish failed; cron recovery remains active", {
-          outboxId: catalogMutation.outboxId,
-          error,
-        });
+        console.error(
+          "[shop-catalog.product-create] immediate publish failed; cron recovery remains active",
+          {
+            outboxId: catalogMutation.outboxId,
+            error,
+          }
+        );
       }
     });
     try {

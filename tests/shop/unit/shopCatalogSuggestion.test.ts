@@ -42,6 +42,14 @@ test("suggestion input is bounded, normalizes search text, and compacts SKU", as
   );
 });
 
+test("suggestion input canonicalizes Cyrillic vehicle make aliases", async () => {
+  const { normalizeShopCatalogSuggestionInput } = await suggestionModule;
+  const normalized = normalizeShopCatalogSuggestionInput({ locale: "ua", query: " бмв G20 " });
+  assert.equal(normalized.query, "бмв G20");
+  assert.equal(normalized.normalizedQuery, "bmw g20");
+  assert.equal(normalized.normalizedSku, "bmwg20");
+});
+
 test("vehicle suggestions never cross-pair makes and models from different clauses", async () => {
   const { collectShopCatalogVehicleSuggestions } = await suggestionModule;
   const row = (

@@ -8,12 +8,20 @@ import {
   resolveProductStorefront,
   type ShopProductStorefront,
 } from "@/lib/shopProductStorefront";
-import { isNormalizedFitmentMetafield } from "@/lib/shopFitmentQuality";
+import {
+  classifyProductFitment,
+  isNormalizedFitmentMetafield,
+  parseNormalizedFitment,
+} from "@/lib/shopFitmentQuality";
+import { extractProductFitment } from "@/lib/crossShopFitment";
+import type { ShopProduct } from "@/lib/shopCatalog";
 import {
   isSupplierFitmentMetafield,
   normalizeSupplierFitmentContract,
+  parseSupplierFitmentContract,
   SUPPLIER_FITMENT_KEY,
   SUPPLIER_FITMENT_NAMESPACE,
+  supplierContractToNormalizedFitment,
 } from "@/lib/shopImportFitment";
 
 export {
@@ -242,12 +250,66 @@ export const adminProductImportMergeSelect = {
       id: true,
       namespace: true,
       key: true,
+      value: true,
     },
   },
 } satisfies Prisma.ShopProductSelect;
 
 export type AdminProductImportMergeRecord = Prisma.ShopProductGetPayload<{
   select: typeof adminProductImportMergeSelect;
+}>;
+
+/** Compact source fields used when a partial supplier row changes a title or
+ * description. Reading the merged row after the update prevents an omitted
+ * locale from erasing fitment evidence that was already stored. */
+export const adminProductFitmentSourceSelect = {
+  id: true,
+  slug: true,
+  sku: true,
+  scope: true,
+  brand: true,
+  vendor: true,
+  productType: true,
+  tags: true,
+  titleUa: true,
+  titleEn: true,
+  categoryUa: true,
+  categoryEn: true,
+  shortDescUa: true,
+  shortDescEn: true,
+  longDescUa: true,
+  longDescEn: true,
+  bodyHtmlUa: true,
+  bodyHtmlEn: true,
+  leadTimeUa: true,
+  leadTimeEn: true,
+  stock: true,
+  collectionUa: true,
+  collectionEn: true,
+  image: true,
+  variants: {
+    select: {
+      id: true,
+      title: true,
+      sku: true,
+      position: true,
+      option1Value: true,
+      option2Value: true,
+      option3Value: true,
+      priceEur: true,
+      priceUsd: true,
+      priceUah: true,
+    },
+  },
+  collections: {
+    select: {
+      collection: { select: { handle: true, titleUa: true, titleEn: true, brand: true } },
+    },
+  },
+} satisfies Prisma.ShopProductSelect;
+
+export type AdminProductFitmentSourceRecord = Prisma.ShopProductGetPayload<{
+  select: typeof adminProductFitmentSourceSelect;
 }>;
 
 export type AdminShopProductMediaInput = {
@@ -1437,12 +1499,129 @@ export function buildAdminProductSnapshotMergeUpdateData(
   });
 }
 
+/**
+ * Build the same deterministic fitment classification used by the storefront
+ * from an admin/import payload. Keeping this helper beside the payload
+ * normalizer lets create, edit, and CSV paths persist description evidence at
+ * write time; buyer search can then stay on the compact catalog projection.
+ */
+export function buildAutomaticFitmentFromAdminPayload(data: AdminShopProductPayload) {
+  const product = {
+    slug: data.slug,
+    sku: data.sku ?? "",
+    scope: data.scope === "moto" ? "moto" : "auto",
+    brand: data.brand ?? "",
+    vendor: data.vendor ?? undefined,
+    productType: data.productType ?? undefined,
+    tags: data.tags,
+    title: { ua: data.titleUa, en: data.titleEn },
+    category: { ua: data.categoryUa ?? "", en: data.categoryEn ?? "" },
+    shortDescription: { ua: data.shortDescUa ?? "", en: data.shortDescEn ?? "" },
+    longDescription: {
+      ua: data.bodyHtmlUa?.trim() || data.longDescUa || "",
+      en: data.bodyHtmlEn?.trim() || data.longDescEn || "",
+    },
+    leadTime: { ua: data.leadTimeUa ?? "", en: data.leadTimeEn ?? "" },
+    stock: data.stock === "inStock" ? "inStock" : "preOrder",
+    collection: { ua: data.collectionUa ?? "", en: data.collectionEn ?? "" },
+    price: { eur: 0, usd: 0, uah: 0 },
+    image: data.image ?? "",
+    highlights: [],
+    variants: data.variants.map((variant) => ({
+      id: variant.id ?? undefined,
+      title: variant.title ?? undefined,
+      sku: variant.sku ?? undefined,
+      position: variant.position ?? 0,
+      optionValues: [variant.option1Value, variant.option2Value, variant.option3Value].filter(
+        (value): value is string => Boolean(value)
+      ),
+      price: { eur: 0, usd: 0, uah: 0 },
+    })),
+  } as ShopProduct;
+  return buildAutomaticFitmentFromProduct(product);
+}
+
+export function buildAutomaticFitmentFromProduct(product: ShopProduct) {
+  return classifyProductFitment(product, extractProductFitment(product));
+}
+
+export function shouldPersistAutomaticFitment(
+  fitment: ReturnType<typeof buildAutomaticFitmentFromAdminPayload>
+) {
+  return Boolean(
+    fitment.status === "universal" ||
+    fitment.evidence ||
+    fitment.make ||
+    fitment.models.length ||
+    fitment.chassisCodes.length ||
+    fitment.note ||
+    fitment.dependency
+  );
+}
+
 function decimalToNumber(value: Prisma.Decimal | number | null | undefined): number | null {
   if (value == null) return null;
   return Number(value);
 }
 
 export function serializeAdminProduct(record: AdminShopProductRecord) {
+  const persistedFitment = parseNormalizedFitment(
+    record.metafields.find((item) => isNormalizedFitmentMetafield(item))?.value
+  );
+  const supplierContract = parseSupplierFitmentContract(
+    record.metafields.find((item) => isSupplierFitmentMetafield(item))?.value
+  );
+  const supplierFitment = supplierContract
+    ? supplierContractToNormalizedFitment(supplierContract)
+    : null;
+  const automaticProduct = {
+    slug: record.slug,
+    sku: record.sku ?? "",
+    scope: record.scope === "moto" ? "moto" : "auto",
+    brand: record.brand ?? "",
+    vendor: record.vendor ?? undefined,
+    productType: record.productType ?? undefined,
+    tags: record.tags,
+    title: { ua: record.titleUa, en: record.titleEn },
+    category: { ua: record.categoryUa ?? "", en: record.categoryEn ?? "" },
+    shortDescription: { ua: record.shortDescUa ?? "", en: record.shortDescEn ?? "" },
+    longDescription: {
+      ua: record.bodyHtmlUa ?? record.longDescUa ?? "",
+      en: record.bodyHtmlEn ?? record.longDescEn ?? "",
+    },
+    leadTime: { ua: record.leadTimeUa ?? "", en: record.leadTimeEn ?? "" },
+    stock: record.stock === "inStock" ? "inStock" : "preOrder",
+    collection: { ua: record.collectionUa ?? "", en: record.collectionEn ?? "" },
+    price: { eur: 0, usd: 0, uah: 0 },
+    image: record.image ?? "",
+    highlights: [],
+    collections: record.collections.map((entry) => ({
+      id: entry.collection.id,
+      handle: entry.collection.handle,
+      title: { ua: entry.collection.titleUa, en: entry.collection.titleEn },
+      brand: entry.collection.brand,
+      isUrban: entry.collection.isUrban,
+      sortOrder: entry.sortOrder,
+    })),
+    variants: record.variants.map((variant) => ({
+      id: variant.id,
+      title: variant.title,
+      sku: variant.sku,
+      position: variant.position,
+      optionValues: [variant.option1Value, variant.option2Value, variant.option3Value].filter(
+        (value): value is string => Boolean(value)
+      ),
+      price: { eur: 0, usd: 0, uah: 0 },
+    })),
+  } as ShopProduct;
+  const automaticFitment = classifyProductFitment(
+    automaticProduct,
+    extractProductFitment(automaticProduct)
+  );
+  const normalizedFitment =
+    persistedFitment?.source === "manual"
+      ? persistedFitment
+      : (supplierFitment ?? persistedFitment ?? automaticFitment);
   const storefront = resolveProductStorefront({
     slug: record.slug,
     brand: record.brand,
@@ -1508,6 +1687,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
 
   return {
     id: record.id,
+    catalogVersion: record.catalogVersion.toString(),
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,
@@ -1637,6 +1817,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
         value: item.value,
         valueType: item.valueType,
       })),
+    fitment: normalizedFitment,
     collections: record.collections.map((entry) => ({
       id: entry.collection.id,
       handle: entry.collection.handle,

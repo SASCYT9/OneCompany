@@ -5,7 +5,11 @@ import {
   getShopProductsWithFitments,
 } from "@/app/api/shop/stock/search/route";
 import { compactShopCode, parseVehicleSearchQuery } from "@/lib/shopVehicleSearch";
-import { normalizeShopSearchText, tokenizeShopSearchQuery } from "@/lib/shopSearch";
+import {
+  getShopSearchQueryVariants,
+  normalizeShopSearchText,
+  tokenizeShopSearchQuery,
+} from "@/lib/shopSearch";
 import {
   resolveShopCatalogReaderFlag,
   isShopCatalogReaderRequestEnabled,
@@ -88,9 +92,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const normalizedQuery = normalizeShopSearchText(query);
+    const normalizedQueries = getShopSearchQueryVariants(query);
     const compactQuery = compactShopCode(query);
-    const tokens = tokenizeShopSearchQuery(query);
+    const tokens = [
+      ...new Set(normalizedQueries.flatMap((variant) => tokenizeShopSearchQuery(variant))),
+    ];
     const strictSkuQuery = parseVehicleSearchQuery(query) === "sku";
     const allProducts = await getShopProductsWithFitments();
     const products = filterShopStockItemsByVehicleScope(allProducts, vehicleScope);
@@ -110,13 +116,13 @@ export async function GET(request: NextRequest) {
         const compactSku = compactShopCode(product.sku || "");
         const tokenMatches = tokens.filter((token) => item.searchText.includes(token)).length;
 
-        if (normalizedBrand.includes(normalizedQuery)) {
+        if (normalizedQueries.some((variant) => normalizedBrand.includes(variant))) {
           brandMatches.set(brand, (brandMatches.get(brand) ?? 0) + 1);
         }
 
         if (item.fitment.make) {
           const normalizedMake = normalizeShopSearchText(item.fitment.make);
-          if (normalizedMake.includes(normalizedQuery)) {
+          if (normalizedQueries.some((variant) => normalizedMake.includes(variant))) {
             const key = item.fitment.make;
             const current = vehicleMatches.get(key);
             vehicleMatches.set(key, {
@@ -127,7 +133,10 @@ export async function GET(request: NextRequest) {
 
           for (const model of item.fitment.models) {
             const label = `${item.fitment.make} ${model}`;
-            if (!normalizeShopSearchText(label).includes(normalizedQuery)) continue;
+            if (
+              !normalizedQueries.some((variant) => normalizeShopSearchText(label).includes(variant))
+            )
+              continue;
             const current = vehicleMatches.get(label);
             vehicleMatches.set(label, {
               make: item.fitment.make,
@@ -152,10 +161,11 @@ export async function GET(request: NextRequest) {
         let score = tokenMatches * 10;
         if (compactQuery && compactSku === compactQuery) score += 120;
         else if (compactQuery && compactSku.includes(compactQuery)) score += 70;
-        if (normalizedTitle.startsWith(normalizedQuery)) score += 50;
-        else if (normalizedTitle.includes(normalizedQuery)) score += 32;
-        if (normalizedBrand.startsWith(normalizedQuery)) score += 28;
-        if (item.fitmentText.includes(normalizedQuery)) score += 24;
+        if (normalizedQueries.some((variant) => normalizedTitle.startsWith(variant))) score += 50;
+        else if (normalizedQueries.some((variant) => normalizedTitle.includes(variant)))
+          score += 32;
+        if (normalizedQueries.some((variant) => normalizedBrand.startsWith(variant))) score += 28;
+        if (normalizedQueries.some((variant) => item.fitmentText.includes(variant))) score += 24;
         if (product.stock === "inStock") score += 8;
         if (product.image || product.gallery?.[0]) score += 5;
 

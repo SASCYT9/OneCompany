@@ -1,4 +1,8 @@
-import { isShopSearchCodeToken, normalizeShopSearchText } from "./shopSearch";
+import {
+  isShopSearchCodeToken,
+  isShopVehicleSearchToken,
+  normalizeShopSearchText,
+} from "./shopSearch";
 import {
   extractVehicleYearRanges,
   vehicleYearRangeContains,
@@ -324,7 +328,11 @@ function hasVehicleSignal(expansion: Omit<ShopVehicleSearchExpansion, "intent">)
     expansion.models.length > 0 ||
     expansion.chassis.length > 0 ||
     expansion.platforms.length > 0 ||
-    expansion.engines.length > 0
+    expansion.engines.length > 0 ||
+    // Catalog-specific chassis/model codes (for example G20) are not all
+    // present in the alias dictionary. Treat a recognized vehicle token as a
+    // structured signal so the catalog resolver can bind it to one fitment.
+    expansion.tokens.some((token) => isShopVehicleSearchToken(token))
   );
 }
 
@@ -411,6 +419,57 @@ export function expandVehicleAliases(query: string): ShopVehicleSearchExpansion 
         : "text";
 
   return { ...base, intent };
+}
+
+/**
+ * Vehicle queries often contain a second intent, for example
+ * `BMW G20 Eventuri`. Vehicle identity narrows compatibility, while the
+ * remaining words must still narrow the product itself. Keeping this logic
+ * here makes the API and tests use the same token boundary.
+ */
+export function getVehicleResidualSearchTokens(
+  expandedQuery: Pick<
+    ShopVehicleSearchExpansion,
+    | "tokens"
+    | "requiredTokens"
+    | "makes"
+    | "models"
+    | "chassis"
+    | "platforms"
+    | "engines"
+    | "softTerms"
+    | "years"
+  >
+) {
+  const vehicleTerms = [
+    ...expandedQuery.requiredTokens,
+    ...expandedQuery.makes,
+    ...expandedQuery.models,
+    ...expandedQuery.chassis,
+    ...expandedQuery.platforms,
+    ...expandedQuery.engines,
+    ...expandedQuery.softTerms,
+    ...expandedQuery.years.map(String),
+  ]
+    .flatMap((value) => normalizeShopSearchText(value).split(" "))
+    .filter(Boolean);
+  const vehicleTokens = new Set(vehicleTerms);
+  return Array.from(new Set(expandedQuery.tokens.filter((token) => !vehicleTokens.has(token))));
+}
+
+export function filterVehicleSearchResidualTokens<
+  T extends { searchText: string; titleText?: string; skuText?: string; brandText?: string },
+>(items: T[], expandedQuery: ShopVehicleSearchExpansion) {
+  const residualTokens = getVehicleResidualSearchTokens(expandedQuery);
+  if (residualTokens.length === 0) return items;
+  return items.filter((item) => {
+    // Product intent should come from identity fields. Rich descriptions often
+    // mention compatible or competing brands and must not satisfy a brand query
+    // on their own.
+    const productText =
+      [item.titleText, item.skuText, item.brandText].filter(Boolean).join(" ") || item.searchText;
+    return residualTokens.every((token) => productText.includes(normalizeShopSearchText(token)));
+  });
 }
 
 function textHasAny(text: string, values: string[]) {
@@ -592,9 +651,17 @@ export type CatalogVehicleResolutionItem = {
  * full fitment scan before scoring.
  */
 export function shouldEnrichVehicleSearchFromCatalog(
-  expandedQuery: Pick<ShopVehicleSearchExpansion, "intent">
+  expandedQuery: Pick<ShopVehicleSearchExpansion, "intent" | "tokens">
 ) {
-  return expandedQuery.intent === "vehicle" || expandedQuery.intent === "mixed";
+  // A chassis-only token such as `G20` is still a vehicle signal even when
+  // the alias dictionary does not contain a dedicated group for it. The
+  // catalog resolver can safely bind it to the make and model already stored
+  // on a product's fitment record.
+  return (
+    expandedQuery.intent === "vehicle" ||
+    expandedQuery.intent === "mixed" ||
+    expandedQuery.tokens.some((token) => isShopVehicleSearchToken(token))
+  );
 }
 
 /**

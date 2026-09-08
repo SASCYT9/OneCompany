@@ -26,11 +26,19 @@ const money = (
  * keep this projection deliberately small and deterministic.
  */
 export async function getShopFitmentCatalogProducts(
-  options: { evidenceOnly?: boolean; productIds?: readonly string[] } = {}
+  options: {
+    evidenceOnly?: boolean;
+    productIds?: readonly string[];
+    includeDescriptions?: boolean;
+  } = {}
 ): Promise<ShopProduct[]> {
   // Vehicle ID resolution does not render prices or media. Keep every text field
   // consumed by the fitment extractor while omitting that unrelated DB payload.
   const includeCommerce = !options.evidenceOnly;
+  // Long descriptions are intentionally opt-in. Buyer search uses the compact
+  // projection and persisted fitment records; the backfill/import path can
+  // request description evidence without inflating every search response.
+  const includeDescriptions = options.includeDescriptions === true;
   const requestedProductIds = options.productIds
     ? [...new Set(options.productIds.filter((id): id is string => Boolean(id)))].sort()
     : null;
@@ -74,6 +82,14 @@ export async function getShopFitmentCatalogProducts(
             categoryEn: true,
             shortDescUa: true,
             shortDescEn: true,
+            ...(includeDescriptions
+              ? {
+                  longDescUa: true,
+                  longDescEn: true,
+                  bodyHtmlUa: true,
+                  bodyHtmlEn: true,
+                }
+              : {}),
             collectionUa: true,
             collectionEn: true,
             stock: true,
@@ -160,7 +176,18 @@ export async function getShopFitmentCatalogProducts(
         title: { ua: row.titleUa, en: row.titleEn },
         category: { ua: row.categoryUa ?? "", en: row.categoryEn ?? "" },
         shortDescription: { ua: row.shortDescUa ?? "", en: row.shortDescEn ?? "" },
-        longDescription: { ua: "", en: "" },
+        longDescription: {
+          ua:
+            (includeDescriptions
+              ? ((row as { bodyHtmlUa?: string | null }).bodyHtmlUa ??
+                (row as { longDescUa?: string | null }).longDescUa)
+              : null) ?? "",
+          en:
+            (includeDescriptions
+              ? ((row as { bodyHtmlEn?: string | null }).bodyHtmlEn ??
+                (row as { longDescEn?: string | null }).longDescEn)
+              : null) ?? "",
+        },
         leadTime: { ua: "", en: "" },
         stock: row.stock === "preOrder" ? "preOrder" : "inStock",
         collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },

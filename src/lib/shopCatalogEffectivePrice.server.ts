@@ -94,6 +94,80 @@ export function buildShopCatalogEffectivePriceSql(
   const audienceIsB2B = context.audience === "b2b";
   const useEuropeBase = context.useEuropeBase;
 
+  // Guest/B2C requests do not need any of the B2B discount JSON or band
+  // resolution below. Keep their price predicate to one product row plus the
+  // default variant. This expression is used by price filters, ordering and
+  // the stock aggregate, so avoiding four extra lateral stages materially
+  // reduces CPU on the public catalog hot path.
+  if (!audienceIsB2B) {
+    const rawEur = Prisma.sql`COALESCE(
+      NULLIF(canonical_product."priceEur", 0),
+      NULLIF(canonical_variant."priceEur", 0),
+      0
+    )::numeric`;
+    const rawEuropeEur = Prisma.sql`COALESCE(
+      NULLIF(canonical_product."priceEurEurope", 0),
+      NULLIF(canonical_variant."priceEurEurope", 0),
+      0
+    )::numeric`;
+    const rawUsd = Prisma.sql`COALESCE(
+      NULLIF(canonical_product."priceUsd", 0),
+      NULLIF(canonical_variant."priceUsd", 0),
+      0
+    )::numeric`;
+    const rawUah = Prisma.sql`COALESCE(
+      NULLIF(canonical_product."priceUah", 0),
+      NULLIF(canonical_variant."priceUah", 0),
+      0
+    )::numeric`;
+    const baseEur = useEuropeBase
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN (${rawEuropeEur}) ELSE (${rawEur}) END`
+      : rawEur;
+    const baseUsd = useEuropeBase
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${rawUsd}) END`
+      : rawUsd;
+    const baseUah = useEuropeBase
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${rawUah}) END`
+      : rawUah;
+    const requestedAmount =
+      context.currency === "EUR"
+        ? Prisma.sql`CASE
+            WHEN (${baseEur}) > 0 THEN (${baseEur})
+            WHEN (${baseUsd}) > 0 AND ${canConvert} THEN ((${baseUsd}) / ${usdRate}) * ${eurRate}
+            WHEN (${baseUah}) > 0 AND ${canConvert} THEN ((${baseUah}) / ${uahRate}) * ${eurRate}
+            ELSE 0
+          END`
+        : context.currency === "UAH"
+          ? Prisma.sql`CASE
+              WHEN (${baseUah}) > 0 THEN (${baseUah})
+              WHEN (${baseUsd}) > 0 AND ${canConvert} THEN ((${baseUsd}) / ${usdRate}) * ${uahRate}
+              WHEN (${baseEur}) > 0 AND ${canConvert} THEN ((${baseEur}) / ${eurRate}) * ${uahRate}
+              ELSE 0
+            END`
+          : Prisma.sql`CASE
+              WHEN (${baseUsd}) > 0 THEN (${baseUsd})
+              WHEN (${baseEur}) > 0 AND ${canConvert} THEN ((${baseEur}) / ${eurRate}) * ${usdRate}
+              WHEN (${baseUah}) > 0 AND ${canConvert} THEN ((${baseUah}) / ${uahRate}) * ${usdRate}
+              ELSE 0
+            END`;
+
+    return Prisma.sql`(
+      SELECT NULLIF(${requestedAmount}, 0)
+      FROM "ShopProduct" canonical_product
+      LEFT JOIN LATERAL (
+        SELECT
+          variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah"
+        FROM "ShopProductVariant" variant
+        WHERE variant."productId" = canonical_product."id"
+        ORDER BY variant."isDefault" DESC, variant."position" ASC, variant."id" ASC
+        LIMIT 1
+      ) canonical_variant ON true
+      WHERE canonical_product."id" = projection."productId"
+        AND canonical_product."isPublished" = true
+        AND canonical_product."status" = 'ACTIVE'
+    )`;
+  }
+
   const requestedAmount =
     context.currency === "EUR"
       ? Prisma.sql`CASE

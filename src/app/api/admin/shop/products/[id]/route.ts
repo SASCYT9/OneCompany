@@ -5,9 +5,11 @@ import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   adminProductInclude,
+  buildAutomaticFitmentFromAdminPayload,
   buildAdminProductScalarUpdateData,
   normalizeAdminProductPayload,
   serializeAdminProduct,
+  shouldPersistAutomaticFitment,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
 import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
@@ -20,6 +22,8 @@ import {
   isNormalizedFitmentMetafield,
   NORMALIZED_FITMENT_KEY,
   NORMALIZED_FITMENT_NAMESPACE,
+  normalizeManualFitment,
+  parseNormalizedFitment,
 } from "@/lib/shopFitmentQuality";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductMutation } from "@/lib/shopCatalogMutationCoordinator.server";
@@ -122,9 +126,38 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE);
     const { id } = await params;
     const body = await request.json();
+    const rawCatalogVersion = body?.catalogVersion;
+    const requestedCatalogVersion =
+      rawCatalogVersion == null || rawCatalogVersion === ""
+        ? null
+        : String(rawCatalogVersion).trim();
+    if (requestedCatalogVersion !== null && !/^\d+$/.test(requestedCatalogVersion)) {
+      return NextResponse.json({ error: "Invalid catalog version" }, { status: 400 });
+    }
     const { data, errors } = normalizeAdminProductPayload(body);
     if (errors.length) {
       return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
+    }
+    const hasNormalizedFitment = Object.prototype.hasOwnProperty.call(body, "normalizedFitment");
+    const automaticFitment = buildAutomaticFitmentFromAdminPayload(data);
+    const automaticFitmentValue = shouldPersistAutomaticFitment(automaticFitment)
+      ? JSON.stringify(automaticFitment)
+      : null;
+    let normalizedFitmentValue: string | null | undefined = automaticFitmentValue;
+    if (hasNormalizedFitment) {
+      if (body.normalizedFitment === null) {
+        // Explicit null means “return to the automatic version”.
+        normalizedFitmentValue = automaticFitmentValue;
+      } else {
+        const normalized = normalizeManualFitment(body.normalizedFitment, session.email);
+        if (normalized.errors.length || !normalized.data) {
+          return NextResponse.json(
+            { error: normalized.errors.join(", ") || "Invalid normalized fitment" },
+            { status: 400 }
+          );
+        }
+        normalizedFitmentValue = JSON.stringify(normalized.data);
+      }
     }
     const currentProduct = await prisma.shopProduct.findUnique({
       where: { id },
@@ -148,6 +181,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               },
             },
           },
+        },
+        metafields: {
+          where: {
+            namespace: NORMALIZED_FITMENT_NAMESPACE,
+            key: NORMALIZED_FITMENT_KEY,
+          },
+          select: { value: true },
         },
       },
     });
@@ -265,10 +305,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const variantUpdateIds = new Set(variantMutationPlan.updateIds);
+    const existingNormalizedFitment = parseNormalizedFitment(currentProduct.metafields[0]?.value);
 
     const catalogMutation = await coordinateShopCatalogProductMutation({
       productId: id,
-      expectedCatalogVersion: currentProduct.catalogVersion.toString(),
+      // Editors send the version they loaded. Keep the current-version
+      // fallback for older integrations that do not send this field yet.
+      expectedCatalogVersion: requestedCatalogVersion ?? currentProduct.catalogVersion.toString(),
       changeDomains: [
         "CONTENT",
         "SEO",
@@ -281,156 +324,201 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       ],
       async mutateAndSnapshot(tx, nextCatalogVersion) {
         await tx.shopProduct.update({
-        where: { id },
-        data: buildAdminProductScalarUpdateData(data),
+          where: { id },
+          data: buildAdminProductScalarUpdateData(data),
         });
 
-      await tx.shopProductCollection.deleteMany({
-        where: { productId: id },
-      });
-      if (data.collectionIds.length) {
-        await tx.shopProductCollection.createMany({
-          data: data.collectionIds.map((collectionId, index) => ({
-            productId: id,
-            collectionId,
-            sortOrder: index,
-          })),
+        await tx.shopProductCollection.deleteMany({
+          where: { productId: id },
         });
-      }
-
-      const mediaIdsToDelete = currentProduct.media
-        .map((item) => item.id)
-        .filter((mediaId) => !incomingMediaIds.includes(mediaId));
-      if (mediaIdsToDelete.length) {
-        await tx.shopProductMedia.deleteMany({
-          where: {
-            productId: id,
-            id: { in: mediaIdsToDelete },
-          },
-        });
-      }
-      for (const [index, item] of data.media.entries()) {
-        const mediaData = {
-          src: item.src,
-          altText: item.altText ?? null,
-          position: index + 1,
-          mediaType: item.mediaType ?? "IMAGE",
-        };
-        if (item.id) {
-          await tx.shopProductMedia.update({
-            where: { id: item.id },
-            data: mediaData,
+        if (data.collectionIds.length) {
+          await tx.shopProductCollection.createMany({
+            data: data.collectionIds.map((collectionId, index) => ({
+              productId: id,
+              collectionId,
+              sortOrder: index,
+            })),
           });
-          continue;
         }
 
-        await tx.shopProductMedia.create({
-          data: {
-            productId: id,
-            ...mediaData,
-          },
-        });
-      }
-
-      await tx.shopProductOption.deleteMany({
-        where: { productId: id },
-      });
-      if (data.options.length) {
-        await tx.shopProductOption.createMany({
-          data: data.options.map((item, index) => ({
-            productId: id,
-            name: item.name,
+        const mediaIdsToDelete = currentProduct.media
+          .map((item) => item.id)
+          .filter((mediaId) => !incomingMediaIds.includes(mediaId));
+        if (mediaIdsToDelete.length) {
+          await tx.shopProductMedia.deleteMany({
+            where: {
+              productId: id,
+              id: { in: mediaIdsToDelete },
+            },
+          });
+        }
+        for (const [index, item] of data.media.entries()) {
+          const mediaData = {
+            src: item.src,
+            altText: item.altText ?? null,
             position: index + 1,
-            values: item.values ?? [],
-          })),
-        });
-      }
+            mediaType: item.mediaType ?? "IMAGE",
+          };
+          if (item.id) {
+            await tx.shopProductMedia.update({
+              where: { id: item.id },
+              data: mediaData,
+            });
+            continue;
+          }
 
-      if (variantMutationPlan.deleteIds.length) {
-        await tx.shopProductVariant.deleteMany({
-          where: {
-            productId: id,
-            id: { in: variantMutationPlan.deleteIds },
-          },
-        });
-      }
+          await tx.shopProductMedia.create({
+            data: {
+              productId: id,
+              ...mediaData,
+            },
+          });
+        }
 
-      const retainedVariantIds = data.variants
-        .map((item) => String(item.id ?? "").trim())
-        .filter((variantId) => variantUpdateIds.has(variantId));
-      for (const [index, variantId] of retainedVariantIds.entries()) {
-        await tx.shopProductVariant.update({
-          where: { id: variantId },
-          data: {
-            position: VARIANT_TEMP_POSITION_OFFSET + index,
-          },
+        await tx.shopProductOption.deleteMany({
+          where: { productId: id },
         });
-      }
-      for (const [index, item] of data.variants.entries()) {
-        const variantData = buildVariantWriteData(item, index + 1);
-        const variantId = String(item.id ?? "").trim();
-        if (variantId && variantUpdateIds.has(variantId)) {
+        if (data.options.length) {
+          await tx.shopProductOption.createMany({
+            data: data.options.map((item, index) => ({
+              productId: id,
+              name: item.name,
+              position: index + 1,
+              values: item.values ?? [],
+            })),
+          });
+        }
+
+        if (variantMutationPlan.deleteIds.length) {
+          await tx.shopProductVariant.deleteMany({
+            where: {
+              productId: id,
+              id: { in: variantMutationPlan.deleteIds },
+            },
+          });
+        }
+
+        const retainedVariantIds = data.variants
+          .map((item) => String(item.id ?? "").trim())
+          .filter((variantId) => variantUpdateIds.has(variantId));
+        for (const [index, variantId] of retainedVariantIds.entries()) {
           await tx.shopProductVariant.update({
             where: { id: variantId },
-            data: variantData,
+            data: {
+              position: VARIANT_TEMP_POSITION_OFFSET + index,
+            },
           });
-          continue;
+        }
+        for (const [index, item] of data.variants.entries()) {
+          const variantData = buildVariantWriteData(item, index + 1);
+          const variantId = String(item.id ?? "").trim();
+          if (variantId && variantUpdateIds.has(variantId)) {
+            await tx.shopProductVariant.update({
+              where: { id: variantId },
+              data: variantData,
+            });
+            continue;
+          }
+
+          await tx.shopProductVariant.create({
+            data: {
+              productId: id,
+              ...variantData,
+            },
+          });
         }
 
-        await tx.shopProductVariant.create({
-          data: {
+        await tx.shopProductMetafield.deleteMany({
+          where: {
             productId: id,
-            ...variantData,
+            NOT: {
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+            },
           },
         });
-      }
+        const editableMetafields = data.metafields.filter(
+          (item) => !isNormalizedFitmentMetafield(item)
+        );
+        if (editableMetafields.length) {
+          await tx.shopProductMetafield.createMany({
+            data: editableMetafields.map((item) => ({
+              productId: id,
+              namespace: item.namespace,
+              key: item.key,
+              value: item.value,
+              valueType: item.valueType ?? "single_line_text_field",
+            })),
+          });
+        }
+        if (hasNormalizedFitment) {
+          await tx.shopProductMetafield.deleteMany({
+            where: {
+              productId: id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+            },
+          });
+          if (normalizedFitmentValue) {
+            await tx.shopProductMetafield.create({
+              data: {
+                productId: id,
+                namespace: NORMALIZED_FITMENT_NAMESPACE,
+                key: NORMALIZED_FITMENT_KEY,
+                value: normalizedFitmentValue,
+                valueType: "json",
+              },
+            });
+          }
+        } else if (
+          !hasNormalizedFitment &&
+          (!existingNormalizedFitment || existingNormalizedFitment.source === "automatic")
+        ) {
+          // Rebuild automatic evidence after a full editor save. The compact
+          // buyer projection does not carry long descriptions, so persist the
+          // result here instead of making the next search parse rich HTML.
+          await tx.shopProductMetafield.deleteMany({
+            where: {
+              productId: id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+            },
+          });
+          if (normalizedFitmentValue) {
+            await tx.shopProductMetafield.create({
+              data: {
+                productId: id,
+                namespace: NORMALIZED_FITMENT_NAMESPACE,
+                key: NORMALIZED_FITMENT_KEY,
+                value: normalizedFitmentValue,
+                valueType: "json",
+              },
+            });
+          }
+        }
 
-      await tx.shopProductMetafield.deleteMany({
-        where: {
-          productId: id,
-          NOT: {
-            namespace: NORMALIZED_FITMENT_NAMESPACE,
-            key: NORMALIZED_FITMENT_KEY,
-          },
-        },
-      });
-      const editableMetafields = data.metafields.filter(
-        (item) => !isNormalizedFitmentMetafield(item)
-      );
-      if (editableMetafields.length) {
-        await tx.shopProductMetafield.createMany({
-          data: editableMetafields.map((item) => ({
-            productId: id,
-            namespace: item.namespace,
-            key: item.key,
-            value: item.value,
-            valueType: item.valueType ?? "single_line_text_field",
-          })),
+        const updatedProduct = await tx.shopProduct.findUnique({
+          where: { id },
+          include: adminProductInclude,
         });
-      }
+        if (!updatedProduct) {
+          throw new Error("PRODUCT_NOT_FOUND_AFTER_UPDATE");
+        }
 
-      const updatedProduct = await tx.shopProduct.findUnique({
-        where: { id },
-        include: adminProductInclude,
-      });
-      if (!updatedProduct) {
-        throw new Error("PRODUCT_NOT_FOUND_AFTER_UPDATE");
-      }
-
-      await writeAdminAuditLog(tx, session, {
-        scope: "shop",
-        action: "product.update",
-        entityType: "shop.product",
-        entityId: updatedProduct.id,
-        metadata: {
-          slug: updatedProduct.slug,
-          status: updatedProduct.status,
-          variantUpdates: variantMutationPlan.updateIds.length,
-          variantCreates: variantMutationPlan.create.length,
-          variantDeletes: variantMutationPlan.deleteIds.length,
-          catalogVersion: nextCatalogVersion,
-        },
-      });
+        await writeAdminAuditLog(tx, session, {
+          scope: "shop",
+          action: "product.update",
+          entityType: "shop.product",
+          entityId: updatedProduct.id,
+          metadata: {
+            slug: updatedProduct.slug,
+            status: updatedProduct.status,
+            variantUpdates: variantMutationPlan.updateIds.length,
+            variantCreates: variantMutationPlan.create.length,
+            variantDeletes: variantMutationPlan.deleteIds.length,
+            catalogVersion: nextCatalogVersion,
+          },
+        });
 
         return buildShopCatalogAdminSnapshot(tx, id, nextCatalogVersion, {
           type: "ADMIN",
@@ -451,10 +539,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           limit: 10,
         });
       } catch (error) {
-        console.error("[shop-catalog.admin] immediate publish failed; cron recovery remains active", {
-          outboxId: catalogMutation.outboxId,
-          error,
-        });
+        console.error(
+          "[shop-catalog.admin] immediate publish failed; cron recovery remains active",
+          {
+            outboxId: catalogMutation.outboxId,
+            error,
+          }
+        );
       }
     });
 
@@ -546,10 +637,13 @@ export async function DELETE(
           limit: 10,
         });
       } catch (error) {
-        console.error("[shop-catalog.admin] immediate publish failed; cron recovery remains active", {
-          outboxId: catalogMutation.outboxId,
-          error,
-        });
+        console.error(
+          "[shop-catalog.admin] immediate publish failed; cron recovery remains active",
+          {
+            outboxId: catalogMutation.outboxId,
+            error,
+          }
+        );
       }
     });
 

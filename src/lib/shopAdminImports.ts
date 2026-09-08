@@ -8,18 +8,30 @@ import {
 import type { AdminSession } from "@/lib/adminAuth";
 import {
   adminProductImportMergeSelect,
+  buildAutomaticFitmentFromAdminPayload,
+  buildAutomaticFitmentFromProduct,
+  adminProductFitmentSourceSelect,
   buildAdminProductCreateData,
   buildAdminProductImportUpdateData,
   normalizeAdminProductPayload,
+  shouldPersistAutomaticFitment,
   type AdminShopProductPayload,
   type AdminProductImportRelationMask,
   type AdminProductImportScalarMask,
+  type AdminProductImportProductScalarField,
 } from "@/lib/shopAdminCatalog";
 import { buildProductsFromShopifyCsv, type CsvHeaderMapping } from "@/lib/shopAdminCsv";
 import { writeAdminAuditLog } from "@/lib/adminRbac";
 import type { ShopProduct, ShopScope, ShopStock } from "@/lib/shopCatalog";
 import { extractProductFitment } from "@/lib/crossShopFitment";
-import { classifyProductFitment, type NormalizedFitmentStatus } from "@/lib/shopFitmentQuality";
+import {
+  classifyProductFitment,
+  isNormalizedFitmentMetafield,
+  NORMALIZED_FITMENT_KEY,
+  NORMALIZED_FITMENT_NAMESPACE,
+  parseNormalizedFitment,
+  type NormalizedFitmentStatus,
+} from "@/lib/shopFitmentQuality";
 import {
   isSupplierFitmentMetafield,
   parseSupplierFitmentContract,
@@ -116,6 +128,33 @@ const IMPORT_CHANGE_DOMAINS = [
   "VISIBILITY",
 ] as const;
 
+const FITMENT_SOURCE_FIELDS: AdminProductImportProductScalarField[] = [
+  "titleUa",
+  "titleEn",
+  "shortDescUa",
+  "shortDescEn",
+  "longDescUa",
+  "longDescEn",
+  "bodyHtmlUa",
+  "bodyHtmlEn",
+  "collectionUa",
+  "collectionEn",
+  "productType",
+  "brand",
+];
+
+function fitmentSourceChanged(
+  mask?: AdminProductImportScalarMask,
+  relationMask?: AdminProductImportRelationMask
+) {
+  // A missing mask is used by full imports and means all source fields are
+  // authoritative. Partial CSV rows only reclassify when one of the fields
+  // that can carry compatibility evidence was actually supplied.
+  if (!mask) return true;
+  if (relationMask?.tags) return true;
+  return FITMENT_SOURCE_FIELDS.some((field) => mask.product[field]);
+}
+
 const adminProductImportCoordinatorSelect = {
   ...adminProductImportMergeSelect,
   catalogVersion: true,
@@ -137,6 +176,95 @@ export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
           where: { id: existing.id },
           data: buildAdminProductImportUpdateData(data, existing, relationMask, scalarMask),
         });
+        const existingFitment = parseNormalizedFitment(
+          existing.metafields.find(isNormalizedFitmentMetafield)?.value
+        );
+        const supplierProvided = data.metafields.some(isSupplierFitmentMetafield);
+        if (supplierProvided && existingFitment?.source !== "manual") {
+          await tx.shopProductMetafield.deleteMany({
+            where: {
+              productId: existing.id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+            },
+          });
+        } else if (
+          !supplierProvided &&
+          (!existingFitment || existingFitment.source === "automatic") &&
+          fitmentSourceChanged(scalarMask, relationMask)
+        ) {
+          const mergedSource = await tx.shopProduct.findUnique({
+            where: { id: existing.id },
+            select: adminProductFitmentSourceSelect,
+          });
+          if (!mergedSource) throw new Error("PRODUCT_NOT_FOUND_AFTER_IMPORT_UPDATE");
+          const automaticFitment = buildAutomaticFitmentFromProduct({
+            ...mergedSource,
+            sku: mergedSource.sku ?? "",
+            scope: mergedSource.scope === "moto" ? "moto" : "auto",
+            brand: mergedSource.brand ?? "",
+            vendor: mergedSource.vendor ?? undefined,
+            productType: mergedSource.productType ?? undefined,
+            title: { ua: mergedSource.titleUa, en: mergedSource.titleEn },
+            category: { ua: mergedSource.categoryUa ?? "", en: mergedSource.categoryEn ?? "" },
+            shortDescription: {
+              ua: mergedSource.shortDescUa ?? "",
+              en: mergedSource.shortDescEn ?? "",
+            },
+            longDescription: {
+              ua: mergedSource.bodyHtmlUa?.trim() || mergedSource.longDescUa || "",
+              en: mergedSource.bodyHtmlEn?.trim() || mergedSource.longDescEn || "",
+            },
+            leadTime: { ua: mergedSource.leadTimeUa ?? "", en: mergedSource.leadTimeEn ?? "" },
+            stock: mergedSource.stock === "inStock" ? "inStock" : "preOrder",
+            collection: {
+              ua: mergedSource.collectionUa ?? "",
+              en: mergedSource.collectionEn ?? "",
+            },
+            price: { eur: 0, usd: 0, uah: 0 },
+            image: mergedSource.image ?? "",
+            highlights: [],
+            variants: mergedSource.variants.map((variant) => ({
+              id: variant.id,
+              title: variant.title,
+              sku: variant.sku,
+              position: variant.position,
+              optionValues: [
+                variant.option1Value,
+                variant.option2Value,
+                variant.option3Value,
+              ].filter((value): value is string => Boolean(value)),
+              price: {
+                eur: Number(variant.priceEur ?? 0),
+                usd: Number(variant.priceUsd ?? 0),
+                uah: Number(variant.priceUah ?? 0),
+              },
+            })),
+            collections: mergedSource.collections.map(({ collection }) => ({
+              handle: collection.handle,
+              title: { ua: collection.titleUa, en: collection.titleEn },
+              brand: collection.brand,
+            })),
+          });
+          await tx.shopProductMetafield.deleteMany({
+            where: {
+              productId: existing.id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+            },
+          });
+          if (shouldPersistAutomaticFitment(automaticFitment)) {
+            await tx.shopProductMetafield.create({
+              data: {
+                productId: existing.id,
+                namespace: NORMALIZED_FITMENT_NAMESPACE,
+                key: NORMALIZED_FITMENT_KEY,
+                value: JSON.stringify(automaticFitment),
+                valueType: "json",
+              },
+            });
+          }
+        }
         return buildShopCatalogAdminSnapshot(tx, existing.id, nextCatalogVersion, {
           type: "IMPORT",
           id: session.email,
@@ -158,6 +286,20 @@ export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
           data: buildAdminProductCreateData(data),
           select: { id: true },
         });
+        if (!data.metafields.some(isSupplierFitmentMetafield)) {
+          const automaticFitment = buildAutomaticFitmentFromAdminPayload(data);
+          if (shouldPersistAutomaticFitment(automaticFitment)) {
+            await tx.shopProductMetafield.create({
+              data: {
+                productId: created.id,
+                namespace: NORMALIZED_FITMENT_NAMESPACE,
+                key: NORMALIZED_FITMENT_KEY,
+                value: JSON.stringify(automaticFitment),
+                valueType: "json",
+              },
+            });
+          }
+        }
         return created.id;
       },
       snapshot(tx, productId, initialCatalogVersion) {
