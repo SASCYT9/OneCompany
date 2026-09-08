@@ -64,6 +64,21 @@ test("description fitment is extracted only from an explicit, unambiguous applic
   assert.equal(result.evidence?.processorVersion, "description-fitment-v1");
 });
 
+test("description fitment conflicts downgrade title-only vehicle evidence", () => {
+  const source = product({
+    title: { ua: "Впуск BMW M3 G80", en: "Intake for BMW M3 G80" },
+    longDescription: {
+      ua: "Призначено для BMW M5 F90.",
+      en: "Designed for BMW M5 F90.",
+    },
+  });
+  const result = extractProductFitment(source);
+
+  assert.equal(result.confidence, "unknown");
+  assert.equal(result.evidence?.source, "description");
+  assert.equal(classifyProductFitment(source, result).status, "needs_review");
+});
+
 test("Ukrainian fitment cues are extracted without relying on an English translation", () => {
   const result = extractProductFitment(
     product({

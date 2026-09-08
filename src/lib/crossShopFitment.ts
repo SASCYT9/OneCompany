@@ -1916,7 +1916,8 @@ function extractChassisFromText(text: string): string[] {
   }
   // Bare codes anywhere in text (G80, F82 even without parens)
   const bareTokens = text.toUpperCase().split(/[^A-Z0-9.]+/);
-  for (const token of bareTokens) {
+  for (const rawToken of bareTokens) {
+    const token = rawToken.replace(/[.,]+$/, "");
     if (CHASSIS_CODES.has(token)) {
       found.add(token);
     }
@@ -3242,6 +3243,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
       )
     );
     const descriptionChassis = extractChassisFromText(descriptionFitmentEvidenceText);
+    const descriptionModels =
+      descriptionMakes.length === 1
+        ? detectModelsFromText(descriptionFitmentEvidenceText, descriptionMakes[0])
+        : [];
     const makeConflict = Boolean(
       make &&
       descriptionMakes.length > 0 &&
@@ -3251,9 +3256,22 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     );
     const chassisConflict = Boolean(
       chassis.length > 0 &&
-      descriptionChassis.length > 1 &&
+      descriptionChassis.length > 0 &&
       !descriptionChassis.some((candidate) =>
-        chassis.some((known) => normalizeFitmentKey(known) === normalizeFitmentKey(candidate))
+        chassis.some((known) => areChassisCompatible(known, candidate))
+      )
+    );
+    const modelConflict = Boolean(
+      models.length > 0 &&
+      descriptionModels.length > 0 &&
+      !descriptionModels.some((candidate) =>
+        models.some((known) => {
+          const candidateKey = normalizeFitmentKey(candidate);
+          const knownKey = normalizeFitmentKey(known);
+          return (
+            candidateKey === knownKey || modelHeadToken(candidateKey) === modelHeadToken(knownKey)
+          );
+        })
       )
     );
     const exclusionConflict =
@@ -3263,7 +3281,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
       [...chassis, ...models, ...(make ? [make] : [])].some((identity) =>
         descriptionFitmentEvidenceText.toLowerCase().includes(identity.toLowerCase())
       );
-    descriptionAmbiguous ||= makeConflict || chassisConflict || exclusionConflict;
+    descriptionAmbiguous ||= makeConflict || modelConflict || chassisConflict || exclusionConflict;
   }
 
   // Fallback 3: Infer make from unique chassis codes if make is still null

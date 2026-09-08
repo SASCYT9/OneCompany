@@ -101,23 +101,23 @@ export function buildShopCatalogEffectivePriceSql(
   // reduces CPU on the public catalog hot path.
   if (!audienceIsB2B) {
     const rawEur = Prisma.sql`COALESCE(
-      NULLIF(canonical_product."priceEur", 0),
-      NULLIF(canonical_variant."priceEur", 0),
+      canonical_product."priceEur",
+      canonical_variant."priceEur",
       0
     )::numeric`;
     const rawEuropeEur = Prisma.sql`COALESCE(
-      NULLIF(canonical_product."priceEurEurope", 0),
-      NULLIF(canonical_variant."priceEurEurope", 0),
+      canonical_product."priceEurEurope",
+      canonical_variant."priceEurEurope",
       0
     )::numeric`;
     const rawUsd = Prisma.sql`COALESCE(
-      NULLIF(canonical_product."priceUsd", 0),
-      NULLIF(canonical_variant."priceUsd", 0),
+      canonical_product."priceUsd",
+      canonical_variant."priceUsd",
       0
     )::numeric`;
     const rawUah = Prisma.sql`COALESCE(
-      NULLIF(canonical_product."priceUah", 0),
-      NULLIF(canonical_variant."priceUah", 0),
+      canonical_product."priceUah",
+      canonical_variant."priceUah",
       0
     )::numeric`;
     const baseEur = useEuropeBase

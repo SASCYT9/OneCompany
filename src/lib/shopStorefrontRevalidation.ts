@@ -4,6 +4,7 @@ import {
   type RevalidationProduct,
 } from "@/lib/shopStorefrontRevalidationPlan";
 import { invalidateShopCatalogCaches } from "@/lib/shopCatalogServer";
+import { invalidateShopWarehouseProductsCache } from "@/lib/shopWarehouseInventory.server";
 
 /** A batch invalidates shared listing paths/tags once, regardless of size. */
 export function revalidateShopStorefrontProducts(
@@ -15,6 +16,7 @@ export function revalidateShopStorefrontProducts(
   // needs an explicit tag invalidation for entries created with a TTL. Start
   // both before path work so a path error cannot leave stale product memory.
   void invalidateShopCatalogCaches();
+  invalidateShopWarehouseProductsCache();
   const plan = buildShopStorefrontRevalidationPlan(products, detailOnly);
   for (const { path, type } of plan.paths) {
     if (type) revalidatePath(path, type);

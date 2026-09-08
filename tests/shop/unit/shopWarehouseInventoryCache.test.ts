@@ -10,7 +10,7 @@ registerTestModuleHooks({
 });
 
 test("warehouse reads coalesce, refresh after expiry, and recover after rejection", async (t) => {
-  const { getShopWarehouseProducts } =
+  const { getShopWarehouseProducts, invalidateShopWarehouseProductsCache } =
     await import("../../../src/lib/shopWarehouseInventory.server");
   const { state } = await import("./fixtures/warehouse-cache-mocks.mjs");
   let now = Date.now();
@@ -26,16 +26,20 @@ test("warehouse reads coalesce, refresh after expiry, and recover after rejectio
   assert.deepEqual(state.calls[0].select, { id: true, sku: true, slug: true });
   assert.equal(state.calls[0].where.isPublished, true);
   assert.equal(state.calls[0].where.status, "ACTIVE");
-  now += 30_001;
+  invalidateShopWarehouseProductsCache();
   assert.deepEqual(await getShopWarehouseProducts(), [
     { id: "stock-2", sku: "SKU", slug: "stock" },
+  ]);
+  now += 30_001;
+  assert.deepEqual(await getShopWarehouseProducts(), [
+    { id: "stock-3", sku: "SKU", slug: "stock" },
   ]);
   now += 30_001;
   state.fail = true;
   await assert.rejects(getShopWarehouseProducts(), /warehouse unavailable/);
   state.fail = false;
   assert.deepEqual(await getShopWarehouseProducts(), [
-    { id: "stock-4", sku: "SKU", slug: "stock" },
+    { id: "stock-5", sku: "SKU", slug: "stock" },
   ]);
-  assert.equal(state.calls.length, 4);
+  assert.equal(state.calls.length, 5);
 });
