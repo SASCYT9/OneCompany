@@ -1032,9 +1032,6 @@ function StockPageContent() {
   const [modelsError, setModelsError] = useState(false);
   const [submodelsError, setSubmodelsError] = useState(false);
   const [makesError, setMakesError] = useState(false);
-  const [detailsState, setDetailsState] = useState<
-    "idle" | "loading" | "ready" | "missing" | "error"
-  >("idle");
   const makesRequestKeyRef = useRef("");
   const modelsRequestKeyRef = useRef("");
   const chassisRequestKeyRef = useRef("");
@@ -1446,7 +1443,6 @@ function StockPageContent() {
       setFitmentEngines([]);
       setModelsError(false);
       setSubmodelsError(false);
-      setDetailsState("idle");
       setModelsLoading(false);
       setSubmodelsLoading(false);
       setDetailsLoading(false);
@@ -1511,13 +1507,14 @@ function StockPageContent() {
       setFitmentYears([]);
       setFitmentEngines([]);
       setSubmodelsError(false);
-      setDetailsState("idle");
       setSubmodelsLoading(false);
       setDetailsLoading(false);
       return;
     }
     setSubmodelsLoading(true);
     setSubmodelsError(false);
+    setFitmentYears([]);
+    setFitmentEngines([]);
     const controller = new AbortController();
     const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}`;
     chassisRequestKeyRef.current = requestKey;
@@ -1568,12 +1565,10 @@ function StockPageContent() {
     if (!make || !model) {
       setFitmentYears([]);
       setFitmentEngines([]);
-      setDetailsState("idle");
       setDetailsLoading(false);
       return;
     }
     setDetailsLoading(true);
-    setDetailsState("loading");
     const controller = new AbortController();
     const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}|${requestedYear ?? ""}`;
     detailsRequestKeyRef.current = requestKey;
@@ -1615,7 +1610,6 @@ function StockPageContent() {
         const engines = isStringArray(details?.engines) ? details.engines : [];
         setFitmentYears(years);
         setFitmentEngines(engines);
-        setDetailsState(engines.length || years.length ? "ready" : "missing");
       })
       .catch((error: unknown) => {
         if (
@@ -1625,7 +1619,6 @@ function StockPageContent() {
         ) {
           setFitmentYears([]);
           setFitmentEngines([]);
-          setDetailsState("error");
         }
       })
       .finally(() => {
@@ -2293,16 +2286,23 @@ function StockPageContent() {
     );
   };
 
+  const hasVehicleModel = Boolean(model.trim());
+  const hasYearOptions = hasVehicleModel && fitmentYears.length > 0;
+  const hasEngineOptions = hasVehicleModel && fitmentEngines.length > 0;
+
   const renderStandardCompatibilityFields = (horizontal = false) => {
     const surface = horizontal
       ? "rounded-[8px] bg-card/90 shadow-[0_8px_24px_rgba(0,0,0,0.055)] backdrop-blur-xl dark:bg-black/55 dark:shadow-none"
       : "bg-foreground/[0.035]";
     const fieldClass = `h-11 w-full border border-foreground/15 px-3 text-xs font-normal text-foreground/80 outline-hidden transition hover:border-foreground/25 focus:border-foreground/45 disabled:cursor-not-allowed disabled:opacity-55 ${surface}`;
+
+    if (!hasVehicleModel) return null;
+
     return (
       <div className={horizontal ? "contents" : "grid grid-cols-1 gap-2"}>
-        <label className="relative block min-w-0">
-          <span className="sr-only">{isUa ? "Рік" : "Year"}</span>
-          {fitmentYears.length > 0 ? (
+        {hasYearOptions ? (
+          <label className="relative block min-w-0">
+            <span className="sr-only">{isUa ? "Рік" : "Year"}</span>
             <select
               value={requestedYear ?? ""}
               onChange={(event) =>
@@ -2324,28 +2324,12 @@ function StockPageContent() {
                 </option>
               ))}
             </select>
-          ) : (
-            <input
-              type="number"
-              min={1886}
-              max={new Date().getFullYear() + 2}
-              value={requestedYear ?? ""}
-              onChange={(event) => {
-                const value = Number(event.target.value);
-                setRequestedYear(Number.isInteger(value) && value >= 1886 ? value : null);
-              }}
-              placeholder={isUa ? "Рік" : "Year"}
-              disabled={!model || detailsLoading}
-              className={fieldClass}
-            />
-          )}
-          {fitmentYears.length > 0 ? (
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
-          ) : null}
-        </label>
-        <label className="relative block min-w-0">
-          <span className="sr-only">{isUa ? "Двигун" : "Engine"}</span>
-          {fitmentEngines.length > 0 ? (
+          </label>
+        ) : null}
+        {hasEngineOptions ? (
+          <label className="relative block min-w-0">
+            <span className="sr-only">{isUa ? "Двигун" : "Engine"}</span>
             <select
               value={engineFilter}
               onChange={(event) => setEngineFilter(event.target.value)}
@@ -2368,34 +2352,9 @@ function StockPageContent() {
                 </option>
               ))}
             </select>
-          ) : detailsState === "missing" || detailsState === "ready" || detailsState === "error" ? (
-            <div
-              className={`${fieldClass} flex items-center text-[10px] normal-case tracking-normal text-foreground/45`}
-              role="status"
-            >
-              {detailsState === "error"
-                ? isUa
-                  ? "Дані двигуна недоступні"
-                  : "Engine data unavailable"
-                : isUa
-                  ? "Двигун не вказаний у даних сумісності"
-                  : "No engine data for this vehicle"}
-            </div>
-          ) : (
-            <input
-              type="text"
-              value={engineFilter}
-              maxLength={80}
-              onChange={(event) => setEngineFilter(event.target.value)}
-              placeholder={isUa ? "Двигун: S58, 3.0 TFSI…" : "Engine: S58, 3.0 TFSI…"}
-              disabled={!model || detailsLoading}
-              className={fieldClass}
-            />
-          )}
-          {fitmentEngines.length > 0 ? (
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
-          ) : null}
-        </label>
+          </label>
+        ) : null}
         <label className="relative block min-w-0">
           <span className="sr-only">{isUa ? "Паливо" : "Fuel"}</span>
           <select
@@ -2499,12 +2458,14 @@ function StockPageContent() {
               })}
             </div>
             {renderVehicleFitmentFields()}
-            <div className="border-t border-foreground/10 pt-3">
-              <p className="mb-2 text-[9px] font-medium uppercase tracking-[0.16em] text-foreground/50">
-                {isUa ? "Точна сумісність" : "Exact compatibility"}
-              </p>
-              {renderStandardCompatibilityFields()}
-            </div>
+            {hasVehicleModel ? (
+              <div className="border-t border-foreground/10 pt-3">
+                <p className="mb-2 text-[9px] font-medium uppercase tracking-[0.16em] text-foreground/50">
+                  {isUa ? "Точна сумісність" : "Exact compatibility"}
+                </p>
+                {renderStandardCompatibilityFields()}
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -3573,9 +3534,11 @@ function StockPageContent() {
                   {isUa ? "Застосувати" : "Apply"}
                 </button>
               </div>
-              <div className="grid gap-2 lg:grid-cols-3">
-                {renderStandardCompatibilityFields(true)}
-              </div>
+              {hasVehicleModel ? (
+                <div className="grid gap-2 lg:grid-cols-3">
+                  {renderStandardCompatibilityFields(true)}
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
