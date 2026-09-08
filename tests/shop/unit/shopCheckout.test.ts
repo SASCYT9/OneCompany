@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./fixtures/register-server-only.mjs";
 import { buildShopSettingsRuntimeFromPayload } from "../../../src/lib/shopAdminSettings";
 import { buildCheckoutSettingsPreview } from "../../../src/lib/shopCheckout";
 import { EU_VAT_COUNTRIES } from "../../../src/lib/shopEuVat";

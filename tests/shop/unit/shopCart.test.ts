@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./fixtures/register-server-only.mjs";
 import { mergeShopCartItemInputs } from "../../../src/lib/shopCart";
 
 test("mergeShopCartItemInputs aggregates guest and customer cart rows by slug and variant", () => {

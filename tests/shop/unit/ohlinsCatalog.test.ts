@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./fixtures/register-server-only.mjs";
 
 import { detectOhlinsCategory, detectOhlinsMake } from "../../../src/lib/ohlinsCatalog";
 import { resolveFeedManagedCatalogImage } from "../../../src/lib/shopCatalogServer";
