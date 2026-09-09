@@ -81,10 +81,10 @@ test("large orders retain every item without placing the entire table in an unbr
   assert.match(html, /tr\{break-inside:avoid\}/);
 });
 
-test("recipient selection and exact payment purpose survive locale switching", async () => {
+test("recipient selection and payment details survive locale switching", async () => {
   const { getProformaRecipient, proformaRecipients } =
     await import("../../../src/lib/admin/proformaRecipients");
-  assert.equal(proformaRecipients.length, 2);
+  assert.equal(proformaRecipients.length, 1);
   for (const recipient of proformaRecipients) {
     const rearranged = recipient.iban.slice(4) + recipient.iban.slice(0, 4);
     const digits = rearranged.replace(/[A-Z]/g, (char) => String(char.charCodeAt(0) - 55));
@@ -103,12 +103,9 @@ test("recipient selection and exact payment purpose survive locale switching", a
     );
     assert.ok(html.includes(`?locale=ua&recipient=${recipient.id}`));
     assert.ok(html.includes(recipient.iban));
-    if (recipient.id === "poberezhets") {
-      assert.ok(html.includes("оплата за запчастини"));
-      assert.ok(!html.includes("Please quote your order number as the payment reference."));
-    }
   }
   assert.equal(getProformaRecipient("invalid"), null);
+  assert.equal(getProformaRecipient("removed-recipient"), null);
   const unselected = renderOrderProforma(order, null, "ua", null);
   assert.match(unselected, /id="print-proforma" type="button" disabled/);
 });
@@ -128,7 +125,7 @@ test("English recipient details and Ukraine are localized without changing payme
   assert.equal(localizeProformaRecipient(recipient, "ua").legalName, recipient.legalName);
   assert.equal(localizeProformaCountry("Україна", "en"), "Ukraine");
   assert.equal(localizeProformaCountry("Україна", "ua"), "Україна");
-  assert.equal(getProformaRecipient("poberezhets")!.purpose, "оплата за запчастини");
+  assert.equal(recipient.purpose, "");
   const html = renderOrderProforma(
     { ...order, shippingAddress: { country: "Україна" } },
     null,

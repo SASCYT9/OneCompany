@@ -11,18 +11,6 @@ export const proformaRecipients = [
     purpose: "",
     bank: 'АТ "УНІВЕРСАЛ БАНК", МФО 322001',
   },
-  {
-    id: "poberezhets",
-    name: "ФОП Побережець Іван Юрійович",
-    legalName: "ФОП Побережець Іван Юрійович",
-    nameEn: "Sole Proprietor Ivan Yuriiovych Poberezhets",
-    bankEn: null,
-    available: true,
-    iban: "UA453363100000026007011329540",
-    code: "3803206192",
-    purpose: "оплата за запчастини",
-    bank: null,
-  },
 ] as const;
 export type ProformaRecipientId = (typeof proformaRecipients)[number]["id"];
 export function getProformaRecipient(id: string | null) {

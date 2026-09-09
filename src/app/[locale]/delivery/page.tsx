@@ -128,9 +128,11 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </h2>
             <div className="not-prose border-l-2 border-foreground/20 pl-4 space-y-1">
               <p className="text-foreground font-medium">
-                {l === "ua" ? "ФОП Побережець Іван Юрійович" : "PE Poberezhets Ivan Yuriiovych"}
+                {l === "ua"
+                  ? "ФОП Семиноженко Ігор Володимирович"
+                  : "Sole Proprietor Ihor Volodymyrovych Semynozhenko"}
               </p>
-              <p>{l === "ua" ? "ЄДРПОУ: 3803206192" : "Registration No: 3803206192"}</p>
+              <p>{l === "ua" ? "ЄДРПОУ: 3257316796" : "Registration No: 3257316796"}</p>
               <p className="mt-2">{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
               <p>{l === "ua" ? "Київ, 01024, Україна" : "Kyiv, 01024, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>

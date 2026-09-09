@@ -64,7 +64,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ""}`;
     }
   } catch (error) {
-    companyRequisites = "ФОП Побережець Іван Юрійович, ЄДРПОУ: 3803206192";
+    companyRequisites = "ФОП Семиноженко Ігор Володимирович, ЄДРПОУ: 3257316796";
     console.warn(
       "Failed to fetch shop settings from DB for footer, using fallback:",
       error instanceof Error ? error.message : error
