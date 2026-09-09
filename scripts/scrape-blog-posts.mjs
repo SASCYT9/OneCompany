@@ -19,18 +19,18 @@ import path from "path";
 // CONFIG: Add shortcodes here to process
 // ============================================================
 const SHORTCODES = [
-  "DTsKmdmjFgF",
-  "DZKptKAsONz",
-  "DZE_PtkDEbt",
-  "DY4t-CxDFEp",
-  "DY1l7iUMRwf",
-  "DYc4XBAsC1s",
-  "DYUTmKAMy6s",
-  "DYSD4QNDCvi",
-  "DX9N9mFDPGs",
-  "DXyrwK6sV1b",
-  "DXqyWeeDMzC",
-  "DXbfmkoDArA",
+  "DdBx-HXjLVv",
+  "DcBTyb_jO2v",
+  "DbkxPEQN0TB",
+  "DbVr1cAjIhR",
+  "DbDpzp_DGPp",
+  "DaxtsUes117",
+  "DafoXl3jMP9",
+  "DaLI-oBjBCt",
+  "DaAXIIvDPZR",
+  "DZwxxxlsbIb",
+  "DZm27fjjGmU",
+  "DZcb4kkDNFP",
 ];
 
 const SITE_CONTENT_FILE = "public/config/site-content.json";
