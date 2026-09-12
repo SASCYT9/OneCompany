@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getIpeProductsServer } from "@/lib/shopCatalogServer";
 import { buildIpeHeroVehicleTree } from "@/lib/ipeHeroCatalog";
 import IpeHomeSignature from "../components/IpeHomeSignature";
@@ -33,9 +34,21 @@ export default async function ShopIpePage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const ipeProducts = await getIpeProductsServer();
   const availableVehicles = buildIpeHeroVehicleTree(ipeProducts);
+  const description =
+    resolvedLocale === "ua"
+      ? "Преміальні титанові вихлопні системи Innotech Performance Exhaust (iPE) з фірмовим F1-звучанням і valvetronic-керуванням."
+      : "Premium titanium Innotech Performance Exhaust (iPE) systems with signature F1-pitch sound and valvetronic control.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/ipe",
+          brandName: "iPE Exhaust",
+          description,
+        })}
+      />
       <IpeHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

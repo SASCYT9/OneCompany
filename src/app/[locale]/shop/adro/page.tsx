@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getAdroProductsServer } from "@/lib/shopCatalogServer";
 import { buildAdroHeroVehicleTree } from "@/lib/adroCatalog";
 import AdroHomeSignature from "../components/AdroHomeSignature";
@@ -34,9 +35,21 @@ export default async function ShopAdroPage({ params }: Props) {
   const adroProducts = await getAdroProductsServer();
   const availableVehicles = buildAdroHeroVehicleTree(adroProducts);
   const featuredProducts = adroProducts.slice(0, 12);
+  const description =
+    resolvedLocale === "ua"
+      ? "Преміальні карбонові аерокіти ADRO з CFD-валідацією рівня F1. Препрег-карбон для BMW, Porsche, Toyota та Tesla."
+      : "Premium ADRO carbon fiber aerokits with F1-level CFD validation. Prepreg carbon for BMW, Porsche, Toyota, and Tesla.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/adro",
+          brandName: "ADRO",
+          description,
+        })}
+      />
       <AdroHomeSignature
         locale={resolvedLocale}
         availableVehicles={availableVehicles}

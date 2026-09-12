@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getCsfProductsServer } from "@/lib/shopCatalogServer";
 import { buildCsfHeroSummary } from "@/lib/csfHeroCatalog";
 import CSFHomeSignature from "../components/CSFHomeSignature";
@@ -39,9 +40,21 @@ export default async function CSFRacingPage({ params, searchParams }: Props) {
 
   const csfProducts = await getCsfProductsServer();
   const heroSummary = buildCsfHeroSummary(csfProducts);
+  const description =
+    resolvedLocale === "ua"
+      ? "Високопродуктивні радіатори, інтеркулери та системи охолодження CSF Racing для дороги й треку."
+      : "High-performance radiators, intercoolers, and cooling systems by CSF Racing for road and track.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/csf",
+          brandName: "CSF Racing",
+          description,
+        })}
+      />
       <CSFHomeSignature locale={resolvedLocale} smmSource={src} heroSummary={heroSummary} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

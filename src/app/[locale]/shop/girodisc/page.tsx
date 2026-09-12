@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getGirodiscProductsServer } from "@/lib/shopCatalogServer";
 import { buildGirodiscHeroVehicleTree } from "@/lib/girodiscHeroCatalog";
 import GiroDiscHomeSignature from "../components/GiroDiscHomeSignature";
@@ -33,9 +34,21 @@ export default async function GiroDiscSkinPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
   const girodiscProducts = await getGirodiscProductsServer();
   const availableVehicles = buildGirodiscHeroVehicleTree(girodiscProducts);
+  const description =
+    resolvedLocale === "ua"
+      ? "Ексклюзивні 2-складові гальмівні диски GiroDisc, гоночні колодки та титанові щитки. Замовляйте з доставкою. OneCompany — офіційний дилер."
+      : "Exclusive 2-piece high-performance brake rotors by GiroDisc, racing pads, and titanium heat shields. Buy with worldwide shipping. OneCompany — official dealer.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/girodisc",
+          brandName: "GiroDisc",
+          description,
+        })}
+      />
       <GiroDiscHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

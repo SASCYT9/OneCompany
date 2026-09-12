@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getOhlinsProductsServer } from "@/lib/shopCatalogServer";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
 import OhlinsHomeSignature from "../components/OhlinsHomeSignature";
@@ -34,9 +35,21 @@ export default async function OhlinsSkinPage({ params }: Props) {
 
   const ohlinsProducts = await getOhlinsProductsServer();
   const availableVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
+  const description =
+    resolvedLocale === "ua"
+      ? "Ексклюзивні підвіски Öhlins: Road & Track, Advanced Track Day та Dedicated Track серії. Замовляйте з доставкою. OneCompany — офіційний дилер."
+      : "Exclusive Öhlins suspensions: Road & Track, Advanced Track Day, and Dedicated Track series. Buy with worldwide shipping. OneCompany — official dealer.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/ohlins",
+          brandName: "Öhlins",
+          description,
+        })}
+      />
       <OhlinsHomeSignature locale={resolvedLocale} availableVehicles={availableVehicles} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

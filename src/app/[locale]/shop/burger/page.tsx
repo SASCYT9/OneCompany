@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getBurgerProductsServer } from "@/lib/shopCatalogServer";
 import BurgerStoreHome from "../components/BurgerStoreHome";
 import { ShopBrandViewAllCta } from "../components/ShopBrandViewAllCta";
@@ -31,9 +32,21 @@ export default async function ShopBurgerPage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const burgerProducts = await getBurgerProductsServer();
+  const description =
+    resolvedLocale === "ua"
+      ? "Чіпи збільшення потужності JB4, flex fuel кіти, впускні системи та performance-деталі для BMW, Mercedes, Porsche та 30+ марок."
+      : "JB4 power chips, flex fuel kits, intake systems, and performance parts for BMW, Mercedes, Porsche, and 30+ brands.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/burger",
+          brandName: "Burger Motorsports",
+          description,
+        })}
+      />
       <BurgerStoreHome locale={resolvedLocale} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

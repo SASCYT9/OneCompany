@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 // 2026-05-15: use light fetcher (narrow SELECT, no relations) — this page only
 // needs car_make:/car_model: tags from each row to build the dropdown, so the
 // heavy `getRacechipProductsServer` was wasted work. See shopCatalogServer.ts
@@ -62,9 +63,21 @@ export default async function RaceChipHomePage({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const { makeModels, productCount } = await loadMakeModelsWithCount();
+  const description =
+    resolvedLocale === "ua"
+      ? "Офіційний магазин RaceChip. Максимальна потужність з GTS 5 Black та управління зі смартфону. 50+ брендів авто."
+      : "Official RaceChip storefront. Maximize performance with GTS 5 Black and smartphone app control. 50+ vehicle brands.";
 
   return (
     <>
+      <JsonLd
+        schema={generateBrandSchema({
+          locale: resolvedLocale,
+          slug: "shop/racechip",
+          brandName: "RaceChip",
+          description,
+        })}
+      />
       <RacechipHomeSignature locale={resolvedLocale} makeModels={makeModels} />
       <ShopBrandViewAllCta
         locale={resolvedLocale}

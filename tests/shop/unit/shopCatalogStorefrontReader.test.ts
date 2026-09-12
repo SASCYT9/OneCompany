@@ -278,6 +278,22 @@ test("GiroDisc and Öhlins home pages use the shared canonical locale metadata",
   }
 });
 
+test("all premium brand home pages expose a server-rendered brand schema", () => {
+  for (const file of [
+    "src/app/[locale]/shop/adro/page.tsx",
+    "src/app/[locale]/shop/burger/page.tsx",
+    "src/app/[locale]/shop/csf/page.tsx",
+    "src/app/[locale]/shop/girodisc/page.tsx",
+    "src/app/[locale]/shop/ipe/page.tsx",
+    "src/app/[locale]/shop/ohlins/page.tsx",
+    "src/app/[locale]/shop/racechip/page.tsx",
+  ]) {
+    const source = readFileSync(file, "utf8");
+    assert.match(source, /generateBrandSchema/);
+    assert.match(source, /<JsonLd/);
+  }
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
