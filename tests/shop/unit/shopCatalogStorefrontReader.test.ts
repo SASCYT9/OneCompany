@@ -223,6 +223,16 @@ test("all faceted storefront listings receive noindex headers, including the rew
     ),
     "rewritten general catalog must have a source-level noindex rule"
   );
+  for (const key of ["scope", "segment"]) {
+    assert.ok(
+      facetedSources.some(
+        (entry) =>
+          entry.source === "/:locale(ua|en)/shop/akrapovic" &&
+          entry.has?.some((condition) => condition.key === key)
+      ),
+      `missing noindex rule for Akrapovič home mode ${key}`
+    );
+  }
 });
 
 test("server-rendered Akrapovic and Ilmberger listings expose crawlable product list schemas", () => {

@@ -161,6 +161,7 @@ const STOREFRONT_FILTER_QUERY_KEYS = [
   "type",
   "year",
 ];
+const AKRAPOVIC_HOME_MODE_QUERY_KEYS = ["scope", "segment"];
 
 const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
   "public/images/shop/urban/**/*",
@@ -394,6 +395,13 @@ const nextConfig: NextConfig = {
         // Query filters share the cacheable canonical listing HTML, while the
         // routing layer keeps every filtered permutation out of the index.
         source: FILTERED_CATALOG_SOURCE,
+        has: [{ type: "query" as const, key }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+      })),
+      ...AKRAPOVIC_HOME_MODE_QUERY_KEYS.map((key) => ({
+        // Akrapovič's home page uses these parameters for the auto/moto
+        // presentation toggle. The variants share one canonical brand page.
+        source: "/:locale(ua|en)/shop/akrapovic",
         has: [{ type: "query" as const, key }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
       })),
