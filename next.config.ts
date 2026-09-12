@@ -146,6 +146,7 @@ const STOREFRONT_FILTER_QUERY_KEYS = [
   "chassis",
   "engine",
   "line",
+  "keyword",
   "make",
   "material",
   "model",

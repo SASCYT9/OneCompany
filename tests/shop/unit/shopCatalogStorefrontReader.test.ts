@@ -206,7 +206,7 @@ test("all faceted storefront listings receive noindex headers, including the rew
     facetedSources.some((entry) => entry.source?.includes("akrapovic|")),
     "brand listing source must cover every storefront with filters"
   );
-  for (const key of ["scope", "segment", "manufacturer", "model", "brand"]) {
+  for (const key of ["scope", "segment", "manufacturer", "model", "brand", "keyword"]) {
     assert.ok(
       facetedSources.some(
         (entry) =>
