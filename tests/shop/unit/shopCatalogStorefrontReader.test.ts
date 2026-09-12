@@ -267,6 +267,17 @@ test("Brabus collection routes expose breadcrumb and canonical product list sche
   assert.match(source, /!config \? <h1 className="sr-only">/);
 });
 
+test("GiroDisc and Öhlins home pages use the shared canonical locale metadata", () => {
+  for (const file of [
+    "src/app/[locale]/shop/girodisc/page.tsx",
+    "src/app/[locale]/shop/ohlins/page.tsx",
+  ]) {
+    const source = readFileSync(file, "utf8");
+    assert.match(source, /buildPageMetadata/);
+    assert.match(source, /buildPageMetadata\(resolvedLocale, "shop\/(?:girodisc|ohlins)"/);
+  }
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");

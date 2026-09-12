@@ -1,4 +1,4 @@
-import { resolveLocale } from "@/lib/seo";
+import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getOhlinsProductsServer } from "@/lib/shopCatalogServer";
 import { buildOhlinsHeroVehicleTree } from "@/lib/ohlinsCatalog";
 import OhlinsHomeSignature from "../components/OhlinsHomeSignature";
@@ -15,16 +15,17 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const isUa = resolveLocale(locale) === "ua";
+  const resolvedLocale = resolveLocale(locale);
+  const isUa = resolvedLocale === "ua";
 
-  return {
+  return buildPageMetadata(resolvedLocale, "shop/ohlins", {
     title: isUa
       ? "Öhlins Підвіски | Офіційний Дилер | OneCompany"
       : "Öhlins Suspension | Official Dealer | OneCompany",
     description: isUa
       ? "Ексклюзивні підвіски Öhlins: Road & Track, Advanced Track Day, та Dedicated Track серії. Замовляйте з доставкою. OneCompany - офіційний дилер."
       : "Exclusive Öhlins suspensions: Road & Track, Advanced Track Day, and Dedicated Track series. Buy with worldwide shipping. OneCompany - official dealer.",
-  };
+  });
 }
 
 export default async function OhlinsSkinPage({ params }: Props) {
