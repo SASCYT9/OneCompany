@@ -52,6 +52,7 @@ export default async function Do88CollectionsPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <h1 className="sr-only">{isUa ? "Каталог товарів DO88" : "DO88 product catalog"}</h1>
       <div className="urban-back-to-stores">
         <Link href={`/${locale}/shop/do88`} className="urban-back-to-stores__link">
           ← {isUa ? "DO88 головна" : "DO88 home"}

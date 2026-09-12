@@ -105,6 +105,15 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
     <>
       <BreadcrumbSchema items={breadcrumbs} />
       <JsonLd schema={itemListSchema} />
+      <h1 className="sr-only">
+        {resolvedLocale === "ua"
+          ? isMoto
+            ? "Каталог вихлопних систем Akrapovič для мотоциклів"
+            : "Каталог вихлопних систем Akrapovič для авто"
+          : isMoto
+            ? "Akrapovič motorcycle exhaust catalog"
+            : "Akrapovič car exhaust catalog"}
+      </h1>
       <div className="relative min-h-screen bg-background text-foreground">
         {/* Cinematic factory backdrop — only in dark theme; light theme shows clean cream */}
         <div className="fixed inset-0 z-0 hidden dark:block">

@@ -236,6 +236,17 @@ test("server-rendered Akrapovic and Ilmberger listings expose crawlable product 
   }
 });
 
+test("brand listing pages expose one localized h1 without changing the visual layer", () => {
+  for (const file of [
+    "src/app/[locale]/shop/akrapovic/collections/page.tsx",
+    "src/app/[locale]/shop/do88/collections/page.tsx",
+  ]) {
+    const source = readFileSync(file, "utf8");
+    assert.equal((source.match(/<h1\b/g) ?? []).length, 1, `${file} must expose one h1`);
+    assert.match(source, /<h1 className="sr-only">/);
+  }
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
