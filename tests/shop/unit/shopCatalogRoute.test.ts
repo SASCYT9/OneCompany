@@ -134,3 +134,16 @@ test("next redirects cover localized legacy brand routes before middleware", asy
     ]
   );
 });
+
+test("retired static index redirects to the current localized homepage", async () => {
+  const config = nextConfig as {
+    redirects?: () => Promise<
+      Array<{ source?: string; destination?: string; permanent?: boolean }>
+    >;
+  };
+  const redirects = (await config.redirects?.()) ?? [];
+  assert.deepEqual(
+    redirects.find((entry) => entry.source === "/index.html"),
+    { source: "/index.html", destination: "/ua", permanent: true }
+  );
+});

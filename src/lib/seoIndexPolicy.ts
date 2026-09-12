@@ -149,6 +149,11 @@ export const redirectPatterns: readonly RedirectPattern[] = [
     description: "Redirect root path to the default locale homepage.",
     pattern: /^\/$/,
   },
+  {
+    id: "legacy-static-index",
+    description: "Redirect the retired static index document to the default-locale homepage.",
+    pattern: /^\/index\.html$/,
+  },
 ] as const;
 
 export function normalizePathname(pathname: string): string {

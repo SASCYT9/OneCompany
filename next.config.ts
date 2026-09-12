@@ -647,6 +647,11 @@ const nextConfig: NextConfig = {
         destination: "https://onecompany.global/:path*",
         permanent: true,
       },
+      {
+        source: "/index.html",
+        destination: "/ua",
+        permanent: true,
+      },
       ...legacyBrandRedirects,
       ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
         source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
