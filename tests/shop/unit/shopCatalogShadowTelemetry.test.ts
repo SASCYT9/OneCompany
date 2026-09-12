@@ -39,7 +39,7 @@ test("shadow telemetry migration constrains counters and commit identity", () =>
 });
 
 test("live shadow route persists bounded outcomes after the response", () => {
-  const route = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const route = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
   assert.match(route, /after\(async \(\) =>/);
   assert.match(route, /recordShopCatalogShadowObservation/);
   assert.match(route, /mismatch: !comparison\.parity/);

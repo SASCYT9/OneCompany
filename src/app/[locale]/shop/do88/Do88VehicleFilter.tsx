@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Do88Listbox, { FilterGroup } from "./Do88Listbox";
-import { CAR_DATA } from "./do88FitmentData";
+import { CAR_DATA, getDo88MakeEntries } from "./do88FitmentData";
 import { DO88_COLLECTION_CARDS } from "../data/do88CollectionsList";
 
 interface Do88VehicleFilterProps {
@@ -156,9 +156,9 @@ export default function Do88VehicleFilter({
         ? [
             {
               label: selectedMake,
-              options: Array.from(new Set(CAR_DATA[selectedMake].map((entry) => entry.model))).map(
-                (m) => ({ value: m, label: m })
-              ),
+              options: Array.from(
+                new Set(getDo88MakeEntries(selectedMake).map((entry) => entry.model))
+              ).map((m) => ({ value: m, label: m })),
             },
           ]
         : [],
@@ -171,7 +171,7 @@ export default function Do88VehicleFilter({
         ? [
             {
               label: selectedModel,
-              options: CAR_DATA[selectedMake]
+              options: getDo88MakeEntries(selectedMake)
                 .filter((entry) => entry.model === selectedModel)
                 .map((entry) => ({ value: entry.chassis, label: entry.chassis })),
             },

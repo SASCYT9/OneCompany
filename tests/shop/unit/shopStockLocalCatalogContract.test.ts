@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const searchRoute = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+const searchRoute = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
 const canonicalVehicleReader = readFileSync(
   "src/lib/shopStockCanonicalVehicleIds.server.ts",
   "utf8"
@@ -12,7 +12,7 @@ const canonicalFitmentReader = readFileSync(
   "src/lib/shopCanonicalFitmentOptions.server.ts",
   "utf8"
 );
-const stockPage = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+const stockPage = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
 
 test("unified stock search loads generated storefront products before Prisma in local mode", () => {
   const catalogLoader = searchRoute.indexOf("export async function getShopProductsWithFitments()");

@@ -225,3 +225,10 @@ export function extractDo88CategoryLeafToken(
   const leaf = parts[parts.length - 1]?.trim();
   return leaf || null;
 }
+
+/** URL values are untrusted: unknown makes and Object prototype keys have no entries. */
+export function getDo88MakeEntries(make: string): readonly ModelEntry[] {
+  return Object.prototype.hasOwnProperty.call(CAR_DATA, make)
+    ? CAR_DATA[make as keyof typeof CAR_DATA]
+    : [];
+}

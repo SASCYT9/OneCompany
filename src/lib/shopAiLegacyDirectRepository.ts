@@ -1,9 +1,6 @@
 import "server-only";
 
-import {
-  getProductDisplayBrand,
-  getShopProductsWithFitments,
-} from "@/app/api/shop/stock/search/route";
+import { getProductDisplayBrand, getShopProductsWithFitments } from "@/lib/shopStockSearch.server";
 import { runShopAiCandidatePipeline } from "@/lib/shopAiCatalogTools";
 import { buildShopAiCatalogQuery } from "@/lib/shopAiAssistantRanking";
 import type { ShopAiContext, ShopAiPlan, ShopAiProduct } from "@/lib/shopAiAssistantTypes";
@@ -151,29 +148,27 @@ export async function retrieveShopAiCandidatesFromLegacyCatalog(input: {
     limit: LEGACY_HYDRATION_LIMIT,
   });
   const hydrated = await hydrateShopAiKnowledgeCandidates(
-    pipeline.products.map(
-      (product): ShopAiKnowledgeCandidate => ({
-        productId: product.id,
-        slug: product.slug,
-        matchStatus: product.matchStatus ?? "requires_verification",
-        matchReason: product.matchReason ?? "legacy-fitment-evidence",
-        missingFacts: product.missingFacts ?? ["verified_fitment"],
-        matchedApplicationId: product.matchedApplicationId ?? null,
-        facts: product.facts,
-        fitmentStatus: product.fitmentStatus,
-        fitmentSource: product.fitmentSource,
-        application: product.fitments?.[0]
-          ? {
-              make: product.fitments[0].make,
-              models: product.fitments[0].models,
-              chassisCodes: product.fitments[0].chassisCodes,
-              yearFrom: product.fitments[0].yearRanges?.[0]?.from ?? null,
-              yearTo: product.fitments[0].yearRanges?.[0]?.to ?? null,
-              confidence: product.fitments[0].confidence ?? "unknown",
-            }
-          : null,
-      })
-    ),
+    pipeline.products.map((product): ShopAiKnowledgeCandidate => ({
+      productId: product.id,
+      slug: product.slug,
+      matchStatus: product.matchStatus ?? "requires_verification",
+      matchReason: product.matchReason ?? "legacy-fitment-evidence",
+      missingFacts: product.missingFacts ?? ["verified_fitment"],
+      matchedApplicationId: product.matchedApplicationId ?? null,
+      facts: product.facts,
+      fitmentStatus: product.fitmentStatus,
+      fitmentSource: product.fitmentSource,
+      application: product.fitments?.[0]
+        ? {
+            make: product.fitments[0].make,
+            models: product.fitments[0].models,
+            chassisCodes: product.fitments[0].chassisCodes,
+            yearFrom: product.fitments[0].yearRanges?.[0]?.from ?? null,
+            yearTo: product.fitments[0].yearRanges?.[0]?.to ?? null,
+            confidence: product.fitments[0].confidence ?? "unknown",
+          }
+        : null,
+    })),
     input.context
   );
   const products = hydrated.filter((product) => matchesBudget(product, input.plan, input.context));

@@ -1,6 +1,6 @@
 import { getCanonicalFitmentOptions } from "@/lib/shopCanonicalFitmentOptions.server";
 import { NextRequest, NextResponse } from "next/server";
-import { getShopProductsWithFitments } from "../search/route";
+import { getShopProductsWithFitments } from "@/lib/shopStockSearch.server";
 import {
   isShopCatalogReaderRequestEnabled,
   resolveShopCatalogReaderFlag,

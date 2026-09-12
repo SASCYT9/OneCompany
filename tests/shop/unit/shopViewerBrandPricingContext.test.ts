@@ -47,7 +47,7 @@ test("cart, checkout, product APIs, stock search, and AI share the server pricin
     "src/app/api/shop/cart/items/[itemId]/route.ts",
     "src/app/api/shop/products/route.ts",
     "src/app/api/shop/products/[slug]/route.ts",
-    "src/app/api/shop/stock/search/route.ts",
+    "src/lib/shopStockSearch.server.ts",
   ];
   for (const file of files) {
     const source = readFileSync(file, "utf8");
@@ -83,7 +83,7 @@ test("Catalog V2 SSR uses the shared B2B-gated pricing context", () => {
   assert.doesNotMatch(source, /PremiumCatalogPage from "\.\.\/stock\/page"/);
   assert.doesNotMatch(source, /prisma\.shopBrandB2bDiscount\.findMany/);
   assert.doesNotMatch(source, /prisma\.shopCustomerBrandDiscount\.findMany/);
-  const pricingRoute = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const pricingRoute = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
   assert.match(pricingRoute, /buildShopViewerPricingContextServer\(\{/);
   assert.match(pricingRoute, /customerId: session\?\.customerId/);
 });

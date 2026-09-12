@@ -9,7 +9,7 @@ import { DO88_COLLECTION_CARDS } from "../../../data/do88CollectionsList";
 import Do88CollectionProductGrid from "../../../components/Do88CollectionProductGrid";
 import Do88VehicleFilter from "../../Do88VehicleFilter";
 import Do88CategoryFilter from "../../Do88CategoryFilter";
-import { CAR_DATA } from "../../do88FitmentData";
+import { CAR_DATA, getDo88MakeEntries } from "../../do88FitmentData";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
@@ -21,8 +21,12 @@ export const dynamicParams = false;
 
 type Props = {
   params: Promise<{ locale: string; handle: string }>;
-  searchParams: Promise<{ brand?: string; model?: string; chassis?: string }>;
+  searchParams: Promise<Partial<Record<"brand" | "model" | "chassis", string | string[]>>>;
 };
+
+function firstFilterValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 export async function generateStaticParams() {
   return [
@@ -31,13 +35,7 @@ export async function generateStaticParams() {
   ];
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ locale: string; handle: string }>;
-  searchParams: Promise<{ brand?: string; model?: string; chassis?: string }>;
-}) {
+export async function generateMetadata({ params, searchParams }: Props) {
   const { locale, handle } = await params;
   const resolvedLocale = resolveLocale(locale);
   const filters = await searchParams;
@@ -92,9 +90,10 @@ export async function generateMetadata({
 export default async function Do88CollectionHandlePage({ params, searchParams }: Props) {
   const { locale, handle } = await params;
   const paramsResolved = await searchParams;
-  const brand = paramsResolved.brand;
-  const model = paramsResolved.model;
-  const chassis = paramsResolved.chassis;
+  // Match URLSearchParams.get() in the client even for repeated query keys.
+  const brand = firstFilterValue(paramsResolved.brand);
+  const model = firstFilterValue(paramsResolved.model);
+  const chassis = firstFilterValue(paramsResolved.chassis);
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
 
@@ -173,7 +172,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
     // — we match by exact category-suffix instead of substring on title to
     // avoid the Turbo/Carrera mix-up where supplier marketing copy ("Turbo /
     // Carrera") in titles bled into the wrong filter result.
-    const brandEntries = brand ? (CAR_DATA[brand] ?? []) : Object.values(CAR_DATA).flat();
+    const brandEntries = brand ? getDo88MakeEntries(brand) : Object.values(CAR_DATA).flat();
     const matchedEntry = brandEntries.find(
       (entry) => (!model || entry.model === model) && (!chassis || entry.chassis === chassis)
     );

@@ -29,7 +29,7 @@ test("live shadow page comparison checks identity, order, and continuation", () 
 
 test("live stock endpoint runs compare-only shadow reads without serving projection data", () => {
   const source = readFileSync(
-    new URL("../../../src/app/api/shop/stock/search/route.ts", import.meta.url),
+    new URL("../../../src/lib/shopStockSearch.server.ts", import.meta.url),
     "utf8"
   );
   assert.match(source, /resolveShopCatalogShadowFlag/);

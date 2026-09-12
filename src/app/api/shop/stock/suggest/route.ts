@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  getProductDisplayBrand,
-  getShopProductsWithFitments,
-} from "@/app/api/shop/stock/search/route";
+import { getProductDisplayBrand, getShopProductsWithFitments } from "@/lib/shopStockSearch.server";
 import { compactShopCode, parseVehicleSearchQuery } from "@/lib/shopVehicleSearch";
 import {
   getShopSearchQueryVariants,

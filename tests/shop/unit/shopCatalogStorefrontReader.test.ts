@@ -152,7 +152,7 @@ test("storefront DTO carries bounded price, stock, scope, facets and product fil
 
 test("catalog page serves projection SSR only behind the reader guard", () => {
   const source = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const api = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
   const adapter = readFileSync("src/lib/shopCatalogPremiumProjection.server.ts", "utf8");
   assert.match(source, /resolveShopCatalogReaderFlag/);
   assert.match(source, /isShopCatalogReaderRequestEnabled/);
@@ -172,7 +172,7 @@ test("catalog page serves projection SSR only behind the reader guard", () => {
   assert.match(source, /canUsePremiumCatalogProjection/);
   assert.match(source, /eligibilityParams/);
   assert.match(source, /product type\/kind, strict, global facets/);
-  const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+  const premium = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
   assert.match(premium, /setSelectedBrands\(\[\]\)/);
   assert.match(premium, /renderStandardCompatibilityFields/);
   assert.match(premium, /name="fuel"|params\.set\("fuel"/);
@@ -202,14 +202,14 @@ test("canary routing is request-bound and the page still fails closed without it
 
 test("projection catalog keeps recoverable API failures isolated from SSR", () => {
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");
-  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const api = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
   assert.match(page, /CatalogV2Server/);
   assert.match(api, /catch \(error: any\)/);
   assert.match(api, /NextResponse\.json\(\{ error: error\.message \}, \{ status: 500 \}\)/);
 });
 
 test("vehicle filtering reads canonical projection clauses without depending on AI coverage", () => {
-  const api = readFileSync("src/app/api/shop/stock/search/route.ts", "utf8");
+  const api = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
   const resolver = readFileSync("src/lib/shopStockCanonicalVehicleIds.server.ts", "utf8");
   assert.match(api, /resolveCanonicalVehicleProductIds/);
 
@@ -224,7 +224,7 @@ test("vehicle filtering reads canonical projection clauses without depending on 
 
 test("fitment selectors read the same projection clauses as vehicle search", () => {
   const api = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
-  const page = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+  const page = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
   const canonical = readFileSync("src/lib/shopCanonicalFitmentOptions.server.ts", "utf8");
   assert.match(api, /await getCanonicalFitmentOptions\(/);
 
@@ -290,7 +290,7 @@ test("catalog route avoids transition graphics and keeps recoverable error state
   const loading = readFileSync("src/app/[locale]/shop/catalog/loading.tsx", "utf8");
   const error = readFileSync("src/app/[locale]/shop/catalog/error.tsx", "utf8");
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
-  const premium = readFileSync("src/app/[locale]/shop/stock/page.tsx", "utf8");
+  const premium = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
   assert.match(loading, /return null/);
   assert.doesNotMatch(loading, /animate-pulse|aspect-square/);
   assert.doesNotMatch(premium, /Array\.from\(\{ length: 12 \}\)/);

@@ -135,6 +135,10 @@ images for listed SKUs; an admin image edit cannot override such an entry.
 
 ## 8. Editing and verification
 
+- Owner-approved SEO recovery scope: technical changes only. Preserve the approved
+  design, layout, styling, visible page copy, and storefront interactions. Obtain
+  owner agreement before changing that user-facing scope; do not enable the
+  experimental catalog presentation as a shortcut to server rendering.
 - Inspect `git status` first and preserve unrelated user changes.
 - Search with `rg`/`rg --files`. Follow the current file's conventions.
 - Do not start another dev server when the required port is already serving this repo.

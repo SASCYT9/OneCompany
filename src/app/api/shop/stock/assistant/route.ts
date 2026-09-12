@@ -76,7 +76,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { readShopKnowledgeCatalogState } from "@/lib/shopKnowledgeV2/catalogState";
 import { SHOP_AI_SERVER_TURN_DEADLINE_MS } from "@/lib/shopAiProviderPolicy";
-import { getShopProductsWithFitments } from "../search/route";
+import { getShopProductsWithFitments } from "@/lib/shopStockSearch.server";
 
 const MAX_MESSAGE_LENGTH = 800;
 const MAX_REQUEST_BODY_BYTES = 16 * 1024;
@@ -441,15 +441,15 @@ export async function POST(request: NextRequest) {
     let resolvedPlan = initialPlan.plan;
     const plannedVehicleInput = Boolean(
       resolvedPlan.vehicle.make ||
-        resolvedPlan.vehicle.model ||
-        resolvedPlan.vehicle.chassis ||
-        resolvedPlan.vehicle.year ||
-        resolvedPlan.vehicle.engine ||
-        resolvedPlan.vehicle.fuel ||
-        resolvedPlan.vehicle.bodyStyle ||
-        resolvedPlan.vehicle.drivetrain ||
-        resolvedPlan.vehicle.transmission ||
-        resolvedPlan.vehicle.market
+      resolvedPlan.vehicle.model ||
+      resolvedPlan.vehicle.chassis ||
+      resolvedPlan.vehicle.year ||
+      resolvedPlan.vehicle.engine ||
+      resolvedPlan.vehicle.fuel ||
+      resolvedPlan.vehicle.bodyStyle ||
+      resolvedPlan.vehicle.drivetrain ||
+      resolvedPlan.vehicle.transmission ||
+      resolvedPlan.vehicle.market
     );
     const categoryCanUseV2 = isShopAiV2RolloutCategory(resolvedPlan.category);
     const shouldResolveExactSkuBaseline =

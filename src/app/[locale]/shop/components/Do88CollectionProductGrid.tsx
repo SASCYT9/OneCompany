@@ -184,9 +184,9 @@ export default function Do88CollectionProductGrid({
             <p className="urban-product-grid__eyebrow text-foreground/75 dark:text-foreground/50 tracking-[0.2em] uppercase text-[10px] mb-2">
               DO88 Performance
             </p>
-            <h2 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4 text-foreground">
+            <h1 className="urban-product-grid__title text-3xl md:text-5xl font-light uppercase tracking-tight mb-4 text-foreground">
               {displayTitle}
-            </h2>
+            </h1>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
