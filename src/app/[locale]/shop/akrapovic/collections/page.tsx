@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
 import { getAkrapovicProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
 import AkrapovicVehicleFilter from "../../components/AkrapovicVehicleFilter";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -60,47 +64,88 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
     null
   );
 
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/akrapovic/collections");
+  const itemListSchema = generateProductItemListSchema(
+    isMoto ? "Akrapovič Motorcycle Exhausts Catalog" : "Akrapovič Car Exhausts Catalog",
+    listingPath,
+    akrapovicProducts.map((product) => ({
+      slug: product.slug,
+      title: localizeShopProductTitle(resolvedLocale, product),
+      path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+      image: product.image ?? null,
+    }))
+  );
+  const breadcrumbs = [
+    {
+      name: resolvedLocale === "ua" ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: resolvedLocale === "ua" ? "Магазин" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Akrapovič",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/akrapovic")),
+    },
+    {
+      name:
+        resolvedLocale === "ua"
+          ? isMoto
+            ? "Каталог мото"
+            : "Каталог авто"
+          : isMoto
+            ? "Motorcycle catalog"
+            : "Car catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      {/* Cinematic factory backdrop — only in dark theme; light theme shows clean cream */}
-      <div className="fixed inset-0 z-0 hidden dark:block">
-        <Image
-          src="/images/shop/akrapovic/factory-fallback.jpg"
-          alt="Akrapovic Factory"
-          fill
-          priority
-          className="object-cover opacity-20 sepia-[.2] hue-rotate-[-30deg]"
-        />
-        <div className="absolute inset-0 bg-linear-to-b from-[#0a0000]/65 via-black/85 to-[#050000] backdrop-blur-sm" />
+    <>
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
+      <div className="relative min-h-screen bg-background text-foreground">
+        {/* Cinematic factory backdrop — only in dark theme; light theme shows clean cream */}
+        <div className="fixed inset-0 z-0 hidden dark:block">
+          <Image
+            src="/images/shop/akrapovic/factory-fallback.jpg"
+            alt="Akrapovic Factory"
+            fill
+            priority
+            className="object-cover opacity-20 sepia-[.2] hue-rotate-[-30deg]"
+          />
+          <div className="absolute inset-0 bg-linear-to-b from-[#0a0000]/65 via-black/85 to-[#050000] backdrop-blur-sm" />
 
-        {/* Signature Red Accent Ambient Glow */}
-        <div className="absolute top-0 right-1/4 w-[1000px] h-[500px] bg-[#e50000]/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-50" />
-      </div>
-
-      <div className="relative z-10 pt-[100px]">
-        <div className="w-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-6">
-          <Link
-            href={`/${locale}/shop/akrapovic${isMoto ? "?segment=moto" : "?segment=auto"}`}
-            className="text-[10px] uppercase tracking-[0.2em] text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white transition-colors"
-          >
-            ←{" "}
-            {resolvedLocale === "ua"
-              ? isMoto
-                ? "Головна Akrapovič Moto"
-                : "Головна Akrapovič Auto"
-              : isMoto
-                ? "Akrapovič Moto Home"
-                : "Akrapovič Auto Home"}
-          </Link>
+          {/* Signature Red Accent Ambient Glow */}
+          <div className="absolute top-0 right-1/4 w-[1000px] h-[500px] bg-[#e50000]/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-50" />
         </div>
 
-        <AkrapovicVehicleFilter
-          locale={resolvedLocale}
-          products={akrapovicProducts}
-          viewerContext={viewerContext}
-          productPathPrefix={`/${locale}/shop/akrapovic/products`}
-        />
+        <div className="relative z-10 pt-[100px]">
+          <div className="w-full max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 pb-6">
+            <Link
+              href={`/${locale}/shop/akrapovic${isMoto ? "?segment=moto" : "?segment=auto"}`}
+              className="text-[10px] uppercase tracking-[0.2em] text-foreground/55 dark:text-white/40 hover:text-foreground dark:hover:text-white transition-colors"
+            >
+              ←{" "}
+              {resolvedLocale === "ua"
+                ? isMoto
+                  ? "Головна Akrapovič Moto"
+                  : "Головна Akrapovič Auto"
+                : isMoto
+                  ? "Akrapovič Moto Home"
+                  : "Akrapovič Auto Home"}
+            </Link>
+          </div>
+
+          <AkrapovicVehicleFilter
+            locale={resolvedLocale}
+            products={akrapovicProducts}
+            viewerContext={viewerContext}
+            productPathPrefix={`/${locale}/shop/akrapovic/products`}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

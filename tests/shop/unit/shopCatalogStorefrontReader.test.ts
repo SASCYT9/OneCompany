@@ -225,6 +225,17 @@ test("all faceted storefront listings receive noindex headers, including the rew
   );
 });
 
+test("server-rendered Akrapovic and Ilmberger listings expose crawlable product list schemas", () => {
+  const akrapovic = readFileSync("src/app/[locale]/shop/akrapovic/collections/page.tsx", "utf8");
+  const ilmberger = readFileSync("src/app/[locale]/shop/ilmberger/collections/page.tsx", "utf8");
+  for (const source of [akrapovic, ilmberger]) {
+    assert.match(source, /BreadcrumbSchema/);
+    assert.match(source, /generateProductItemListSchema/);
+    assert.match(source, /buildShopStorefrontProductPathForProduct/);
+    assert.match(source, /<JsonLd schema=\{itemListSchema\} \/>/);
+  }
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");

@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getIlmbergerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
 import IlmbergerCatalog from "../../components/IlmbergerCatalog";
 
 // SSR with `force-static` means we cache the anon-context render publicly;
@@ -49,11 +53,45 @@ export default async function IlmbergerCollectionsPage({ params }: Props) {
     null
   );
 
+  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/ilmberger/collections");
+  const itemListSchema = generateProductItemListSchema(
+    resolvedLocale === "ua" ? "Каталог Ilmberger Carbon" : "Ilmberger Carbon Catalog",
+    listingPath,
+    ilmbergerProducts.map((product) => ({
+      slug: product.slug,
+      title: localizeShopProductTitle(resolvedLocale, product),
+      path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+      image: product.image ?? null,
+    }))
+  );
+  const breadcrumbs = [
+    {
+      name: resolvedLocale === "ua" ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: resolvedLocale === "ua" ? "Магазин" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Ilmberger Carbon",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/ilmberger")),
+    },
+    {
+      name: resolvedLocale === "ua" ? "Каталог" : "Catalog",
+      url: absoluteUrl(listingPath),
+    },
+  ];
+
   return (
-    <IlmbergerCatalog
-      locale={resolvedLocale}
-      products={ilmbergerProducts}
-      viewerContext={viewerContext}
-    />
+    <>
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
+      <IlmbergerCatalog
+        locale={resolvedLocale}
+        products={ilmbergerProducts}
+        viewerContext={viewerContext}
+      />
+    </>
   );
 }
