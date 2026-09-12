@@ -22,6 +22,17 @@ function toSchemaId(value: string): string {
   return normalized || "item";
 }
 
+// Google recommends a single organization-level return policy for products
+// that share the same terms. Shipping fees stay unspecified here because they
+// are calculated per order and are not a fixed product-level amount.
+const SHARED_RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: "UA",
+  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+  merchantReturnDays: 14,
+  returnMethod: "https://schema.org/ReturnByMail",
+};
+
 interface OrganizationSchemaProps {
   locale?: "en" | "ua";
 }
@@ -67,6 +78,7 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
       },
     ],
     sameAs: ["https://www.instagram.com/onecompany.global", "https://t.me/onecompany_global"],
+    hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
     knowsAbout: [
       "Automotive tuning",
       "Motorcycle tuning",
@@ -173,6 +185,7 @@ interface OfferLike {
   priceCurrency: ShopCurrencyCode;
   compareAtPrice?: number;
   availability: Availability;
+  validFrom?: string;
   priceValidUntil?: string;
 }
 
@@ -193,15 +206,6 @@ const SCHEMA_AVAILABILITY: Record<Availability, string> = {
   outOfStock: "https://schema.org/OutOfStock",
 };
 
-const SHARED_RETURN_POLICY = {
-  "@type": "MerchantReturnPolicy",
-  applicableCountry: "UA",
-  returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-  merchantReturnDays: 14,
-  returnMethod: "https://schema.org/ReturnByMail",
-  returnFees: "https://schema.org/ReturnShippingFees",
-};
-
 function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
   const entry: Record<string, unknown> = {
     "@type": "Offer",
@@ -215,11 +219,11 @@ function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
       name: "One Company Global",
       "@id": "https://onecompany.global/#organization",
     },
-    hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
   };
   if (primaryImage) {
     entry.image = primaryImage;
   }
+  if (offer.validFrom) entry.validFrom = offer.validFrom;
   if (offer.priceValidUntil) entry.priceValidUntil = offer.priceValidUntil;
   if (offer.compareAtPrice && offer.compareAtPrice > offer.price) {
     entry.priceSpecification = [
@@ -250,6 +254,7 @@ export function ProductSchema({
   sku,
   offers,
 }: ProductSchemaProps) {
+  const normalizedCategory = category.trim();
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -260,9 +265,9 @@ export function ProductSchema({
       "@type": "Brand",
       name: brand,
     },
-    category,
     url,
   };
+  if (normalizedCategory) schema.category = normalizedCategory;
   if (sku) {
     schema.sku = sku;
     schema.mpn = sku;
@@ -313,6 +318,10 @@ function priceValidUntilFromNow(days = 90): string {
   return d.toISOString().slice(0, 10);
 }
 
+function priceValidFromNow(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function ShopProductStructuredData({
   product,
   locale,
@@ -339,6 +348,7 @@ export function ShopProductStructuredData({
   const ratesToUse = rates ?? DEFAULT_CURRENCY_RATES;
   const expanded = expandShopPrices(rawPrice ?? null, ratesToUse);
   const compareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
+  const validFrom = priceValidFromNow();
   const validUntil = priceValidUntilFromNow(90);
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
@@ -353,6 +363,7 @@ export function ShopProductStructuredData({
         price,
         priceCurrency: c,
         availability: product.stock,
+        validFrom,
         priceValidUntil: validUntil,
         ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
       };
