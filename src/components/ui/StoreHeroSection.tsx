@@ -120,9 +120,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             className={`text-center transition-all duration-700 delay-500 ${isAnimated ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
             <Link
-              href="https://kwsuspension.shop"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`}
               onClick={() =>
                 trackEvent("cta_click", {
                   store: "kw",
@@ -228,9 +226,7 @@ export function StoreHeroSection({ storeId, isVisible }: StoreHeroSectionProps) 
             className={`text-center transition-all duration-700 delay-500 ${isAnimated ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
           >
             <Link
-              href="https://fiexhaust.shop"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`}
               onClick={() =>
                 trackEvent("cta_click", { store: "fi", location: "hero", label: "Обрати вихлоп" })
               }

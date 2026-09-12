@@ -1118,7 +1118,7 @@ export const brandsEurope: LocalBrand[] = [
       "Taiwanese exhaust engineering excellence featuring advanced valvetronic systems and distinctive sound profiles for exotic vehicles.",
     descriptionUA:
       "Тайванська інженерна досконалість вихлопних систем з вальветронними системами та характерними звуковими профілями для екзотичних авто.",
-    website: "https://fiexhaust.shop/",
+    website: "https://www.fi-exhaust.com/",
   },
   {
     name: "Gruppe-M",
@@ -1214,7 +1214,7 @@ export const brandsEurope: LocalBrand[] = [
       "German suspension engineering excellence delivering adjustable coilovers trusted by professional motorsport teams worldwide.",
     descriptionUA:
       "Німецька інженерна досконалість підвісок, регульовані койловери, яким довіряють професійні гоночні команди світу.",
-    website: "https://kwsuspension.shop/",
+    website: "https://www.kwsuspensions.com/",
   },
   {
     name: "Lamspeed",

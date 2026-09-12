@@ -21,8 +21,14 @@ export function LocalizedNavigation() {
   }, []);
 
   const stores = [
-    { name: "KW", url: "https://kwsuspension.shop/" },
-    { name: "Fi Exhaust", url: "https://fiexhaust.shop/" },
+    {
+      name: "KW",
+      url: `/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`,
+    },
+    {
+      name: "Fi Exhaust",
+      url: `/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`,
+    },
     { name: "Eventuri", url: `/${locale}/shop/eventuri` },
   ];
 
@@ -113,7 +119,7 @@ export function LocalizedNavigation() {
             </div>
 
             <Link
-              href="categories"
+              href={`/${locale}/categories`}
               className={
                 "px-5 py-2.5 font-light transition-all duration-500 rounded-full " +
                 (pathname?.endsWith("/categories")
@@ -124,7 +130,7 @@ export function LocalizedNavigation() {
               {t("categories", { default: locale === "ua" ? "Категорії" : "Categories" })}
             </Link>
             <Link
-              href="about"
+              href={`/${locale}/about`}
               className={
                 "px-5 py-2.5 font-light transition-all duration-500 rounded-full " +
                 (pathname?.endsWith("/about")
@@ -135,7 +141,7 @@ export function LocalizedNavigation() {
               {t("about")}
             </Link>
             <Link
-              href="contact"
+              href={`/${locale}/contact`}
               className={
                 "px-5 py-2.5 font-light transition-all duration-500 rounded-full " +
                 (pathname?.endsWith("/contact")
@@ -209,21 +215,21 @@ export function LocalizedNavigation() {
               </button>
             </div>
             <Link
-              href="categories"
+              href={`/${locale}/categories`}
               className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t("categories", { default: locale === "ua" ? "Категорії" : "Categories" })}
             </Link>
             <Link
-              href="about"
+              href={`/${locale}/about`}
               className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t("about")}
             </Link>
             <Link
-              href="contact"
+              href={`/${locale}/contact`}
               className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >

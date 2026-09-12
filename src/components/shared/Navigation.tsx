@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface NavigationProps {
   currentBrand?: "kw" | "fi" | "eventuri" | "home";
@@ -11,26 +12,27 @@ interface NavigationProps {
 export function Navigation({ currentBrand = "home" }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { locale } = useLanguage();
 
   const brands = [
     {
       id: "kw",
       name: "KW Suspension",
-      href: "/kw",
+      href: `/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`,
       color: "from-orange-500 to-amber-600",
       description: "Німецька точність",
     },
     {
       id: "fi",
       name: "Fi Exhaust",
-      href: "/fi",
+      href: `/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`,
       color: "from-red-500 to-rose-600",
       description: "Звук перемоги",
     },
     {
       id: "eventuri",
       name: "Eventuri",
-      href: "/eventuri",
+      href: `/${locale}/shop/eventuri`,
       color: "from-blue-500 to-cyan-600",
       description: "Інженерна досконалість",
     },

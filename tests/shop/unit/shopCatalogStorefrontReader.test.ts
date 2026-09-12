@@ -294,6 +294,37 @@ test("all premium brand home pages expose a server-rendered brand schema", () =>
   }
 });
 
+test("migrated storefront links stay on canonical localized catalog routes", () => {
+  const userFacingFiles = [
+    "src/components/shared/Navigation.tsx",
+    "src/components/ui/Navigation.tsx",
+    "src/components/ui/LocalizedNavigation.tsx",
+    "src/components/ui/StoreHeroSection.tsx",
+    "src/components/ui/BrandsGrid.tsx",
+    "src/app/[locale]/shop/components/OurStoresPortal.tsx",
+    "src/app/[locale]/shop/data/ourStores.ts",
+    "public/index.html",
+  ];
+
+  for (const file of userFacingFiles) {
+    const source = readFileSync(file, "utf8");
+    assert.doesNotMatch(
+      source,
+      /https:\/\/(?:www\.)?(?:kwsuspension|fiexhaust|eventuri)\.shop/,
+      `${file} must not link to a closed storefront`
+    );
+  }
+
+  const navigation = readFileSync("src/components/ui/LocalizedNavigation.tsx", "utf8");
+  for (const section of ["categories", "about", "contact"]) {
+    assert.match(navigation, new RegExp(`href=\\{\\\`/\\$\\{locale\\}/${section}\\\``));
+  }
+
+  const brands = readFileSync("src/lib/brands.ts", "utf8");
+  assert.match(brands, /https:\/\/www\.kwsuspensions\.com/);
+  assert.match(brands, /https:\/\/www\.fi-exhaust\.com/);
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");

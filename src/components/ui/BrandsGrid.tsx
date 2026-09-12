@@ -18,14 +18,14 @@ const brands: Brand[] = [
     id: "kw",
     name: "KW Suspension",
     logo: "/logos/kw-official.png",
-    url: "https://kwsuspension.shop/",
+    url: "/shop/catalog",
     blurb: "Німецька точність керованості від вулиці до треку.",
   },
   {
     id: "fi",
     name: "Fi Exhaust",
     logo: "/logos/fi.svg",
-    url: "https://fiexhaust.shop/",
+    url: "/shop/catalog",
     blurb: "Титанові вихлопні системи з фірмовим тембром.",
   },
   {
@@ -52,7 +52,12 @@ export function BrandsGrid() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {brands.map((b) => {
-          const href = b.id === "eventuri" ? `/${locale}/shop/eventuri` : b.url;
+          const href =
+            b.id === "eventuri"
+              ? `/${locale}/shop/eventuri`
+              : `/${locale}/shop/catalog?brand=${encodeURIComponent(
+                  b.id === "kw" ? "KW Suspensions" : "Fi EXHAUST"
+                )}`;
           const isInternal = href.startsWith("/");
           return (
             <Link

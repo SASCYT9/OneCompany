@@ -135,8 +135,8 @@ export const OUR_STORES: OurStore[] = [
       "German suspension engineering. Adjustable coilovers trusted by motorsport worldwide.",
     descriptionUk:
       "Німецька інженерія підвісок. Регульовані койловери, яким довіряють у автоспорті.",
-    href: "https://kwsuspension.shop",
-    external: true,
+    href: "/shop/catalog?brand=KW%20Suspensions",
+    external: false,
     // Один продукт — KW V4 Clubsport, чистий кадр без композиту
     imageUrl: "/images/shop/stores/kw-suspension-coilovers.png",
   },
@@ -148,8 +148,8 @@ export const OUR_STORES: OurStore[] = [
       "Valvetronic exhaust systems and distinctive sound for exotic vehicles.",
     descriptionUk:
       "Керовані вихлопні системи з фірмовим звучанням для преміальних спортивних авто.",
-    href: "https://fiexhaust.shop",
-    external: true,
+    href: "/shop/catalog?brand=Fi%20EXHAUST",
+    external: false,
     // Офіційний пресс-кадр FI — Porsche 992 GT3 RS valvetronic system на чорному тлі
     imageUrl: "/images/shop/stores/fi-992-gt3-rs-exhaust.webp",
   },

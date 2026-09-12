@@ -29,6 +29,8 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
     adro: `/${locale}/shop/adro`,
     ilmberger: `/${locale}/shop/ilmberger`,
     eventuri: `/${locale}/shop/eventuri`,
+    kw: `/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`,
+    fi: `/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`,
   };
   return map[store.id] ?? store.href ?? "#";
 }

@@ -23,14 +23,22 @@ export function Navigation() {
   }, []);
 
   const stores = [
-    { name: "KW", url: "https://kwsuspension.shop/", color: "from-orange-500 to-red-600" },
-    { name: "Fi Exhaust", url: "https://fiexhaust.shop/", color: "from-blue-500 to-cyan-600" },
+    {
+      name: "KW",
+      url: `/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`,
+      color: "from-orange-500 to-red-600",
+    },
+    {
+      name: "Fi Exhaust",
+      url: `/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`,
+      color: "from-blue-500 to-cyan-600",
+    },
     { name: "Eventuri", url: `/${locale}/shop/eventuri`, color: "from-purple-500 to-pink-600" },
   ];
   const extraLinks = [
-    { href: "/auto", labelUa: "Авто", labelEn: "Automotive" },
-    { href: "/moto", labelUa: "Мото", labelEn: "Moto" },
-    { href: "/categories", labelUa: "Категорії", labelEn: "Categories" },
+    { href: `/${locale}/auto`, labelUa: "Авто", labelEn: "Automotive" },
+    { href: `/${locale}/moto`, labelUa: "Мото", labelEn: "Moto" },
+    { href: `/${locale}/categories`, labelUa: "Категорії", labelEn: "Categories" },
   ];
 
   const [contactOpen, setContactOpen] = useState(false);
@@ -181,10 +189,13 @@ export function Navigation() {
                 {locale === "ua" ? link.labelUa : link.labelEn}
               </Link>
             ))}
-            <Link href="/about" className={pathname === "/about" ? navActiveClass : navGhostClass}>
+            <Link
+              href={`/${locale}/about`}
+              className={pathname === `/${locale}/about` ? navActiveClass : navGhostClass}
+            >
               {t.nav.about}
             </Link>
-            <Link href="/#stores" className={navCtaClass}>
+            <Link href={`/${locale}/#stores`} className={navCtaClass}>
               {t.nav.selectStore}
             </Link>
             <div className="inline-flex min-h-[44px] items-center gap-1 rounded-full bg-white/5 px-3 py-2">
@@ -266,7 +277,7 @@ export function Navigation() {
               </button>
             </div>
             <Link
-              href="/about"
+              href={`/${locale}/about`}
               className="px-4 py-2 text-white/60 hover:text-white font-light transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
