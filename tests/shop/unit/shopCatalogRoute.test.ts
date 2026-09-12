@@ -147,3 +147,22 @@ test("retired static index redirects to the current localized homepage", async (
     { source: "/index.html", destination: "/ua", permanent: true }
   );
 });
+
+test("public utility HTML documents are excluded from organic indexing", async () => {
+  const config = nextConfig as {
+    headers?: () => Promise<
+      Array<{
+        source?: string;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>
+    >;
+  };
+  const headers = (await config.headers?.()) ?? [];
+  const utilityRule = headers.find(
+    (entry) =>
+      entry.source === "/:legacyHtml(demo-hero|index|logo-audit|og-generator|thought-space).html"
+  );
+  assert.deepEqual(utilityRule?.headers, [
+    { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  ]);
+});

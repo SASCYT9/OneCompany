@@ -286,6 +286,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/:legacyHtml(demo-hero|index|logo-audit|og-generator|thought-space).html",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      },
+      {
         // Keep admin tooling out of search results
         source: "/admin",
         headers: [
