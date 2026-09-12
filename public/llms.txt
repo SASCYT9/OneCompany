@@ -18,7 +18,9 @@ Official B2B importer and distributor of premium automotive and motorcycle tunin
 - **iPE (Innotech Performance Exhaust)**: High-end valvetronic exhaust systems with adjustable sound profiles.
   - Hub: https://onecompany.global/en/shop/ipe
 - **KW Suspension**: State-of-the-art coilover suspension systems.
-  - Hub: https://onecompany.global/en/shop/kw
+  - Catalog: https://onecompany.global/en/shop/catalog?brand=KW%20Suspensions
+- **Fi Exhaust**: Valvetronic performance exhaust systems and premium exhaust components.
+  - Catalog: https://onecompany.global/en/shop/catalog?brand=Fi%20EXHAUST
 - **Ohlins**: High-performance shock absorbers and racing suspension systems.
   - Hub: https://onecompany.global/en/shop/ohlins
 - **CSF**: Premium cooling systems and intercoolers for racing and street cars.

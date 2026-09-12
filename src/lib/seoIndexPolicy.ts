@@ -124,6 +124,16 @@ export const redirectPatterns: readonly RedirectPattern[] = [
     pattern: /^\/(?:kw|fi|eventuri)$/,
   },
   {
+    id: "legacy-brand-shop-route-localized",
+    description: "Redirect old localized shop brand routes to the canonical storefront pages.",
+    pattern: /^\/(?:ua|en)\/shop\/(?:kw|fi)$/,
+  },
+  {
+    id: "legacy-brand-shop-route-legacy",
+    description: "Redirect old non-localized shop brand routes to default-locale storefront pages.",
+    pattern: /^\/shop\/(?:kw|fi)$/,
+  },
+  {
     id: "locale-first-routing",
     description: "Redirect locale-agnostic public routes to locale-prefixed URLs.",
     pattern:
@@ -221,7 +231,9 @@ export function resolveRemovedBlogRedirectPath(pathname: string): string | null 
 
 export function resolveLegacyBrandRedirectPath(pathname: string): string | null {
   const normalized = normalizePathname(pathname);
-  const match = normalized.match(/^\/(?:(ua|en)\/)?(kw|fi|eventuri)$/);
+  const match =
+    normalized.match(/^\/(?:(ua|en)\/)?(kw|fi|eventuri)$/) ??
+    normalized.match(/^\/(?:(ua|en)\/)?shop\/(kw|fi)$/);
   if (!match) {
     return null;
   }

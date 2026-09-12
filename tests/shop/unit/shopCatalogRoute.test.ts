@@ -69,6 +69,14 @@ test("legacy brand routes redirect to localized canonical storefront destination
   assert.equal(resolveLegacyBrandRedirectPath("/kw"), "/ua/shop/catalog?brand=KW%20Suspensions");
   assert.equal(resolveLegacyBrandRedirectPath("/en/kw"), "/en/shop/catalog?brand=KW%20Suspensions");
   assert.equal(resolveLegacyBrandRedirectPath("/ua/fi/"), "/ua/shop/catalog?brand=Fi%20EXHAUST");
+  assert.equal(
+    resolveLegacyBrandRedirectPath("/shop/kw"),
+    "/ua/shop/catalog?brand=KW%20Suspensions"
+  );
+  assert.equal(
+    resolveLegacyBrandRedirectPath("/en/shop/fi/"),
+    "/en/shop/catalog?brand=Fi%20EXHAUST"
+  );
   assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/ua/shop/eventuri"), null);
