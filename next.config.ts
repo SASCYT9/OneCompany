@@ -584,7 +584,6 @@ const nextConfig: NextConfig = {
       "brixton-wheels",
       "capit",
       "dinan",
-      "eventuri",
       "gruppe-m",
       "harrop",
       "healtech",
@@ -677,6 +676,11 @@ const nextConfig: NextConfig = {
       {
         source: "/:locale(ua|en)/brands/adro",
         destination: "/:locale/shop/adro",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/brands/eventuri",
+        destination: "/:locale/shop/eventuri",
         permanent: true,
       },
       {

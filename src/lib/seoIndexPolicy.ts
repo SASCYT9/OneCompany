@@ -134,6 +134,11 @@ export const redirectPatterns: readonly RedirectPattern[] = [
     pattern: /^\/shop\/(?:kw|fi)$/,
   },
   {
+    id: "legacy-eventuri-brand-route-localized",
+    description: "Redirect the old Eventuri brand route to the canonical Eventuri storefront page.",
+    pattern: /^\/(?:ua|en)\/brands\/eventuri$/,
+  },
+  {
     id: "locale-first-routing",
     description: "Redirect locale-agnostic public routes to locale-prefixed URLs.",
     pattern:

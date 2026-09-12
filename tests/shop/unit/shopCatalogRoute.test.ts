@@ -126,6 +126,11 @@ test("next redirects cover localized legacy brand routes before middleware", asy
         destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
         permanent: true,
       },
+      {
+        source: "/:locale(ua|en)/brands/eventuri",
+        destination: "/:locale/shop/eventuri",
+        permanent: true,
+      },
     ]
   );
 });
