@@ -1,13 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { BRABUS_COLLECTION_CARDS } from "../../../data/brabusCollectionsList";
 import { getBrabusCollectionPageConfig } from "../../../data/brabusCollectionPages";
 import { getBrabusProductsServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { getProductsForBrabusCollection } from "@/lib/brabusCollectionMatcher";
-import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
-import { isBrabusExhaustProduct } from "@/lib/brabusCatalogExclusions";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { localizeShopProductTitle } from "@/lib/shopText";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
+import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import BrabusCollectionHero from "../../../components/BrabusCollectionHero";
 import BrabusCollectionProductGrid from "../../../components/BrabusCollectionProductGrid";
 import { notFound } from "next/navigation";
@@ -90,8 +92,47 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     return priceB - priceA;
   });
 
+  const isUa = resolvedLocale === "ua";
+  const collectionTitle = config ? (isUa ? config.titleUk : config.title) : (card?.title ?? handle);
+  const listingPath = buildLocalizedPath(resolvedLocale, `/shop/brabus/collections/${handle}`);
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Магазин" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Brabus",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/brabus")),
+    },
+    {
+      name: isUa ? "Модельний ряд" : "Model range",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/brabus/collections")),
+    },
+    {
+      name: collectionTitle,
+      url: absoluteUrl(listingPath),
+    },
+  ];
+  const itemListSchema = generateProductItemListSchema(
+    isUa ? `Каталог Brabus: ${collectionTitle}` : `Brabus ${collectionTitle} catalog`,
+    listingPath,
+    sortedProducts.map((product) => ({
+      slug: product.slug,
+      title: localizeShopProductTitle(resolvedLocale, product),
+      path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
+      image: product.image ?? null,
+    }))
+  );
+
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
+      <JsonLd schema={itemListSchema} />
+      {!config ? <h1 className="sr-only">{collectionTitle}</h1> : null}
       {/* Cinematic Hero (if config exists) — the hero inside is scope-dark (photo) */}
       {config && (
         <BrabusCollectionHero

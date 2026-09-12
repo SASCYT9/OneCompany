@@ -1,7 +1,8 @@
-import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BrabusCollectionsGrid from "../../components/BrabusCollectionsGrid";
 import Link from "next/link";
 import { BRABUS_COLLECTION_CARDS } from "../../data/brabusCollectionsList";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 type Props = {
@@ -41,13 +42,33 @@ export default async function BrabusCollectionsPage({ params }: Props) {
       })),
     },
   };
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Магазин" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Brabus",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/brabus")),
+    },
+    {
+      name: isUa ? "Модельний ряд" : "Model range",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/brabus/collections")),
+    },
+  ];
 
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <h1 className="sr-only">{isUa ? "Модельний ряд Brabus" : "Brabus model range"}</h1>
       <div className="urban-back-to-stores">
         <Link href={`/${locale}/shop/brabus`} className="urban-back-to-stores__link">
           ← {isUa ? "Brabus головна" : "Brabus home"}

@@ -240,11 +240,21 @@ test("brand listing pages expose one localized h1 without changing the visual la
   for (const file of [
     "src/app/[locale]/shop/akrapovic/collections/page.tsx",
     "src/app/[locale]/shop/do88/collections/page.tsx",
+    "src/app/[locale]/shop/brabus/collections/page.tsx",
+    "src/app/[locale]/shop/urban/collections/page.tsx",
   ]) {
     const source = readFileSync(file, "utf8");
     assert.equal((source.match(/<h1\b/g) ?? []).length, 1, `${file} must expose one h1`);
     assert.match(source, /<h1 className="sr-only">/);
   }
+});
+
+test("Brabus collection routes expose breadcrumb and canonical product list schemas", () => {
+  const source = readFileSync("src/app/[locale]/shop/brabus/collections/[handle]/page.tsx", "utf8");
+  assert.match(source, /BreadcrumbSchema/);
+  assert.match(source, /generateProductItemListSchema/);
+  assert.match(source, /buildShopStorefrontProductPathForProduct/);
+  assert.match(source, /!config \? <h1 className="sr-only">/);
 });
 
 test("canary routing is request-bound and the page still fails closed without its header", () => {

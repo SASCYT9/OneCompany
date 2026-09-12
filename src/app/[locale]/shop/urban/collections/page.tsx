@@ -1,7 +1,8 @@
-import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import UrbanCollectionsGrid from "../../components/UrbanCollectionsGrid";
 import Link from "next/link";
 import { URBAN_COLLECTION_CARDS } from "../../data/urbanCollectionsList";
+import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 type Props = {
@@ -42,13 +43,35 @@ export default async function UrbanCollectionsPage({ params }: Props) {
       })),
     },
   };
+  const breadcrumbs = [
+    {
+      name: isUa ? "Головна" : "Home",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale)),
+    },
+    {
+      name: isUa ? "Магазин" : "Shop",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop")),
+    },
+    {
+      name: "Urban Automotive",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/urban")),
+    },
+    {
+      name: isUa ? "Модельний ряд" : "Model range",
+      url: absoluteUrl(buildLocalizedPath(resolvedLocale, "/shop/urban/collections")),
+    },
+  ];
 
   return (
     <>
+      <BreadcrumbSchema items={breadcrumbs} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <h1 className="sr-only">
+        {isUa ? "Модельний ряд Urban Automotive" : "Urban Automotive model range"}
+      </h1>
       <div className="w-full max-w-[1720px] mx-auto px-6 md:px-12 lg:px-16 pt-32 pb-4">
         <Link
           href={`/${locale}/shop/urban`}
