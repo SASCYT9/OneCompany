@@ -16,5 +16,7 @@ test("proxy preserves storefront routing while adding the admin path header", ()
   assert.match(proxySource, /request:\s*\{[\s\S]*headers:\s*requestHeaders/);
   assert.match(proxySource, /matcher:\s*\[[\s\S]*"\/\(\(\?!_next\/static/);
   assert.match(proxySource, /"\/:locale\(ua\|en\)\/shop\/catalog"/);
+  assert.match(proxySource, /"\/:locale\(ua\|en\)\/:legacyBrand\(kw\|fi\|eventuri\)"/);
+  assert.match(proxySource, /"\/:locale\(ua\|en\)\/shop\/:legacyBrand\(kw\|fi\)"/);
   assert.doesNotMatch(proxySource, /matcher:\s*\["\/admin\/:path\*"\]/);
 });

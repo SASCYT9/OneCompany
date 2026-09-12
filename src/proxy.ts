@@ -168,6 +168,10 @@ export default async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     "/:locale(ua|en)/shop/catalog",
+    // Localized legacy brand URLs are excluded by the broad matcher below.
+    // Keep these narrow patterns so their 308 redirects still run at the edge.
+    "/:locale(ua|en)/:legacyBrand(kw|fi|eventuri)",
+    "/:locale(ua|en)/shop/:legacyBrand(kw|fi)",
     "/api/shop/catalog/suggest",
     "/((?!_next/static|_next/image|favicon.ico|ua/|en/|.*\\..*).*)",
   ],
