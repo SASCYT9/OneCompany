@@ -7,6 +7,7 @@ import {
   isIndexablePath,
   isNoindexPath,
   localizedStaticSlugs,
+  resolveLegacyBrandRedirectPath,
 } from "../../../src/lib/seoIndexPolicy";
 
 test("catalog route has localized self-canonical metadata", async () => {
@@ -62,4 +63,13 @@ test("live Eventuri and Ilmberger entry pages are discoverable in both sitemap l
       assert.equal(isNoindexPath(`/${locale}${slug}`), false);
     }
   }
+});
+
+test("legacy brand routes redirect to localized canonical storefront destinations", () => {
+  assert.equal(resolveLegacyBrandRedirectPath("/kw"), "/ua/shop/catalog?brand=KW%20Suspensions");
+  assert.equal(resolveLegacyBrandRedirectPath("/en/kw"), "/en/shop/catalog?brand=KW%20Suspensions");
+  assert.equal(resolveLegacyBrandRedirectPath("/ua/fi/"), "/ua/shop/catalog?brand=Fi%20EXHAUST");
+  assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/eventuri");
+  assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/eventuri");
+  assert.equal(resolveLegacyBrandRedirectPath("/ua/shop/eventuri"), null);
 });

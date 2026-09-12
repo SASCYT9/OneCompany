@@ -6,6 +6,7 @@ import {
   isLocaleAgnosticPublicPath,
   isNoindexPath,
   normalizePathname,
+  resolveLegacyBrandRedirectPath,
   resolveRemovedBlogRedirectPath,
 } from "@/lib/seoIndexPolicy";
 import { ADMIN_PATH_HEADER } from "@/lib/admin/adminPathHeader";
@@ -90,6 +91,11 @@ export default async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = removedBlogRedirectPath;
     return NextResponse.redirect(url, 308);
+  }
+
+  const legacyBrandRedirectPath = resolveLegacyBrandRedirectPath(currentPath);
+  if (legacyBrandRedirectPath) {
+    return NextResponse.redirect(new URL(legacyBrandRedirectPath, req.url), 308);
   }
 
   if (normalizedPathname !== pathname) {

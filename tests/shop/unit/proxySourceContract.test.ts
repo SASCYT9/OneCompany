@@ -7,6 +7,7 @@ const proxySource = readFileSync("src/proxy.ts", "utf8");
 test("proxy preserves storefront routing while adding the admin path header", () => {
   assert.match(proxySource, /createMiddleware\(routing\)/);
   assert.match(proxySource, /resolveRemovedBlogRedirectPath/);
+  assert.match(proxySource, /resolveLegacyBrandRedirectPath/);
   assert.match(proxySource, /hasLocalePrefix/);
   assert.match(proxySource, /x-vercel-ip-country/);
   assert.match(proxySource, /shouldAllowAdminApiRequest/);
