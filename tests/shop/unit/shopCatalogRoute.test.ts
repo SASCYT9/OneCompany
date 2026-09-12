@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import nextConfig from "../../../next.config";
 
 import { generateMetadata } from "../../../src/app/[locale]/shop/catalog/metadata";
 import { generateMetadata as generateRewrittenCatalogMetadata } from "../../../src/app/[locale]/shop/stock/layout";
@@ -80,4 +81,51 @@ test("legacy brand routes redirect to localized canonical storefront destination
   assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/ua/shop/eventuri"), null);
+});
+
+test("next redirects cover localized legacy brand routes before middleware", async () => {
+  const config = nextConfig as {
+    redirects?: () => Promise<
+      Array<{ source?: string; destination?: string; permanent?: boolean }>
+    >;
+  };
+  const redirects = (await config.redirects?.()) ?? [];
+  const legacy = redirects.filter(
+    (entry) =>
+      entry.source?.includes(":locale(ua|en)") &&
+      (entry.source.endsWith("/kw") ||
+        entry.source.endsWith("/fi") ||
+        entry.source.endsWith("/eventuri"))
+  );
+
+  assert.deepEqual(
+    legacy.map(({ source, destination, permanent }) => ({ source, destination, permanent })),
+    [
+      {
+        source: "/:locale(ua|en)/kw",
+        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/fi",
+        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/eventuri",
+        destination: "/:locale/shop/eventuri",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/kw",
+        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/fi",
+        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        permanent: true,
+      },
+    ]
+  );
 });

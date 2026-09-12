@@ -613,6 +613,34 @@ const nextConfig: NextConfig = {
       "wald",
     ];
 
+    const legacyBrandRedirects = [
+      {
+        source: "/:locale(ua|en)/kw",
+        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/fi",
+        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/eventuri",
+        destination: "/:locale/shop/eventuri",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/kw",
+        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/fi",
+        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        permanent: true,
+      },
+    ];
+
     return [
       {
         source: "/:path*",
@@ -620,6 +648,7 @@ const nextConfig: NextConfig = {
         destination: "https://onecompany.global/:path*",
         permanent: true,
       },
+      ...legacyBrandRedirects,
       ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
         source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
         destination: `/:locale/shop/${segment}/products/:slug`,
