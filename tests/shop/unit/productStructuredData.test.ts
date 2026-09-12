@@ -21,7 +21,7 @@ test("organization schema carries the shared return policy", () => {
   assert.equal("returnFees" in policy, false);
 });
 
-test("product offers expose validFrom and omit empty categories", () => {
+test("product offers omit fabricated sale dates and empty categories", () => {
   const element = ShopProductStructuredData({
     locale: "en",
     product: {
@@ -51,7 +51,8 @@ test("product offers expose validFrom and omit empty categories", () => {
   assert.equal("category" in schema, false);
   assert.ok(Array.isArray(schema.offers));
   for (const offer of schema.offers as Array<Record<string, unknown>>) {
-    assert.match(String(offer.validFrom), /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal("validFrom" in offer, false);
+    assert.equal("priceValidUntil" in offer, false);
     assert.equal("hasMerchantReturnPolicy" in offer, false);
   }
 });

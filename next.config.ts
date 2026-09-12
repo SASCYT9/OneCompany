@@ -151,7 +151,6 @@ const STOREFRONT_FILTER_QUERY_KEYS = [
   "material",
   "model",
   "manufacturer",
-  "page",
   "price",
   "q",
   "sort",

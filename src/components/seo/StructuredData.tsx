@@ -312,16 +312,6 @@ interface ShopProductStructuredDataProps {
   rates?: Record<ShopCurrencyCode, number>;
 }
 
-function priceValidUntilFromNow(days = 90): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-function priceValidFromNow(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function ShopProductStructuredData({
   product,
   locale,
@@ -348,8 +338,6 @@ export function ShopProductStructuredData({
   const ratesToUse = rates ?? DEFAULT_CURRENCY_RATES;
   const expanded = expandShopPrices(rawPrice ?? null, ratesToUse);
   const compareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
-  const validFrom = priceValidFromNow();
-  const validUntil = priceValidUntilFromNow(90);
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
     primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];
@@ -363,8 +351,6 @@ export function ShopProductStructuredData({
         price,
         priceCurrency: c,
         availability: product.stock,
-        validFrom,
-        priceValidUntil: validUntil,
         ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
       };
     })

@@ -166,3 +166,26 @@ test("public utility HTML documents are excluded from organic indexing", async (
     { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
   ]);
 });
+
+test("catalog pagination remains indexable while real filter variants stay noindex", async () => {
+  const config = nextConfig as {
+    headers?: () => Promise<
+      Array<{
+        source?: string;
+        has?: Array<{ type?: string; key?: string }>;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>
+    >;
+  };
+  const headers = (await config.headers?.()) ?? [];
+  const catalogRules = headers.filter((entry) => entry.source === "/:locale(ua|en)/shop/catalog");
+  assert.equal(
+    catalogRules.some((entry) => entry.has?.some((condition) => condition.key === "page")),
+    false,
+    "page is a pagination dimension, not a faceted filter"
+  );
+  assert.equal(
+    catalogRules.some((entry) => entry.has?.some((condition) => condition.key === "brand")),
+    true
+  );
+});
