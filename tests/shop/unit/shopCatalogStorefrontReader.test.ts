@@ -186,6 +186,45 @@ test("approved catalog design is preserved unless the separate SSR UI is explici
   assert.match(config, /destination: "\/:locale\/shop\/stock"/);
 });
 
+test("all faceted storefront listings receive noindex headers, including the rewritten catalog", async () => {
+  const config = (await import("../../../next.config")).default as {
+    headers?: () => Promise<
+      Array<{
+        source?: string;
+        has?: Array<{ key?: string }>;
+        headers?: Array<{ key?: string; value?: string }>;
+      }>
+    >;
+  };
+  const headers = (await config.headers?.()) ?? [];
+  const facetedSources = headers.filter((entry) =>
+    entry.headers?.some(
+      (header) => header.key === "X-Robots-Tag" && header.value === "noindex, follow"
+    )
+  );
+  assert.ok(
+    facetedSources.some((entry) => entry.source?.includes("akrapovic|")),
+    "brand listing source must cover every storefront with filters"
+  );
+  for (const key of ["scope", "segment", "manufacturer", "model", "brand"]) {
+    assert.ok(
+      facetedSources.some(
+        (entry) =>
+          entry.has?.some((condition) => condition.key === key) && entry.source?.includes("shop")
+      ),
+      `missing noindex rule for query key ${key}`
+    );
+  }
+  assert.ok(
+    facetedSources.some(
+      (entry) =>
+        entry.source === "/:locale(ua|en)/shop/catalog" &&
+        entry.has?.some((condition) => condition.key === "brand")
+    ),
+    "rewritten general catalog must have a source-level noindex rule"
+  );
+});
+
 test("canary routing is request-bound and the page still fails closed without its header", () => {
   const proxy = readFileSync("src/proxy.ts", "utf8");
   const page = readFileSync("src/app/[locale]/shop/catalog/page.tsx", "utf8");

@@ -138,7 +138,7 @@ const VIDEO_UPLOAD_TRACE_EXCLUDES = [
 ];
 
 const FILTERED_CATALOG_SOURCE =
-  "/:locale(ua|en)/shop/:store(adro|brabus|burger|csf|girodisc|ipe|ohlins|racechip)/:surface(collections|products|catalog)/:path*";
+  "/:locale(ua|en)/shop/:store(akrapovic|adro|brabus|burger|csf|do88|girodisc|ilmberger|ipe|ohlins|racechip|urban)/:surface(collections|products|catalog)/:path*";
 const STOREFRONT_FILTER_QUERY_KEYS = [
   "body",
   "brand",
@@ -149,12 +149,15 @@ const STOREFRONT_FILTER_QUERY_KEYS = [
   "make",
   "material",
   "model",
+  "manufacturer",
   "page",
   "price",
   "q",
   "sort",
   "spec",
   "stock",
+  "scope",
+  "segment",
   "type",
   "year",
 ];
@@ -391,6 +394,14 @@ const nextConfig: NextConfig = {
         // Query filters share the cacheable canonical listing HTML, while the
         // routing layer keeps every filtered permutation out of the index.
         source: FILTERED_CATALOG_SOURCE,
+        has: [{ type: "query" as const, key }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+      })),
+      ...STOREFRONT_FILTER_QUERY_KEYS.map((key) => ({
+        // The public general catalog is internally rewritten to `/shop/stock`.
+        // Keep its query variants out of the index at the source URL too, so
+        // the policy survives rewrites and direct crawler requests.
+        source: "/:locale(ua|en)/shop/catalog",
         has: [{ type: "query" as const, key }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
       })),
