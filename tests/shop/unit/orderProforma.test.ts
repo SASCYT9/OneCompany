@@ -84,7 +84,7 @@ test("large orders retain every item without placing the entire table in an unbr
 test("recipient selection and payment details survive locale switching", async () => {
   const { getProformaRecipient, proformaRecipients } =
     await import("../../../src/lib/admin/proformaRecipients");
-  assert.equal(proformaRecipients.length, 1);
+  assert.equal(proformaRecipients.length, 2);
   for (const recipient of proformaRecipients) {
     const rearranged = recipient.iban.slice(4) + recipient.iban.slice(0, 4);
     const digits = rearranged.replace(/[A-Z]/g, (char) => String(char.charCodeAt(0) - 55));
@@ -108,6 +108,51 @@ test("recipient selection and payment details survive locale switching", async (
   assert.equal(getProformaRecipient("removed-recipient"), null);
   const unselected = renderOrderProforma(order, null, "ua", null);
   assert.match(unselected, /id="print-proforma" type="button" disabled/);
+});
+
+test("Wise EUR recipient preserves supplied bank details in both document languages", async () => {
+  const { getProformaRecipient, localizeProformaRecipient, proformaRecipientCurrency } =
+    await import("../../../src/lib/admin/proformaRecipients");
+  const { convertProforma } = await import("../../../src/lib/admin/proformaCalculation");
+  const recipient = getProformaRecipient("wise-eur")!;
+  assert.equal(recipient.iban, "BE69967315106078");
+  assert.equal(recipient.swiftBic, "TRWIBEB1XXX");
+  assert.equal(recipient.bankAddress, "Rue du Trône 100, 3rd floor, Brussels, 1050, Belgium");
+  // Wise must never be attached to a UAH/USD proforma, including a crafted query.
+  assert.equal(proformaRecipientCurrency(recipient, "USD", "UAH"), "EUR");
+  assert.equal(proformaRecipientCurrency(getProformaRecipient("recipient-1"), "USD", "UAH"), "USD");
+  assert.equal(proformaRecipientCurrency(null, null, "UAH"), "UAH");
+  const converted = convertProforma(
+    { ...order, currency: "UAH", subtotal: 5300, total: 5300 },
+    proformaRecipientCurrency(recipient, "UAH", "UAH"),
+    { EUR: 1, UAH: 53 }
+  );
+  assert.equal(converted.currency, "EUR");
+  assert.equal(converted.total, 100);
+  for (const locale of ["ua", "en"] as const) {
+    const localized = localizeProformaRecipient(recipient, locale);
+    assert.equal(localized.legalName, "Igor Semynozhenko");
+    const html = renderOrderProforma(
+      converted,
+      {
+        fopCompanyName: localized.legalName,
+        fopIban: recipient.iban,
+        fopBankName: localized.bank,
+        swiftBic: recipient.swiftBic,
+        bankAddress: recipient.bankAddress,
+        bankTransferNote: localized.transferNote,
+      },
+      locale,
+      recipient.id
+    );
+    assert.ok(html.includes("Igor Semynozhenko"));
+    assert.ok(html.includes("BE69967315106078"));
+    assert.ok(html.includes("SWIFT/BIC: TRWIBEB1XXX"));
+    assert.ok(html.includes(recipient.bankAddress));
+    assert.ok(html.includes(localized.transferNote));
+    assert.ok(html.includes("recipient=wise-eur&currency=EUR&format=pdf"));
+    assert.ok(!html.includes("UA883220010000026008310026920"));
+  }
 });
 
 test("English recipient details and Ukraine are localized without changing payment data", async () => {

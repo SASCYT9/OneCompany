@@ -168,9 +168,11 @@ export async function renderOrderProformaPdf(
             <View style={{ width: "50%", textAlign: "right", fontSize: 8, lineHeight: 1.6 }}>
               <Text>{company}</Text>
               <Text>{seller.appAddress || ""}</Text>
-              <Text>
-                {t.code}: {seller.fopEdrpou || ""}
-              </Text>
+              {seller.fopEdrpou && (
+                <Text>
+                  {t.code}: {seller.fopEdrpou}
+                </Text>
+              )}
               <Text>{seller.appContactEmail || "info@onecompany.global"}</Text>
               <Text style={{ marginTop: 15 }}>
                 {seller.paymentPurpose
@@ -182,6 +184,13 @@ export async function renderOrderProformaPdf(
               <Text style={{ fontWeight: 700 }}>{seller.paymentPurpose || order.orderNumber}</Text>
               <Text style={{ marginTop: 10 }}>IBAN: {seller.fopIban || ""}</Text>
               <Text>{seller.fopBankName || ""}</Text>
+              {seller.swiftBic && <Text>SWIFT/BIC: {seller.swiftBic}</Text>}
+              {seller.bankAddress && (
+                <Text>
+                  {locale === "ua" ? "Адреса банку" : "Bank address"}: {seller.bankAddress}
+                </Text>
+              )}
+              {seller.bankTransferNote && <Text>{seller.bankTransferNote}</Text>}
             </View>
             <Text style={{ width: "50%", fontSize: 21, fontWeight: 700 }}>
               {t.thanks.replace("<br>", "\n")}

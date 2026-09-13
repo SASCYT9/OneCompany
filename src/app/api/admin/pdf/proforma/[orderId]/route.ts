@@ -3,6 +3,7 @@ import {
   getProformaRecipient,
   localizeProformaRecipient,
   localizeProformaCountry,
+  proformaRecipientCurrency,
 } from "@/lib/admin/proformaRecipients";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -59,8 +60,15 @@ export async function GET(
       fopBankName: translatedRecipient?.bank ?? null,
       fopDetails: null,
       paymentPurpose: recipient?.purpose ?? null,
+      swiftBic: recipient?.swiftBic ?? null,
+      bankAddress: recipient?.bankAddress ?? null,
+      bankTransferNote: translatedRecipient?.transferNote ?? null,
     };
-    const targetCurrency = request.nextUrl.searchParams.get("currency") || order.currency;
+    const targetCurrency = proformaRecipientCurrency(
+      recipient,
+      request.nextUrl.searchParams.get("currency"),
+      order.currency
+    );
     let displayOrder;
     try {
       displayOrder = convertProforma(
