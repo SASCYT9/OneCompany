@@ -132,6 +132,24 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             </p>
           </section>
 
+          <section id="carrier-war-risks">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
+              {l === "ua"
+                ? "Воєнні ризики на складах перевізника"
+                : "War-related risks at carrier facilities"}
+            </h2>
+            <p>
+              {l === "ua"
+                ? "Пошкодження або знищення товару, прийнятого Новою поштою та розміщеного на її складі, терміналі чи у відділенні, безпосередньо внаслідок ракетної, дронової або іншої атаки, обстрілу чи пов’язаних із ними вибуху або пожежі може бути підставою для звільнення One Company від відповідальності лише за умов та в межах, установлених застосовним законодавством. Для посилання на обставини непереборної сили необхідно підтвердити їхній вплив на виконання конкретного зобов’язання; самого факту воєнного стану недостатньо."
+                : "Damage to or destruction of goods accepted by Nova Poshta and held at its warehouse, terminal or branch directly as a result of a missile, drone or other attack, shelling, or a resulting explosion or fire may exempt One Company from liability only subject to the requirements and limits of applicable law. Reliance on force majeure requires evidence of its effect on the specific contractual obligation; martial law alone is insufficient."}
+            </p>
+            <p className="mt-4">
+              {l === "ua"
+                ? "Претензії до перевізника узгоджуються через нашого менеджера із зазначенням номера замовлення і ТТН. Компенсація залежить від застосовного законодавства, договору перевезення та умов страхування, якщо воно оформлене. Оголошена вартість не гарантує покриття воєнних ризиків. Жодна умова про перехід ризику або обмеження відповідальності на цьому сайті не виключає відповідальності One Company за власні порушення, не обмежує обов’язкові права споживача та не означає автоматичної відмови у поверненні передоплати чи іншому належному відшкодуванні."
+                : "Claims to the carrier are coordinated through our account manager using the order and shipment tracking numbers. Compensation depends on applicable law, the carriage contract and any insurance coverage arranged. Declared value does not guarantee coverage for war-related risks. No risk-transfer or liability-limitation clause on this website excludes One Company’s liability for its own breaches, restricts mandatory consumer rights, or automatically precludes a refund of prepayment or other compensation legally due."}
+            </p>
+          </section>
+
           <section>
             <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
               {l === "ua" ? "7. Зміни до Умов" : "7. Changes to Terms"}

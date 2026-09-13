@@ -109,6 +109,24 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </p>
           </section>
 
+          <section id="war-risks">
+            <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
+              {l === "ua"
+                ? "Воєнні ризики на складах перевізника"
+                : "War-related risks at carrier facilities"}
+            </h2>
+            <p>
+              {l === "ua"
+                ? "Якщо після прийняття відправлення Новою поштою товар пошкоджено або знищено на її складі, терміналі чи у відділенні безпосередньо внаслідок ракетної, дронової або іншої атаки, обстрілу чи пов’язаних із ними вибуху або пожежі, One Company звільняється від відповідальності лише за наявності передбачених законом підстав та в дозволених законом межах. Сам факт воєнного стану не є достатньою підставою для такого звільнення."
+                : "If, after Nova Poshta accepts a shipment, the goods are damaged or destroyed at its warehouse, terminal or branch directly as a result of a missile, drone or other attack, shelling, or a resulting explosion or fire, One Company is exempt from liability only where the legal requirements for exemption are met and to the extent permitted by applicable law. Martial law alone is not sufficient grounds for exemption."}
+            </p>
+            <p className="mt-4">
+              {l === "ua"
+                ? "У такому випадку зверніться до нашого менеджера та повідомте номер замовлення і ТТН для узгодження подання претензії перевізнику. Можливість і розмір компенсації визначаються застосовним законодавством, договором перевезення та умовами страхування, якщо воно оформлене; оголошена вартість не є гарантією покриття воєнних ризиків. Цей пункт не виключає відповідальності One Company за власні порушення, не обмежує обов’язкові права споживача та не означає автоматичної відмови у поверненні передоплати чи іншому належному відшкодуванні."
+                : "In this situation, contact our account manager with your order and shipment tracking numbers to coordinate a claim to the carrier. Eligibility for compensation and its amount depend on applicable law, the carriage contract and any insurance coverage arranged; declared value does not guarantee coverage for war-related risks. This clause does not exclude One Company’s liability for its own breaches, restrict mandatory consumer rights, or automatically preclude a refund of prepayment or other compensation legally due."}
+            </p>
+          </section>
+
           {/* Restrictions Section */}
           <section>
             <h2 className="text-xl font-normal text-foreground mb-4 mt-8">
