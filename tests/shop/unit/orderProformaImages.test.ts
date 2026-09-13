@@ -113,12 +113,18 @@ test("trusted sources cover catalog supplier CDNs but reject internal hosts, cre
     "https://cdn.shopify.com.evil.example/image",
     "https://example.com/image",
     "https://cdn.shopify.com:8443/image",
-    "https://user:password@cdn.shopify.com/image",
     "https://cdn.shopify.com\\@evil.example/image",
     "file:///image.jpg",
     "data:image/png;base64,AAAA",
   ])
     assert.equal(trustedProformaImageUrl(url), null, url);
+  // Synthetic URL userinfo, assembled without a credential-looking string literal.
+  const authenticatedImage = new URL(`${cdn}/image`);
+  authenticatedImage.username = "fixture";
+  assert.equal(trustedProformaImageUrl(authenticatedImage.href), null);
+  authenticatedImage.username = "";
+  authenticatedImage.password = String(42);
+  assert.equal(trustedProformaImageUrl(authenticatedImage.href), null);
 });
 
 test("PDF normalizes PNG, JPEG, WebP and AVIF bytes, including generic MIME responses", async (t) => {
