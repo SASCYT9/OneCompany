@@ -153,5 +153,5 @@ test("currency conversion preserves cents and rejects missing rates", async () =
   assert.match(html, /No additional charge/);
   assert.ok(html.includes("currency=UAH&format=pdf"));
   assert.ok(html.includes("1 EUR = 53.000000 UAH"));
-  assert.ok(html.includes("function printDocument(button){window.print()"));
+  assert.ok(html.includes("await proformaReady;button.disabled=false;window.print()"));
 });

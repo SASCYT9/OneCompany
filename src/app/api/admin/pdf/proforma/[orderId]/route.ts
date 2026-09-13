@@ -10,6 +10,7 @@ import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
 import { renderOrderProforma } from "@/lib/admin/orderProforma";
+import { withProformaImageSources } from "@/lib/admin/orderProformaImageSources";
 
 export async function GET(
   request: NextRequest,
@@ -81,6 +82,37 @@ export async function GET(
     } catch {
       return new NextResponse("Currency or exchange rate unavailable", { status: 400 });
     }
+    const products = await prisma.shopProduct.findMany({
+      where: {
+        OR: [
+          { id: { in: order.items.flatMap((item) => (item.productId ? [item.productId] : [])) } },
+          {
+            slug: {
+              in: order.items.filter((item) => !item.productId).map((item) => item.productSlug),
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        slug: true,
+        image: true,
+        gallery: true,
+        media: {
+          where: { mediaType: "IMAGE" },
+          orderBy: { position: "asc" },
+          take: 8,
+          select: { src: true },
+        },
+        variants: {
+          where: {
+            id: { in: order.items.flatMap((item) => (item.variantId ? [item.variantId] : [])) },
+          },
+          select: { id: true, image: true },
+        },
+      },
+    });
+    displayOrder = withProformaImageSources(displayOrder, products);
     if (request.nextUrl.searchParams.get("format") === "pdf") {
       if (!recipient) return new NextResponse("Choose a recipient first", { status: 400 });
       const { renderOrderProformaPdf } = await import("@/lib/admin/orderProformaPdf");

@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { proformaLabels, type ProformaOrder, type ProformaSeller } from "./orderProforma";
 import { orderAddressText, orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
+import { loadProformaImages } from "./orderProformaImages";
 
 Font.register({
   family: "Proforma",
@@ -20,31 +21,6 @@ const line = {
   flexDirection: "row" as const,
   justifyContent: "space-between" as const,
 };
-async function productImage(src: string | null | undefined): Promise<Buffer | null> {
-  if (!src) return null;
-  try {
-    // Product media is served by the CDN, never bundled from the whole public tree.
-    // Only the fixed logo/font paths below belong in the serverless function.
-    if (src.startsWith("//") || src.includes("\\")) return null;
-    const url = src.startsWith("/") ? new URL(src, "https://onecompany.global") : new URL(src);
-    if (
-      url.protocol !== "https:" ||
-      !(
-        url.hostname === "onecompany.global" ||
-        url.hostname === "cdn.shopify.com" ||
-        url.hostname.endsWith(".public.blob.vercel-storage.com")
-      )
-    )
-      return null;
-    const response = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(4000) });
-    if (!response.ok || !/^image\/(png|jpeg)/.test(response.headers.get("content-type") || ""))
-      return null;
-    const bytes = Buffer.from(await response.arrayBuffer());
-    return bytes.length <= 5000000 ? bytes : null;
-  } catch {
-    return null;
-  }
-}
 export async function renderOrderProformaPdf(
   order: ProformaOrder,
   seller: ProformaSeller,
@@ -59,11 +35,7 @@ export async function renderOrderProformaPdf(
       maximumFractionDigits: 2,
     }).format(n);
   const logo = await readFile(path.join(process.cwd(), "public/branding/proforma-logo.png"));
-  const pictures: (Buffer | null)[] = [];
-  for (let i = 0; i < order.items.length; i += 4)
-    pictures.push(
-      ...(await Promise.all(order.items.slice(i, i + 4).map((item) => productImage(item.image))))
-    );
+  const pictures = await loadProformaImages(order.items);
   const adjustment =
     Math.round((order.total - order.subtotal - order.shippingCost - order.taxAmount) * 100) / 100;
   const totals: [string, string][] = [

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
+import { SHOP_REMOTE_IMAGE_HOSTS } from "./src/lib/shopImageHosts";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -12,37 +13,6 @@ const catalogV2ReaderMode = process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLo
 const shouldRewriteCatalogV2ToLegacy =
   process.env.SHOP_CATALOG_V2_SSR_UI !== "1" ||
   !["ssr", "canary"].includes(catalogV2ReaderMode ?? "");
-
-const STATIC_REMOTE_IMAGE_HOSTS = [
-  "cdn.shopify.com",
-  "cdn11.bigcommerce.com",
-  "www.racechip.eu",
-  "www.brabus.com",
-  "burgertuning.com",
-  "www.burgertuning.com",
-  "www.jb4tech.com",
-  "www.do88.se",
-  "www.do88performance.eu",
-  "gp-portal.eu",
-  "images.unsplash.com",
-  "kwsuspension.shop",
-  "fiexhaust.shop",
-  "smgassets.blob.core.windows.net",
-  "parts.ford.com",
-  "www.akrapovic.com",
-  "www.brembo.com",
-  "cobrasport.com",
-  "www.aim-sportline.com",
-  "fuel-it.com",
-  "www.fuel-it.com",
-  "onecompany.global",
-  "one-company.com.ua",
-  "d3pd3d30e33rxi.cloudfront.net",
-  "d1sfhav1wboke3.azureedge.net",
-  "cdn.sanity.io",
-  "houseofurban.co.uk",
-  "ind-distribution.com",
-];
 
 function parseHostname(value: string | null | undefined) {
   const normalized = String(value ?? "").trim();
@@ -80,7 +50,7 @@ const configuredRemoteImageHosts = (process.env.NEXT_IMAGE_REMOTE_HOSTS || "")
   .filter((hostname): hostname is string => Boolean(hostname));
 
 const remoteImageHosts = Array.from(
-  new Set([...STATIC_REMOTE_IMAGE_HOSTS, ...configuredRemoteImageHosts])
+  new Set([...SHOP_REMOTE_IMAGE_HOSTS, ...configuredRemoteImageHosts])
 );
 
 const normalizedSiteUrl =
