@@ -7,13 +7,14 @@ import {
   isShopWarehouseInStockSku,
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
+  SHOP_WAREHOUSE_IN_STOCK_BOOTMOD3_GSPORT_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_KW_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "../../../src/lib/shopWarehouseInventory";
 
-test("warehouse inventory contains the confirmed Eventuri, KW, Fi EXHAUST, and iPE SKUs", () => {
+test("warehouse inventory contains the owner-confirmed physical products", () => {
   assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_KW_SKUS, [
     "253200EB",
     "253200CC",
@@ -25,8 +26,8 @@ test("warehouse inventory contains the confirmed Eventuri, KW, Fi EXHAUST, and i
   assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS, [
     "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2",
   ]);
-  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 19);
-  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 19);
+  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 23);
+  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 23);
   assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.every(isShopWarehouseInStockSku), true);
 });
 
@@ -45,8 +46,10 @@ test("iPE X5 M / X6 M LCI product is matched by canonical SKU and exact slug", (
   assert.match(copy.description, /iPE/);
 });
 
-test("every confirmed warehouse SKU has curated bilingual storefront copy", () => {
-  for (const sku of SHOP_WAREHOUSE_IN_STOCK_SKUS) {
+test("legacy warehouse products retain their curated bilingual copy", () => {
+  for (const sku of SHOP_WAREHOUSE_IN_STOCK_SKUS.filter(
+    (value) => !SHOP_WAREHOUSE_IN_STOCK_BOOTMOD3_GSPORT_SKUS.some((newSku) => newSku === value)
+  )) {
     for (const locale of ["ua", "en"] as const) {
       const copy = resolveShopWarehouseProductCopy(sku, locale, {
         title: "fallback title",
@@ -63,6 +66,19 @@ test("every confirmed warehouse SKU has curated bilingual storefront copy", () =
       assert.ok(copy.description.length >= 50);
     }
   }
+});
+
+test("new physical products use catalog copy while licenses do not get warehouse badges", () => {
+  for (const sku of ["BM3-WIFI-ADAPTER", "85230", "85500", "85600"]) {
+    assert.equal(isShopWarehouseInStockProduct(sku, null), true);
+    for (const locale of ["ua", "en"] as const) {
+      const catalogCopy = { title: `${sku} ${locale}`, description: "Current admin catalog copy" };
+      assert.deepEqual(resolveShopWarehouseProductCopy(sku, locale, catalogCopy), catalogCopy);
+    }
+  }
+  assert.equal(isShopWarehouseInStockSku("BM3-LIC-S55"), false);
+  assert.equal(isShopWarehouseInStockSku("BM3-OTS-S55"), false);
+  assert.equal(isShopWarehouseInStockSku("85500-OTHER"), false);
 });
 
 test("warehouse inventory matching is normalized but remains exact", () => {
