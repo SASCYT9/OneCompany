@@ -804,6 +804,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [page, setPage] = useState(initialPage);
+  const paginationScrollTargetRef = useRef<number | null>(null);
   const [totalPages, setTotalPages] = useState(initialResponse?.meta?.totalPages || 1);
   const [totalItems, setTotalItems] = useState(initialResponse?.meta?.totalItems || 0);
   const [hasSearched, setHasSearched] = useState(true);
@@ -1890,6 +1891,17 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   useEffect(() => {
     syncUrlState(page, viewMode);
   }, [page, syncUrlState, viewMode]);
+
+  useEffect(() => {
+    const targetPage = paginationScrollTargetRef.current;
+    if (loading || targetPage === null) return;
+    paginationScrollTargetRef.current = null;
+    if (error || page !== targetPage) return;
+    document.getElementById("catalog-results")?.scrollIntoView({
+      block: "start",
+      behavior: shouldReduceMotion ? "instant" : "smooth",
+    });
+  }, [page, loading, error, shouldReduceMotion]);
 
   function handleSearch(e?: React.FormEvent) {
     e?.preventDefault();
@@ -3788,7 +3800,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
         <div
           id="catalog-results"
-          className="grid gap-3 sm:gap-4 lg:grid-cols-[292px_minmax(0,1fr)] xl:grid-cols-[308px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]"
+          className="grid scroll-mt-24 gap-3 sm:gap-4 lg:grid-cols-[292px_minmax(0,1fr)] xl:grid-cols-[308px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]"
         >
           <aside className="hidden lg:block">
             <div className="sticky top-24 h-[calc(100dvh-7rem)] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-[14px] border border-foreground/10 bg-card shadow-[0_16px_42px_rgba(0,0,0,0.075)] dark:bg-[#08090b] dark:shadow-[0_12px_30px_rgba(0,0,0,0.24)]">
@@ -4608,6 +4620,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         )
                           return;
                         event.preventDefault();
+                        paginationScrollTargetRef.current = page - 1;
                         void doSearch(page - 1);
                       }}
                       className="rounded-none border border-foreground/10 px-4 py-2 text-[10px] uppercase tracking-widest text-foreground/60 transition-colors hover:bg-foreground/5 aria-disabled:cursor-not-allowed aria-disabled:opacity-20 dark:text-foreground/40"
@@ -4636,6 +4649,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         )
                           return;
                         event.preventDefault();
+                        paginationScrollTargetRef.current = page + 1;
                         void doSearch(page + 1);
                       }}
                       className="rounded-none border border-foreground/10 px-4 py-2 text-[10px] uppercase tracking-widest text-foreground/60 transition-colors hover:bg-foreground/5 aria-disabled:cursor-not-allowed aria-disabled:opacity-20 dark:text-foreground/40"
