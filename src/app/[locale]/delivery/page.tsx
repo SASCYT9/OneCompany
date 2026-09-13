@@ -117,8 +117,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </h2>
             <p>
               {l === "ua"
-                ? "Якщо після прийняття відправлення Новою поштою товар пошкоджено або знищено на її складі, терміналі чи у відділенні безпосередньо внаслідок ракетної, дронової або іншої атаки, обстрілу чи пов’язаних із ними вибуху або пожежі, One Company звільняється від відповідальності лише за наявності передбачених законом підстав та в дозволених законом межах. Сам факт воєнного стану не є достатньою підставою для такого звільнення."
-                : "If, after Nova Poshta accepts a shipment, the goods are damaged or destroyed at its warehouse, terminal or branch directly as a result of a missile, drone or other attack, shelling, or a resulting explosion or fire, One Company is exempt from liability only where the legal requirements for exemption are met and to the extent permitted by applicable law. Martial law alone is not sufficient grounds for exemption."}
+                ? "One Company не несе відповідальності за пошкодження або знищення товару, прийнятого Новою поштою та розміщеного на її складах, терміналах чи у відділеннях, унаслідок ракетних, дронових або інших атак, обстрілів, а також спричинених ними вибухів чи пожеж."
+                : "One Company is not liable for damage to or destruction of goods accepted by Nova Poshta and held at its warehouses, terminals or branches as a result of missile, drone or other attacks, shelling, or resulting explosions or fires."}
             </p>
             <p className="mt-4">
               {l === "ua"

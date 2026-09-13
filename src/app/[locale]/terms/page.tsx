@@ -140,8 +140,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             </h2>
             <p>
               {l === "ua"
-                ? "Пошкодження або знищення товару, прийнятого Новою поштою та розміщеного на її складі, терміналі чи у відділенні, безпосередньо внаслідок ракетної, дронової або іншої атаки, обстрілу чи пов’язаних із ними вибуху або пожежі може бути підставою для звільнення One Company від відповідальності лише за умов та в межах, установлених застосовним законодавством. Для посилання на обставини непереборної сили необхідно підтвердити їхній вплив на виконання конкретного зобов’язання; самого факту воєнного стану недостатньо."
-                : "Damage to or destruction of goods accepted by Nova Poshta and held at its warehouse, terminal or branch directly as a result of a missile, drone or other attack, shelling, or a resulting explosion or fire may exempt One Company from liability only subject to the requirements and limits of applicable law. Reliance on force majeure requires evidence of its effect on the specific contractual obligation; martial law alone is insufficient."}
+                ? "One Company не несе відповідальності за пошкодження або знищення товару, прийнятого Новою поштою та розміщеного на її складах, терміналах чи у відділеннях, унаслідок ракетних, дронових або інших атак, обстрілів, а також спричинених ними вибухів чи пожеж."
+                : "One Company is not liable for damage to or destruction of goods accepted by Nova Poshta and held at its warehouses, terminals or branches as a result of missile, drone or other attacks, shelling, or resulting explosions or fires."}
             </p>
             <p className="mt-4">
               {l === "ua"
