@@ -21,7 +21,7 @@ import {
 } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
-import { shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
+import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
 import type { SupportedLocale } from "@/lib/seo";
 
 type Props = {
@@ -207,7 +207,7 @@ export function ShopProductVariantPurchaseSection({
   const compareAt = pricing.effectiveCompareAt
     ? computeCrossPrices(pricing.effectiveCompareAt, rates)
     : null;
-  const showEventuriAvailability = shouldShowEventuriStockBadge(product.brand, product.stock);
+  const showWarehouseAvailability = isShopWarehouseInStockProduct(product.sku, product.slug);
 
   return (
     <div className="space-y-5">
@@ -217,7 +217,7 @@ export function ShopProductVariantPurchaseSection({
             <div className="min-w-0">
               <ShopPrimaryPriceBox locale={locale} isUa={isUa} price={pricing.effectivePrice} />
             </div>
-            {showEventuriAvailability ? (
+            {showWarehouseAvailability ? (
               <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} />
             ) : null}
           </div>

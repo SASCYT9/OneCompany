@@ -60,7 +60,7 @@ import {
 } from "@/lib/shopAiProductKind";
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
-import { SHOW_STOCK_BADGE, shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
+import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
 import {
   resolveShopWarehouseHeroImage,
@@ -2974,10 +2974,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
-        const showEventuriAvailability = shouldShowEventuriStockBadge(
-          item.brand,
-          item.inStock ? "inStock" : "preOrder"
-        );
+        const showWarehouseAvailability = item.inStock;
         const vehicleLabel =
           [make, model, chassis].filter(Boolean).join(" ") ||
           (isUa
@@ -3085,7 +3082,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       {isUa ? "за одиницю" : "per unit"}
                     </div>
                   </div>
-                  {showEventuriAvailability ? (
+                  {showWarehouseAvailability ? (
                     <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
                   ) : null}
                 </div>
@@ -3102,7 +3099,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       {priceLabel}
                     </div>
                   </div>
-                  {showEventuriAvailability ? (
+                  {showWarehouseAvailability ? (
                     <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
                   ) : null}
                 </div>
@@ -4336,7 +4333,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
                               {/* Stock Status & Fitment */}
                               <div className="flex flex-col items-center justify-center gap-1.5">
-                                {SHOW_STOCK_BADGE ? (
+                                {item.inStock ? (
+                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                                ) : SHOW_STOCK_BADGE ? (
                                   <span className="text-center text-[9px] font-light uppercase tracking-widest text-foreground/45">
                                     {item.inStock
                                       ? isUa
