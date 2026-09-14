@@ -53,7 +53,9 @@ export async function GET(
     const translatedRecipient = recipient ? localizeProformaRecipient(recipient, locale) : null;
     const selectedSeller = {
       ...seller,
-      appAddress: localizeProformaCountry(seller?.appAddress, locale),
+      appAddress:
+        recipient?.id === "wise-eur" ? null : localizeProformaCountry(seller?.appAddress, locale),
+      appContactEmail: "info@onecompany.global",
       fopCompanyName: translatedRecipient?.legalName ?? null,
       fopIban: recipient?.iban ?? null,
       fopEdrpou: recipient?.code ?? null,
