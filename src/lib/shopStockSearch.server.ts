@@ -1,4 +1,10 @@
 import "server-only";
+import { getShopSearchFallbackQuery } from "./shopSearchRecovery";
+import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
+import {
+  computeRelevanceScoreWithReasons,
+  filterShopStockSearchCandidates,
+} from "./shopStockSearchMatching";
 
 import {
   resolveCanonicalVehicleProductIds,
@@ -33,10 +39,8 @@ import {
   compactShopCode,
   enrichVehicleSearchFromCatalog,
   expandVehicleAliases,
-  filterVehicleSearchResidualTokens,
-  isStructuredPartQuery,
+  getVehicleResidualSearchTokens,
   projectCatalogVehicleResolutionItems,
-  scoreVehicleSearchItem,
   shouldEnrichVehicleSearchFromCatalog,
   type ShopVehicleSearchExpansion,
 } from "@/lib/shopVehicleSearch";
@@ -55,13 +59,7 @@ import {
   resolveShopStockVehicleScope,
   type ShopStockVehicleScope,
 } from "@/lib/shopStockVehicleScope";
-import {
-  shopFitmentMatchesVehicleConstraints,
-  shopVehicleChassisMatches,
-  shopVehicleMakesMatch,
-  shopVehicleModelsMatch,
-  shopVehicleYearAllows,
-} from "@/lib/shopVehicleConstraints";
+import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
 import {
   classifyProductFitment,
   mergePersistedFitment,
@@ -95,7 +93,11 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
-import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
+import {
+  getShopConfirmedAvailability,
+  isShopInStockProduct,
+  shouldShowShopProductInCarousel,
+} from "@/lib/shopWarehouseInventory";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
@@ -150,6 +152,7 @@ let cachedProductsWithFitment: Array<{
   vehicleScope: ShopStockVehicleScope;
   searchText: string;
   titleText: string;
+  canonicalTitles?: string[];
   skuText: string;
   brandText: string;
   compactSkuText: string;
@@ -200,7 +203,10 @@ function indexProductWithFitment(
   const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
   const fitment = fitments[0];
   const displayBrand = getProductDisplayBrand(product.brand);
-  const titleText = buildShopSearchText([product.title?.en, product.title?.ua]);
+  const cardTitles = ["ua", "en"].map((locale) =>
+    getKwCardTitle({ brand: displayBrand, title: product.title?.[locale] ?? "", locale })
+  );
+  const titleText = buildShopSearchText([product.title?.en, product.title?.ua, ...cardTitles]);
   const brandText = buildShopSearchText([displayBrand, product.vendor]);
   const skuText = buildShopSearchText([
     product.sku,
@@ -235,6 +241,7 @@ function indexProductWithFitment(
     ]);
   const fitmentText = buildShopSearchText(fitments.map(buildFitmentText));
   const searchText = buildShopSearchText([
+    ...cardTitles,
     product.title?.en,
     product.title?.ua,
     product.sku,
@@ -284,6 +291,9 @@ function indexProductWithFitment(
     vehicleScope: resolveShopStockVehicleScope(product.scope, normalizedFitment.vehicleType),
     searchText,
     titleText,
+    canonicalTitles: [product.title?.ua, product.title?.en, ...cardTitles]
+      .filter(Boolean)
+      .map(canonicalizeShopSearchQuery),
     skuText,
     brandText,
     compactSkuText,
@@ -500,175 +510,6 @@ async function loadShopProductsWithFitments() {
   return cachedProductsWithFitment;
 }
 
-function computeRelevanceScoreWithReasons(
-  item: {
-    searchText: string;
-    titleText: string;
-    skuText: string;
-    compactSkuText: string;
-    fitmentText: string;
-    yearRanges?: Fitment["yearRanges"];
-    fitmentMake?: string | null;
-    fitmentItems?: Array<{
-      searchText: string;
-      titleText: string;
-      skuText: string;
-      compactSkuText: string;
-      fitmentText: string;
-      yearRanges?: Fitment["yearRanges"];
-      fitmentMake?: string | null;
-    }>;
-  },
-  queryTokens: string[],
-  rawQuery: string,
-  expandedQuery: ShopVehicleSearchExpansion,
-  brand?: string,
-  titleEn?: string,
-  titleUa?: string
-) {
-  const vehicleScore = (item.fitmentItems?.length ? item.fitmentItems : [item])
-    .map((fitmentItem) => scoreVehicleSearchItem(fitmentItem, expandedQuery))
-    .sort((left, right) => right.score - left.score)[0];
-  const compactQuery = compactShopCode(rawQuery);
-  if (isStructuredPartQuery(rawQuery) && item.compactSkuText.includes(compactQuery)) {
-    return { score: 1000, reasons: ["sku:exact"] };
-  }
-
-  let score = 0;
-  let matchedTokens = 0;
-  const normalizedBrand = normalizeShopSearchText(brand);
-  const normalizedTitleEn = normalizeShopSearchText(titleEn);
-  const normalizedTitleUa = normalizeShopSearchText(titleUa);
-
-  for (const token of queryTokens) {
-    if (!item.searchText.includes(token)) {
-      continue;
-    }
-
-    matchedTokens += 1;
-    score += 1.0;
-
-    if (item.fitmentText.includes(token)) {
-      score += 3.0;
-    }
-    if (
-      item.titleText.includes(token) ||
-      normalizedTitleEn.includes(token) ||
-      normalizedTitleUa.includes(token)
-    ) {
-      score += 1.5;
-    }
-    if (item.skuText.includes(token)) {
-      score += 2.0;
-    }
-    if (normalizedBrand.includes(token)) {
-      score += 1.0;
-    }
-  }
-
-  if (matchedTokens === 0) {
-    return vehicleScore.score > 0 ? vehicleScore : { score: 0, reasons: [] };
-  }
-
-  const coverage = matchedTokens / queryTokens.length;
-
-  // For multi-token vehicle/SKU searches, avoid ranking one-token coincidences
-  // above real fitment matches. The fallback path still broadens when strict
-  // filters produce no results.
-  if (queryTokens.length >= 2 && coverage < 0.5) {
-    return vehicleScore.score > 0 ? vehicleScore : { score: 0, reasons: [] };
-  }
-
-  const textScore = score * coverage;
-  if (vehicleScore.score > 0) {
-    return {
-      score: vehicleScore.score + textScore,
-      reasons: [...vehicleScore.reasons, `text:${textScore.toFixed(2)}`].slice(0, 8),
-    };
-  }
-  return { score: textScore, reasons: [`text:${textScore.toFixed(2)}`] };
-}
-
-function narrowVehicleSearchResults<
-  T extends { searchText: string; score: number; fitments?: Fitment[] },
->(items: T[], expandedQuery: ShopVehicleSearchExpansion) {
-  if (expandedQuery.intent !== "vehicle" && expandedQuery.intent !== "mixed") {
-    return items;
-  }
-
-  let narrowed = items;
-  const hasStructuredVehicleTarget =
-    expandedQuery.makes.length > 0 &&
-    (expandedQuery.models.length > 0 || expandedQuery.chassis.length > 0);
-  const structuredMatches = hasStructuredVehicleTarget
-    ? items.filter((item) =>
-        (item.fitments ?? []).some((fitment) => {
-          const makeMatches = expandedQuery.makes.some((make) =>
-            shopVehicleMakesMatch(fitment.make, make)
-          );
-          if (!makeMatches) return false;
-          const modelMatches =
-            expandedQuery.models.length === 0 ||
-            fitment.models.some((model) =>
-              expandedQuery.models.some((queryModel) =>
-                shopVehicleModelsMatch(model, queryModel, fitment.make)
-              )
-            );
-          if (!modelMatches) return false;
-          const chassisMatches =
-            expandedQuery.chassis.length === 0 ||
-            fitment.chassisCodes.some((chassis) =>
-              expandedQuery.chassis.some((queryChassis) =>
-                shopVehicleChassisMatches(chassis, queryChassis)
-              )
-            );
-          if (!chassisMatches) return false;
-          const engineMatches =
-            expandedQuery.engines.length === 0 ||
-            (fitment.engines ?? []).some((engine) =>
-              expandedQuery.engines.some(
-                (queryEngine) =>
-                  normalizeShopSearchText(engine) === normalizeShopSearchText(queryEngine)
-              )
-            );
-          if (!engineMatches) return false;
-          return (
-            expandedQuery.years.length === 0 ||
-            expandedQuery.years.some((year) => shopVehicleYearAllows(fitment, year))
-          );
-        })
-      )
-    : [];
-  const hasStructuredMatches = structuredMatches.length > 0;
-  if (hasStructuredVehicleTarget) {
-    // Once make + model/chassis were parsed, never relax back to token-only
-    // matching. An honest no-match is safer than a neighbouring vehicle.
-    // Any remaining words are product intent (`Eventuri`, `Burger Motorsports`,
-    // a SKU fragment, etc.) and must also match the candidate. This prevents a
-    // vehicle-only result set from pretending that a brand-specific query was
-    // understood when it was not.
-    return filterVehicleSearchResidualTokens(structuredMatches, expandedQuery);
-  }
-
-  if (!hasStructuredMatches && expandedQuery.requiredTokens.length > 0) {
-    const fullRequiredMatches = items.filter((item) =>
-      expandedQuery.requiredTokens.every((token) => item.searchText.includes(token))
-    );
-    const partialRequiredMatches = items.filter((item) =>
-      expandedQuery.requiredTokens.some((token) => item.searchText.includes(token))
-    );
-    if (fullRequiredMatches.length > 0) {
-      narrowed = fullRequiredMatches;
-    } else if (partialRequiredMatches.length > 0) {
-      narrowed = partialRequiredMatches;
-    }
-  }
-
-  const minimumScore = expandedQuery.requiredTokens.length > 0 ? 12 : 8;
-  const strongMatches = narrowed.filter((item) => item.score >= minimumScore);
-  return strongMatches.length > 0 ? strongMatches : narrowed;
-}
-
 function parseStockSearchSort(value: string | null): StockSearchSort {
   return value && STOCK_SEARCH_SORTS.has(value as StockSearchSort)
     ? (value as StockSearchSort)
@@ -728,7 +569,7 @@ function buildFilterStats(
     incrementCount(brands, getProductDisplayBrand(item.product.brand));
     incrementCount(categories, getShopStockCategoryLabelForProduct(item, locale));
 
-    if (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)) {
+    if (isShopInStockProduct(item.product.sku, item.product.slug, item.product.storefrontDisplay)) {
       inStock += 1;
     } else {
       preOrder += 1;
@@ -1042,15 +883,20 @@ export async function searchShopStock(request: { url: string }) {
   };
   try {
     const { searchParams } = new URL(request.url);
+    if ((searchParams.get("q")?.length ?? 0) > SHOP_SEARCH_QUERY_MAX_LENGTH)
+      return NextResponse.json({ error: "Search query is too long" }, { status: 400 });
     if (
       !isLocalStorefrontMode() &&
+      searchParams.get("carousel") !== "1" &&
       process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr" &&
       canUsePremiumCatalogProjection(new URL(request.url).searchParams)
     ) {
       return await queryPremiumCatalogProjection(searchParams);
     }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
-    const q = canonicalizeShopSearchQuery(searchParams.get("q")?.trim() || "");
+    // Keep the original code for exact SKU matching. Text/vehicle matching
+    // canonicalizes independently, so brand aliases cannot rewrite an SKU.
+    const q = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
     const rawProductType = searchParams.get("productType")?.trim() || "";
     const productType = rawProductType.length <= 120 ? rawProductType : "";
@@ -1303,10 +1149,16 @@ export async function searchShopStock(request: { url: string }) {
       filtered = filtered.filter(matchesProductKind);
     }
 
+    if (searchParams.get("carousel") === "1") {
+      filtered = filtered.filter(({ product }) =>
+        shouldShowShopProductInCarousel(product.sku, product.slug, product.storefrontDisplay)
+      );
+    }
+
     if (stock !== "all") {
       filtered = filtered.filter(
         (item) =>
-          (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+          (isShopInStockProduct(item.product.sku, item.product.slug, item.product.storefrontDisplay)
             ? "inStock"
             : "preOrder") === stock
       );
@@ -1358,8 +1210,7 @@ export async function searchShopStock(request: { url: string }) {
         }
       );
     }
-    const compactQuery = compactShopCode(q);
-    const structuredPartQuery = isStructuredPartQuery(q);
+    let correctedQuery: string | null = null;
     let scoredItems = filtered.map((item) => {
       let score = 1;
       let scoreReasons: string[] = [];
@@ -1446,7 +1297,11 @@ export async function searchShopStock(request: { url: string }) {
             normalizedTitle
           );
 
-        let catalogScore = isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
+        let catalogScore = isShopInStockProduct(
+          item.product.sku,
+          item.product.slug,
+          item.product.storefrontDisplay
+        )
           ? 120
           : 0;
         if (hasImage) catalogScore += 45;
@@ -1546,35 +1401,48 @@ export async function searchShopStock(request: { url: string }) {
 
     if (q && queryTokens.length > 0) {
       if (!strictCatalogEffective) {
-        if (structuredPartQuery) {
-          const lexicalMatches = scoredItems.filter((item) => item.score > 0);
-          const exactSkuMatches = lexicalMatches.filter((item) =>
-            item.compactSkuText.includes(compactQuery)
-          );
-          if (exactSkuMatches.length > 0) {
-            scoredItems = exactSkuMatches;
-          } else if (expandedQuery) {
-            scoredItems = narrowVehicleSearchResults(lexicalMatches, expandedQuery);
-          } else {
-            scoredItems = lexicalMatches;
+        scoredItems = filterShopStockSearchCandidates(scoredItems, expandedQuery!);
+        if (scoredItems.length === 0 && allowFallback) {
+          const recovery = getShopSearchFallbackQuery(q, await getShopProductsWithFitments());
+          if (recovery) {
+            let recoveredExpansion = expandVehicleAliases(recovery);
+            if (shouldEnrichVehicleSearchFromCatalog(recoveredExpansion))
+              recoveredExpansion = enrichVehicleSearchFromCatalog(
+                recoveredExpansion,
+                projectCatalogVehicleResolutionItems(productsWithFitments),
+                { isExpectedChassis: isExpectedChassisForMakeModel }
+              );
+            const recoveredTokens = tokenizeShopSearchQuery(recovery);
+            const recoveredItems = filtered.map((item) => {
+              const scored = computeRelevanceScoreWithReasons(
+                item,
+                recoveredTokens,
+                recovery,
+                recoveredExpansion,
+                getProductDisplayBrand(item.product.brand),
+                item.product.title?.en,
+                item.product.title?.ua
+              );
+              return { ...item, score: scored.score, scoreReasons: scored.reasons };
+            });
+            const recovered = filterShopStockSearchCandidates(recoveredItems, recoveredExpansion);
+            if (recovered.length) {
+              scoredItems = recovered;
+              correctedQuery = recovery;
+              expandedQuery = recoveredExpansion;
+            }
           }
-        } else if (
-          expandedQuery &&
-          (expandedQuery.intent === "vehicle" || expandedQuery.intent === "mixed")
-        ) {
-          // Vehicle identity is a constraint; product text is ranking-only.
-          // Correct parts must not disappear merely because the selected year
-          // or chassis is absent from their storefront title.
-          scoredItems = narrowVehicleSearchResults(scoredItems, expandedQuery);
-        } else {
-          scoredItems = scoredItems.filter((item) => item.score > 0);
         }
       }
       // Sort by relevance score descending
       scoredItems.sort((a, b) => b.score - a.score);
       if (sort !== "default") {
         sortByExplicitSort(scoredItems);
-      } else if (expandedQuery?.intent === "vehicle" || expandedQuery?.intent === "mixed") {
+      } else if (
+        expandedQuery &&
+        getVehicleResidualSearchTokens(expandedQuery).length === 0 &&
+        (expandedQuery.intent === "vehicle" || expandedQuery.intent === "mixed")
+      ) {
         diversifyStrongVehicleResults(scoredItems);
       }
     } else if (sort !== "default") {
@@ -1593,139 +1461,11 @@ export async function searchShopStock(request: { url: string }) {
       );
     }
 
-    let totalItems = scoredItems.length;
-    let totalPages = Math.ceil(totalItems / limit);
-    let paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
-    let fallbackApplied: "fitment" | "all" | null = null;
-    let statsItems = scoredItems;
-
-    if (
-      allowFallback &&
-      !strictMatch &&
-      !hasVehicleConstraints &&
-      totalItems === 0 &&
-      q &&
-      (make || model || chassis || hasBrandFilter)
-    ) {
-      // Fallback 1: Ignore vehicle fitment filters
-      let fallbackFiltered = productsWithFitments;
-      if (hasBrandFilter) {
-        fallbackFiltered = fallbackFiltered.filter((item) =>
-          brandNames.includes(normalizeShopSearchText(getProductDisplayBrand(item.product.brand)))
-        );
-      }
-      if (stock !== "all") {
-        fallbackFiltered = fallbackFiltered.filter(
-          (item) =>
-            (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
-              ? "inStock"
-              : "preOrder") === stock
-        );
-      }
-      if (hasPriceFilter) {
-        fallbackFiltered = fallbackFiltered.filter(matchesPriceRange);
-      }
-      if (category) {
-        fallbackFiltered = fallbackFiltered.filter((item) =>
-          matchesShopStockCategory(item, category, locale)
-        );
-      }
-      if (productKind && productKind !== "any") {
-        fallbackFiltered = fallbackFiltered.filter(matchesProductKind);
-      }
-
-      const fallbackScored = fallbackFiltered
-        .map((item) => {
-          const displayBrand = getProductDisplayBrand(item.product.brand);
-          const scored = computeRelevanceScoreWithReasons(
-            item,
-            queryTokens,
-            q,
-            expandedQuery!,
-            displayBrand,
-            item.product.title?.en,
-            item.product.title?.ua
-          );
-          return { ...item, score: scored.score, scoreReasons: scored.reasons };
-        })
-        .filter((item) => item.score > 0);
-      if (expandedQuery) {
-        fallbackScored.splice(
-          0,
-          fallbackScored.length,
-          ...narrowVehicleSearchResults(fallbackScored, expandedQuery)
-        );
-      }
-
-      fallbackScored.sort((a, b) => b.score - a.score);
-      if (sort !== "default") {
-        sortByExplicitSort(fallbackScored);
-      }
-
-      if (fallbackScored.length > 0) {
-        fallbackApplied = "fitment";
-        totalItems = fallbackScored.length;
-        totalPages = Math.ceil(totalItems / limit);
-        statsItems = fallbackScored;
-        paginatedItems = all
-          ? fallbackScored
-          : fallbackScored.slice((page - 1) * limit, page * limit);
-      } else if (hasBrandFilter) {
-        // Fallback 2: Ignore brand/category as well (global query match)
-        let globalSource = productsWithFitments;
-        if (stock !== "all") {
-          globalSource = globalSource.filter(
-            (item) =>
-              (isShopWarehouseInStockProduct(item.product.sku, item.product.slug)
-                ? "inStock"
-                : "preOrder") === stock
-          );
-        }
-        if (hasPriceFilter) {
-          globalSource = globalSource.filter(matchesPriceRange);
-        }
-        if (productKind && productKind !== "any") {
-          globalSource = globalSource.filter(matchesProductKind);
-        }
-        const globalScored = globalSource
-          .map((item) => {
-            const displayBrand = getProductDisplayBrand(item.product.brand);
-            const scored = computeRelevanceScoreWithReasons(
-              item,
-              queryTokens,
-              q,
-              expandedQuery!,
-              displayBrand,
-              item.product.title?.en,
-              item.product.title?.ua
-            );
-            return { ...item, score: scored.score, scoreReasons: scored.reasons };
-          })
-          .filter((item) => item.score > 0);
-        if (expandedQuery) {
-          globalScored.splice(
-            0,
-            globalScored.length,
-            ...narrowVehicleSearchResults(globalScored, expandedQuery)
-          );
-        }
-
-        globalScored.sort((a, b) => b.score - a.score);
-        if (sort !== "default") {
-          sortByExplicitSort(globalScored);
-        }
-
-        if (globalScored.length > 0) {
-          fallbackApplied = "all";
-          totalItems = globalScored.length;
-          totalPages = Math.ceil(totalItems / limit);
-          statsItems = globalScored;
-          paginatedItems = all
-            ? globalScored
-            : globalScored.slice((page - 1) * limit, page * limit);
-        }
-      }
-    }
+    const totalItems = scoredItems.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
+    const fallbackApplied: "fitment" | "all" | null = null;
+    const statsItems = scoredItems;
 
     // 3. Serialize output for frontend
     // The compact fitment projection intentionally omits galleries. Fetch
@@ -1845,7 +1585,17 @@ export async function searchShopStock(request: { url: string }) {
             )
           ),
           thumbnail: product.image || product.gallery?.[0] || null,
-          inStock: isShopWarehouseInStockProduct(product.sku, product.slug),
+          inStock: isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay),
+          availability: getShopConfirmedAvailability(
+            product.sku,
+            product.slug,
+            product.storefrontDisplay
+          ),
+          showInCarousel: shouldShowShopProductInCarousel(
+            product.sku,
+            product.slug,
+            product.storefrontDisplay
+          ),
           price: dealerPrice,
           priceUsd: effectivePriceSet.usd,
           priceEur: effectivePriceSet.eur,
@@ -2009,6 +1759,7 @@ export async function searchShopStock(request: { url: string }) {
         totalItems,
         source: "local",
         fallbackApplied,
+        correctedQuery,
         ...(debug && q
           ? {
               debug: {

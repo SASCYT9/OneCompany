@@ -94,7 +94,7 @@ test("storefront query maps bounded progressive filters and a complete keyset cu
 test("storefront query ignores malformed optional filters instead of broadening compatibility", async () => {
   const { parseShopCatalogStorefrontQuery } = await queryModule;
   const parsed = parseShopCatalogStorefrontQuery("en", {
-    q: "x".repeat(257),
+    q: "x".repeat(1025),
     year: "twenty",
     afterRank: "not-a-rank",
     afterProduct: "product-42",

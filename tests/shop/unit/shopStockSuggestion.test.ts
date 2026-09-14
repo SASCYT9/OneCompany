@@ -41,3 +41,28 @@ test("text suggestions continue to accept complete token matches", () => {
     true
   );
 });
+
+test("vehicle names cannot bypass missing query words through an SKU substring", () => {
+  assert.equal(
+    shouldIncludeStockSuggestionMatch({
+      strictSkuQuery: false,
+      tokenCount: 3,
+      tokenMatches: 2,
+      compactQuery: "rsq8",
+      compactSku: "rcgts5audirsq840tfsi",
+      allowCompactSkuMatch: false,
+    }),
+    false
+  );
+  assert.equal(
+    shouldIncludeStockSuggestionMatch({
+      strictSkuQuery: false,
+      tokenCount: 1,
+      tokenMatches: 0,
+      compactQuery: "sq8",
+      compactSku: "rcgts5audirsq840tfsi",
+      allowCompactSkuMatch: false,
+    }),
+    false
+  );
+});

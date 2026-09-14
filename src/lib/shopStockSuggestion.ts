@@ -4,6 +4,7 @@ type StockSuggestionMatchInput = {
   tokenMatches: number;
   compactQuery: string;
   compactSku: string;
+  allowCompactSkuMatch?: boolean;
 };
 
 export function shouldIncludeStockSuggestionMatch({
@@ -12,8 +13,10 @@ export function shouldIncludeStockSuggestionMatch({
   tokenMatches,
   compactQuery,
   compactSku,
+  allowCompactSkuMatch = true,
 }: StockSuggestionMatchInput) {
   const matchesAllTokens = tokenCount > 0 && tokenMatches === tokenCount;
-  const matchesCompactSku = Boolean(compactQuery) && compactSku.includes(compactQuery);
+  const matchesCompactSku =
+    allowCompactSkuMatch && Boolean(compactQuery) && compactSku.includes(compactQuery);
   return strictSkuQuery ? matchesCompactSku : matchesAllTokens || matchesCompactSku;
 }

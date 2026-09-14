@@ -7,7 +7,6 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
-import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import type {
@@ -21,7 +20,8 @@ import {
 } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
-import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
+import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
+import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
 import type { SupportedLocale } from "@/lib/seo";
 
 type Props = {
@@ -207,7 +207,11 @@ export function ShopProductVariantPurchaseSection({
   const compareAt = pricing.effectiveCompareAt
     ? computeCrossPrices(pricing.effectiveCompareAt, rates)
     : null;
-  const showWarehouseAvailability = isShopWarehouseInStockProduct(product.sku, product.slug);
+  const availability = getShopConfirmedAvailability(
+    product.sku,
+    product.slug,
+    product.storefrontDisplay
+  );
 
   return (
     <div className="space-y-5">
@@ -217,9 +221,7 @@ export function ShopProductVariantPurchaseSection({
             <div className="min-w-0">
               <ShopPrimaryPriceBox locale={locale} isUa={isUa} price={pricing.effectivePrice} />
             </div>
-            {showWarehouseAvailability ? (
-              <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} />
-            ) : null}
+            <ShopAvailabilityBadge availability={availability} locale={isUa ? "ua" : "en"} />
           </div>
           {compareAt ? (
             <div className="mt-1 flex items-center gap-2">

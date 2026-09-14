@@ -2,6 +2,12 @@ import type { ShopMoneySet } from "@/lib/shopCatalog";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
+import {
+  parseShopStorefrontDisplay,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+  SHOP_STOREFRONT_DISPLAY_KEY,
+} from "@/lib/shopStorefrontDisplay";
+import type { ShopStorefrontDisplay } from "@/lib/shopWarehouseInventory";
 
 export type ShopCatalogCardPricing = Readonly<{
   productId: string;
@@ -15,6 +21,7 @@ export type ShopCatalogCardPricing = Readonly<{
   primaryMediaUrl: string | null;
   imageSources: string[];
   defaultVariantId: string | null;
+  storefrontDisplay?: ShopStorefrontDisplay;
 }>;
 
 const money = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
@@ -32,6 +39,7 @@ const present = (value: ShopMoneySet) =>
 const cardPricingFlights = new Map<string, Promise<ShopCatalogCardPricing[]>>();
 
 type ShopCatalogCardPricingRow = {
+  storefrontDisplayValue: string | null;
   id: string;
   brand: string | null;
   vendor: string | null;
@@ -81,6 +89,11 @@ async function readShopCatalogCardPricingRows(
   return prisma.$queryRaw<ShopCatalogCardPricingRow[]>(Prisma.sql`
     SELECT
       product."id",
+      (SELECT field."value" FROM "ShopProductMetafield" field
+       WHERE field."productId" = product."id"
+         AND field."namespace" = ${SHOP_STOREFRONT_DISPLAY_NAMESPACE}
+         AND field."key" = ${SHOP_STOREFRONT_DISPLAY_KEY}
+       LIMIT 1) AS "storefrontDisplayValue",
       product."brand",
       product."vendor",
       product."image",
@@ -191,6 +204,14 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
       };
       return {
         productId: row.id,
+        storefrontDisplay:
+          row.storefrontDisplayValue == null
+            ? undefined
+            : (parseShopStorefrontDisplay(row.storefrontDisplayValue) ?? {
+                availability: "preOrder",
+                showInStock: false,
+                showInCarousel: false,
+              }),
         price: money(
           row.priceEur ?? variant.priceEur,
           row.priceUsd ?? variant.priceUsd,

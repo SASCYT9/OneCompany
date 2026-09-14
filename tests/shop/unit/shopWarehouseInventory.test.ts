@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 
 import {
   getShopWarehouseStockStatus,
+  getShopConfirmedAvailability,
+  isShopInStockProduct,
+  isShopWarehouseHeroProduct,
+  resolveShopConfirmedStock,
+  SHOP_DIGITAL_IN_STOCK_SKUS,
   isShopWarehouseInStockProduct,
   isShopWarehouseInStockSku,
   resolveShopWarehouseHeroImage,
@@ -26,8 +31,8 @@ test("warehouse inventory contains the owner-confirmed physical products", () =>
   assert.deepEqual(SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS, [
     "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2",
   ]);
-  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 23);
-  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 23);
+  assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.length, 22);
+  assert.equal(new Set(SHOP_WAREHOUSE_IN_STOCK_SKUS).size, 22);
   assert.equal(SHOP_WAREHOUSE_IN_STOCK_SKUS.every(isShopWarehouseInStockSku), true);
 });
 
@@ -69,7 +74,7 @@ test("legacy warehouse products retain their curated bilingual copy", () => {
 });
 
 test("new physical products use catalog copy while licenses do not get warehouse badges", () => {
-  for (const sku of ["BM3-WIFI-ADAPTER", "85230", "85500", "85600"]) {
+  for (const sku of ["85230", "85500", "85600"]) {
     assert.equal(isShopWarehouseInStockProduct(sku, null), true);
     for (const locale of ["ua", "en"] as const) {
       const catalogCopy = { title: `${sku} ${locale}`, description: "Current admin catalog copy" };
@@ -79,6 +84,45 @@ test("new physical products use catalog copy while licenses do not get warehouse
   assert.equal(isShopWarehouseInStockSku("BM3-LIC-S55"), false);
   assert.equal(isShopWarehouseInStockSku("BM3-OTS-S55"), false);
   assert.equal(isShopWarehouseInStockSku("85500-OTHER"), false);
+});
+
+test("bootmod3 adapter is in transit while digital products are available outside the carousel", () => {
+  assert.equal(getShopConfirmedAvailability(" bm3-wifi-adapter "), "inTransit");
+  assert.equal(isShopInStockProduct("BM3-WIFI-ADAPTER"), false);
+  assert.equal(resolveShopConfirmedStock("BM3-WIFI-ADAPTER", null, "inStock"), "preOrder");
+  for (const sku of SHOP_DIGITAL_IN_STOCK_SKUS) {
+    assert.equal(getShopConfirmedAvailability(sku), "inStock", sku);
+    assert.equal(isShopWarehouseInStockSku(sku), false, sku);
+    assert.equal(
+      isShopWarehouseHeroProduct({
+        partNumber: sku,
+        slug: "",
+        inStock: true,
+        thumbnail: "/photo.jpg",
+      }),
+      false,
+      sku
+    );
+  }
+  assert.equal(
+    isShopWarehouseHeroProduct({
+      partNumber: "BM3-WIFI-ADAPTER",
+      slug: "",
+      inStock: true,
+      thumbnail: "/photo.jpg",
+    }),
+    false
+  );
+  assert.equal(
+    isShopWarehouseHeroProduct({
+      partNumber: "85230",
+      slug: "",
+      inStock: true,
+      thumbnail: "/photo.jpg",
+    }),
+    true
+  );
+  assert.equal(getShopConfirmedAvailability("BM3-LIC-UNKNOWN"), null);
 });
 
 test("warehouse inventory matching is normalized but remains exact", () => {

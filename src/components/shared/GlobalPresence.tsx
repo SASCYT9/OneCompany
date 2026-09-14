@@ -9,7 +9,6 @@ const countries = [
   { code: "UA", ua: "Україна", en: "Ukraine", x: 551, y: 112 },
   { code: "PL", ua: "Польща", en: "Poland", x: 518, y: 99 },
   { code: "ES", ua: "Іспанія", en: "Spain", x: 461, y: 141 },
-  { code: "SI", ua: "Словенія", en: "Slovenia", x: 503, y: 121 },
   { code: "US", ua: "США", en: "USA", x: 204, y: 149 },
 ] as const;
 

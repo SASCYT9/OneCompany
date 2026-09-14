@@ -1,6 +1,6 @@
 /** Keep vehicle and powertrain/emissions constraints in one canonical clause. */
 import { canonicalizeShopSearchQuery, isShopVehicleSearchToken } from "@/lib/shopSearch";
-import { expandVehicleAliases } from "@/lib/shopVehicleSearch";
+import { expandVehicleAliases, getVehicleResidualSearchTokens } from "@/lib/shopVehicleSearch";
 import { vehicleMakesMentionedInQuery } from "@/lib/shopVehicleTaxonomy";
 
 export function buildShopCatalogVehicleSearchPlan(
@@ -40,6 +40,10 @@ export function buildShopCatalogVehicleSearchPlan(
   // one model or chassis; broad families such as `G8X` must stay lexical.
   const hasSpecificQueryIdentity = Boolean(
     queryExpansion &&
+    getVehicleResidualSearchTokens(queryExpansion).filter(
+      (token) =>
+        !queryMakes.some((make) => canonicalizeShopSearchQuery(make).split(" ").includes(token))
+    ).length === 0 &&
     queryMakes.length === 1 &&
     (queryExpansion.models.length === 1 || queryChassis.length === 1)
   );

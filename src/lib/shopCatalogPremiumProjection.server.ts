@@ -1,3 +1,4 @@
+import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
 import "server-only";
 
 import { NextResponse } from "next/server";
@@ -19,8 +20,12 @@ import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
-import { isShopWarehouseInStockProduct } from "@/lib/shopWarehouseInventory";
-import { getShopWarehouseProducts } from "@/lib/shopWarehouseInventory.server";
+import {
+  getShopConfirmedAvailability,
+  isShopInStockProduct,
+  shouldShowShopProductInCarousel,
+} from "@/lib/shopWarehouseInventory";
+import { getShopInStockProducts } from "@/lib/shopWarehouseInventory.server";
 import {
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   EVENTURI_SHARED_V8_INTAKE_SLUGS,
@@ -101,7 +106,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       : resolveLegacyVehicleProductIds(vehiclePlan.constraints)
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
-  const warehouseProductsPromise = measure("warehouse", getShopWarehouseProducts());
+  const warehouseProductsPromise = measure("warehouse", getShopInStockProducts());
   const [settings, warehouseProducts, session, vehicleProductIds] = await Promise.all([
     // Catalog reads only need public pricing/settings data. The tagged cache
     // avoids a settings row query on every anonymous search while admin
@@ -130,7 +135,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     // Keep the premium projection aligned with the legacy search route: common
     // Cyrillic make names ("бмв", "мерседес", etc.) are canonicalized before
     // the indexed text query is built.
-    text: clean(canonicalizeShopSearchQuery(params.get("q") ?? ""), 256),
+    text: clean(canonicalizeShopSearchQuery(params.get("q") ?? ""), SHOP_SEARCH_QUERY_MAX_LENGTH),
     // The established UI uses `auto` as its default tab, while many canonical
     // automotive products intentionally have no explicit scope key. Vehicle
     // constraints already keep auto searches precise. Moto is an actual
@@ -264,7 +269,21 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       category: item.categoryLabel ?? "",
       imageSources,
       thumbnail: primaryImage,
-      inStock: isShopWarehouseInStockProduct(cardPrice?.sku ?? item.normalizedSku, item.slug),
+      inStock: isShopInStockProduct(
+        cardPrice?.sku ?? item.normalizedSku,
+        item.slug,
+        cardPrice?.storefrontDisplay
+      ),
+      availability: getShopConfirmedAvailability(
+        cardPrice?.sku ?? item.normalizedSku,
+        item.slug,
+        cardPrice?.storefrontDisplay
+      ),
+      showInCarousel: shouldShowShopProductInCarousel(
+        cardPrice?.sku ?? item.normalizedSku,
+        item.slug,
+        cardPrice?.storefrontDisplay
+      ),
       price: displayPrice,
       priceUsd: priceSet.usd,
       priceEur: priceSet.eur,

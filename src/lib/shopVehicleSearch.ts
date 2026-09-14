@@ -1,4 +1,6 @@
 import {
+  canonicalizeShopSearchQuery,
+  matchesShopSearchQuery,
   isShopSearchCodeToken,
   isShopVehicleSearchToken,
   normalizeShopSearchText,
@@ -138,6 +140,13 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     chassis: ["4M", "F1"],
     engines: ["EA825"],
     canonicalModels: ["RS Q8"],
+  },
+  {
+    id: "audi-sq8",
+    aliases: ["sq8", "s q8", "s-q8"],
+    makes: ["Audi"],
+    models: ["SQ8"],
+    chassis: ["4M", "F1"],
   },
   {
     id: "audi-rs6-rs7-c8",
@@ -296,10 +305,19 @@ export function isStructuredPartQuery(value: string) {
   return compact.length >= 4 && /[a-z]/i.test(compact) && /\d/.test(compact);
 }
 
+/** Digits and hyphens in a product name do not turn the entire name into an SKU. */
+export function isShopSkuSearchQuery(value: string) {
+  if (!isStructuredPartQuery(value)) return false;
+  const chunks = value.trim().split(/\s+/);
+  return (
+    chunks.length === 1 || chunks.every((chunk) => /\d/.test(chunk) || /^[+*/-]+$/.test(chunk))
+  );
+}
+
 function normalizedIncludesPhrase(normalizedHaystack: string, phrase: string) {
   const normalizedNeedle = normalizeShopSearchText(phrase);
   if (!normalizedNeedle) return false;
-  return normalizedHaystack === normalizedNeedle || normalizedHaystack.includes(normalizedNeedle);
+  return ` ${normalizedHaystack} `.includes(` ${normalizedNeedle} `);
 }
 
 function selectMentionedValues(
@@ -337,10 +355,6 @@ function hasVehicleSignal(expansion: Omit<ShopVehicleSearchExpansion, "intent">)
 }
 
 export function parseVehicleSearchQuery(query: string): ShopVehicleSearchIntent {
-  if (isStructuredPartQuery(query) && /[-/]/.test(query)) {
-    return "sku";
-  }
-
   const expansion = expandVehicleAliases(query);
   if (expansion.intent === "sku") {
     return "sku";
@@ -355,7 +369,7 @@ export function parseVehicleSearchQuery(query: string): ShopVehicleSearchIntent 
 }
 
 export function expandVehicleAliases(query: string): ShopVehicleSearchExpansion {
-  const normalized = normalizeShopSearchText(query);
+  const normalized = canonicalizeShopSearchQuery(query);
   const compact = compactShopCode(query);
   const tokens = normalized
     .split(" ")
@@ -364,6 +378,10 @@ export function expandVehicleAliases(query: string): ShopVehicleSearchExpansion 
   let matchedGroups = VEHICLE_ALIAS_GROUPS.filter((group) =>
     group.aliases.some((alias) => normalizedIncludesPhrase(normalized, alias))
   );
+  // Turbo/GTS describe cars from many makes. They alone do not identify a 911.
+  if (!/(^| )(?:porsche|911|991|992|carrera|gt3|gt4)( |$)/.test(normalized)) {
+    matchedGroups = matchedGroups.filter((group) => group.id !== "porsche-911");
+  }
   const hasSpecificBmwMPlatform = matchedGroups.some(
     (group) => group.id === "bmw-g8x" || group.id === "bmw-f8x"
   );
@@ -410,7 +428,7 @@ export function expandVehicleAliases(query: string): ShopVehicleSearchExpansion 
   };
 
   const intent: ShopVehicleSearchIntent =
-    isStructuredPartQuery(query) && /[-/]/.test(query)
+    !hasVehicleSignal(base) && isShopSkuSearchQuery(query)
       ? "sku"
       : hasVehicleSignal(base)
         ? isStructuredPartQuery(query)
@@ -442,7 +460,9 @@ export function getVehicleResidualSearchTokens(
   >
 ) {
   const vehicleTerms = [
-    ...expandedQuery.requiredTokens,
+    // A letter/number token can identify a brand or product version (do88, V2).
+    // Only actual vehicle codes may be consumed by compatibility matching.
+    ...expandedQuery.requiredTokens.filter(isShopVehicleSearchToken),
     ...expandedQuery.makes,
     ...expandedQuery.models,
     ...expandedQuery.chassis,
@@ -468,7 +488,7 @@ export function filterVehicleSearchResidualTokens<
     // on their own.
     const productText =
       [item.titleText, item.skuText, item.brandText].filter(Boolean).join(" ") || item.searchText;
-    return residualTokens.every((token) => productText.includes(normalizeShopSearchText(token)));
+    return matchesShopSearchQuery(productText, residualTokens.join(" "));
   });
 }
 
@@ -689,7 +709,9 @@ export function enrichVehicleSearchFromCatalog<T extends CatalogVehicleResolutio
     isExpectedChassis?: (make: string, model: string, chassis: string) => boolean;
   }
 ) {
-  const compactQuery = compactShopCode(expandedQuery.raw);
+  // Resolve vehicles from canonical words: BM3 means bootmod3, not BMW M3.
+  // Original spelling is retained separately for exact part-number lookup.
+  const compactQuery = compactShopCode(expandedQuery.normalized);
   const makeCounts = new Map<string, number>();
   for (const item of items) {
     const make = item.fitment.make?.trim();

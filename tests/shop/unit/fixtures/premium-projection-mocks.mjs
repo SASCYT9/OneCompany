@@ -60,7 +60,13 @@ export function isEuropePricingCountry() {
 }
 export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [];
 export const SHOP_WAREHOUSE_IN_STOCK_SLUGS = [];
-export function isShopWarehouseInStockProduct() {
+export function isShopInStockProduct() {
+  return true;
+}
+export function getShopConfirmedAvailability() {
+  return "inStock";
+}
+export function shouldShowShopProductInCarousel() {
   return true;
 }
 export const EVENTURI_SHARED_V8_INTAKE_SLUG = "eventuri-shared";
@@ -120,6 +126,6 @@ export async function queryShopCatalogProjectionStockSummary(query) {
   return state.stockSummary;
 }
 
-export async function getShopWarehouseProducts() {
+export async function getShopInStockProducts() {
   return prisma.shopProduct.findMany();
 }

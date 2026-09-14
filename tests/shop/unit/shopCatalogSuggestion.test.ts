@@ -37,8 +37,8 @@ test("suggestion input is bounded, normalizes search text, and compacts SKU", as
   assert.equal(normalized.normalizedSku, "evt123a");
   assert.equal(normalized.scope, "auto");
   assert.throws(
-    () => normalizeShopCatalogSuggestionInput({ locale: "ua", query: "x".repeat(65) }),
-    /query exceeds 64/
+    () => normalizeShopCatalogSuggestionInput({ locale: "ua", query: "x".repeat(1025) }),
+    /query exceeds 1024/
   );
 });
 
@@ -47,7 +47,31 @@ test("suggestion input canonicalizes Cyrillic vehicle make aliases", async () =>
   const normalized = normalizeShopCatalogSuggestionInput({ locale: "ua", query: " бмв G20 " });
   assert.equal(normalized.query, "бмв G20");
   assert.equal(normalized.normalizedQuery, "bmw g20");
-  assert.equal(normalized.normalizedSku, "bmwg20");
+  assert.equal(normalized.normalizedSku, "g20");
+});
+
+test("brand aliases normalize text without rewriting primary or variant SKU codes", async () => {
+  const { normalizeShopCatalogSuggestionInput } = await suggestionModule;
+  for (const [query, sku] of [
+    ["BMS 6W00", "bms6w00"],
+    ["BM3-LIC-S55", "bm3lics55"],
+  ]) {
+    assert.equal(normalizeShopCatalogSuggestionInput({ locale: "ua", query }).normalizedSku, sku);
+  }
+});
+
+test("projection suggestions canonicalize brand and model spelling combinations", async () => {
+  const { normalizeShopCatalogSuggestionInput } = await suggestionModule;
+  for (const query of ["FiExhaust RS Q8", "Fi-Exhaust RS-Q8", "Fi Exhaust RSQ 8"]) {
+    assert.equal(
+      normalizeShopCatalogSuggestionInput({ locale: "ua", query }).normalizedQuery,
+      "fi exhaust rsq8"
+    );
+  }
+  assert.equal(
+    normalizeShopCatalogSuggestionInput({ locale: "en", query: "Fi S Q8" }).normalizedQuery,
+    "fi sq8"
+  );
 });
 
 test("vehicle suggestions never cross-pair makes and models from different clauses", async () => {

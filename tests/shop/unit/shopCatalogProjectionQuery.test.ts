@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "./testHooks.mjs";
 import path from "node:path";
 import test from "node:test";
+import { shopSearchTokenPattern } from "../../../src/lib/shopSearch";
 import { pathToFileURL } from "node:url";
 import productionModels from "./production-vehicle-models.fixture.json";
 import { canonicalizeVehicleModels, vehicleModelKey } from "../../../src/lib/shopVehicleTaxonomy";
@@ -199,9 +200,9 @@ test("projection text search accepts reordered vehicle tokens and exact variant 
     engine: "S68",
   });
   assert.ok(query);
-  assert.equal(query.values.includes("%g90%"), true);
+  assert.equal(query.values.includes(shopSearchTokenPattern("g90")), true);
   assert.equal(query.values.includes("%bmw%"), true);
-  assert.equal(query.values.includes("%m5%"), true);
+  assert.equal(query.values.includes(shopSearchTokenPattern("m5")), true);
   assert.equal(query.values.includes("%s68%"), true);
   assert.match(query.sql, /ShopCatalogProjectionSku/);
   assert.doesNotMatch(query.sql, /%G90 BMW M5 S68%/);
@@ -223,12 +224,32 @@ test("default text search uses the SQL path so variant SKUs remain searchable", 
   });
   assert.ok(query);
   assert.match(query.sql, /ShopCatalogProjectionSku/);
-  assert.equal(query.values.includes("%burger%"), true);
+  assert.equal(query.values.includes(shopSearchTokenPattern("burger")), true);
   assert.equal(query.values.includes("%bm5%"), true);
   assert.equal(
     buildShopCatalogProjectionVehicleQuerySql({ locale: "en", text: "burger-bm5-g90" }),
     null
   );
+});
+
+test("projection aliases match existing rows and reject Fibre and the wrong Q model", async () => {
+  const { buildShopCatalogProjectionOrderedQuerySql } = await queryModule;
+  for (const query of ["fi rsq8", "FiExhaust RS Q8", "RS-Q8 Fi-Exhaust"]) {
+    const sql = buildShopCatalogProjectionOrderedQuerySql({ locale: "en", text: query });
+    assert.ok(sql);
+    for (const token of ["fi", "rsq8"]) {
+      const pattern = shopSearchTokenPattern(token);
+      assert.ok(sql.values.includes(pattern), query);
+      const matches: RegExp = new RegExp(pattern, "i");
+      assert.ok(matches.test("fi exhaust audi rs q8"), `${query}: old spaced projection`);
+      assert.ok(matches.test("fiexhaust audi rsq8"), `${query}: compact projection`);
+      assert.equal(
+        matches.test(token === "fi" ? "carbon fibre diffuser fitment" : "audi sq8 q8"),
+        false
+      );
+    }
+    assert.match(sql.sql, /~\*/);
+  }
 });
 
 test("vehicle SQL path stays disabled when no compatibility filter is selected", async () => {
@@ -298,7 +319,7 @@ test("progressive facet SQL is bounded, single-round-trip, and clause-correlated
   );
   assert.equal(query.values.includes("intake"), false);
   assert.equal(
-    query.values.some((value) => value === "%intake%"),
+    query.values.some((value) => value === shopSearchTokenPattern("intake")),
     true
   );
   assert.equal(query.values.includes("Eventuri"), true);

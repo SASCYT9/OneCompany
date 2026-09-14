@@ -1,4 +1,5 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   localizeShopProductTitle,
   localizeShopDescription,
@@ -350,7 +351,12 @@ export function ShopProductStructuredData({
       return {
         price,
         priceCurrency: c,
-        availability: product.stock,
+        availability: resolveShopConfirmedStock(
+          product.sku,
+          product.slug,
+          product.stock,
+          product.storefrontDisplay
+        ),
         ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
       };
     })

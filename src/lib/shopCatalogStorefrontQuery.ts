@@ -1,3 +1,4 @@
+import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
 import type { ShopCatalogProjectionQueryInput } from "./shopCatalogProjectionQuery.server";
 
 /**
@@ -168,7 +169,7 @@ export function parseShopCatalogStorefrontQuery(
     limit,
     offset,
     after,
-    text: bounded(params, "q", 256),
+    text: bounded(params, "q", SHOP_SEARCH_QUERY_MAX_LENGTH),
     scope,
     brand: brands[0] ?? null,
     brands,

@@ -1,4 +1,5 @@
 import type { ShopPriceSet } from "@/lib/shopMoneyFormat";
+import type { ShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 
 export type StockItem = {
   id: string;
@@ -9,6 +10,8 @@ export type StockItem = {
   thumbnail: string | null;
   imageSources?: string[];
   inStock: boolean;
+  availability?: ShopConfirmedAvailability | null;
+  showInCarousel?: boolean;
   price: number | null;
   priceUsd?: number;
   priceEur?: number;
@@ -91,6 +94,7 @@ export type StockSearchResponse = {
     totalPages?: number;
     totalItems?: number;
     fallbackApplied?: "fitment" | "all" | null;
+    correctedQuery?: string | null;
   };
   filters?: {
     brands?: string[];

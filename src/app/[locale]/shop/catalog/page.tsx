@@ -26,7 +26,7 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdmin
 import { prisma } from "@/lib/prisma";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
-import { getShopWarehouseProducts } from "@/lib/shopWarehouseInventory.server";
+import { getShopInStockProducts } from "@/lib/shopWarehouseInventory.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
@@ -150,7 +150,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     > =
       query.stock === "all"
         ? Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>)
-        : getShopWarehouseProducts();
+        : getShopInStockProducts();
     const shouldReadSharedEventuri =
       query.stock === "all" &&
       (!query.make || matchesEventuriSharedV8Application(query.make, query.model));

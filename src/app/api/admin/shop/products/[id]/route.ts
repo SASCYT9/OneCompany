@@ -29,6 +29,11 @@ import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.se
 import { coordinateShopCatalogProductMutation } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 import { randomUUID } from "node:crypto";
+import {
+  isShopStorefrontDisplayMetafield,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+  SHOP_STOREFRONT_DISPLAY_KEY,
+} from "@/lib/shopStorefrontDisplay";
 
 const VARIANT_TEMP_POSITION_OFFSET = 10_000;
 
@@ -432,13 +437,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           where: {
             productId: id,
             NOT: {
-              namespace: NORMALIZED_FITMENT_NAMESPACE,
-              key: NORMALIZED_FITMENT_KEY,
+              OR: [
+                { namespace: NORMALIZED_FITMENT_NAMESPACE, key: NORMALIZED_FITMENT_KEY },
+                { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+              ],
             },
           },
         });
         const editableMetafields = data.metafields.filter(
-          (item) => !isNormalizedFitmentMetafield(item)
+          (item) => !isNormalizedFitmentMetafield(item) && !isShopStorefrontDisplayMetafield(item)
         );
         if (editableMetafields.length) {
           await tx.shopProductMetafield.createMany({
@@ -449,6 +456,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               value: item.value,
               valueType: item.valueType ?? "single_line_text_field",
             })),
+          });
+        }
+        const storefrontDisplay = data.metafields.find(isShopStorefrontDisplayMetafield);
+        if (storefrontDisplay) {
+          // Preserve the setting's relation ID and retain it when an older
+          // editor omits this field. Explicit false values still overwrite it.
+          const identity = {
+            productId: id,
+            namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+            key: SHOP_STOREFRONT_DISPLAY_KEY,
+          };
+          await tx.shopProductMetafield.upsert({
+            where: { productId_namespace_key: identity },
+            create: { ...identity, value: storefrontDisplay.value, valueType: "json" },
+            update: { value: storefrontDisplay.value, valueType: "json" },
           });
         }
         if (hasNormalizedFitment) {

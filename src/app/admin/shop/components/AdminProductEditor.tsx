@@ -1,4 +1,9 @@
 "use client";
+import {
+  defaultShopStorefrontDisplay,
+  isShopStorefrontDisplayMetafield,
+} from "@/lib/shopStorefrontDisplay";
+import type { ShopStorefrontDisplay } from "@/lib/shopWarehouseInventory";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -201,7 +206,9 @@ type ProductFormState = {
   bodyHtmlEn: string;
   leadTimeUa: string;
   leadTimeEn: string;
-  stock: "inStock" | "preOrder";
+  stock: ShopStorefrontDisplay["availability"];
+  showInStock: boolean;
+  showInCarousel: boolean;
   collectionUa: string;
   collectionEn: string;
   priceEur: string;
@@ -241,6 +248,7 @@ type ProductFormState = {
 const DEFAULT_RATES = { EUR: 1, USD: 1.152174, UAH: 53 };
 
 type ProductResponse = {
+  storefrontDisplay?: ShopStorefrontDisplay;
   id: string;
   catalogVersion?: string;
   slug: string;
@@ -606,6 +614,8 @@ function createEmptyForm(): ProductFormState {
     leadTimeUa: "",
     leadTimeEn: "",
     stock: "inStock",
+    showInStock: false,
+    showInCarousel: false,
     collectionUa: "",
     collectionEn: "",
     priceEur: "",
@@ -644,6 +654,9 @@ function createEmptyForm(): ProductFormState {
 }
 
 function productToForm(product: ProductResponse): ProductFormState {
+  const display =
+    product.storefrontDisplay ??
+    defaultShopStorefrontDisplay(product.sku, product.slug, product.stock);
   return {
     catalogVersion: product.catalogVersion ?? "",
     slug: product.slug,
@@ -670,7 +683,9 @@ function productToForm(product: ProductResponse): ProductFormState {
     bodyHtmlEn: product.bodyHtmlEn ?? "",
     leadTimeUa: product.leadTimeUa ?? "",
     leadTimeEn: product.leadTimeEn ?? "",
-    stock: product.stock,
+    stock: display.availability,
+    showInStock: display.showInStock,
+    showInCarousel: display.showInCarousel,
     collectionUa: product.collectionUa ?? "",
     collectionEn: product.collectionEn ?? "",
     priceEur: stringNumber(product.priceEur),
@@ -825,7 +840,12 @@ function buildPayload(form: ProductFormState) {
     bodyHtmlEn: form.bodyHtmlEn || null,
     leadTimeUa: form.leadTimeUa || null,
     leadTimeEn: form.leadTimeEn || null,
-    stock: form.stock,
+    stock: form.stock === "inStock" ? "inStock" : "preOrder",
+    storefrontDisplay: {
+      availability: form.stock,
+      showInStock: form.showInStock,
+      showInCarousel: form.showInCarousel,
+    },
     collectionUa: form.collectionUa || null,
     collectionEn: form.collectionEn || null,
     priceEur: decimalOrNull(form.priceEur),
@@ -2552,10 +2572,18 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                   <SelectField
                     label="Наявність"
                     value={form.stock}
-                    onChange={(value) => updateField("stock", value as ProductFormState["stock"])}
+                    onChange={(value) =>
+                      setForm((current) => ({
+                        ...current,
+                        stock: value as ProductFormState["stock"],
+                        showInStock: value === "inStock" && current.showInStock,
+                        showInCarousel: value === "inStock" && current.showInCarousel,
+                      }))
+                    }
                     options={[
                       { label: "У наявності", value: "inStock" },
                       { label: "Під замовлення", value: "preOrder" },
+                      { label: "В дорозі", value: "inTransit" },
                     ]}
                   />
                   <InputField
@@ -2568,6 +2596,29 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     value={form.leadTimeEn}
                     onChange={(value) => updateField("leadTimeEn", value)}
                   />
+                  <CheckboxField
+                    label="Показувати в наявності"
+                    checked={form.showInStock}
+                    onChange={(checked) =>
+                      setForm((current) => ({
+                        ...current,
+                        stock: checked ? "inStock" : current.stock,
+                        showInStock: checked,
+                        showInCarousel: checked && current.showInCarousel,
+                      }))
+                    }
+                  />
+                  <CheckboxField
+                    label="Показувати в каруселі"
+                    checked={form.showInCarousel}
+                    disabled={!form.showInStock || form.stock !== "inStock"}
+                    onChange={(checked) => updateField("showInCarousel", checked)}
+                  />
+                  <p className="text-sm text-white/50 sm:col-span-2">
+                    Позначка «В наявності» показується в каталозі та картці товару. Карусель
+                    вмикається окремо. Для ліцензій можна ввімкнути наявність і залишити карусель
+                    вимкненою.
+                  </p>
                 </div>
               </AdminEditorSection>
               <AdminCollapsibleSection
@@ -2877,51 +2928,55 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 description="Додаткові характеристики та дані інтеграцій."
               >
                 <div className="space-y-4">
-                  {form.metafields.map((item, index) => (
-                    <div
-                      key={item.id ?? `metafield-${index}`}
-                      className="rounded-none border border-white/10 bg-black/40 p-4"
-                    >
-                      <div className="mb-4 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => removeListItem("metafields", index)}
-                          className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                  {form.metafields.map((item, index) =>
+                    isShopStorefrontDisplayMetafield(item) ? null : (
+                      <div
+                        key={item.id ?? `metafield-${index}`}
+                        className="rounded-none border border-white/10 bg-black/40 p-4"
+                      >
+                        <div className="mb-4 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => removeListItem("metafields", index)}
+                            className="rounded-none border border-blue-500/30 bg-blue-950/20 p-2 text-blue-300 transition hover:border-blue-500/50 hover:bg-blue-950/40"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <InputField
+                            label="Namespace"
+                            value={item.namespace}
+                            onChange={(value) =>
+                              updateListItem("metafields", index, { namespace: value })
+                            }
+                          />
+                          <InputField
+                            label="Key"
+                            value={item.key}
+                            onChange={(value) =>
+                              updateListItem("metafields", index, { key: value })
+                            }
+                          />
+                          <InputField
+                            label="Value type"
+                            value={item.valueType}
+                            onChange={(value) =>
+                              updateListItem("metafields", index, { valueType: value })
+                            }
+                          />
+                        </div>
+                        <div className="mt-4">
+                          <TextareaField
+                            label="Value"
+                            value={item.value}
+                            onChange={(value) => updateListItem("metafields", index, { value })}
+                            rows={4}
+                          />
+                        </div>
                       </div>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <InputField
-                          label="Namespace"
-                          value={item.namespace}
-                          onChange={(value) =>
-                            updateListItem("metafields", index, { namespace: value })
-                          }
-                        />
-                        <InputField
-                          label="Key"
-                          value={item.key}
-                          onChange={(value) => updateListItem("metafields", index, { key: value })}
-                        />
-                        <InputField
-                          label="Value type"
-                          value={item.valueType}
-                          onChange={(value) =>
-                            updateListItem("metafields", index, { valueType: value })
-                          }
-                        />
-                      </div>
-                      <div className="mt-4">
-                        <TextareaField
-                          label="Value"
-                          value={item.value}
-                          onChange={(value) => updateListItem("metafields", index, { value })}
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                   <button
                     type="button"
                     onClick={addMetafield}

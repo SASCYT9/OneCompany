@@ -1,3 +1,4 @@
+import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
 import {
   Prisma,
   ShopCatalogCompatibilityDimension,
@@ -18,12 +19,13 @@ import {
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
 import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
+import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
   defaultPageSize: 24,
   maxPageSize: 100,
-  text: 256,
+  text: SHOP_SEARCH_QUERY_MAX_LENGTH,
   facet: 320,
 } as const;
 
@@ -437,9 +439,8 @@ function projectionSearchConditionSql(text: string) {
   const normalized = normalizeShopSearchText(text);
   const tokenCondition = tokens.length
     ? Prisma.sql`(${Prisma.join(
-        tokens.map(
-          (token) =>
-            Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(token)}%`} ESCAPE '\\'`
+        tokens.map((token) =>
+          shopSearchTokenConditionSql(Prisma.sql`projection."searchText"`, token)
         ),
         " AND "
       )})`

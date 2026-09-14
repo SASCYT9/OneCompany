@@ -1,3 +1,4 @@
+import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
 import "server-only";
 
 import {
@@ -13,12 +14,13 @@ import {
   normalizeShopSearchText,
   tokenizeShopSearchQuery,
 } from "./shopSearch";
+import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
 import { compactShopCode } from "./shopVehicleSearch";
 
 export const SHOP_CATALOG_SUGGESTION_LIMITS = Object.freeze({
   queryMin: 2,
-  queryMax: 64,
+  queryMax: SHOP_SEARCH_QUERY_MAX_LENGTH,
   total: 10,
   products: 6,
   brands: 2,
@@ -74,7 +76,7 @@ export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestion
     locale: input.locale,
     query,
     normalizedQuery: normalizeShopSearchText(canonicalQuery),
-    normalizedSku: compactShopCode(canonicalQuery),
+    normalizedSku: compactShopCode(query),
     scope,
   };
 }
@@ -163,8 +165,8 @@ export async function queryShopCatalogSuggestions(
   // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
   // products. Exact normalized SKUs remain a separate high-priority match.
   const queryTokens = tokenizeShopSearchQuery(input.normalizedQuery);
-  const tokenConditions = queryTokens.map(
-    (token) => Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(token)}%`} ESCAPE '\\'`
+  const tokenConditions = queryTokens.map((token) =>
+    shopSearchTokenConditionSql(Prisma.sql`projection."searchText"`, token)
   );
   const lexicalCondition =
     tokenConditions.length > 0

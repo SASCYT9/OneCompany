@@ -189,12 +189,14 @@ export function AdminSelectField({
 type CheckboxFieldProps = BaseFieldProps & {
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 };
 
 export function AdminCheckboxField({
   label,
   checked,
   onChange,
+  disabled = false,
   helper,
   className,
 }: CheckboxFieldProps) {
@@ -202,6 +204,7 @@ export function AdminCheckboxField({
     <label
       className={cn(
         "group inline-flex cursor-pointer items-start gap-3 text-sm text-zinc-100",
+        disabled && "cursor-not-allowed opacity-50",
         className
       )}
     >
@@ -209,6 +212,7 @@ export function AdminCheckboxField({
         <input
           type="checkbox"
           checked={checked}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
           className="peer absolute inset-0 cursor-pointer appearance-none rounded-none border border-white/[0.14] bg-[#171717] transition-all checked:border-blue-500 checked:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-[#0A0A0A]"
         />

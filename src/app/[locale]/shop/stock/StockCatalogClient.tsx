@@ -1,4 +1,5 @@
 "use client";
+import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -59,10 +60,12 @@ import {
   type ShopAiProductKind,
 } from "@/lib/shopAiProductKind";
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
-import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilityBadge";
+import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
 import {
+  getShopConfirmedAvailability,
+  isShopWarehouseHeroProduct,
   resolveShopWarehouseHeroImage,
   resolveShopWarehouseProductCopy,
 } from "@/lib/shopWarehouseInventory";
@@ -325,7 +328,7 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("brabus")) return "/logos/brabus.svg";
   if (b.includes("racechip")) return "/logos/racechip.png";
   if (b.includes("do88")) return "/logos/do88.png";
-  if (b.includes("csf")) return "/images/shop/csf/csf-logo-white.png";
+  if (b.includes("csf")) return "/images/shop/csf/csf-logo.svg";
   if (b.includes("ohlins")) return "/logos/ohlins.svg";
   if (b.includes("girodisc")) return "/images/shop/girodisc/girodisc-logo-white.svg";
   if (b.includes("ilmberger")) return "/logos/ilmberger-carbon-dark.png";
@@ -340,6 +343,8 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("eventuri")) return "/brands/eventuri-logo.svg";
   if (b.includes("remus")) return "/logos/remus-dark.png";
   if (b.includes("fi exhaust") || b.includes("fi-exhaust")) return "/logos/fi-exhaust.svg";
+  if (b.includes("bootmod3")) return "/logos/bootmod3.webp";
+  if (b.includes("g-sport") || b.includes("gsport")) return "/logos/gsport-by-gesi.png";
   return null;
 };
 
@@ -350,7 +355,7 @@ const getBrandLightLogoPath = (brandName: string, fallback: string): string => {
   if (b.includes("girodisc")) return "/logos/girodisc.webp";
   if (b.includes("ilmberger")) return "/logos/ilmberger-carbon-transparent.webp";
   if (b.includes("ipe exhaust") || b === "ipe" || b.includes("innotech performance"))
-    return "/logos/ipe-exhaust.webp";
+    return "/images/shop/ipe/ipe-logo.png";
   if (b.includes("remus")) return "/logos/remus.png";
   return fallback;
 };
@@ -370,7 +375,7 @@ const LOGO_CONTRAST_LIFT_BRANDS = [
 
 const LOGO_INVERT_BRANDS = ["brabus"];
 
-const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban"];
+const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban", "eventuri"];
 
 const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "burger"];
 
@@ -412,6 +417,21 @@ function brandLogoNeedsWideBoost(brandName: string) {
   return LOGO_WIDE_MARK_BRANDS.some((brand) => normalized.includes(brand));
 }
 
+function getBrandLogoBackdropClass(brandName: string) {
+  const normalized = normalizeBrandLogoName(brandName);
+  // Keep mixed-color artwork legible without inverting its brand colors.
+  if (
+    normalized.includes("csf") ||
+    normalized.includes("ipe exhaust") ||
+    normalized === "ipe" ||
+    normalized.includes("innotech performance")
+  )
+    return "rounded-sm bg-neutral-950 p-0.5";
+  if (normalized.includes("g-sport") || normalized.includes("gsport"))
+    return "rounded-sm bg-white p-0.5";
+  return "";
+}
+
 function BrandLogoTile({
   brandName,
   logoPath,
@@ -434,6 +454,7 @@ function BrandLogoTile({
   const needsLightInvert = brandLogoNeedsLightInvert(brandName);
   const needsLightOutline = brandLogoNeedsLightOutline(brandName);
   const needsWideBoost = brandLogoNeedsWideBoost(brandName);
+  const logoBackdropClass = getBrandLogoBackdropClass(brandName);
   const lightThemeLogoPath = getBrandLightLogoPath(brandName, logoPath);
   const hasThemeSpecificLogo = lightThemeLogoPath !== logoPath;
   const sizeClass =
@@ -487,7 +508,7 @@ function BrandLogoTile({
         width={112}
         height={36}
         unoptimized
-        className={`relative ${imageSizeClass} origin-left object-contain opacity-90 transition duration-200 group-hover:opacity-100 ${imageScaleClass} ${logoFilterClass} ${
+        className={`relative ${imageSizeClass} origin-left object-contain opacity-100 transition duration-200 ${imageScaleClass} ${logoFilterClass} ${logoBackdropClass} ${
           hasThemeSpecificLogo ? "dark:hidden" : ""
         }`}
         onError={() => setFailed(true)}
@@ -499,7 +520,7 @@ function BrandLogoTile({
           width={112}
           height={36}
           unoptimized
-          className={`relative hidden ${imageSizeClass} origin-left object-contain opacity-90 transition duration-200 group-hover:opacity-100 dark:block ${imageScaleClass} ${logoFilterClass}`}
+          className={`relative hidden ${imageSizeClass} origin-left object-contain opacity-100 transition duration-200 dark:block ${imageScaleClass} ${logoFilterClass} ${logoBackdropClass}`}
           onError={() => setFailed(true)}
         />
       ) : null}
@@ -765,7 +786,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   };
 
   // Search state
-  const initialPage = parseStockPage(searchParams.get("page"));
+  const initialPage = useRef(parseStockPage(searchParams.get("page"))).current;
   const initialBrands = parseShopStockParamList(searchParams, "brand");
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
@@ -806,6 +827,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [page, setPage] = useState(initialPage);
   const paginationScrollTargetRef = useRef<number | null>(null);
   const [totalPages, setTotalPages] = useState(initialResponse?.meta?.totalPages || 1);
+  const [correctedQuery, setCorrectedQuery] = useState<string | null>(
+    initialResponse?.meta?.correctedQuery ?? null
+  );
   const [totalItems, setTotalItems] = useState(initialResponse?.meta?.totalItems || 0);
   const [hasSearched, setHasSearched] = useState(true);
   const [fallbackApplied, setFallbackApplied] = useState<"fitment" | "all" | null>(
@@ -903,7 +927,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       }
     }
     const available = [...uniqueInventory.values()]
-      .filter((item) => item.inStock && item.thumbnail)
+      .filter(isShopWarehouseHeroProduct)
       .sort((left, right) => (right.price ?? 0) - (left.price ?? 0));
     const featured: StockItem[] = [];
     const usedBrands = new Set<string>();
@@ -961,6 +985,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const params = new URLSearchParams({
       locale,
       stock: "inStock",
+      carousel: "1",
       limit: "24",
       sort: "price_desc",
       currency,
@@ -1180,13 +1205,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const requestKey = `${locale}:${vehicleMode}:${normalizedQuery}`;
     if (resolvedSuggestionRequestKeyRef.current === requestKey) return;
 
-    const needle = normalizeFacetSearchText(normalizedQuery);
     const immediateBrands: StockSuggestion[] = localBrands
-      .filter((brandName) => normalizeFacetSearchText(brandName).includes(needle))
+      .filter((brandName) => matchesShopSearchQuery(brandName, normalizedQuery))
       .slice(0, 2)
       .map((label) => ({ type: "brand", id: `brand:${label}`, label }));
     const immediateVehicles: StockSuggestion[] = makes
-      .filter((makeName) => normalizeFacetSearchText(makeName).includes(needle))
+      .filter((makeName) => matchesShopSearchQuery(makeName, normalizedQuery))
       .slice(0, 2)
       .map((makeName) => ({
         type: "vehicle",
@@ -1196,9 +1220,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       }));
     const immediateProducts: StockSuggestion[] = items
       .filter((item) =>
-        normalizeFacetSearchText(
-          `${item.name} ${item.brand} ${item.partNumber} ${item.category || ""}`
-        ).includes(needle)
+        matchesShopSearchQuery(
+          `${item.name} ${item.brand} ${item.partNumber} ${item.category || ""}`,
+          normalizedQuery
+        )
       )
       .slice(0, 5)
       .map((item) => ({
@@ -1253,7 +1278,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       const params = new URLSearchParams({
         q: normalizedQuery,
         locale,
-        v: "2",
+        v: "4",
         scope: vehicleMode,
       });
       try {
@@ -1403,7 +1428,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       rememberFiltersUrl(nextUrl);
       rememberMakeUrl(nextUrl);
       if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
-        window.history.replaceState(window.history.state, "", nextUrl);
+        // Let Next.js synchronize useSearchParams and pagination links. Passing
+        // its internal history state makes the router skip that synchronization.
+        window.history.replaceState(null, "", nextUrl);
       }
     },
     [
@@ -1437,6 +1464,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       setTotalPages(data.meta?.totalPages || 1);
       setTotalItems(data.meta?.totalItems || 0);
       setFallbackApplied(data.meta?.fallbackApplied || null);
+      setCorrectedQuery(data.meta?.correctedQuery ?? null);
       if (data.filters) {
         setLocalCategories(data.filters.categories || []);
         setLocalBrands(data.filters.brands || []);
@@ -2074,7 +2102,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       const nextHref = `${nextUrl.pathname}${nextUrl.search}`;
       rememberFiltersUrl(nextHref);
       rememberMakeUrl(nextHref);
-      window.history.replaceState(window.history.state, "", nextHref);
+      window.history.replaceState(null, "", nextHref);
     }
     setMake(nextMake);
     setModel("");
@@ -2986,7 +3014,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
-        const showWarehouseAvailability = item.inStock;
+        const availability =
+          item.availability === undefined
+            ? getShopConfirmedAvailability(item.partNumber, item.slug)
+            : item.availability;
         const vehicleLabel =
           [make, model, chassis].filter(Boolean).join(" ") ||
           (isUa
@@ -3094,9 +3125,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       {isUa ? "за одиницю" : "per unit"}
                     </div>
                   </div>
-                  {showWarehouseAvailability ? (
-                    <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
-                  ) : null}
+                  <ShopAvailabilityBadge
+                    availability={availability}
+                    locale={isUa ? "ua" : "en"}
+                    compact
+                  />
                 </div>
               ) : (
                 <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
@@ -3111,9 +3144,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       {priceLabel}
                     </div>
                   </div>
-                  {showWarehouseAvailability ? (
-                    <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
-                  ) : null}
+                  <ShopAvailabilityBadge
+                    availability={availability}
+                    locale={isUa ? "ua" : "en"}
+                    compact
+                  />
                 </div>
               )}
 
@@ -4140,6 +4175,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
               </div>
             )}
 
+            {correctedQuery && !loading && (
+              <p role="status" className="mb-4 text-sm text-foreground/65">
+                {isUa ? "Показано результати для" : "Showing results for"} «{correctedQuery}»
+              </p>
+            )}
             {fallbackApplied && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -4345,8 +4385,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
                               {/* Stock Status & Fitment */}
                               <div className="flex flex-col items-center justify-center gap-1.5">
-                                {item.inStock ? (
-                                  <EventuriAvailabilityBadge locale={isUa ? "ua" : "en"} compact />
+                                {item.availability ? (
+                                  <ShopAvailabilityBadge
+                                    availability={item.availability}
+                                    locale={isUa ? "ua" : "en"}
+                                    compact
+                                  />
                                 ) : SHOW_STOCK_BADGE ? (
                                   <span className="text-center text-[9px] font-light uppercase tracking-widest text-foreground/45">
                                     {item.inStock

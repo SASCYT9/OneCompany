@@ -29,6 +29,26 @@ function product(input: Partial<ShopProduct> & Pick<ShopProduct, "title">): Shop
   };
 }
 
+test("Fi RSQ8 spelling variants never become SQ8 or the base Q8", () => {
+  for (const model of ["RSQ8", "RS Q8", "RS-Q8", "RS Q 8", "RSQ 8"]) {
+    const fitment = extractProductFitment(
+      product({
+        sku: "AD-Q8RS-CBOE",
+        brand: "Fi EXHAUST",
+        title: { ua: `Fi EXHAUST для Audi ${model}`, en: `Fi EXHAUST for Audi ${model}` },
+      })
+    );
+    assert.equal(fitment.make, "Audi", model);
+    assert.deepEqual(fitment.models, ["RS Q8"], model);
+  }
+  for (const model of ["SQ8", "S Q8", "S-Q8", "S Q 8"]) {
+    const fitment = extractProductFitment(
+      product({ title: { ua: "", en: `Exhaust for Audi ${model}` } })
+    );
+    assert.deepEqual(fitment.models, ["SQ8"], model);
+  }
+});
+
 test("description mentions do not contaminate hard Audi fitment", () => {
   const fitment = extractProductFitment(
     product({

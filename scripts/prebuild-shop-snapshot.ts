@@ -163,6 +163,7 @@ async function main() {
         longDescription: product.longDescription,
         leadTime: product.leadTime,
         stock: product.stock,
+        storefrontDisplay: product.storefrontDisplay,
         collection: product.collection,
         collections: product.collections,
         tags: product.tags,

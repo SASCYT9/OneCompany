@@ -7,6 +7,7 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   getShopProductBySlugServer,
   getShopProductImageOverrideForSku,
@@ -662,7 +663,13 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     existingSpecKeys.add(key);
     detailSpecs.push(spec);
   });
-  const isInStock = product.stock === "inStock";
+  const isInStock =
+    resolveShopConfirmedStock(
+      product.sku,
+      product.slug,
+      product.stock,
+      product.storefrontDisplay
+    ) === "inStock";
 
   // Determine model handles for image resolution
   const urbanModelHandles = urbanCollectionHandle ? [urbanCollectionHandle] : [];

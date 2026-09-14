@@ -3,6 +3,13 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
+  readShopStorefrontDisplay,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+  SHOP_STOREFRONT_DISPLAY_KEY,
+} from "@/lib/shopStorefrontDisplay";
+import {
+  isShopInStockProduct,
+  SHOP_DIGITAL_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "@/lib/shopWarehouseInventory";
@@ -18,36 +25,62 @@ type WarehouseCache = {
 // Next can bundle the API and page separately in the same server process.
 // Share only public inventory IDs, never viewer prices or session data.
 const processCache = globalThis as typeof globalThis & {
-  __oneCompanyWarehouseCacheV1?: WarehouseCache;
+  __oneCompanyWarehouseCacheV2?: WarehouseCache;
 };
-const cache = (processCache.__oneCompanyWarehouseCacheV1 ??= { generation: 0 });
+const cache = (processCache.__oneCompanyWarehouseCacheV2 ??= { generation: 0 });
 cache.generation ??= 0;
 
 async function queryWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
-  return prisma.shopProduct.findMany({
+  const products = await prisma.shopProduct.findMany({
     where: {
       isPublished: true,
       status: "ACTIVE",
       OR: [
-        ...SHOP_WAREHOUSE_IN_STOCK_SKUS.flatMap((sku) => [
+        ...[...SHOP_WAREHOUSE_IN_STOCK_SKUS, ...SHOP_DIGITAL_IN_STOCK_SKUS].flatMap((sku) => [
           { sku: { equals: sku, mode: "insensitive" as const } },
           { variants: { some: { sku: { equals: sku, mode: "insensitive" as const } } } },
         ]),
         { slug: { in: [...SHOP_WAREHOUSE_IN_STOCK_SLUGS] } },
+        {
+          metafields: {
+            some: {
+              namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+              key: SHOP_STOREFRONT_DISPLAY_KEY,
+            },
+          },
+        },
       ],
     },
-    select: { id: true, sku: true, slug: true },
+    select: {
+      id: true,
+      sku: true,
+      slug: true,
+      variants: { select: { sku: true } },
+      metafields: {
+        where: { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+      },
+    },
   });
+  return products
+    .filter((product) => {
+      const display = readShopStorefrontDisplay(product.metafields);
+      if (display) return isShopInStockProduct(product.sku, product.slug, display);
+      return (
+        isShopInStockProduct(product.sku, product.slug) ||
+        product.variants?.some((variant) => isShopInStockProduct(variant.sku))
+      );
+    })
+    .map(({ id, sku, slug }) => ({ id, sku, slug }));
 }
 
-// The warehouse SKU allowlist changes rarely and is shared by every anonymous
+// Confirmed physical and digital availability is shared by every anonymous
 // request. In production, keep one 60-second Data Cache entry across warm
 // instances; tests and local development retain the deterministic process
 // cache below. Product edits may therefore take at most one minute to appear
 // in the stock badge, while repeated searches avoid another remote DB read.
 const readWarehouseProducts =
   process.env.NODE_ENV === "production"
-    ? unstable_cache(queryWarehouseProducts, ["shop-warehouse-products-v1"], {
+    ? unstable_cache(queryWarehouseProducts, ["shop-available-products-v2"], {
         revalidate: 60,
         tags: ["shop-warehouse-products"],
       })
@@ -59,8 +92,8 @@ export function invalidateShopWarehouseProductsCache() {
   cache.generation += 1;
 }
 
-/** Shared short lived lookup for the bounded warehouse inventory set. */
-export function getShopWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
+/** Shared lookup for confirmed physical stock and available digital licenses. */
+export function getShopInStockProducts(): Promise<ShopWarehouseProduct[]> {
   const now = Date.now();
   if (cache.cached && cache.cached.expiresAt > now) return Promise.resolve(cache.cached.value);
   if (cache.pending) return cache.pending;

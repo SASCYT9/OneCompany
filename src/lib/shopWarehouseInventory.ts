@@ -25,14 +25,9 @@ export const SHOP_WAREHOUSE_IN_STOCK_FI_EXHAUST_SKUS = [
   "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2",
 ] as const;
 
-// Physical availability confirmed by the owner on 2026-09-13. Digital
-// bootmod3 licenses are deliberately excluded from warehouse availability.
-export const SHOP_WAREHOUSE_IN_STOCK_BOOTMOD3_GSPORT_SKUS = [
-  "BM3-WIFI-ADAPTER",
-  "85230",
-  "85500",
-  "85600",
-] as const;
+// Physical stock only. The owner corrected the bootmod3 adapter to in transit
+// on 2026-09-14; digital licenses are tracked separately below.
+export const SHOP_WAREHOUSE_IN_STOCK_BOOTMOD3_GSPORT_SKUS = ["85230", "85500", "85600"] as const;
 
 export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
   ...SHOP_WAREHOUSE_IN_STOCK_EVENTURI_SKUS,
@@ -44,11 +39,41 @@ export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [
 
 export const SHOP_WAREHOUSE_IN_STOCK_SLUGS = ["ipe-bmw-x5m-x6m-f95-f96-exhaust-system"] as const;
 
+// Digital availability confirmed by the owner on 2026-09-14. These products
+// remain available in the catalog but must not enter the physical-stock carousel.
+export const SHOP_DIGITAL_IN_STOCK_SKUS = [
+  "BM3-LIC-N63T2",
+  "BM3-LIC-N63T3",
+  "BM3-LIC-N63TU",
+  "BM3-LIC-S63TU",
+  "BM3-LIC-S63TU4",
+  "BM3-LIC-B48-B46-BMW",
+  "BM3-LIC-B48-B46-MINI",
+  "BM3-LIC-B58-BMW",
+  "BM3-LIC-B58-SUPRA",
+  "BM3-LIC-N20-N26",
+  "BM3-LIC-N55",
+  "BM3-LIC-S55",
+  "BM3-LIC-S58",
+  "BM3-LIC-N13",
+  "BM3-OTS-BUNDLE",
+] as const;
+
+export const SHOP_IN_TRANSIT_SKUS = ["BM3-WIFI-ADAPTER"] as const;
+export type ShopConfirmedAvailability = "inStock" | "inTransit";
+export type ShopStorefrontDisplay = {
+  availability: "inStock" | "preOrder" | "inTransit";
+  showInStock: boolean;
+  showInCarousel: boolean;
+};
+
 const normalizeWarehouseSku = (value: string | null | undefined) =>
   value?.trim().toUpperCase() ?? "";
 
 const warehouseSkuSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SKUS);
 const warehouseSlugSet = new Set<string>(SHOP_WAREHOUSE_IN_STOCK_SLUGS);
+const digitalSkuSet = new Set<string>(SHOP_DIGITAL_IN_STOCK_SKUS);
+const inTransitSkuSet = new Set<string>(SHOP_IN_TRANSIT_SKUS);
 
 const warehouseHeroImageBySku: Readonly<Record<string, string>> = {
   "EVE-G9X-CF-CHG": "/images/shop/eventuri/eve-g9x-cf-chg-hero.jpg",
@@ -263,6 +288,60 @@ export const isShopWarehouseInStockProduct = (
   sku: string | null | undefined,
   slug: string | null | undefined
 ) => isShopWarehouseInStockSku(sku) || warehouseSlugSet.has(slug?.trim().toLowerCase() ?? "");
+
+export const getShopConfirmedAvailability = (
+  sku: string | null | undefined,
+  slug?: string | null,
+  display?: ShopStorefrontDisplay | null
+): ShopConfirmedAvailability | null => {
+  if (display) {
+    if (display.availability === "inTransit") return "inTransit";
+    return display.availability === "inStock" && display.showInStock ? "inStock" : null;
+  }
+  const normalizedSku = normalizeWarehouseSku(sku);
+  if (inTransitSkuSet.has(normalizedSku)) return "inTransit";
+  if (digitalSkuSet.has(normalizedSku) || isShopWarehouseInStockProduct(sku, slug))
+    return "inStock";
+  return null;
+};
+
+export const isShopInStockProduct = (
+  sku: string | null | undefined,
+  slug?: string | null,
+  display?: ShopStorefrontDisplay | null
+) => getShopConfirmedAvailability(sku, slug, display) === "inStock";
+
+export const resolveShopConfirmedStock = (
+  sku: string | null | undefined,
+  slug: string | null | undefined,
+  fallback: "inStock" | "preOrder",
+  display?: ShopStorefrontDisplay | null
+): "inStock" | "preOrder" => {
+  const availability = getShopConfirmedAvailability(sku, slug, display);
+  if (display) return availability === "inStock" ? "inStock" : "preOrder";
+  return availability ? (availability === "inStock" ? "inStock" : "preOrder") : fallback;
+};
+
+export const isShopWarehouseHeroProduct = (item: {
+  partNumber: string;
+  slug: string;
+  inStock: boolean;
+  thumbnail: string | null;
+  showInCarousel?: boolean;
+}) =>
+  Boolean(
+    item.inStock &&
+    item.thumbnail &&
+    (item.showInCarousel ?? isShopWarehouseInStockProduct(item.partNumber, item.slug))
+  );
+
+export const shouldShowShopProductInCarousel = (
+  sku: string | null | undefined,
+  slug?: string | null,
+  display?: ShopStorefrontDisplay | null
+) =>
+  isShopInStockProduct(sku, slug, display) &&
+  (display?.showInCarousel ?? isShopWarehouseInStockProduct(sku, slug));
 
 export const getShopWarehouseStockStatus = (value: string | null | undefined) =>
   isShopWarehouseInStockSku(value) ? ("inStock" as const) : ("preOrder" as const);

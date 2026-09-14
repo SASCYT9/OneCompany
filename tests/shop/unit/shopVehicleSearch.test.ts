@@ -22,6 +22,17 @@ test("catalog enrichment skips ordinary product and SKU queries", () => {
   assert.equal(shouldEnrichVehicleSearchFromCatalog(expandVehicleAliases("BMW M5 G90")), true);
 });
 
+test("bootmod3 abbreviation cannot infer the M3 model during catalog enrichment", () => {
+  const items = [
+    { titleText: "BMW M3", fitment: { make: "BMW", models: ["M3"], chassisCodes: [] } },
+  ];
+  const canonical = enrichVehicleSearchFromCatalog(expandVehicleAliases("bootmod3 B58"), items);
+  const abbreviation = enrichVehicleSearchFromCatalog(expandVehicleAliases("BM3 B58"), items);
+  assert.deepEqual(abbreviation.models, canonical.models);
+  assert.deepEqual(abbreviation.requiredTokens, canonical.requiredTokens);
+  assert.deepEqual(abbreviation.models, []);
+});
+
 test("catalog enrichment projection keeps only fitment and title fields", () => {
   const fitment = {
     make: "BMW",
@@ -176,6 +187,23 @@ test("RSQ8 and RS Q8 normalize to the same Audi intent", () => {
   assert.deepEqual(compact.models, spaced.models);
   assert.deepEqual(compact.chassis, spaced.chassis);
   assert.equal(compact.models.includes("RS Q8"), true);
+});
+
+test("hyphenated Fi and Audi model queries keep vehicle intent and mandatory brand words", () => {
+  for (const model of ["RSQ8", "RS Q8", "RS-Q8", "RS Q 8", "SQ8", "S Q8", "S-Q8"]) {
+    const query = expandVehicleAliases(`Fi-Exhaust ${model}`);
+    assert.notEqual(query.intent, "sku", model);
+    assert.deepEqual(getVehicleResidualSearchTokens(query), ["fi", "exhaust"], model);
+    assert.equal(query.aliasIds.includes("audi-sq8"), !model.startsWith("RS"), model);
+    const items = [
+      { searchText: "fi exhaust audi", titleText: "fi exhaust audi" },
+      {
+        searchText: "akrapovic exhaust audi carbon fibre fi",
+        titleText: "akrapovic exhaust audi carbon fibre",
+      },
+    ];
+    assert.deepEqual(filterVehicleSearchResidualTokens(items, query), [items[0]], model);
+  }
 });
 
 test("structured part numbers are classified as SKU intent", () => {
@@ -419,6 +447,22 @@ test("explicit catalog make overrides a conflicting chassis alias", () => {
   assert.deepEqual(enriched.makes, ["Genesis"]);
   assert.deepEqual(enriched.models, ["G80"]);
   assert.deepEqual(enriched.chassis, []);
+});
+
+test("alphanumeric brands and product versions remain required beside vehicle codes", () => {
+  for (const query of ["do88 M3", "do 88 M3", "M3 DO88", "do-88 E92"]) {
+    const expanded = expandVehicleAliases(query);
+    assert.deepEqual(getVehicleResidualSearchTokens(expanded), ["do88"], query);
+    const products = [
+      { titleText: "do88 bmw m3 e92 intercooler", searchText: "do88 bmw m3 e92 intercooler" },
+      { titleText: "adro bmw m3 e92 spoiler", searchText: "adro bmw m3 e92 spoiler" },
+    ];
+    assert.deepEqual(filterVehicleSearchResidualTokens(products, expanded), [products[0]], query);
+  }
+  assert.deepEqual(getVehicleResidualSearchTokens(expandVehicleAliases("ADRO V2 M3")), [
+    "adro",
+    "v2",
+  ]);
 });
 
 test("engine displacement is not extracted as a model year", () => {

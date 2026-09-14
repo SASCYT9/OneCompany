@@ -1,4 +1,12 @@
 import { Prisma } from "@prisma/client";
+import {
+  defaultShopStorefrontDisplay,
+  isShopStorefrontDisplayMetafield,
+  parseShopStorefrontDisplay,
+  readShopStorefrontDisplay,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+  SHOP_STOREFRONT_DISPLAY_KEY,
+} from "@/lib/shopStorefrontDisplay";
 import { resolveBundleInventory } from "@/lib/shopBundles";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import {
@@ -112,16 +120,19 @@ export const adminProductInclude = {
 /**
  * Lighter include for brand-scoped grid / list-view fetches. Drops:
  *   - `options` (PDP variant picker)
- *   - `metafields` (iPE per-image material tags; PDP-only)
+ *   - general `metafields` (only the storefront display control is needed here)
  *   - `bundle` (bundle composition; PDP-only)
  *
- * Keeps the same shape as `adminProductInclude` minus those three so a row
+ * Keeps the same shape as `adminProductInclude` with bounded storefront metadata so a row
  * fetched with this include still flows through `mapDbToCatalog` unchanged
  * (the mapper guards `row.metafields ?? []` and `row.bundle` is already
  * conditional, and `row.options` is never read). For racechip's 5181 rows
  * this reduces DB join time by ~3–5× vs the full admin include.
  */
 export const brandGridProductInclude = {
+  metafields: {
+    where: { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+  },
   category: true,
   media: { orderBy: { position: "asc" } },
   variants: { orderBy: { position: "asc" } },
@@ -791,6 +802,26 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   const variants = ensureSingleDefaultVariant(normalizeVariants(source.variants));
   const errors: string[] = [];
   let metafields = normalizeMetafields(source.metafields);
+  const displayField = metafields.find(isShopStorefrontDisplayMetafield);
+  if (Object.prototype.hasOwnProperty.call(source, "storefrontDisplay") || displayField) {
+    const display = parseShopStorefrontDisplay(source.storefrontDisplay ?? displayField?.value);
+    if (!display) {
+      errors.push(
+        "Налаштування показу товару некоректні: карусель доступна лише для товару, що показується в наявності."
+      );
+    } else {
+      metafields = [
+        ...metafields.filter((item) => !isShopStorefrontDisplayMetafield(item)),
+        {
+          id: displayField?.id ?? null,
+          namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+          key: SHOP_STOREFRONT_DISPLAY_KEY,
+          value: JSON.stringify(display),
+          valueType: "json",
+        },
+      ];
+    }
+  }
 
   const hasSupplierFitment =
     Object.prototype.hasOwnProperty.call(source, "fitment") ||
@@ -859,7 +890,9 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
       : null,
     leadTimeUa: nullableString(source.leadTimeUa),
     leadTimeEn: nullableString(source.leadTimeEn),
-    stock: stringValue(source.stock, "inStock") === "preOrder" ? "preOrder" : "inStock",
+    stock: ["preOrder", "inTransit"].includes(stringValue(source.stock, "inStock"))
+      ? "preOrder"
+      : "inStock",
     collectionUa: nullableString(source.collectionUa),
     collectionEn: nullableString(source.collectionEn),
     priceEur: decimalValue(source.priceEur),
@@ -1688,6 +1721,9 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
   return {
     id: record.id,
     catalogVersion: record.catalogVersion.toString(),
+    storefrontDisplay:
+      readShopStorefrontDisplay(record.metafields) ??
+      defaultShopStorefrontDisplay(record.sku, record.slug, record.stock),
     slug: record.slug,
     sku: record.sku,
     scope: record.scope,

@@ -1,3 +1,5 @@
+import type { ShopStorefrontDisplay } from "./shopWarehouseInventory";
+
 export type ShopScope = "auto" | "moto";
 export type ShopStock = "inStock" | "preOrder";
 
@@ -95,6 +97,7 @@ export interface ShopProduct {
   longDescription: LocalizedText;
   leadTime: LocalizedText;
   stock: ShopStock;
+  storefrontDisplay?: ShopStorefrontDisplay;
   collection: LocalizedText;
   price: ShopMoneySet;
   europePrice?: ShopMoneySet;

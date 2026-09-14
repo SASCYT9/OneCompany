@@ -2360,11 +2360,10 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bq7\b/i,
     /\bq8\b/i,
     /\brsq3\b/i,
-    /\brsq8\b/i,
-    /\brs\s*q8\b/i,
+    /\brs[\s-]*q[\s-]*8\b/i,
     /\bsq5\b/i,
     /\bsq7\b/i,
-    /\bsq8\b/i,
+    /\bs[\s-]*q[\s-]*8\b/i,
   ],
   Volkswagen: [
     /\bgolf\s*gti\b/i,
@@ -2639,9 +2638,14 @@ function detectModelsFromText(text: string, make: string | null): string[] {
   const patterns = MODEL_PATTERNS[normalizedMake];
   if (!patterns) return [];
 
+  // Join Audi Q-model spelling variants before matching. Otherwise `RS Q8`
+  // also yields the nested base model `Q8`, inventing extra compatibility.
+  const modelText =
+    normalizedMake === "Audi" ? text.replace(/\b(rs|s)[\s-]*q[\s-]*([3-8])\b/gi, "$1q$2") : text;
+
   const found: string[] = [];
   for (const pattern of patterns) {
-    const match = text.match(pattern);
+    const match = modelText.match(pattern);
     if (match) {
       found.push(match[0].toLowerCase());
     }
@@ -3707,11 +3711,11 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         mapped.add("RS6");
       } else if (lower.includes("rs7")) {
         mapped.add("RS7");
-      } else if (lower.includes("rs q8")) {
+      } else if (/\brs[\s-]*q[\s-]*8\b/.test(lower)) {
         mapped.add("RS Q8");
       } else if (lower.includes("sq7")) {
         mapped.add("SQ7");
-      } else if (lower.includes("sq8")) {
+      } else if (/\bs[\s-]*q[\s-]*8\b/.test(lower)) {
         mapped.add("SQ8");
       } else if (lower.includes("s3")) {
         mapped.add("S3");

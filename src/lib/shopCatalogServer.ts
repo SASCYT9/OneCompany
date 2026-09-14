@@ -6,6 +6,8 @@
 
 import fs from "fs";
 import path from "path";
+import { readShopStorefrontDisplay } from "@/lib/shopStorefrontDisplay";
+import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 
 import { cache } from "react";
@@ -1772,8 +1774,13 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       ),
     },
     leadTime: { ua: row.leadTimeUa ?? "", en: row.leadTimeEn ?? "" },
-    stock: (bundleInventory?.stock ??
-      (row.stock === "preOrder" ? "preOrder" : "inStock")) as ShopStock,
+    stock: resolveShopConfirmedStock(
+      row.sku,
+      row.slug,
+      (bundleInventory?.stock ?? (row.stock === "preOrder" ? "preOrder" : "inStock")) as ShopStock,
+      readShopStorefrontDisplay(row.metafields)
+    ),
+    storefrontDisplay: readShopStorefrontDisplay(row.metafields),
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
     price: {
       eur: num(row.priceEur ?? primaryVariant?.priceEur),
@@ -1935,7 +1942,17 @@ function normalizeCatalogProducts(products: ShopProduct[]) {
   const brabusBySku = new Map<string, ShopProduct>();
 
   for (const rawProduct of products) {
-    const product = applyShopProductImageOverrides(normalizeFeedManagedProductImages(rawProduct));
+    const product = applyShopProductImageOverrides(
+      normalizeFeedManagedProductImages({
+        ...rawProduct,
+        stock: resolveShopConfirmedStock(
+          rawProduct.sku,
+          rawProduct.slug,
+          rawProduct.stock,
+          rawProduct.storefrontDisplay
+        ),
+      })
+    );
 
     if (!shouldExposeCatalogProduct(product)) {
       continue;
@@ -3374,6 +3391,7 @@ export function projectShopProductForListGrid(product: ShopProduct): ShopProduct
     longDescription: empty,
     leadTime: empty,
     stock: product.stock,
+    storefrontDisplay: product.storefrontDisplay,
     collection: product.collection ?? empty,
     collections: product.collections,
     price: product.price ?? emptyMoney,
@@ -3434,6 +3452,7 @@ export function projectShopProductForVehicleCatalog(product: ShopProduct): ShopP
     longDescription: empty,
     leadTime: empty,
     stock: product.stock,
+    storefrontDisplay: product.storefrontDisplay,
     collection: empty,
     price: product.price ?? emptyMoney,
     europePrice: product.europePrice,
