@@ -150,7 +150,7 @@ export default async function ShopProductPage({ params }: Props) {
     : null;
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-black via-zinc-950 to-black text-foreground">
+    <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
         slug={product.slug}
@@ -161,7 +161,7 @@ export default async function ShopProductPage({ params }: Props) {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
         <Link
           href={`/${resolvedLocale}/shop`}
-          className="inline-flex w-fit items-center gap-2.5 rounded-full border-2 border-primary/50 bg-primary/12 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-[#f1d8a5] transition hover:border-primary/70 hover:bg-primary/20 hover:text-foreground"
+          className="inline-flex w-fit items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
         >
           ← {isUa ? "Назад до магазину" : "Back to shop"}
         </Link>
@@ -177,7 +177,7 @@ export default async function ShopProductPage({ params }: Props) {
             />
           </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/15 bg-foreground/5 p-6 backdrop-blur-xl sm:p-7">
+          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
             <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
               {product.brand}
             </p>
@@ -237,7 +237,6 @@ export default async function ShopProductPage({ params }: Props) {
     </div>
   );
 }
-
 async function RelatedProductsSection({
   product,
   locale,

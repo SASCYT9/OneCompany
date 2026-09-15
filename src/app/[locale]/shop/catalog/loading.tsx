@@ -1,5 +1,5 @@
-// Keep the current route visible while catalog navigation resolves. The
-// catalog preserves its existing cards during filter refreshes.
+import CatalogLoadingShell from "../stock/CatalogLoadingShell";
+
 export default function CatalogLoading() {
-  return null;
+  return <CatalogLoadingShell />;
 }

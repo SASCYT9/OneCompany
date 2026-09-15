@@ -2,8 +2,42 @@ import { boundedCatalogPages, readCatalogRowsWithSizeFallback } from "@/lib/boun
 import type { ShopMoneySet, ShopProduct } from "@/lib/shopCatalog";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
+import { withAccelerate } from "@prisma/extension-accelerate";
+import type { Prisma } from "@prisma/client";
 
 const PAGE_SIZE = 250;
+const isAccelerateEnabled =
+  process.env.DATABASE_URL?.startsWith("prisma://") ||
+  process.env.DATABASE_URL?.startsWith("prisma+postgres://") ||
+  false;
+let acceleratedPrisma: ReturnType<typeof createAcceleratedPrisma> | null = null;
+
+function createAcceleratedPrisma() {
+  return prisma.$extends(withAccelerate());
+}
+
+function productQueryClient(): ReturnType<typeof createAcceleratedPrisma> {
+  if (!isAccelerateEnabled) {
+    return prisma as unknown as ReturnType<typeof createAcceleratedPrisma>;
+  }
+  acceleratedPrisma ??= createAcceleratedPrisma();
+  return acceleratedPrisma;
+}
+
+function withProductCache<T extends Record<string, unknown>>(query: T): T {
+  if (!isAccelerateEnabled) return query;
+  return {
+    ...query,
+    cacheStrategy: { ttl: 300, swr: 60, tags: ["shop-products"] },
+  };
+}
+
+type FitmentCatalogRow = Prisma.ShopProductGetPayload<{
+  include: {
+    variants: true;
+    collections: { include: { collection: true } };
+  };
+}>;
 
 const money = (
   eur: { toString(): string } | number | null,
@@ -30,11 +64,15 @@ export async function getShopFitmentCatalogProducts(
     evidenceOnly?: boolean;
     productIds?: readonly string[];
     includeDescriptions?: boolean;
+    includeVariants?: boolean;
+    includeCollections?: boolean;
   } = {}
 ): Promise<ShopProduct[]> {
   // Vehicle ID resolution does not render prices or media. Keep every text field
   // consumed by the fitment extractor while omitting that unrelated DB payload.
   const includeCommerce = !options.evidenceOnly;
+  const includeVariants = options.includeVariants !== false;
+  const includeCollections = options.includeCollections !== false;
   // Long descriptions are intentionally opt-in. Buyer search uses the compact
   // projection and persisted fitment records; the backfill/import path can
   // request description evidence without inflating every search response.
@@ -47,118 +85,134 @@ export async function getShopFitmentCatalogProducts(
   // windows to reduce database round trips, splitting on byte-limit errors.
   // ID windows are keyset-paginated; avoid increasingly expensive OFFSET scans.
   const pages = boundedCatalogPages({
-    pageSize: requestedProductIds ? 500 : options.evidenceOnly ? 1_000 : PAGE_SIZE,
+    pageSize: requestedProductIds
+      ? 500
+      : options.evidenceOnly || !includeVariants
+        ? 1_000
+        : PAGE_SIZE,
+    // Keep the compact first read below the database connection ceiling; the
+    // search request also reads settings, pricing and inventory in parallel.
     concurrency: 4,
     readIds: async (after, limit) => {
       if (requestedProductIds) {
         const start = after ? requestedProductIds.indexOf(after) + 1 : 0;
         return requestedProductIds.slice(Math.max(0, start), start + limit);
       }
-      const rows = await prisma.shopProduct.findMany({
-        where: { isPublished: true, status: "ACTIVE", ...(after ? { id: { gt: after } } : {}) },
-        orderBy: { id: "asc" },
-        take: limit,
-        select: { id: true },
-      });
+      const rows = (await productQueryClient().shopProduct.findMany(
+        withProductCache({
+          where: { isPublished: true, status: "ACTIVE", ...(after ? { id: { gt: after } } : {}) },
+          orderBy: { id: "asc" },
+          take: limit,
+          select: { id: true },
+        }) as never
+      )) as unknown as Array<{ id: string }>;
       return rows.map((row) => row.id);
     },
     readRows: (ids) =>
-      readCatalogRowsWithSizeFallback(ids, (batchIds) =>
-        prisma.shopProduct.findMany({
-          where: { id: { in: batchIds }, isPublished: true, status: "ACTIVE" },
-          orderBy: { id: "asc" },
-          select: {
-            id: true,
-            slug: true,
-            sku: true,
-            scope: true,
-            brand: true,
-            vendor: true,
-            productType: true,
-            tags: true,
-            titleUa: true,
-            titleEn: true,
-            categoryUa: true,
-            categoryEn: true,
-            shortDescUa: true,
-            shortDescEn: true,
-            ...(includeDescriptions
-              ? {
-                  longDescUa: true,
-                  longDescEn: true,
-                  bodyHtmlUa: true,
-                  bodyHtmlEn: true,
-                }
-              : {}),
-            collectionUa: true,
-            collectionEn: true,
-            stock: true,
-            priceEur: includeCommerce,
-            priceUsd: includeCommerce,
-            priceUah: includeCommerce,
-            priceEurEurope: includeCommerce,
-            priceEurB2b: includeCommerce,
-            priceUsdB2b: includeCommerce,
-            priceUahB2b: includeCommerce,
-            compareAtEur: includeCommerce,
-            compareAtUsd: includeCommerce,
-            compareAtUah: includeCommerce,
-            compareAtEurB2b: includeCommerce,
-            compareAtUsdB2b: includeCommerce,
-            compareAtUahB2b: includeCommerce,
-            image: includeCommerce,
-            collections: {
+      readCatalogRowsWithSizeFallback<FitmentCatalogRow>(
+        ids,
+        (batchIds) =>
+          productQueryClient().shopProduct.findMany(
+            withProductCache({
+              where: { id: { in: batchIds }, isPublished: true, status: "ACTIVE" },
+              orderBy: { id: "asc" },
               select: {
-                sortOrder: true,
-                collection: {
-                  select: {
-                    id: true,
-                    handle: true,
-                    titleUa: true,
-                    titleEn: true,
-                    brand: true,
-                    isUrban: true,
-                  },
-                },
+                id: true,
+                slug: true,
+                sku: true,
+                scope: true,
+                brand: true,
+                vendor: true,
+                productType: true,
+                tags: true,
+                titleUa: true,
+                titleEn: true,
+                categoryUa: true,
+                categoryEn: true,
+                shortDescUa: true,
+                shortDescEn: true,
+                ...(includeDescriptions
+                  ? {
+                      longDescUa: true,
+                      longDescEn: true,
+                      bodyHtmlUa: true,
+                      bodyHtmlEn: true,
+                    }
+                  : {}),
+                collectionUa: true,
+                collectionEn: true,
+                stock: true,
+                priceEur: includeCommerce,
+                priceUsd: includeCommerce,
+                priceUah: includeCommerce,
+                priceEurEurope: includeCommerce,
+                priceEurB2b: includeCommerce,
+                priceUsdB2b: includeCommerce,
+                priceUahB2b: includeCommerce,
+                compareAtEur: includeCommerce,
+                compareAtUsd: includeCommerce,
+                compareAtUah: includeCommerce,
+                compareAtEurB2b: includeCommerce,
+                compareAtUsdB2b: includeCommerce,
+                compareAtUahB2b: includeCommerce,
+                image: includeCommerce,
+                ...(includeCollections
+                  ? {
+                      collections: {
+                        select: {
+                          sortOrder: true,
+                          collection: {
+                            select: {
+                              id: true,
+                              handle: true,
+                              titleUa: true,
+                              titleEn: true,
+                              brand: true,
+                              isUrban: true,
+                            },
+                          },
+                        },
+                      },
+                    }
+                  : {}),
+                // Variant options and inventory do not contribute to fitment
+                // extraction. Avoid multiplying the cold legacy scan by the
+                // variant graph; rich storefront reads still keep it intact.
+                ...(includeCommerce && includeVariants
+                  ? {
+                      variants: {
+                        orderBy: { position: "asc" },
+                        select: {
+                          id: true,
+                          title: true,
+                          sku: true,
+                          position: true,
+                          option1Value: true,
+                          option2Value: true,
+                          option3Value: true,
+                          inventoryQty: true,
+                          image: true,
+                          isDefault: true,
+                          priceEur: true,
+                          priceUsd: true,
+                          priceUah: true,
+                          priceEurEurope: true,
+                          priceEurB2b: true,
+                          priceUsdB2b: true,
+                          priceUahB2b: true,
+                          compareAtEur: true,
+                          compareAtUsd: true,
+                          compareAtUah: true,
+                          compareAtEurB2b: true,
+                          compareAtUsdB2b: true,
+                          compareAtUahB2b: true,
+                        },
+                      },
+                    }
+                  : {}),
               },
-            },
-            // Variant options and inventory do not contribute to fitment
-            // extraction. Avoid multiplying the cold legacy scan by the
-            // variant graph; rich storefront reads still keep it intact.
-            ...(includeCommerce
-              ? {
-                  variants: {
-                    orderBy: { position: "asc" },
-                    select: {
-                      id: true,
-                      title: true,
-                      sku: true,
-                      position: true,
-                      option1Value: true,
-                      option2Value: true,
-                      option3Value: true,
-                      inventoryQty: true,
-                      image: true,
-                      isDefault: true,
-                      priceEur: true,
-                      priceUsd: true,
-                      priceUah: true,
-                      priceEurEurope: true,
-                      priceEurB2b: true,
-                      priceUsdB2b: true,
-                      priceUahB2b: true,
-                      compareAtEur: true,
-                      compareAtUsd: true,
-                      compareAtUah: true,
-                      compareAtEurB2b: true,
-                      compareAtUsdB2b: true,
-                      compareAtUahB2b: true,
-                    },
-                  },
-                }
-              : {}),
-          },
-        })
+            }) as never
+          ) as unknown as Promise<FitmentCatalogRow[]>
       ),
   });
 
@@ -198,7 +252,7 @@ export async function getShopFitmentCatalogProducts(
         b2bCompareAt: money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
         image: row.image ?? "",
         highlights: [],
-        collections: row.collections.map((entry) => ({
+        collections: readProductCollections(row).map((entry) => ({
           id: entry.collection.id,
           handle: entry.collection.handle,
           title: { ua: entry.collection.titleUa, en: entry.collection.titleEn },
@@ -232,4 +286,21 @@ export async function getShopFitmentCatalogProducts(
   }
 
   return products;
+}
+
+type ProductCollectionRow = {
+  sortOrder: number;
+  collection: {
+    id: string;
+    handle: string;
+    titleUa: string;
+    titleEn: string;
+    brand: string;
+    isUrban: boolean;
+  };
+};
+
+function readProductCollections(row: object): ProductCollectionRow[] {
+  if (!("collections" in row) || !Array.isArray(row.collections)) return [];
+  return row.collections as ProductCollectionRow[];
 }

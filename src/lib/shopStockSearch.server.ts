@@ -143,7 +143,7 @@ const CATALOG_BRAND_PRIORITY = [
   "Ilmberger Carbon",
 ].map(normalizeShopSearchText);
 
-let cachedProductsWithFitment: Array<{
+type IndexedShopProduct = {
   product: any;
   fitment: Fitment;
   fitments: Fitment[];
@@ -169,11 +169,24 @@ let cachedProductsWithFitment: Array<{
     yearRanges: Fitment["yearRanges"];
     fitmentMake: string | null;
   }>;
-}> | null = null;
+};
+
+let cachedProductsWithFitment: IndexedShopProduct[] | null = null;
 let cachedTimestamp = 0;
+let cachedBrowseProductsWithFitment: IndexedShopProduct[] | null = null;
+let cachedBrowseTimestamp = 0;
 let cachedFitmentOverrideUpdatedAt = 0;
 let lastFitmentOverrideVersionCheck = 0;
 const FITMENT_OVERRIDE_VERSION_CHECK_MS = 30 * 1000;
+
+export function invalidateShopStockSearchCaches() {
+  cachedProductsWithFitment = null;
+  cachedTimestamp = 0;
+  cachedBrowseProductsWithFitment = null;
+  cachedBrowseTimestamp = 0;
+  cachedFitmentOverrideUpdatedAt = 0;
+  lastFitmentOverrideVersionCheck = 0;
+}
 
 function indexProductWithFitment(
   product: any,
@@ -434,6 +447,23 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
 }
 
 export const getShopProductsWithFitments = singleFlight(loadShopProductsWithFitments);
+export const getShopBrowseProductsWithFitments = singleFlight(loadShopBrowseProductsWithFitments);
+
+async function loadShopBrowseProductsWithFitments() {
+  if (isLocalStorefrontMode()) return getShopProductsWithFitments();
+  const now = Date.now();
+  if (cachedBrowseProductsWithFitment && now - cachedBrowseTimestamp < 5 * 60 * 1000) {
+    return cachedBrowseProductsWithFitment;
+  }
+
+  const products = await getShopFitmentCatalogProducts({
+    includeVariants: false,
+    includeCollections: false,
+  });
+  cachedBrowseProductsWithFitment = products.map((product) => indexProductWithFitment(product));
+  cachedBrowseTimestamp = now;
+  return cachedBrowseProductsWithFitment;
+}
 
 async function loadShopProductsWithFitments() {
   const now = Date.now();
@@ -887,11 +917,14 @@ export async function searchShopStock(request: { url: string }) {
       return NextResponse.json({ error: "Search query is too long" }, { status: 400 });
     if (
       !isLocalStorefrontMode() &&
-      searchParams.get("carousel") !== "1" &&
-      process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr" &&
-      canUsePremiumCatalogProjection(new URL(request.url).searchParams)
+      process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr"
     ) {
-      return await queryPremiumCatalogProjection(searchParams);
+      if (
+        searchParams.get("carousel") !== "1" &&
+        canUsePremiumCatalogProjection(new URL(request.url).searchParams)
+      ) {
+        return await queryPremiumCatalogProjection(searchParams);
+      }
     }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     // Keep the original code for exact SKU matching. Text/vehicle matching
@@ -994,6 +1027,18 @@ export async function searchShopStock(request: { url: string }) {
             fuel: searchParams.get("fuel"),
           },
         }).catch((error: unknown) => ({ error }) as const);
+    const useCompactBrowseCatalog = Boolean(
+      !isLocalStorefrontMode() &&
+      !q &&
+      !category &&
+      !productType &&
+      (!productKind || productKind === "any") &&
+      !hasBrandFilter &&
+      !hasVehicleConstraints &&
+      !strictCatalogApplied &&
+      !all &&
+      searchParams.get("carousel") !== "1"
+    );
 
     const [settings, session, canonicalVehicleProductIds, strictCatalogResolution] =
       await Promise.all([
@@ -1014,11 +1059,22 @@ export async function searchShopStock(request: { url: string }) {
         strictCatalogPromise,
       ]);
     mark("context");
+    const pricingContextPromise = buildShopViewerPricingContextServer({
+      prisma,
+      settings,
+      customerId: session?.customerId,
+      customerGroup: session?.group,
+      isAuthenticated: Boolean(session),
+      customerB2BDiscountPercent: session?.b2bDiscountPercent,
+      priceCountry: country,
+    });
     const allProductsWithFitments =
       requestedFuel && canonicalVehicleProductIds === null
         ? []
         : canonicalVehicleProductIds === null
-          ? await getShopProductsWithFitments()
+          ? useCompactBrowseCatalog
+            ? await getShopBrowseProductsWithFitments()
+            : await getShopProductsWithFitments()
           : await getShopProductsWithFitmentsByIds(canonicalVehicleProductIds);
     mark("catalog");
     let scopedProductsWithFitments = filterShopStockItemsByVehicleScope(
@@ -1068,15 +1124,7 @@ export async function searchShopStock(request: { url: string }) {
       return inferShopAiProductKind(evidence, categoryGroup.id) === productKind;
     };
 
-    const pricingContext = await buildShopViewerPricingContextServer({
-      prisma,
-      settings,
-      customerId: session?.customerId,
-      customerGroup: session?.group,
-      isAuthenticated: Boolean(session),
-      customerB2BDiscountPercent: session?.b2bDiscountPercent,
-      priceCountry: country,
-    });
+    const pricingContext = await pricingContextPromise;
 
     const pricingCache = new WeakMap<object, ReturnType<typeof resolveShopProductPricing>>();
     const priceSetCache = new WeakMap<object, ReturnType<typeof expandShopPrices>>();
@@ -1464,6 +1512,20 @@ export async function searchShopStock(request: { url: string }) {
     const totalItems = scoredItems.length;
     const totalPages = Math.ceil(totalItems / limit);
     const paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
+    const detailedVisibleItems = useCompactBrowseCatalog
+      ? await getShopProductsWithFitmentsByIds(
+          paginatedItems.map((item) => item.product.id).filter((id): id is string => Boolean(id))
+        )
+      : [];
+    const detailedVisibleItemsById = new Map(
+      detailedVisibleItems.map((item) => [item.product.id, item])
+    );
+    const renderedPaginatedItems = useCompactBrowseCatalog
+      ? paginatedItems.map((item) => {
+          const detailed = detailedVisibleItemsById.get(item.product.id);
+          return detailed ? { ...item, ...detailed } : item;
+        })
+      : paginatedItems;
     const fallbackApplied: "fitment" | "all" | null = null;
     const statsItems = scoredItems;
 
@@ -1473,10 +1535,10 @@ export async function searchShopStock(request: { url: string }) {
     // recover from the same product's gallery without bloating the 17k-row
     // catalog cache or adding media joins to every fitment scan.
     const visibleProductIds =
-      paginatedItems.length <= MAX_STOCK_SEARCH_LIMIT
+      renderedPaginatedItems.length <= MAX_STOCK_SEARCH_LIMIT
         ? Array.from(
             new Set(
-              paginatedItems
+              renderedPaginatedItems
                 .filter(({ product }) => {
                   const brand = normalizeShopSearchText(getProductDisplayBrand(product.brand));
                   return !product.image || brand.includes("kw");
@@ -1502,7 +1564,7 @@ export async function searchShopStock(request: { url: string }) {
       if (media.src?.trim()) sources.push(media.src.trim());
       visibleMediaByProduct.set(media.productId, sources);
     }
-    const sanitizedItems = paginatedItems.map(
+    const sanitizedItems = renderedPaginatedItems.map(
       ({ product, fitments, fitmentStatus, fitmentSource }) => {
         const pricing = getProductPricing(product);
         const strictCatalogMatch = strictCatalogMatches?.get(product.id);

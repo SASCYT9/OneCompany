@@ -95,6 +95,7 @@ import {
   parseStockPage,
   stockSearchCacheKey,
 } from "@/lib/shopStockInitialSearch";
+import CatalogLoadingShell from "./CatalogLoadingShell";
 
 type StockFilter = "all" | "inStock" | "preOrder";
 type StockSort = "default" | "price_asc" | "price_desc" | "name_asc";
@@ -3208,6 +3209,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       locale,
     ]
   );
+
+  if (isInitialCatalogLoading) return <CatalogLoadingShell />;
 
   return (
     <div className="relative min-h-screen overflow-x-clip bg-background text-foreground selection:bg-foreground/20">

@@ -427,11 +427,13 @@ test("SSR catalog exposes progressive GET filters and keyset continuation withou
 
 test("catalog route avoids transition graphics and keeps recoverable error states", () => {
   const loading = readFileSync("src/app/[locale]/shop/catalog/loading.tsx", "utf8");
+  const loadingShell = readFileSync("src/app/[locale]/shop/stock/CatalogLoadingShell.tsx", "utf8");
   const error = readFileSync("src/app/[locale]/shop/catalog/error.tsx", "utf8");
   const server = readFileSync("src/app/[locale]/shop/catalog/CatalogV2Server.tsx", "utf8");
   const premium = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
-  assert.match(loading, /return null/);
-  assert.doesNotMatch(loading, /animate-pulse|aspect-square/);
+  assert.match(loading, /CatalogLoadingShell/);
+  assert.match(loading, /return <CatalogLoadingShell \/>/);
+  assert.match(loadingShell, /animate-pulse|aspect-square/);
   assert.doesNotMatch(premium, /Array\.from\(\{ length: 12 \}\)/);
   assert.match(error, /"use client"/);
   assert.match(error, /onClick=\{reset\}/);
