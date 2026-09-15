@@ -61,9 +61,12 @@ the current code.
 
 - `src/lib/shopCatalogServer.ts`: DB mapping, static/catalog-shard fallback,
   emergency image overrides, brand fetchers, PDP lookup, and in-process caches.
-- SEO recovery update (2026-09-12): the approved `/shop/catalog` presentation is
-  still internally rewritten to `/shop/stock`. Its server `page.tsx` now loads
-  one request-specific result page and passes it to `StockCatalogClient.tsx`.
+- Catalog loading update (2026-09-15): the approved `/shop/catalog` presentation is
+  still internally rewritten to `/shop/stock`. Its page streams a theme-aware
+  loading shell while `StockCatalogClient.tsx` starts cacheable catalog and
+  warehouse-carousel requests in parallel. The hero may use a curated in-stock
+  item from the first catalog page until its complete curated list arrives, and
+  both reads use the projection adapter when the accelerated V2 reader is active.
   Shared search/session/pricing logic lives in `src/lib/shopStockSearch.server.ts`;
   `/api/shop/stock/search` is its HTTP adapter. Preserve the existing reader gates
   and never cache personalized catalog HTML publicly. Catalog metadata includes
