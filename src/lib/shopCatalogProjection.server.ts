@@ -500,10 +500,12 @@ function normalizedCompatibility(input: {
     return found[0] ?? null;
   };
   for (const rawPolicy of input.policies) {
+    let hasUnresolvedEngine = false;
     const policy = {
       ...rawPolicy,
       clauses: rawPolicy.clauses.map((clause) => ({
         ...clause,
+        verification: clause.verification,
         constraints: clause.constraints.map((constraint) => {
           if (constraint.dimension !== "engine" || constraint.state !== "EXACT") return constraint;
           return {
@@ -515,6 +517,7 @@ function normalizedCompatibility(input: {
                 clause.id,
                 value
               );
+              if (!powertrain) hasUnresolvedEngine = true;
               return powertrain
                 ? {
                     kind: "powertrain" as const,
@@ -527,6 +530,19 @@ function normalizedCompatibility(input: {
         }),
       })),
     } satisfies ShopCatalogV2CompatibilityPolicy;
+    if (hasUnresolvedEngine) {
+      policy.clauses = policy.clauses.map((clause) => ({
+        ...clause,
+        verification: clause.constraints.some(
+          (constraint) =>
+            constraint.dimension === "engine" &&
+            constraint.state === "EXACT" &&
+            constraint.values.some((value) => typeof value === "string")
+        )
+          ? "NEEDS_REVIEW"
+          : clause.verification,
+      }));
+    }
     const errors = validateShopCatalogV2CompatibilityPolicy(policy);
     if (errors.length) fail(`compatibility policy is invalid: ${errors.join("; ")}`);
     if (policy.target.productId !== input.productId) {

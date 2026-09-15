@@ -249,6 +249,15 @@ test(
       });
       assert.equal(publishedStatus?.status, "PUBLISHED");
       assert.equal(publishedStatus?.maxVersionLag, "0");
+      assert.equal(
+        (
+          await client.shopProduct.findUniqueOrThrow({
+            where: { id: productId },
+            select: { publishedCatalogVersion: true },
+          })
+        ).publishedCatalogVersion,
+        BigInt(2)
+      );
       assert.equal((await persistShopCatalogProjectionBuild(newer)).decision, "IDEMPOTENT");
       assert.equal((await persistShopCatalogProjectionBuild(first)).decision, "STALE_VERSION");
 

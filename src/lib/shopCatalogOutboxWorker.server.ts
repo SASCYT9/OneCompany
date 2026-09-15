@@ -318,23 +318,52 @@ export async function processShopCatalogOutboxJob(input: {
       await handler({ job: input.job, target });
       await completeTarget(input.job, target, workerId);
     }
-    const completed = await prisma.shopCatalogOutbox.updateMany({
-      where: {
-        id: input.job.id,
-        status: ShopCatalogOutboxStatus.PROCESSING,
-        lockedBy: workerId,
-        leaseExpiresAt: { gt: new Date() },
-      },
-      data: {
-        status: ShopCatalogOutboxStatus.COMPLETED,
-        processedAt: new Date(),
-        lockedBy: null,
-        lockedAt: null,
-        leaseExpiresAt: null,
-        lastError: null,
-      },
+    const completed = await prisma.$transaction(async (tx) => {
+      const outbox = await tx.shopCatalogOutbox.updateMany({
+        where: {
+          id: input.job.id,
+          status: ShopCatalogOutboxStatus.PROCESSING,
+          lockedBy: workerId,
+          leaseExpiresAt: { gt: new Date() },
+        },
+        data: {
+          status: ShopCatalogOutboxStatus.COMPLETED,
+          processedAt: new Date(),
+          lockedBy: null,
+          lockedAt: null,
+          leaseExpiresAt: null,
+          lastError: null,
+        },
+      });
+      if (outbox.count !== 1) return false;
+
+      // The product is publicly current only after every required target has
+      // acknowledged this immutable revision. Keep that publication pointer in
+      // the same transaction as the durable outbox completion.
+      if (input.job.entityType === "PRODUCT" && input.job.productId) {
+        const product = await tx.shopProduct.updateMany({
+          where: {
+            id: input.job.productId,
+            catalogVersion: { gte: input.job.canonicalVersion },
+            publishedCatalogVersion: { lt: input.job.canonicalVersion },
+          },
+          data: { publishedCatalogVersion: input.job.canonicalVersion },
+        });
+        if (product.count !== 1) {
+          const alreadyPublished = await tx.shopProduct.count({
+            where: {
+              id: input.job.productId,
+              publishedCatalogVersion: { gte: input.job.canonicalVersion },
+            },
+          });
+          if (alreadyPublished !== 1) {
+            throw new Error(`Could not publish catalog version for ${input.job.id}`);
+          }
+        }
+      }
+      return true;
     });
-    if (completed.count !== 1) throw new Error(`Lost lease for catalog outbox ${input.job.id}`);
+    if (!completed) throw new Error(`Lost lease for catalog outbox ${input.job.id}`);
     return {
       jobId: input.job.id,
       status: "COMPLETED",

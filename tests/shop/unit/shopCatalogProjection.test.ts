@@ -361,11 +361,20 @@ test("canonical engine identity cannot cross projection clauses", async () => {
   source.canonicalPowertrains = [
     { variantId: null, clauseId: "bmw-s68", code: "S68", powertrainId: "powertrain-bmw-s68" },
   ];
-  const constraints = buildShopCatalogProjection(source).compatibilityConstraints.filter(
+  const projection = buildShopCatalogProjection(source);
+  const constraints = projection.compatibilityConstraints.filter(
     (item) => item.dimension === "engine" && item.state === "EXACT"
   );
   assert.equal(constraints.find((item) => item.clauseId === "bmw-s68")?.value?.kind, "powertrain");
   assert.equal(constraints.find((item) => item.clauseId === "other-s68")?.value?.kind, "text");
+  assert.equal(
+    projection.compatibilityClauses.find((item) => item.clauseId === "bmw-s68")?.verification,
+    "VERIFIED"
+  );
+  assert.equal(
+    projection.compatibilityClauses.find((item) => item.clauseId === "other-s68")?.verification,
+    "NEEDS_REVIEW"
+  );
 });
 
 test("bounded batch builder uses deterministic product-id cursor and rejects full-catalog input", async () => {
