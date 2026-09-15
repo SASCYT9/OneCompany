@@ -22,6 +22,10 @@ test("all-source gate is disposable, commit-bound, exhaustive, parity checked, a
   assert.match(gate, /canonicalShapeCounts/);
   assert.match(gate, /legacySnapshotCounts/);
   assert.match(gate, /snapshotMediaReferences/);
+  assert.match(gate, /buildFiExhaustSupplementalSourceRecordDraft/);
+  assert.match(gate, /buildKwSuspensionsSupplementalSourceRecordDraft/);
+  assert.match(gate, /buildBootmod3SourceRecordDraft/);
+  assert.match(gate, /buildGSportSourceRecordDraft/);
   assert.match(gate, /initialRecordsPerHour/);
   assert.match(gate, /replayRecordsPerHour/);
   assert.match(gate, /catalog-v2-all-source-gate\.json/);

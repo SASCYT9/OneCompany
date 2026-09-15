@@ -5,22 +5,30 @@ import {
   type ShopCatalogReleaseEvidence,
 } from "./shopCatalogReleaseActivationGuard";
 
-export const SHOP_CATALOG_LOGICAL_SOURCES = Object.freeze([
-  "adro",
-  "akrapovic",
-  "brabus",
-  "burger",
-  "csf",
-  "do88",
-  "eventuri",
-  "girodisc",
-  "ilmberger",
-  "ipe",
-  "ohlins",
-  "racechip",
-  "remus",
-  "urban",
+export const SHOP_CATALOG_RELEASE_SOURCES = Object.freeze([
+  { key: "adro", sourceKey: "adro-snapshot-v1" },
+  { key: "akrapovic", sourceKey: "akrapovic-snapshot-v1" },
+  { key: "bootmod3", sourceKey: "bootmod3-catalog-snapshot-v1" },
+  { key: "brabus", sourceKey: "brabus-snapshot-v1" },
+  { key: "burger", sourceKey: "burger-snapshot-v1" },
+  { key: "csf", sourceKey: "csf-snapshot-v1" },
+  { key: "do88", sourceKey: "do88-snapshot-v1" },
+  { key: "eventuri", sourceKey: "eventuri-snapshot-v1" },
+  { key: "fi-exhaust", sourceKey: "fi-exhaust-catalog-snapshot-v1" },
+  { key: "g-sport", sourceKey: "g-sport-catalog-snapshot-v1" },
+  { key: "girodisc", sourceKey: "girodisc-snapshot-v1" },
+  { key: "ilmberger", sourceKey: "ilmberger-snapshot-v1" },
+  { key: "ipe", sourceKey: "ipe-snapshot-v1" },
+  { key: "kw-suspensions", sourceKey: "kw-suspensions-catalog-snapshot-v1" },
+  { key: "ohlins", sourceKey: "ohlins-snapshot-v1" },
+  { key: "racechip", sourceKey: "racechip-snapshot-v1" },
+  { key: "remus", sourceKey: "remus-generic-subset-v1" },
+  { key: "urban", sourceKey: "urban-snapshot-v1" },
 ] as const);
+
+export const SHOP_CATALOG_LOGICAL_SOURCES = Object.freeze(
+  SHOP_CATALOG_RELEASE_SOURCES.map((source) => source.key)
+);
 
 export function calculateShopCatalogShadowWindowHours(input: {
   requestedSince: Date;
@@ -93,7 +101,7 @@ export function fingerprintCatalogSourceCoverage(
   sources: readonly { key: string; recordFingerprints: readonly string[] }[]
 ) {
   if (sources.length !== SHOP_CATALOG_LOGICAL_SOURCES.length)
-    throw new Error("all 14 logical sources are required");
+    throw new Error(`all ${SHOP_CATALOG_LOGICAL_SOURCES.length} logical sources are required`);
   const expected = SHOP_CATALOG_LOGICAL_SOURCES.join("\n");
   const ordered = [...sources].sort((a, b) => a.key.localeCompare(b.key));
   if (ordered.map((source) => source.key).join("\n") !== expected)

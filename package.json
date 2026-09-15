@@ -79,6 +79,8 @@
     "shop:catalog:v2:eventuri:audit": "tsx scripts/audit-catalog-v2-eventuri.ts",
     "shop:catalog:v2:eventuri:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-eventuri.ts",
     "shop:catalog:v2:remaining:audit": "tsx scripts/audit-catalog-v2-remaining-sources.ts",
+    "shop:catalog:v2:supplemental:audit": "tsx scripts/audit-catalog-v2-supplemental.ts",
+    "shop:catalog:v2:supplemental:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-supplemental.ts",
     "shop:catalog:v2:brabus:audit": "tsx scripts/audit-catalog-v2-brabus.ts",
     "shop:catalog:v2:brabus:backfill": "node scripts/run-react-server-tsx.mjs scripts/backfill-catalog-v2-brabus.ts",
     "shop:catalog:v2:urban:audit": "tsx scripts/audit-catalog-v2-urban.ts",

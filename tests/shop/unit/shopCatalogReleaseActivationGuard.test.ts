@@ -19,7 +19,7 @@ function marker(overrides: Record<string, unknown> = {}) {
     expiresAt: "2026-08-31T13:00:00.000Z",
     ownershipFingerprint: SHOP_CATALOG_OWNERSHIP_FINGERPRINT,
     sourceCoverageFingerprint: "b".repeat(64),
-    sourcesReady: 14,
+    sourcesReady: 18,
     projectionLag: 0,
     shadow: { sampledRequests: 1000, mismatches: 0, errorRate: 0, windowHours: 24 },
     performance: { scaleP95Ms: 100, publicationP95Ms: 1000 },

@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const SHOP_CATALOG_OWNERSHIP_FINGERPRINT =
-  "54f4760626c096253476c9c3948a2ef439430f3cbcf08164e2a0e2f9ff38fbe9";
+  "d252c2d72d520152a8c1ce7120568f701f1930f20c8393b9f7e89a519773a336";
+export const SHOP_CATALOG_REQUIRED_SOURCE_COUNT = 18 as const;
 export const SHOP_CATALOG_RELEASE_MARKER_VERSION = 2 as const;
 export type ShopCatalogReleaseEvidence = {
   version: 2;
@@ -104,8 +105,10 @@ export function evaluateShopCatalogReleaseActivation(input: {
       expires - generated > 86_400_000
     )
       reasons.push("release evidence is stale or has an invalid lifetime");
-    if (evidence.sourcesReady !== 14)
-      reasons.push("all 14 logical sources must be activation-ready");
+    if (evidence.sourcesReady !== SHOP_CATALOG_REQUIRED_SOURCE_COUNT)
+      reasons.push(
+        `all ${SHOP_CATALOG_REQUIRED_SOURCE_COUNT} logical sources must be activation-ready`
+      );
     if (evidence.projectionLag !== 0) reasons.push("projection version lag must be zero");
     if (
       !Number.isFinite(evidence.shadow?.sampledRequests) ||

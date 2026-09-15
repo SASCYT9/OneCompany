@@ -64,13 +64,13 @@ test("shadow window is derived from actual observations inside the requested ran
   );
 });
 
-test("source coverage fingerprint requires the exact 14-source set", () => {
+test("source coverage fingerprint requires the exact 18-source set", () => {
   const sources = SHOP_CATALOG_LOGICAL_SOURCES.map((key) => ({
     key,
     recordFingerprints: ["c".repeat(64)],
   }));
   assert.match(fingerprintCatalogSourceCoverage(sources), /^[a-f0-9]{64}$/);
-  assert.throws(() => fingerprintCatalogSourceCoverage(sources.slice(1)), /14 logical sources/);
+  assert.throws(() => fingerprintCatalogSourceCoverage(sources.slice(1)), /18 logical sources/);
   assert.throws(
     () =>
       fingerprintCatalogSourceCoverage(
@@ -92,7 +92,7 @@ test("release evidence has a bounded lifetime and exact immutable identity", () 
     rollout: { maxCanaryPercentage: 5, fullSsrApproved: false, approvedBy: "Catalog Owner" },
   });
   assert.equal(evidence.expiresAt, "2026-09-01T14:00:00.000Z");
-  assert.equal(evidence.sourcesReady, 14);
+  assert.equal(evidence.sourcesReady, 18);
   assert.throws(
     () =>
       buildShopCatalogReleaseEvidence({

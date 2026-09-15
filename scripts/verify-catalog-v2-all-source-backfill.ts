@@ -33,6 +33,18 @@ import { buildRemusSourceRecordDraft } from "../src/lib/shopCatalogRemusNormaliz
 import { persistRemusSourceRecordPageWithClient } from "../src/lib/shopCatalogRemusBackfill.server";
 import { buildUrbanSourceRecordDraft } from "../src/lib/shopCatalogUrbanNormalization";
 import { persistUrbanSourceRecordPageWithClient } from "../src/lib/shopCatalogUrbanBackfill.server";
+import {
+  buildBootmod3SourceRecordDraft,
+  buildFiExhaustSupplementalSourceRecordDraft,
+  buildGSportSourceRecordDraft,
+  buildKwSuspensionsSupplementalSourceRecordDraft,
+} from "../src/lib/shopCatalogSupplementalNormalization";
+import {
+  persistBootmod3SourceRecordPageWithClient,
+  persistFiExhaustSupplementalSourceRecordPageWithClient,
+  persistGSportSourceRecordPageWithClient,
+  persistKwSuspensionsSupplementalSourceRecordPageWithClient,
+} from "../src/lib/shopCatalogSupplementalBackfill.server";
 
 type Snapshot = {
   id: string;
@@ -70,14 +82,18 @@ type Persist = (
 const builders = {
   adro: buildAdroSourceRecordDraft,
   akrapovic: buildAkrapovicSourceRecordDraft,
+  bootmod3: buildBootmod3SourceRecordDraft,
   brabus: buildBrabusSourceRecordDraft,
   burger: buildBurgerSourceRecordDraft,
   csf: buildCsfSourceRecordDraft,
   do88: buildDo88SourceRecordDraft,
   eventuri: buildEventuriSourceRecordDraft,
+  "fi-exhaust": buildFiExhaustSupplementalSourceRecordDraft,
   girodisc: buildGirodiscSourceRecordDraft,
+  "g-sport": buildGSportSourceRecordDraft,
   ilmberger: buildIlmbergerSourceRecordDraft,
   ipe: buildIpeSourceRecordDraft,
+  "kw-suspensions": buildKwSuspensionsSupplementalSourceRecordDraft,
   ohlins: buildOhlinsSourceRecordDraft,
   racechip: buildRaceChipSourceRecordDraft,
   remus: buildRemusSourceRecordDraft,
@@ -86,14 +102,18 @@ const builders = {
 const persisters = {
   adro: persistAdroSourceRecordPageWithClient,
   akrapovic: persistAkrapovicSourceRecordPageWithClient,
+  bootmod3: persistBootmod3SourceRecordPageWithClient,
   brabus: persistBrabusSourceRecordPageWithClient,
   burger: persistBurgerSourceRecordPageWithClient,
   csf: persistCsfSourceRecordPageWithClient,
   do88: persistDo88SourceRecordPageWithClient,
   eventuri: persistEventuriSourceRecordPageWithClient,
+  "fi-exhaust": persistFiExhaustSupplementalSourceRecordPageWithClient,
   girodisc: persistGirodiscSourceRecordPageWithClient,
+  "g-sport": persistGSportSourceRecordPageWithClient,
   ilmberger: persistIlmbergerSourceRecordPageWithClient,
   ipe: persistIpeSourceRecordPageWithClient,
+  "kw-suspensions": persistKwSuspensionsSupplementalSourceRecordPageWithClient,
   ohlins: persistOhlinsSourceRecordPageWithClient,
   racechip: persistRaceChipSourceRecordPageWithClient,
   remus: persistRemusSourceRecordPageWithClient,
@@ -145,20 +165,32 @@ async function load() {
       throw new Error(`${name} immutable shard mismatch`);
     manifestRecords += products.length;
     if (name === "generic") {
-      const eventuri = products.filter((product) => product.brand?.toLowerCase() === "eventuri"),
-        remus = products.filter((product) => product.brand?.toLowerCase() === "remus");
-      const unsupported = new Map<string, number>();
+      const sourceByBrand = new Map<string, keyof typeof builders>([
+          ["bootmod3", "bootmod3"],
+          ["eventuri", "eventuri"],
+          ["fi exhaust", "fi-exhaust"],
+          ["g-sport by gesi", "g-sport"],
+          ["kw suspensions", "kw-suspensions"],
+          ["remus", "remus"],
+        ]),
+        partitions = new Map<keyof typeof builders, Snapshot[]>(),
+        unsupported = new Map<string, number>();
       for (const product of products) {
-        if (["eventuri", "remus"].includes(product.brand?.toLowerCase() ?? "")) continue;
-        const brand = product.brand || "<missing brand>";
-        unsupported.set(brand, (unsupported.get(brand) ?? 0) + 1);
+        const source = sourceByBrand.get(product.brand?.trim().toLowerCase() ?? "");
+        if (!source) {
+          const brand = product.brand || "<missing brand>";
+          unsupported.set(brand, (unsupported.get(brand) ?? 0) + 1);
+          continue;
+        }
+        const partition = partitions.get(source) ?? [];
+        partition.push(product);
+        partitions.set(source, partition);
       }
       for (const [brand, records] of unsupported)
         unsupportedSources.push({ name: brand, records, revision });
-      sources.push(
-        { name: "eventuri", products: eventuri, revision },
-        { name: "remus", products: remus, revision }
-      );
+      for (const [partition, partitionProducts] of partitions) {
+        sources.push({ name: partition, products: partitionProducts, revision });
+      }
     } else if (Object.hasOwn(builders, name)) {
       sources.push({ name: name as keyof typeof builders, products, revision });
     } else unsupportedSources.push({ name, records: products.length, revision });

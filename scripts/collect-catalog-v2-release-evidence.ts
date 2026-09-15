@@ -8,7 +8,7 @@ import {
   calculateShopCatalogShadowWindowHours,
   fingerprintCatalogSourceCoverage,
   readCommitBoundPerformance,
-  SHOP_CATALOG_LOGICAL_SOURCES,
+  SHOP_CATALOG_RELEASE_SOURCES,
 } from "../src/lib/shopCatalogReleaseEvidence";
 import {
   createShopCatalogReleaseMarker,
@@ -46,24 +46,27 @@ async function jsonArtifact(relativePath: string) {
 
 async function sourceCoverage(client: PrismaClient) {
   const result: Array<{ key: string; recordFingerprints: string[] }> = [];
-  for (const key of SHOP_CATALOG_LOGICAL_SOURCES) {
+  for (const source of SHOP_CATALOG_RELEASE_SOURCES) {
     let cursor: string | null = null;
     const recordFingerprints: string[] = [];
     do {
       const page = await readShopCatalogSourceCoveragePage(client, {
-        sourceKey: key,
+        sourceKey: source.sourceKey,
         afterRecordId: cursor,
         limit: 500,
       });
-      if (!page || !page.source.isActive) throw new Error(`source ${key} is missing or inactive`);
+      if (!page || !page.source.isActive)
+        throw new Error(`source ${source.key} (${source.sourceKey}) is missing or inactive`);
       for (const record of page.records) {
         if (!record.activationReady || !record.fingerprint)
-          throw new Error(`source ${key} record ${record.recordKey} is not activation-ready`);
+          throw new Error(
+            `source ${source.key} record ${record.recordKey} is not activation-ready`
+          );
         recordFingerprints.push(record.fingerprint);
       }
       cursor = page.nextRecordId;
     } while (cursor);
-    result.push({ key, recordFingerprints });
+    result.push({ key: source.key, recordFingerprints });
   }
   return fingerprintCatalogSourceCoverage(result);
 }
