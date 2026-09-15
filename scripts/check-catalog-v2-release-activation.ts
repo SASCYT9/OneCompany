@@ -7,6 +7,7 @@ const decision = assertShopCatalogReleaseActivation({
   deployedCommit: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA,
   marker: process.env.SHOP_CATALOG_V2_RELEASE_GATE_MARKER,
   secret: process.env.SHOP_CATALOG_V2_RELEASE_GATE_SECRET,
+  acceleratedRollout: process.env.SHOP_CATALOG_V2_ACCELERATED_ROLLOUT === "1",
 });
 process.stdout.write(
   `${JSON.stringify({ allowed: decision.allowed, requested: decision.requested, evidenceCommit: decision.evidence?.commitSha ?? null })}\n`

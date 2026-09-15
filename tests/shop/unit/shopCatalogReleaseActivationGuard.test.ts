@@ -40,6 +40,24 @@ test("catalog reader stays unaffected outside requested production activation", 
     true
   );
 });
+test("accelerated rollout remains explicit and production-only", () => {
+  assert.equal(
+    evaluateShopCatalogReleaseActivation({
+      nodeEnv: "production",
+      readerMode: "ssr",
+      acceleratedRollout: true,
+    }).allowed,
+    true
+  );
+  assert.equal(
+    evaluateShopCatalogReleaseActivation({
+      nodeEnv: "production",
+      readerMode: "ssr",
+      acceleratedRollout: false,
+    }).allowed,
+    false
+  );
+});
 test("signed canary evidence permits only its authorized percentage", () => {
   assert.equal(
     evaluateShopCatalogReleaseActivation({

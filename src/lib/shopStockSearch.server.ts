@@ -923,7 +923,16 @@ export async function searchShopStock(request: { url: string }) {
         searchParams.get("carousel") !== "1" &&
         canUsePremiumCatalogProjection(new URL(request.url).searchParams)
       ) {
-        return await queryPremiumCatalogProjection(searchParams);
+        try {
+          return await queryPremiumCatalogProjection(searchParams);
+        } catch (error) {
+          console.error({
+            event: "catalog_v2_accelerated_fallback",
+            errorType: error instanceof Error ? error.name : "UnknownError",
+          });
+          // Keep the request available while the accelerated rollout is being
+          // observed. The legacy path below uses the same URL and response shape.
+        }
       }
     }
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);

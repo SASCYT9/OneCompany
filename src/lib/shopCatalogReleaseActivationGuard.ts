@@ -38,6 +38,7 @@ export function evaluateShopCatalogReleaseActivation(input: {
   marker?: string;
   secret?: string;
   now?: Date;
+  acceleratedRollout?: boolean;
 }): ShopCatalogActivationDecision {
   const mode = input.readerMode?.trim().toLowerCase() ?? "";
   const requested = ["ssr", "canary"].includes(mode);
@@ -57,6 +58,12 @@ export function evaluateShopCatalogReleaseActivation(input: {
   }
   if (input.nodeEnv !== "production" || !requested)
     return { allowed: true, requested, reasons: [], evidence: null };
+  // Owner-authorized accelerated rollout keeps the serving reader reversible
+  // while bypassing the time-bound evidence marker. Runtime projection reads
+  // still fall back to legacy per request when V2 throws.
+  if (input.acceleratedRollout === true) {
+    return { allowed: true, requested: true, reasons: [], evidence: null };
+  }
   const reasons: string[] = [],
     secret = input.secret ?? "",
     now = input.now ?? new Date();

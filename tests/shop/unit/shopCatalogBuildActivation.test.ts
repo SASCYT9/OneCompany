@@ -67,3 +67,32 @@ test("build activation cannot inherit a development NODE_ENV to bypass unsigned 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /signed release evidence marker is required/);
 });
+
+test("an explicit owner-authorized accelerated rollout can bypass only the time-bound marker", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      path.join(root, "node_modules/tsx/dist/cli.mjs"),
+      path.join(root, "scripts/check-catalog-v2-release-activation.ts"),
+      "--production-build",
+    ],
+    {
+      cwd: root,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        DATABASE_URL: "",
+        DIRECT_URL: "",
+        SHOP_CATALOG_V2_READER_MODE: "ssr",
+        SHOP_CATALOG_V2_VEHICLE_READER_MODE: "off",
+        SHOP_CATALOG_V2_ACCELERATED_ROLLOUT: "1",
+        SHOP_CATALOG_V2_RELEASE_GATE_MARKER: "",
+        SHOP_CATALOG_V2_RELEASE_GATE_SECRET: "",
+        VERCEL_GIT_COMMIT_SHA: "",
+        GITHUB_SHA: "",
+      },
+    }
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /"allowed":true/);
+});
