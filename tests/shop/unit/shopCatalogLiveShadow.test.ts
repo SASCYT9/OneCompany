@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { compareShopCatalogLiveShadowPage } from "../../../src/lib/shopCatalogLiveShadow";
 
-test("live shadow page comparison checks identity, order, and continuation", () => {
+test("live shadow comparison permits ranking changes without hiding complete-set loss", () => {
   assert.equal(
     compareShopCatalogLiveShadowPage({
       legacyProductIds: ["p1", "p2"],
@@ -14,6 +14,25 @@ test("live shadow page comparison checks identity, order, and continuation", () 
     }).parity,
     true
   );
+
+  const reordered = compareShopCatalogLiveShadowPage({
+    legacyProductIds: ["p1", "p2"],
+    projectionProductIds: ["p2", "p1"],
+    legacyHasMore: false,
+    projectionHasMore: false,
+  });
+  assert.equal(reordered.parity, true);
+  assert.equal(reordered.comparisonCompleteness, "complete_result_set");
+  assert.equal(reordered.orderMismatchCount, 2);
+
+  const rerankedWindow = compareShopCatalogLiveShadowPage({
+    legacyProductIds: ["p1", "p2"],
+    projectionProductIds: ["p3", "p4"],
+    legacyHasMore: true,
+    projectionHasMore: true,
+  });
+  assert.equal(rerankedWindow.parity, true);
+  assert.equal(rerankedWindow.comparisonCompleteness, "bounded_window");
 
   const mismatch = compareShopCatalogLiveShadowPage({
     legacyProductIds: ["p1", "p2"],

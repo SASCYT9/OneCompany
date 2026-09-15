@@ -6,10 +6,11 @@ export function nextPageHref(
   query: ShopCatalogStorefrontQuery,
   result: ShopCatalogProjectionQueryResult
 ) {
+  const usesStableRankCursor = query.order === "default" && !query.text;
   if (!result.hasMore) return null;
-  if (query.order === "default" && !result.nextCursor) return null;
+  if (usesStableRankCursor && !result.nextCursor) return null;
   // The public query parser caps page numbers at 10,000.
-  if (query.order !== "default" && query.page >= 10_000) return null;
+  if (!usesStableRankCursor && query.page >= 10_000) return null;
   const params = new URLSearchParams();
   const strings: Array<[string, string | null | undefined]> = [
     ["q", query.text],
@@ -42,7 +43,7 @@ export function nextPageHref(
   if (query.maxPrice != null) params.set("maxPrice", String(query.maxPrice));
   for (const [key, value] of strings) if (value) params.set(key, value);
   if (query.year != null) params.set("year", String(query.year));
-  if (query.order === "default" && result.nextCursor) {
+  if (usesStableRankCursor && result.nextCursor) {
     params.set("afterRank", result.nextCursor.stableRank);
     params.set("afterProduct", result.nextCursor.productId);
   } else {

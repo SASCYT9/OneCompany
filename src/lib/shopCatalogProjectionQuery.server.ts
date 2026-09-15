@@ -461,6 +461,64 @@ function projectionSearchConditionSql(text: string) {
   )`;
 }
 
+/**
+ * Rank only the already indexed candidate set. The projection search text is
+ * intentionally broad for recall, while title/brand/SKU weights keep buyer
+ * intent ahead of incidental mentions in descriptions and fitment metadata.
+ */
+function projectionSearchRelevanceSql(text: string) {
+  const normalized = normalizeShopSearchText(text);
+  const compact = compactSearchCode(text);
+  const tokens = tokenizeShopSearchQuery(text);
+  const titleTokenScore = tokens.length
+    ? Prisma.sql`(${Prisma.join(
+        tokens.map(
+          (token) =>
+            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(projection."title")`, token)} THEN 60 ELSE 0 END`
+        ),
+        " + "
+      )})`
+    : Prisma.sql`0`;
+  const brandTokenScore = tokens.length
+    ? Prisma.sql`(${Prisma.join(
+        tokens.map(
+          (token) =>
+            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(coalesce(projection."brandLabel", projection."brandKey"))`, token)} THEN 35 ELSE 0 END`
+        ),
+        " + "
+      )})`
+    : Prisma.sql`0`;
+  const exactSku = isStructuredSearchCode(compact)
+    ? Prisma.sql`CASE WHEN (
+        lower(coalesce(projection."normalizedSku", '')) = lower(${compact})
+        OR EXISTS (
+          SELECT 1
+          FROM "ShopCatalogProjectionSku" relevance_sku
+          WHERE relevance_sku."productId" = projection."productId"
+            AND relevance_sku."sourceVersion" = projection."sourceVersion"
+            AND lower(relevance_sku."normalizedSku") = lower(${compact})
+          OFFSET 0
+        )
+      ) THEN 100000 ELSE 0 END`
+    : Prisma.sql`0`;
+  const skuSimilarity = compact
+    ? Prisma.sql`similarity(lower(coalesce(projection."normalizedSku", '')), lower(${compact})) * 500`
+    : Prisma.sql`0`;
+  return Prisma.sql`(
+    ${exactSku}
+    + CASE WHEN lower(projection."title") = lower(${normalized}) THEN 10000 ELSE 0 END
+    + ${titleTokenScore}
+    + ${brandTokenScore}
+    + ${skuSimilarity}
+    + ts_rank_cd(
+        to_tsvector('simple', projection."searchText"),
+        plainto_tsquery('simple', ${normalized}),
+        32
+      ) * 1000
+    + similarity(lower(projection."title"), lower(${normalized})) * 100
+  )`;
+}
+
 function correlatedTextConstraintSql(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
@@ -1022,7 +1080,9 @@ export function buildShopCatalogProjectionOrderedQuerySql(
                 ) ASC,
                 md5(${canonicalBrand} || ${seed}) ASC,
                 ${price} DESC NULLS LAST`
-            : Prisma.sql`projection."stableRank" ASC, projection."productId" ASC`;
+            : input.text
+              ? Prisma.sql`${projectionSearchRelevanceSql(input.text)} DESC, projection."stableRank" ASC, projection."productId" ASC`
+              : Prisma.sql`projection."stableRank" ASC, projection."productId" ASC`;
   return Prisma.sql`
     SELECT
       projection."productId", projection."locale", projection."slug", projection."title",
@@ -1208,7 +1268,7 @@ export async function queryShopCatalogProjection(
     items: Object.freeze(visible),
     hasMore,
     nextCursor:
-      last && hasMore && input.order === "default"
+      last && hasMore && input.order === "default" && !input.text
         ? { stableRank: last.stableRank, productId: last.productId }
         : null,
   });

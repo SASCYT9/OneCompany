@@ -1,5 +1,6 @@
 export type ShopCatalogLiveShadowPageComparison = {
   parity: boolean;
+  comparisonCompleteness: "complete_result_set" | "bounded_window";
   legacyCount: number;
   projectionCount: number;
   legacyHasMore: boolean;
@@ -28,14 +29,22 @@ export function compareShopCatalogLiveShadowPage(input: {
       orderMismatchCount += 1;
     }
   }
+  const comparisonCompleteness =
+    !input.legacyHasMore && !input.projectionHasMore ? "complete_result_set" : "bounded_window";
+  // Ranking is deliberately allowed to evolve in Catalog V2. When both
+  // readers returned the complete result set, compare identities without
+  // treating a different (and potentially better) order as data loss. For a
+  // truncated window, only continuation and page cardinality are knowable:
+  // different first-page identities can be caused solely by ranking.
   const parity =
-    missingProductIds.length === 0 &&
-    unexpectedProductIds.length === 0 &&
-    orderMismatchCount === 0 &&
-    input.legacyHasMore === input.projectionHasMore;
+    input.legacyHasMore === input.projectionHasMore &&
+    input.legacyProductIds.length === input.projectionProductIds.length &&
+    (comparisonCompleteness === "bounded_window" ||
+      (missingProductIds.length === 0 && unexpectedProductIds.length === 0));
 
   return Object.freeze({
     parity,
+    comparisonCompleteness,
     legacyCount: input.legacyProductIds.length,
     projectionCount: input.projectionProductIds.length,
     legacyHasMore: input.legacyHasMore,

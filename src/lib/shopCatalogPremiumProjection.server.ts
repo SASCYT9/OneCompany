@@ -190,7 +190,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         ? "price_desc"
         : requestedSort === "name_asc"
           ? "name_asc"
-          : hasVehicleSelection
+          : hasVehicleSelection || !query.text
             ? "brand_interleave"
             : "default";
 

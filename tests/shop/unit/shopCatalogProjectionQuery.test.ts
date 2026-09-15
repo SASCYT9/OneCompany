@@ -224,6 +224,9 @@ test("default text search uses the SQL path so variant SKUs remain searchable", 
   });
   assert.ok(query);
   assert.match(query.sql, /ShopCatalogProjectionSku/);
+  assert.match(query.sql, /ts_rank_cd/);
+  assert.match(query.sql, /similarity\(lower\(projection\."title"\)/);
+  assert.match(query.sql, /DESC, projection\."stableRank" ASC/);
   assert.equal(query.values.includes(shopSearchTokenPattern("burger")), true);
   assert.equal(query.values.includes("%bm5%"), true);
   assert.equal(

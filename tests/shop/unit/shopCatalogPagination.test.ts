@@ -50,3 +50,14 @@ test("default listing retains keyset pagination and last pages have no continuat
   );
   assert.equal(nextPageHref("en", capped, result), null);
 });
+
+test("relevance-ranked text search advances by page without a stable-rank cursor", () => {
+  const query = parseShopCatalogStorefrontQuery("ua", new URLSearchParams("q=Fi+RS+Q8&page=2"));
+  const href = nextPageHref("ua", query, result);
+  assert.ok(href);
+  const params = new URL(href, "http://localhost").searchParams;
+  assert.equal(params.get("q"), "Fi RS Q8");
+  assert.equal(params.get("page"), "3");
+  assert.equal(params.get("afterRank"), null);
+  assert.equal(params.get("afterProduct"), null);
+});

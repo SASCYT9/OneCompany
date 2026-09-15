@@ -4,9 +4,6 @@ import path from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 
-const serverOnlyStub = pathToFileURL(
-  path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
-).href;
 const mocks = pathToFileURL(
   path.resolve("tests/shop/unit/fixtures/premium-projection-mocks.mjs")
 ).href;
@@ -54,6 +51,18 @@ test("stock statistics come from the filtered aggregate instead of the global wa
 function params(values: Record<string, string>) {
   return new URLSearchParams({ locale: "en", ...values });
 }
+
+test("default browse interleaves brands while text search keeps relevance order", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  await queryPremiumCatalogProjection(params({}));
+  assert.equal(mock.state.queries[0]?.order, "brand_interleave");
+
+  mock.reset();
+  await queryPremiumCatalogProjection(params({ q: "Fi RS Q8" }));
+  assert.equal(mock.state.queries[0]?.order, "default");
+});
 
 test("price bounds use the population aggregate in the requested currency even on an empty page", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
