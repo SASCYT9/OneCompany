@@ -69,20 +69,27 @@ async function queryWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
   });
   return products.flatMap((product) => {
     const display = readShopStorefrontDisplay(product.metafields);
+    const candidateSkus = [product.sku, ...(product.variants ?? []).map((variant) => variant.sku)];
+    const confirmedStockSku = candidateSkus.find((sku) => isShopInStockProduct(sku, product.slug));
     const isAvailable = display
       ? isShopInStockProduct(product.sku, product.slug, display)
-      : isShopInStockProduct(product.sku, product.slug) ||
-        product.variants?.some((variant) => isShopInStockProduct(variant.sku));
+      : Boolean(confirmedStockSku);
     if (!isAvailable) return [];
 
+    const confirmedCarouselSku = candidateSkus.find((sku) =>
+      shouldShowShopProductInCarousel(sku, product.slug)
+    );
     const showInCarousel = display
       ? shouldShowShopProductInCarousel(product.sku, product.slug, display)
-      : shouldShowShopProductInCarousel(product.sku, product.slug) ||
-        product.variants?.some((variant) =>
-          shouldShowShopProductInCarousel(variant.sku, product.slug)
-        ) ||
-        false;
-    return [{ id: product.id, sku: product.sku, slug: product.slug, showInCarousel }];
+      : Boolean(confirmedCarouselSku);
+    return [
+      {
+        id: product.id,
+        sku: confirmedCarouselSku ?? confirmedStockSku ?? product.sku,
+        slug: product.slug,
+        showInCarousel,
+      },
+    ];
   });
 }
 
@@ -93,7 +100,7 @@ async function queryWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
 // in the stock badge, while repeated searches avoid another remote DB read.
 const readWarehouseProducts =
   process.env.NODE_ENV === "production"
-    ? unstable_cache(queryWarehouseProducts, ["shop-available-products-v3"], {
+    ? unstable_cache(queryWarehouseProducts, ["shop-available-products-v4"], {
         revalidate: 60,
         tags: ["shop-warehouse-products"],
       })

@@ -66,14 +66,14 @@ export function isEuropePricingCountry() {
 }
 export const SHOP_WAREHOUSE_IN_STOCK_SKUS = [];
 export const SHOP_WAREHOUSE_IN_STOCK_SLUGS = [];
-export function isShopInStockProduct() {
-  return true;
+export function isShopInStockProduct(sku) {
+  return sku !== "NO-MATCH";
 }
-export function getShopConfirmedAvailability() {
-  return "inStock";
+export function getShopConfirmedAvailability(sku) {
+  return sku === "NO-MATCH" ? null : "inStock";
 }
-export function shouldShowShopProductInCarousel() {
-  return true;
+export function shouldShowShopProductInCarousel(sku) {
+  return sku !== "NO-MATCH";
 }
 export const EVENTURI_SHARED_V8_INTAKE_SLUG = "eventuri-shared";
 export const EVENTURI_SHARED_V8_INTAKE_SLUGS = [];

@@ -157,6 +157,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     offset: (page - 1) * requestedLimit,
   };
   const warehouseProductIds = warehouseProducts.map((product) => product.id);
+  const warehouseProductById = new Map(warehouseProducts.map((product) => [product.id, product]));
   const carouselProductIds = warehouseProducts
     .filter((product) => product.showInCarousel)
     .map((product) => product.id);
@@ -237,6 +238,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const priceByProduct = new Map(prices.map((price) => [price.productId, price]));
 
   const data = items.map((item) => {
+    const warehouseProduct = warehouseProductById.get(item.productId);
     const displayBrand = getProductDisplayBrand(item.brandLabel || item.brandKey);
     const cardPrice = priceByProduct.get(item.productId);
     const pricing = cardPrice
@@ -279,21 +281,27 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       category: item.categoryLabel ?? "",
       imageSources,
       thumbnail: primaryImage,
-      inStock: isShopInStockProduct(
-        cardPrice?.sku ?? item.normalizedSku,
-        item.slug,
-        cardPrice?.storefrontDisplay
-      ),
-      availability: getShopConfirmedAvailability(
-        cardPrice?.sku ?? item.normalizedSku,
-        item.slug,
-        cardPrice?.storefrontDisplay
-      ),
-      showInCarousel: shouldShowShopProductInCarousel(
-        cardPrice?.sku ?? item.normalizedSku,
-        item.slug,
-        cardPrice?.storefrontDisplay
-      ),
+      inStock:
+        Boolean(warehouseProduct) ||
+        isShopInStockProduct(
+          cardPrice?.sku ?? item.normalizedSku,
+          item.slug,
+          cardPrice?.storefrontDisplay
+        ),
+      availability: warehouseProduct
+        ? ("inStock" as const)
+        : getShopConfirmedAvailability(
+            cardPrice?.sku ?? item.normalizedSku,
+            item.slug,
+            cardPrice?.storefrontDisplay
+          ),
+      showInCarousel:
+        warehouseProduct?.showInCarousel ??
+        shouldShowShopProductInCarousel(
+          cardPrice?.sku ?? item.normalizedSku,
+          item.slug,
+          cardPrice?.storefrontDisplay
+        ),
       price: displayPrice,
       priceUsd: priceSet.usd,
       priceEur: priceSet.eur,

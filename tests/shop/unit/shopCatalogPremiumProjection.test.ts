@@ -68,10 +68,22 @@ test("carousel requests stay on the projection reader and select only curated st
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");
   mock.reset();
+  mock.state.items = [
+    {
+      productId: "warehouse-a",
+      slug: "a",
+      title: "Variant SKU stock",
+      brandLabel: "Fixture",
+      brandKey: "fixture",
+      normalizedSku: "NO-MATCH",
+      primaryMediaUrl: "/a.jpg",
+    },
+  ];
 
-  await queryPremiumCatalogProjection(
+  const response = await queryPremiumCatalogProjection(
     params({ carousel: "1", stock: "inStock", sort: "price_desc" })
   );
+  const body = await response.json();
 
   for (const query of [
     ...mock.state.queries,
@@ -81,6 +93,9 @@ test("carousel requests stay on the projection reader and select only curated st
     assert.deepEqual(query.productIds, ["warehouse-a"]);
     assert.equal(query.order, "price_desc");
   }
+  assert.equal(body.data[0].inStock, true);
+  assert.equal(body.data[0].availability, "inStock");
+  assert.equal(body.data[0].showInCarousel, true);
 });
 
 test("price bounds use the population aggregate in the requested currency even on an empty page", async () => {
