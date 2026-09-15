@@ -133,6 +133,95 @@ const SHOP_SEARCH_QUERY_ALIASES = [
   ["бмв", "bmw"],
 ] as const;
 
+// High-intent catalog vocabulary used for conservative typo recovery. Only a
+// unique closest term is accepted, and model/SKU tokens containing digits are
+// left untouched. This covers common brand, make and product-family typos
+// without turning arbitrary words into matches.
+const SHOP_SEARCH_TYPO_LEXICON = [
+  "akrapovic",
+  "audi",
+  "automotive",
+  "bentley",
+  "brabus",
+  "burger",
+  "carbon",
+  "diffuser",
+  "downpipe",
+  "eventuri",
+  "exhaust",
+  "ferrari",
+  "girodisc",
+  "honda",
+  "ilmberger",
+  "intake",
+  "intercooler",
+  "jaguar",
+  "lamborghini",
+  "mclaren",
+  "mercedes",
+  "motorsports",
+  "nissan",
+  "ohlins",
+  "porsche",
+  "racechip",
+  "radiator",
+  "remus",
+  "renault",
+  "skoda",
+  "spoiler",
+  "suspension",
+  "suspensions",
+  "system",
+  "toyota",
+  "urban",
+  "volkswagen",
+  "volvo",
+] as const;
+
+function boundedEditDistance(left: string, right: string, maximum: number) {
+  if (Math.abs(left.length - right.length) > maximum) return maximum + 1;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex];
+    let rowMinimum = current[0]!;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitution =
+        previous[rightIndex - 1]! + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1);
+      const value = Math.min(previous[rightIndex]! + 1, current[rightIndex - 1]! + 1, substitution);
+      current.push(value);
+      rowMinimum = Math.min(rowMinimum, value);
+    }
+    if (rowMinimum > maximum) return maximum + 1;
+    previous = current;
+  }
+  return previous[right.length]!;
+}
+
+function correctKnownShopSearchTypos(value: string) {
+  return value
+    .split(" ")
+    .map((token) => {
+      if (token.length < 4 || /\d/.test(token)) return token;
+      const maximum = token.length >= 8 ? 2 : 1;
+      let best: string | null = null;
+      let bestDistance = maximum + 1;
+      let tied = false;
+      for (const candidate of SHOP_SEARCH_TYPO_LEXICON) {
+        if (candidate === token) return token;
+        const distance = boundedEditDistance(token, candidate, maximum);
+        if (distance < bestDistance) {
+          best = candidate;
+          bestDistance = distance;
+          tied = false;
+        } else if (distance === bestDistance && distance <= maximum) {
+          tied = true;
+        }
+      }
+      return best && bestDistance <= maximum && !tied ? best : token;
+    })
+    .join(" ");
+}
+
 export function normalizeShopSearchText(value: string | null | undefined) {
   return normalizeMixedScriptCodes(String(value ?? ""))
     .normalize("NFKD")
@@ -147,7 +236,7 @@ export function normalizeShopSearchText(value: string | null | undefined) {
 }
 
 export function buildShopSearchText(parts: readonly SearchPart[]) {
-  return canonicalizeShopSearchQuery(parts.filter(Boolean).join(" "));
+  return canonicalizeShopSearchAliasesAndMakes(parts.filter(Boolean).join(" "));
 }
 
 export function getShopSearchQueryVariants(query: string | null | undefined) {
@@ -163,6 +252,10 @@ export function getShopSearchQueryVariants(query: string | null | undefined) {
 }
 
 export function canonicalizeShopSearchQuery(query: string | null | undefined) {
+  return correctKnownShopSearchTypos(canonicalizeShopSearchAliasesAndMakes(query));
+}
+
+function canonicalizeShopSearchAliasesAndMakes(query: string | null | undefined) {
   let normalized = normalizeShopSearchAliases(query);
   for (const [alias, canonical] of SHOP_SEARCH_QUERY_ALIASES) {
     normalized = normalized.replace(new RegExp(`(^| )${alias}(?= |$)`, "g"), `$1${canonical}`);

@@ -92,6 +92,19 @@ test("canonicalizes common Cyrillic make queries for suggestions and search", ()
   assert.ok(getShopSearchQueryVariants("мерседес g63").includes("mercedes benz g63"));
 });
 
+test("recovers conservative brand and catalog-term typos", () => {
+  assert.equal(canonicalizeShopSearchQuery("Akrapovik G80"), "akrapovic g80");
+  assert.equal(canonicalizeShopSearchQuery("Brabuz G63"), "brabus g63");
+  assert.equal(canonicalizeShopSearchQuery("Remuz Golf 8"), "remus golf 8");
+  assert.equal(canonicalizeShopSearchQuery("Fi exaust RS Q8"), "fi exhaust rsq8");
+  assert.equal(canonicalizeShopSearchQuery("Eventurry RS6"), "eventuri rs6");
+});
+
+test("does not typo-correct product index text or structured codes", () => {
+  assert.equal(buildShopSearchText(["Custom Remuz component G80"]), "custom remuz component g80");
+  assert.equal(canonicalizeShopSearchQuery("BRB1234"), "brb1234");
+});
+
 test("Fi and Audi Q-model spellings match in either word order without substring collisions", () => {
   const fi = "Fi EXHAUST Valvetronic Exhaust System for Audi RS Q8 AD-Q8RS-CBOE";
   const urban = "Urban Visual Carbon Fibre diffuser for Audi RSQ8 Facelift fitment";
