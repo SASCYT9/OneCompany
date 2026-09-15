@@ -919,10 +919,7 @@ export async function searchShopStock(request: { url: string }) {
       !isLocalStorefrontMode() &&
       process.env.SHOP_CATALOG_V2_READER_MODE?.trim().toLowerCase() === "ssr"
     ) {
-      if (
-        searchParams.get("carousel") !== "1" &&
-        canUsePremiumCatalogProjection(new URL(request.url).searchParams)
-      ) {
+      if (canUsePremiumCatalogProjection(new URL(request.url).searchParams)) {
         try {
           return await queryPremiumCatalogProjection(searchParams);
         } catch (error) {

@@ -3,6 +3,7 @@ export const state =
   (globalThis.__premiumProjectionMockState = {
     items: [],
     prices: [],
+    warehouseProducts: [],
     legacyCalls: 0,
     queries: [],
     facetQueries: [],
@@ -16,6 +17,11 @@ export function reset() {
   state.stockSummary = { totalItems: 0, inStock: 0, preOrder: 0 };
   state.items = [];
   state.prices = [];
+  state.warehouseProducts = [
+    { id: "warehouse-a", sku: "SKU-A", slug: "a", showInCarousel: true },
+    { id: "warehouse-b", sku: "SKU-B", slug: "b", showInCarousel: false },
+    { id: "shared-duplicate", sku: "SHARED", slug: "duplicate-shared", showInCarousel: false },
+  ];
   state.legacyCalls = 0;
   state.queries.length = 0;
   state.facetQueries.length = 0;
@@ -127,5 +133,6 @@ export async function queryShopCatalogProjectionStockSummary(query) {
 }
 
 export async function getShopInStockProducts() {
-  return prisma.shopProduct.findMany();
+  state.productFindManyCalls += 1;
+  return state.warehouseProducts;
 }

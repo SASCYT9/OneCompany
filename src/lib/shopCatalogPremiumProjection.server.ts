@@ -97,6 +97,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const requestedSort = params.get("sort");
   const stock = params.get("stock");
   const requestedStock = stock === "inStock" || stock === "preOrder" ? stock : null;
+  const carousel = params.get("carousel") === "1";
   // Vehicle resolution is independent of prices, warehouse stock and session.
   // Start it immediately so their database round-trips do not add to its latency.
   const vehicleProductIdsPromise = measure(
@@ -156,6 +157,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     offset: (page - 1) * requestedLimit,
   };
   const warehouseProductIds = warehouseProducts.map((product) => product.id);
+  const carouselProductIds = warehouseProducts
+    .filter((product) => product.showInCarousel)
+    .map((product) => product.id);
   const sharedEventuriSlugs = new Set<string>(EVENTURI_SHARED_V8_INTAKE_SLUGS);
   const sharedEventuriProducts = warehouseProducts.filter(
     (product) => isEventuriSharedV8Intake(product.sku) || sharedEventuriSlugs.has(product.slug)
@@ -166,8 +170,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   query.excludeProductIds = sharedEventuriProducts
     .filter((product) => product.id !== canonicalSharedEventuriId)
     .map((product) => product.id);
-  if (requestedStock === "inStock") query.productIds = warehouseProductIds;
-  if (requestedStock === "preOrder") {
+  if (carousel) {
+    // The storefront hero is a small, explicitly curated subset of confirmed
+    // stock. Restrict the projection before its page, facets and price reads so
+    // this request never scans or hydrates the full legacy catalog.
+    query.productIds = requestedStock === "preOrder" ? [] : carouselProductIds;
+  } else if (requestedStock === "inStock") {
+    query.productIds = warehouseProductIds;
+  } else if (requestedStock === "preOrder") {
     query.excludeProductIds = [...new Set([...query.excludeProductIds, ...warehouseProductIds])];
   }
 

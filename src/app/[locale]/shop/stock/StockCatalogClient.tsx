@@ -918,9 +918,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     !minPriceFilter &&
     !maxPriceFilter &&
     stockFilter === "all";
+  // The initial catalog and the full carousel request run in parallel. Use any
+  // curated in-stock product already present on the first catalog page so the
+  // hero never becomes an empty panel while the full carousel list is arriving.
+  const heroInventoryItems = warehouseHeroItems.length ? warehouseHeroItems : items;
   const heroProducts = useMemo(() => {
     const uniqueInventory = new Map<string, StockItem>();
-    for (const item of warehouseHeroItems) {
+    for (const item of heroInventoryItems) {
       const inventoryKey = item.partNumber.trim().toUpperCase() || item.id;
       const existing = uniqueInventory.get(inventoryKey);
       if (!existing || (item.price ?? 0) > (existing.price ?? 0)) {
@@ -946,7 +950,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     }
 
     return featured;
-  }, [warehouseHeroItems]);
+  }, [heroInventoryItems]);
   const activeHeroProduct = showWarehouseHero ? (heroProducts[heroProductIndex] ?? null) : null;
   const heroRailProducts = useMemo(
     () =>

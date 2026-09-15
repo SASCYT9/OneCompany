@@ -64,6 +64,25 @@ test("default browse interleaves brands while text search keeps relevance order"
   assert.equal(mock.state.queries[0]?.order, "default");
 });
 
+test("carousel requests stay on the projection reader and select only curated stock", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+
+  await queryPremiumCatalogProjection(
+    params({ carousel: "1", stock: "inStock", sort: "price_desc" })
+  );
+
+  for (const query of [
+    ...mock.state.queries,
+    ...mock.state.facetQueries,
+    ...mock.state.countQueries,
+  ]) {
+    assert.deepEqual(query.productIds, ["warehouse-a"]);
+    assert.equal(query.order, "price_desc");
+  }
+});
+
 test("price bounds use the population aggregate in the requested currency even on an empty page", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");

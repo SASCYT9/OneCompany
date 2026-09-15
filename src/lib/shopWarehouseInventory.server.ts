@@ -9,12 +9,18 @@ import {
 } from "@/lib/shopStorefrontDisplay";
 import {
   isShopInStockProduct,
+  shouldShowShopProductInCarousel,
   SHOP_DIGITAL_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SKUS,
   SHOP_WAREHOUSE_IN_STOCK_SLUGS,
 } from "@/lib/shopWarehouseInventory";
 
-export type ShopWarehouseProduct = { id: string; sku: string | null; slug: string };
+export type ShopWarehouseProduct = {
+  id: string;
+  sku: string | null;
+  slug: string;
+  showInCarousel: boolean;
+};
 
 const CACHE_TTL_MS = 30_000;
 type WarehouseCache = {
@@ -61,16 +67,23 @@ async function queryWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
       },
     },
   });
-  return products
-    .filter((product) => {
-      const display = readShopStorefrontDisplay(product.metafields);
-      if (display) return isShopInStockProduct(product.sku, product.slug, display);
-      return (
-        isShopInStockProduct(product.sku, product.slug) ||
-        product.variants?.some((variant) => isShopInStockProduct(variant.sku))
-      );
-    })
-    .map(({ id, sku, slug }) => ({ id, sku, slug }));
+  return products.flatMap((product) => {
+    const display = readShopStorefrontDisplay(product.metafields);
+    const isAvailable = display
+      ? isShopInStockProduct(product.sku, product.slug, display)
+      : isShopInStockProduct(product.sku, product.slug) ||
+        product.variants?.some((variant) => isShopInStockProduct(variant.sku));
+    if (!isAvailable) return [];
+
+    const showInCarousel = display
+      ? shouldShowShopProductInCarousel(product.sku, product.slug, display)
+      : shouldShowShopProductInCarousel(product.sku, product.slug) ||
+        product.variants?.some((variant) =>
+          shouldShowShopProductInCarousel(variant.sku, product.slug)
+        ) ||
+        false;
+    return [{ id: product.id, sku: product.sku, slug: product.slug, showInCarousel }];
+  });
 }
 
 // Confirmed physical and digital availability is shared by every anonymous
@@ -80,7 +93,7 @@ async function queryWarehouseProducts(): Promise<ShopWarehouseProduct[]> {
 // in the stock badge, while repeated searches avoid another remote DB read.
 const readWarehouseProducts =
   process.env.NODE_ENV === "production"
-    ? unstable_cache(queryWarehouseProducts, ["shop-available-products-v2"], {
+    ? unstable_cache(queryWarehouseProducts, ["shop-available-products-v3"], {
         revalidate: 60,
         tags: ["shop-warehouse-products"],
       })

@@ -37,6 +37,14 @@ test("catalog serves its loading UI immediately and lets the cacheable API provi
     /const pricingContextPromise = buildShopViewerPricingContextServer\([\s\S]*const allProductsWithFitments/
   );
   assert.match(stockSearch, /const pricingContext = await pricingContextPromise/);
+  assert.match(
+    stockSearch,
+    /SHOP_CATALOG_V2_READER_MODE[\s\S]{0,300}if \(canUsePremiumCatalogProjection/
+  );
+  assert.match(
+    stockClient,
+    /const heroInventoryItems = warehouseHeroItems\.length \? warehouseHeroItems : items;/
+  );
 });
 
 test("the initial browse keeps every product while avoiding rich joins and sharing the invalidated cache", () => {
