@@ -85,7 +85,7 @@ async function main() {
         source === "generic"
           ? genericBrandSources.get(product.brand?.trim().toLowerCase() ?? "")
           : (source as keyof typeof sourceOwnership);
-      if (!owner) throw new Error(`${source} contains unowned record ${product.id}`);
+      if (!owner) throw new Error(`${source} contains unowned records: ${product.id}`);
       const partition = partitions.get(owner) ?? [];
       partition.push(product);
       partitions.set(owner, partition);

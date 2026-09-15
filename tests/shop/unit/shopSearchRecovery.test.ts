@@ -19,14 +19,16 @@ test("one typo includes insertion, deletion, replacement and adjacent transposit
 });
 test("zero-result recovery uses actual catalog words in both languages", () => {
   for (const [query, expected] of [
-    ["akrapovci m3", "akrapovic m3"],
-    ["remys rsq8", "remus rsq8"],
-    ["eventrui m4", "eventuri m4"],
     ["дифузро rsq8", "дифузор rsq8"],
     ["fi exhuast rsq8", "fi exhaust rsq8"],
   ]) {
     assert.equal(getShopSearchFallbackQuery(query, catalog), expected);
   }
+});
+
+test("zero-result recovery is skipped when query normalization already fixes the typo", () => {
+  for (const query of ["akrapovci m3", "remys rsq8", "eventrui m4"])
+    assert.equal(getShopSearchFallbackQuery(query, catalog), null);
 });
 test("recovery preserves model, chassis, SKU and short brand identities", () => {
   for (const query of [
