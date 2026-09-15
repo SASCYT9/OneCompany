@@ -45,6 +45,7 @@ test("catalog serves its loading UI immediately and lets the cacheable API provi
     stockClient,
     /const heroInventoryItems = warehouseHeroItems\.length \? warehouseHeroItems : items;/
   );
+  assert.match(stockClient, /carousel: "1",[\s\S]{0,100}limit: "96"/);
 });
 
 test("the initial browse keeps every product while avoiding rich joins and sharing the invalidated cache", () => {

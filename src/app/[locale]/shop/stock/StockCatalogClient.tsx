@@ -991,7 +991,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       locale,
       stock: "inStock",
       carousel: "1",
-      limit: "24",
+      limit: "96",
       sort: "price_desc",
       currency,
     });
