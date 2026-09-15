@@ -6,9 +6,40 @@ import {
 } from "./shopCatalogReleaseActivationGuard";
 
 export const SHOP_CATALOG_LOGICAL_SOURCES = Object.freeze([
-  "adro", "akrapovic", "brabus", "burger", "csf", "do88", "eventuri",
-  "girodisc", "ilmberger", "ipe", "ohlins", "racechip", "remus", "urban",
+  "adro",
+  "akrapovic",
+  "brabus",
+  "burger",
+  "csf",
+  "do88",
+  "eventuri",
+  "girodisc",
+  "ilmberger",
+  "ipe",
+  "ohlins",
+  "racechip",
+  "remus",
+  "urban",
 ] as const);
+
+export function calculateShopCatalogShadowWindowHours(input: {
+  requestedSince: Date;
+  firstObservedAt: Date | null;
+  lastObservedAt: Date | null;
+}) {
+  const requestedSince = input.requestedSince.getTime();
+  const firstObservedAt = input.firstObservedAt?.getTime() ?? Number.NaN;
+  const lastObservedAt = input.lastObservedAt?.getTime() ?? Number.NaN;
+  if (
+    !Number.isFinite(requestedSince) ||
+    !Number.isFinite(firstObservedAt) ||
+    !Number.isFinite(lastObservedAt)
+  ) {
+    return 0;
+  }
+  const effectiveStart = Math.max(requestedSince, firstObservedAt);
+  return Math.max(0, (lastObservedAt - effectiveStart) / 3_600_000);
+}
 
 type PerformanceArtifact = Record<string, unknown>;
 
@@ -24,13 +55,24 @@ export function readCommitBoundPerformance(input: {
   scale: PerformanceArtifact;
   publication: PerformanceArtifact;
 }) {
-  for (const [label, artifact] of [["scale", input.scale], ["publication", input.publication]] as const) {
+  for (const [label, artifact] of [
+    ["scale", input.scale],
+    ["publication", input.publication],
+  ] as const) {
     if (artifact.version !== 1 || artifact.commitSha !== input.commitSha) {
       throw new Error(`${label} gate artifact does not match commit ${input.commitSha}`);
     }
   }
   const sizes = input.scale.sizes;
-  if (!Array.isArray(sizes) || !sizes.some((entry) => typeof entry === "object" && entry !== null && Number((entry as Record<string, unknown>).products) >= 500_000)) {
+  if (
+    !Array.isArray(sizes) ||
+    !sizes.some(
+      (entry) =>
+        typeof entry === "object" &&
+        entry !== null &&
+        Number((entry as Record<string, unknown>).products) >= 500_000
+    )
+  ) {
     throw new Error("scale gate must include at least 500000 products");
   }
   const measurements = sizes.flatMap((entry) =>
@@ -40,7 +82,9 @@ export function readCommitBoundPerformance(input: {
   );
   if (!measurements.length) throw new Error("scale gate has no measurements");
   return Object.freeze({
-    scaleP95Ms: Math.max(...measurements.map((entry) => finite(entry.warmP95Ms, "scale warmP95Ms"))),
+    scaleP95Ms: Math.max(
+      ...measurements.map((entry) => finite(entry.warmP95Ms, "scale warmP95Ms"))
+    ),
     publicationP95Ms: finite(input.publication.p95Ms, "publication p95Ms"),
   });
 }
@@ -48,15 +92,25 @@ export function readCommitBoundPerformance(input: {
 export function fingerprintCatalogSourceCoverage(
   sources: readonly { key: string; recordFingerprints: readonly string[] }[]
 ) {
-  if (sources.length !== SHOP_CATALOG_LOGICAL_SOURCES.length) throw new Error("all 14 logical sources are required");
+  if (sources.length !== SHOP_CATALOG_LOGICAL_SOURCES.length)
+    throw new Error("all 14 logical sources are required");
   const expected = SHOP_CATALOG_LOGICAL_SOURCES.join("\n");
   const ordered = [...sources].sort((a, b) => a.key.localeCompare(b.key));
-  if (ordered.map((source) => source.key).join("\n") !== expected) throw new Error("logical source set is incomplete or unexpected");
-  if (ordered.some((source) => !source.recordFingerprints.length || source.recordFingerprints.some((value) => !/^[a-f0-9]{64}$/i.test(value)))) {
+  if (ordered.map((source) => source.key).join("\n") !== expected)
+    throw new Error("logical source set is incomplete or unexpected");
+  if (
+    ordered.some(
+      (source) =>
+        !source.recordFingerprints.length ||
+        source.recordFingerprints.some((value) => !/^[a-f0-9]{64}$/i.test(value))
+    )
+  ) {
     throw new Error("source coverage contains missing or invalid record fingerprints");
   }
   return createHash("sha256")
-    .update(ordered.map((source) => `${source.key}:${source.recordFingerprints.join(",")}`).join("\n"))
+    .update(
+      ordered.map((source) => `${source.key}:${source.recordFingerprints.join(",")}`).join("\n")
+    )
     .digest("hex");
 }
 
@@ -71,9 +125,20 @@ export function buildShopCatalogReleaseEvidence(input: {
   rollout: { maxCanaryPercentage: number; fullSsrApproved: boolean; approvedBy: string };
 }): ShopCatalogReleaseEvidence {
   if (!/^[a-f0-9]{40}$/.test(input.commitSha)) throw new Error("full commit SHA is required");
-  if (!Number.isInteger(input.lifetimeMinutes) || input.lifetimeMinutes < 1 || input.lifetimeMinutes > 1440) throw new Error("evidence lifetime must be 1..1440 minutes");
-  if (!Number.isInteger(input.rollout.maxCanaryPercentage) || input.rollout.maxCanaryPercentage < 1 || input.rollout.maxCanaryPercentage > 100) throw new Error("max canary percentage must be 1..100");
-  if (!/^[\p{L}\p{N}][\p{L}\p{N} ._@-]{2,119}$/u.test(input.rollout.approvedBy.trim())) throw new Error("decision owner is required");
+  if (
+    !Number.isInteger(input.lifetimeMinutes) ||
+    input.lifetimeMinutes < 1 ||
+    input.lifetimeMinutes > 1440
+  )
+    throw new Error("evidence lifetime must be 1..1440 minutes");
+  if (
+    !Number.isInteger(input.rollout.maxCanaryPercentage) ||
+    input.rollout.maxCanaryPercentage < 1 ||
+    input.rollout.maxCanaryPercentage > 100
+  )
+    throw new Error("max canary percentage must be 1..100");
+  if (!/^[\p{L}\p{N}][\p{L}\p{N} ._@-]{2,119}$/u.test(input.rollout.approvedBy.trim()))
+    throw new Error("decision owner is required");
   return {
     version: 2,
     commitSha: input.commitSha,

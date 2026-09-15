@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 
 import {
   buildShopCatalogReleaseEvidence,
+  calculateShopCatalogShadowWindowHours,
   fingerprintCatalogSourceCoverage,
   readCommitBoundPerformance,
   SHOP_CATALOG_LOGICAL_SOURCES,
@@ -19,12 +20,18 @@ import { readShopCatalogProjectionReadinessWithClient } from "../src/lib/shopCat
 
 function argument(name: string, fallback?: string) {
   const prefix = `--${name}=`;
-  return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length).trim() ?? fallback;
+  return (
+    process.argv
+      .find((value) => value.startsWith(prefix))
+      ?.slice(prefix.length)
+      .trim() ?? fallback
+  );
 }
 
 function fullCommit() {
   const value = argument("commit")?.toLowerCase();
-  if (!value || !/^[a-f0-9]{40}$/.test(value)) throw new Error("--commit must be a full 40-character Git SHA");
+  if (!value || !/^[a-f0-9]{40}$/.test(value))
+    throw new Error("--commit must be a full 40-character Git SHA");
   return value;
 }
 
@@ -43,10 +50,15 @@ async function sourceCoverage(client: PrismaClient) {
     let cursor: string | null = null;
     const recordFingerprints: string[] = [];
     do {
-      const page = await readShopCatalogSourceCoveragePage(client, { sourceKey: key, afterRecordId: cursor, limit: 500 });
+      const page = await readShopCatalogSourceCoveragePage(client, {
+        sourceKey: key,
+        afterRecordId: cursor,
+        limit: 500,
+      });
       if (!page || !page.source.isActive) throw new Error(`source ${key} is missing or inactive`);
       for (const record of page.records) {
-        if (!record.activationReady || !record.fingerprint) throw new Error(`source ${key} record ${record.recordKey} is not activation-ready`);
+        if (!record.activationReady || !record.fingerprint)
+          throw new Error(`source ${key} record ${record.recordKey} is not activation-ready`);
         recordFingerprints.push(record.fingerprint);
       }
       cursor = page.nextRecordId;
@@ -57,7 +69,8 @@ async function sourceCoverage(client: PrismaClient) {
 }
 
 async function main() {
-  if (process.env.CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ !== "1") throw new Error("Set CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ=1 for this read-only collector");
+  if (process.env.CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ !== "1")
+    throw new Error("Set CATALOG_RELEASE_EVIDENCE_ALLOW_DB_READ=1 for this read-only collector");
   const databaseUrl = process.env.CATALOG_RELEASE_EVIDENCE_DATABASE_URL?.trim();
   if (!databaseUrl) throw new Error("CATALOG_RELEASE_EVIDENCE_DATABASE_URL is required");
   const commitSha = fullCommit();
@@ -66,30 +79,52 @@ async function main() {
   const maxCanaryPercentage = Number(argument("max-canary-percentage", "1"));
   const fullSsrApproved = process.argv.includes("--approve-full-ssr");
   const approvedBy = argument("decision-owner") ?? "";
-  if (!Number.isFinite(hours) || hours <= 0 || hours > 168) throw new Error("--shadow-hours must be within 0..168");
+  if (!Number.isFinite(hours) || hours <= 0 || hours > 168)
+    throw new Error("--shadow-hours must be within 0..168");
   const performance = readCommitBoundPerformance({
     commitSha,
-    scale: await jsonArtifact(argument("scale", "artifacts/catalog-v2-scale/catalog-v2-scale-gate.json")!),
-    publication: await jsonArtifact(argument("publication", "artifacts/catalog-v2-publication/catalog-v2-publication-gate.json")!),
+    scale: await jsonArtifact(
+      argument("scale", "artifacts/catalog-v2-scale/catalog-v2-scale-gate.json")!
+    ),
+    publication: await jsonArtifact(
+      argument("publication", "artifacts/catalog-v2-publication/catalog-v2-publication-gate.json")!
+    ),
   });
   const client = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   try {
+    const shadowSince = new Date(Date.now() - hours * 3_600_000);
     const [sourceCoverageFingerprint, lag, shadow] = await Promise.all([
       sourceCoverage(client),
       readShopCatalogProjectionReadinessWithClient(client),
-      readShopCatalogShadowEvidenceWithClient(client, { deploymentCommit: commitSha, since: new Date(Date.now() - hours * 3_600_000) }),
+      readShopCatalogShadowEvidenceWithClient(client, {
+        deploymentCommit: commitSha,
+        since: shadowSince,
+      }),
     ]);
     const generatedAt = new Date();
+    const observedWindowHours = calculateShopCatalogShadowWindowHours({
+      requestedSince: shadowSince,
+      firstObservedAt: shadow.firstObservedAt ? new Date(shadow.firstObservedAt) : null,
+      lastObservedAt: shadow.lastObservedAt ? new Date(shadow.lastObservedAt) : null,
+    });
     const evidence = buildShopCatalogReleaseEvidence({
       commitSha,
       generatedAt,
       lifetimeMinutes,
       sourceCoverageFingerprint,
       projectionLag: (() => {
-        if (lag.missingLocaleProjections) throw new Error(`${lag.missingLocaleProjections} published locale projections are missing or stale`);
+        if (lag.missingLocaleProjections)
+          throw new Error(
+            `${lag.missingLocaleProjections} published locale projections are missing or stale`
+          );
         return lag.maxVersionLag;
       })(),
-      shadow: { sampledRequests: shadow.sampledRequests, mismatches: shadow.mismatches, errorRate: shadow.errorRate, windowHours: hours },
+      shadow: {
+        sampledRequests: shadow.sampledRequests,
+        mismatches: shadow.mismatches,
+        errorRate: shadow.errorRate,
+        windowHours: observedWindowHours,
+      },
       performance,
       rollout: { maxCanaryPercentage, fullSsrApproved, approvedBy },
     });
@@ -103,7 +138,8 @@ async function main() {
       secret: validationSecret,
       now: generatedAt,
     });
-    if (!decision.allowed) throw new Error(`release evidence failed closed: ${decision.reasons.join("; ")}`);
+    if (!decision.allowed)
+      throw new Error(`release evidence failed closed: ${decision.reasons.join("; ")}`);
     const directory = path.resolve("artifacts", "catalog-v2-release");
     await mkdir(directory, { recursive: true });
     const output = path.join(directory, `catalog-v2-release-evidence-${commitSha}.json`);

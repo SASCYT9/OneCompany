@@ -3,26 +3,81 @@ import test from "node:test";
 
 import {
   buildShopCatalogReleaseEvidence,
+  calculateShopCatalogShadowWindowHours,
   fingerprintCatalogSourceCoverage,
   readCommitBoundPerformance,
   SHOP_CATALOG_LOGICAL_SOURCES,
 } from "../../../src/lib/shopCatalogReleaseEvidence";
 
 const commit = "a".repeat(40);
-const scale = { version: 1, commitSha: commit, sizes: [{ products: 500_000, measurements: [{ warmP95Ms: 81 }, { warmP95Ms: 92 }] }] };
+const scale = {
+  version: 1,
+  commitSha: commit,
+  sizes: [{ products: 500_000, measurements: [{ warmP95Ms: 81 }, { warmP95Ms: 92 }] }],
+};
 const publication = { version: 1, commitSha: commit, p95Ms: 740 };
 
 test("release performance artifacts are commit-bound and include 500k scale", () => {
-  assert.deepEqual(readCommitBoundPerformance({ commitSha: commit, scale, publication }), { scaleP95Ms: 92, publicationP95Ms: 740 });
-  assert.throws(() => readCommitBoundPerformance({ commitSha: "b".repeat(40), scale, publication }), /does not match commit/);
-  assert.throws(() => readCommitBoundPerformance({ commitSha: commit, scale: { ...scale, sizes: [] }, publication }), /500000/);
+  assert.deepEqual(readCommitBoundPerformance({ commitSha: commit, scale, publication }), {
+    scaleP95Ms: 92,
+    publicationP95Ms: 740,
+  });
+  assert.throws(
+    () => readCommitBoundPerformance({ commitSha: "b".repeat(40), scale, publication }),
+    /does not match commit/
+  );
+  assert.throws(
+    () =>
+      readCommitBoundPerformance({
+        commitSha: commit,
+        scale: { ...scale, sizes: [] },
+        publication,
+      }),
+    /500000/
+  );
+});
+
+test("shadow window is derived from actual observations inside the requested range", () => {
+  assert.equal(
+    calculateShopCatalogShadowWindowHours({
+      requestedSince: new Date("2026-09-01T00:00:00.000Z"),
+      firstObservedAt: new Date("2026-09-01T02:00:00.000Z"),
+      lastObservedAt: new Date("2026-09-02T04:00:00.000Z"),
+    }),
+    26
+  );
+  assert.equal(
+    calculateShopCatalogShadowWindowHours({
+      requestedSince: new Date("2026-09-01T06:00:00.000Z"),
+      firstObservedAt: new Date("2026-09-01T02:00:00.000Z"),
+      lastObservedAt: new Date("2026-09-02T04:00:00.000Z"),
+    }),
+    22
+  );
+  assert.equal(
+    calculateShopCatalogShadowWindowHours({
+      requestedSince: new Date("2026-09-01T00:00:00.000Z"),
+      firstObservedAt: null,
+      lastObservedAt: null,
+    }),
+    0
+  );
 });
 
 test("source coverage fingerprint requires the exact 14-source set", () => {
-  const sources = SHOP_CATALOG_LOGICAL_SOURCES.map((key) => ({ key, recordFingerprints: ["c".repeat(64)] }));
+  const sources = SHOP_CATALOG_LOGICAL_SOURCES.map((key) => ({
+    key,
+    recordFingerprints: ["c".repeat(64)],
+  }));
   assert.match(fingerprintCatalogSourceCoverage(sources), /^[a-f0-9]{64}$/);
   assert.throws(() => fingerprintCatalogSourceCoverage(sources.slice(1)), /14 logical sources/);
-  assert.throws(() => fingerprintCatalogSourceCoverage(sources.map((entry, index) => index ? entry : { ...entry, recordFingerprints: [] })), /missing or invalid/);
+  assert.throws(
+    () =>
+      fingerprintCatalogSourceCoverage(
+        sources.map((entry, index) => (index ? entry : { ...entry, recordFingerprints: [] }))
+      ),
+    /missing or invalid/
+  );
 });
 
 test("release evidence has a bounded lifetime and exact immutable identity", () => {
@@ -38,7 +93,33 @@ test("release evidence has a bounded lifetime and exact immutable identity", () 
   });
   assert.equal(evidence.expiresAt, "2026-09-01T14:00:00.000Z");
   assert.equal(evidence.sourcesReady, 14);
-  assert.throws(() => buildShopCatalogReleaseEvidence({ ...evidence, generatedAt: new Date(), lifetimeMinutes: 1441 }), /1..1440/);
-  assert.throws(() => buildShopCatalogReleaseEvidence({ ...evidence, generatedAt: new Date(), lifetimeMinutes: 10, rollout: { maxCanaryPercentage: 101, fullSsrApproved: false, approvedBy: "Catalog Owner" } }), /1..100/);
-  assert.throws(() => buildShopCatalogReleaseEvidence({ ...evidence, generatedAt: new Date(), lifetimeMinutes: 10, rollout: { maxCanaryPercentage: 1, fullSsrApproved: false, approvedBy: "" } }), /decision owner/);
+  assert.throws(
+    () =>
+      buildShopCatalogReleaseEvidence({
+        ...evidence,
+        generatedAt: new Date(),
+        lifetimeMinutes: 1441,
+      }),
+    /1..1440/
+  );
+  assert.throws(
+    () =>
+      buildShopCatalogReleaseEvidence({
+        ...evidence,
+        generatedAt: new Date(),
+        lifetimeMinutes: 10,
+        rollout: { maxCanaryPercentage: 101, fullSsrApproved: false, approvedBy: "Catalog Owner" },
+      }),
+    /1..100/
+  );
+  assert.throws(
+    () =>
+      buildShopCatalogReleaseEvidence({
+        ...evidence,
+        generatedAt: new Date(),
+        lifetimeMinutes: 10,
+        rollout: { maxCanaryPercentage: 1, fullSsrApproved: false, approvedBy: "" },
+      }),
+    /decision owner/
+  );
 });

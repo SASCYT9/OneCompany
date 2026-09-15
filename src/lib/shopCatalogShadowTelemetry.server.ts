@@ -96,6 +96,14 @@ export async function readShopCatalogShadowEvidenceWithClient(
   const mismatches = rows.reduce((sum, row) => sum + row.mismatches, 0);
   const errors = rows.reduce((sum, row) => sum + row.errors, 0);
   const durationTotalMs = rows.reduce((sum, row) => sum + row.durationTotalMs, BigInt(0));
+  const firstObservedAt = rows.reduce<Date | null>(
+    (first, row) => (!first || row.createdAt < first ? row.createdAt : first),
+    null
+  );
+  const lastObservedAt = rows.reduce<Date | null>(
+    (last, row) => (!last || row.updatedAt > last ? row.updatedAt : last),
+    null
+  );
   return Object.freeze({
     deploymentCommit: input.deploymentCommit.toLowerCase(),
     since: hourBucket(input.since).toISOString(),
@@ -105,6 +113,8 @@ export async function readShopCatalogShadowEvidenceWithClient(
     errorRate: sampledRequests ? errors / sampledRequests : 0,
     durationAverageMs: sampledRequests ? Number(durationTotalMs) / sampledRequests : 0,
     durationMaxMs: rows.reduce((max, row) => Math.max(max, row.durationMaxMs), 0),
+    firstObservedAt: firstObservedAt?.toISOString() ?? null,
+    lastObservedAt: lastObservedAt?.toISOString() ?? null,
     segments: Object.freeze(
       rows.map((row) =>
         Object.freeze({

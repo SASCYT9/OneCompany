@@ -55,6 +55,9 @@ test(
       assert.equal(evidence.errorRate, 0.05);
       assert.equal(evidence.durationMaxMs, 29);
       assert.equal(evidence.segments.length, 2);
+      assert.ok(evidence.firstObservedAt);
+      assert.ok(evidence.lastObservedAt);
+      assert.ok(Date.parse(evidence.lastObservedAt) >= Date.parse(evidence.firstObservedAt));
     } finally {
       await client.$disconnect();
     }
