@@ -4,11 +4,14 @@ export type CatalogBrochureBranding = "onecompany" | "brand" | "none";
 export type CatalogBrochureLayout = "single" | "double";
 export type CatalogBrochurePhotoMode = "gallery" | "hero";
 export type CatalogBrochureDescriptionMode = "short" | "full" | "none";
+export type CatalogBrochureGalleryLayout = "auto" | "feature" | "grid";
 
 export type CatalogBrochureItemInput = {
   productId: string;
   priceOverride?: number | null;
   imageSource?: string | null;
+  imageSources?: string[];
+  galleryLayout?: CatalogBrochureGalleryLayout;
 };
 
 export type CatalogBrochureRequest = {
@@ -118,6 +121,11 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
       entry >= 0 &&
       entry <= 9999999999.99 &&
       Math.abs(entry * 100 - Math.round(entry * 100)) < 0.0001);
+  const imageSource = (entry: unknown) =>
+    typeof entry === "string" &&
+    entry.trim().length > 0 &&
+    entry.length <= 2048 &&
+    !/[\u0000-\u001f\u007f]/.test(entry);
 
   if (!text(body.title, 140)) return "Вкажіть назву каталогу (до 140 символів).";
   if (!text(body.subtitle, 220)) return "Вкажіть підзаголовок каталогу (до 220 символів).";
@@ -172,14 +180,25 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
     if (!money(item.priceOverride)) {
       return `Ціна в позиції ${index + 1} має бути невід’ємною сумою з точністю до копійок.`;
     }
-    if (
-      item.imageSource != null &&
-      (typeof item.imageSource !== "string" ||
-        !item.imageSource.trim() ||
-        item.imageSource.length > 2048 ||
-        /[\u0000-\u001f\u007f]/.test(item.imageSource))
-    ) {
+    if (item.imageSource != null && !imageSource(item.imageSource)) {
       return `Перевірте фото товару в позиції ${index + 1}.`;
+    }
+    if (item.imageSources != null) {
+      if (
+        !Array.isArray(item.imageSources) ||
+        item.imageSources.length < 1 ||
+        item.imageSources.length > 8 ||
+        item.imageSources.some((source) => !imageSource(source)) ||
+        new Set(item.imageSources).size !== item.imageSources.length
+      ) {
+        return `Оберіть від 1 до 8 унікальних фото товару в позиції ${index + 1}.`;
+      }
+    }
+    if (
+      item.galleryLayout != null &&
+      !["auto", "feature", "grid"].includes(String(item.galleryLayout))
+    ) {
+      return `Оберіть розкладку фото товару в позиції ${index + 1}.`;
     }
   }
   return null;

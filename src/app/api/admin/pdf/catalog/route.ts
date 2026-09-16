@@ -153,13 +153,20 @@ export async function POST(request: NextRequest) {
         ...gallery,
       ]);
       const requestedImage = catalogImageSources([entry.imageSource])[0] ?? null;
-      const selectedImage =
-        requestedImage && imageSources.includes(requestedImage)
-          ? requestedImage
-          : (imageSources[0] ?? null);
-      const orderedImageSources = selectedImage
-        ? [selectedImage, ...imageSources.filter((source) => source !== selectedImage)]
-        : imageSources;
+      const requestedImages = entry.imageSources
+        ? catalogImageSources(entry.imageSources).filter((source) => imageSources.includes(source))
+        : [];
+      const legacySelectedImage =
+        requestedImage && imageSources.includes(requestedImage) ? requestedImage : null;
+      const orderedImageSources = entry.imageSources
+        ? requestedImages
+        : legacySelectedImage
+          ? [
+              legacySelectedImage,
+              ...imageSources.filter((source) => source !== legacySelectedImage),
+            ]
+          : imageSources;
+      const selectedImage = orderedImageSources[0] ?? imageSources[0] ?? null;
       const canonicalPrice = catalogBrochurePrice(
         {
           priceEur: decimal(variant?.priceEur) ?? decimal(product.priceEur),
@@ -175,7 +182,8 @@ export async function POST(request: NextRequest) {
         sku: product.sku,
         brand: product.brand,
         image: selectedImage,
-        imageSources: orderedImageSources,
+        imageSources: orderedImageSources.length ? orderedImageSources : imageSources.slice(0, 1),
+        galleryLayout: entry.galleryLayout ?? "auto",
         price,
       };
     });

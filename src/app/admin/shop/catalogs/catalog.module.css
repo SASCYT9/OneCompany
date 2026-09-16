@@ -1156,6 +1156,15 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.editorPaperGalleryFeature {
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.editorPaperGalleryFeature img:first-child {
+  grid-row: 1 / span 2;
+}
+
 .editorPaperBottom {
   min-height: 105px;
   padding: 15px 20px 18px;
@@ -1237,6 +1246,15 @@
   text-align: center;
 }
 
+.editorProductPhotoSummary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: #a7b0bd;
+  font-size: 11px;
+}
+
 .editorProductThumbs {
   display: flex;
   min-width: 0;
@@ -1279,6 +1297,203 @@
 .editorProductInfo span {
   display: block;
   overflow-wrap: anywhere;
+}
+
+.photoManager {
+  display: grid;
+  gap: 10px;
+  margin-left: 36px;
+  border: 1px solid #ffffff12;
+  border-radius: 9px;
+  background: #111315;
+  padding: 10px;
+}
+
+.photoManagerHeader,
+.photoLayoutRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.photoManagerHeader > div,
+.photoLayoutRow > div:first-child {
+  min-width: 0;
+}
+
+.photoManagerHeader strong,
+.photoManagerHeader span,
+.photoLayoutRow strong,
+.photoLayoutRow span {
+  display: block;
+}
+
+.photoManagerHeader strong,
+.photoLayoutRow strong {
+  color: #eef1f5;
+  font-size: 11px;
+}
+
+.photoManagerHeader span,
+.photoLayoutRow span {
+  margin-top: 2px;
+  color: #78828f;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.photoRestoreButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #ffffff18;
+  border-radius: 6px;
+  background: #ffffff08;
+  padding: 6px 8px;
+  color: #c7cfda;
+  font-size: 9px;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.photoRestoreButton:hover {
+  border-color: #77a5ff66;
+  background: #77a5ff12;
+}
+
+.photoManagerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.photoTile {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid #ffffff17;
+  border-radius: 7px;
+  background: #24272a;
+}
+
+.photoTile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoOrderBadge,
+.photoPrimaryBadge {
+  position: absolute;
+  top: 6px;
+  z-index: 1;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.photoOrderBadge {
+  left: 6px;
+  min-width: 18px;
+  background: #0b0d0ed9;
+  padding: 5px 6px;
+  color: #fff;
+  text-align: center;
+}
+
+.photoPrimaryBadge {
+  right: 6px;
+  background: #2f6febde;
+  padding: 5px 7px;
+  color: #fff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.photoTileActions {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  border-radius: 6px;
+  background: #090b0cce;
+  padding: 3px;
+  backdrop-filter: blur(8px);
+}
+
+.photoTileActions button {
+  display: grid;
+  min-width: 0;
+  height: 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #d5dae1;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.photoTileActions button:hover:not(:disabled) {
+  background: #ffffff16;
+  color: #fff;
+}
+
+.photoTileActions button:disabled {
+  cursor: not-allowed;
+  color: #59606a;
+}
+
+.photoTileActions .photoRemoveButton:hover:not(:disabled) {
+  background: #ff5c681f;
+  color: #ff8b93;
+}
+
+.photoLayoutRow {
+  border-top: 1px solid #ffffff0e;
+  padding-top: 9px;
+}
+
+.photoLayoutControl {
+  display: inline-grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  border: 1px solid #ffffff12;
+  border-radius: 7px;
+  background: #0c0e10;
+  padding: 3px;
+}
+
+.photoLayoutControl button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  padding: 0 8px;
+  color: #8f99a6;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.photoLayoutControl button:hover {
+  color: #dce4f0;
+}
+
+.photoLayoutControl .photoLayoutActive {
+  background: #2f6feb;
+  color: #fff;
+  box-shadow: 0 4px 14px #1f56c744;
 }
 
 .editorProductInfo strong {
@@ -1493,8 +1708,22 @@
     grid-column: 2;
   }
   .editorProductInfo,
-  .editorPriceField {
+  .editorPriceField,
+  .photoManager {
     padding-left: 0;
+    margin-left: 0;
+  }
+  .photoManagerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .photoManagerHeader,
+  .photoLayoutRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .photoLayoutControl {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .editorPriceField {
     grid-template-columns: 1fr 110px;

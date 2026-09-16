@@ -11,6 +11,7 @@ import type {
   CatalogBrochureBranding,
   CatalogBrochureCurrency,
   CatalogBrochureDescriptionMode,
+  CatalogBrochureGalleryLayout,
   CatalogBrochureLayout,
   CatalogBrochureLanguage,
   CatalogBrochurePhotoMode,
@@ -37,6 +38,7 @@ export type CatalogBrochurePdfItem = {
   brand: string | null;
   image: string | null;
   imageSources: string[];
+  galleryLayout?: CatalogBrochureGalleryLayout;
   price: number | null;
 };
 
@@ -214,6 +216,7 @@ function ProductGallery({
   pictures,
   emptyLabel,
   photoMode,
+  galleryLayout,
   heroStyle,
   galleryStyle,
   cellStyle,
@@ -222,6 +225,7 @@ function ProductGallery({
   pictures: Array<Buffer | null>;
   emptyLabel: string;
   photoMode: CatalogBrochurePhotoMode;
+  galleryLayout: CatalogBrochureGalleryLayout;
   heroStyle: Style;
   galleryStyle: Style;
   cellStyle: Style;
@@ -233,22 +237,72 @@ function ProductGallery({
       <ProductPhoto picture={available[0] ?? null} emptyLabel={emptyLabel} imageStyle={heroStyle} />
     );
   }
-  const columns = available.length === 2 ? 2 : Math.min(3, available.length);
-  const rows = Math.ceil(available.length / columns);
-  const cellHeight = Math.max(68, Math.floor(galleryHeight / rows));
-  return (
-    <View style={galleryStyle}>
-      {available.map((picture, index) => (
+
+  const useFeatureLayout =
+    galleryLayout === "feature" || (galleryLayout === "auto" && available.length === 3);
+  if (useFeatureLayout && available.length === 2) {
+    return (
+      <View style={{ ...galleryStyle, flexDirection: "row", flexWrap: "nowrap" }}>
         <ProductPhoto
-          key={`gallery-${index}`}
-          picture={picture}
+          picture={available[0]}
           emptyLabel={emptyLabel}
-          imageStyle={{
-            ...cellStyle,
-            width: `${100 / columns}%`,
-            height: cellHeight,
-          }}
+          imageStyle={{ ...cellStyle, width: "62%", height: galleryHeight }}
         />
+        <ProductPhoto
+          picture={available[1]}
+          emptyLabel={emptyLabel}
+          imageStyle={{ ...cellStyle, width: "38%", height: galleryHeight }}
+        />
+      </View>
+    );
+  }
+  if (useFeatureLayout && available.length === 3) {
+    return (
+      <View style={{ ...galleryStyle, flexDirection: "row", flexWrap: "nowrap" }}>
+        <ProductPhoto
+          picture={available[0]}
+          emptyLabel={emptyLabel}
+          imageStyle={{ ...cellStyle, width: "58%", height: galleryHeight }}
+        />
+        <View style={{ width: "42%", height: galleryHeight, flexDirection: "column" }}>
+          <ProductPhoto
+            picture={available[1]}
+            emptyLabel={emptyLabel}
+            imageStyle={{ ...cellStyle, width: "100%", height: galleryHeight / 2 }}
+          />
+          <ProductPhoto
+            picture={available[2]}
+            emptyLabel={emptyLabel}
+            imageStyle={{ ...cellStyle, width: "100%", height: galleryHeight / 2 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  const columns = available.length <= 3 ? available.length : available.length <= 6 ? 3 : 4;
+  const rows = splitIntoGroups(available, columns);
+  const rowHeight = Math.max(68, Math.floor(galleryHeight / rows.length));
+  return (
+    <View style={{ ...galleryStyle, flexDirection: "column", flexWrap: "nowrap" }}>
+      {rows.map((row, rowIndex) => (
+        <View
+          key={`gallery-row-${rowIndex}`}
+          style={{ width: "100%", height: rowHeight, flexDirection: "row" }}
+        >
+          {row.map((picture, index) => (
+            <ProductPhoto
+              key={`gallery-${rowIndex}-${index}`}
+              picture={picture}
+              emptyLabel={emptyLabel}
+              imageStyle={{
+                ...cellStyle,
+                width: `${100 / row.length}%`,
+                height: rowHeight,
+              }}
+            />
+          ))}
+        </View>
       ))}
     </View>
   );
@@ -863,6 +917,7 @@ function SingleProductPage({
         pictures={pictures}
         emptyLabel={t.noPhoto}
         photoMode={input.photoMode ?? "hero"}
+        galleryLayout={item.galleryLayout ?? "auto"}
         heroStyle={styles.fullBleedPhoto}
         galleryStyle={styles.galleryBand}
         cellStyle={styles.galleryCell}
@@ -948,6 +1003,7 @@ function DoubleProductPage({
               pictures={pictures[index] ?? []}
               emptyLabel={t.noPhoto}
               photoMode={input.photoMode ?? "hero"}
+              galleryLayout={item.galleryLayout ?? "auto"}
               heroStyle={styles.doubleImage}
               galleryStyle={styles.doubleProductGallery}
               cellStyle={styles.doubleGalleryCell}

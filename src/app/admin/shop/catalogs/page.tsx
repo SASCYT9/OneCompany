@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
   Check,
   Download,
@@ -15,6 +17,7 @@ import {
   Plus,
   Percent,
   Search,
+  RotateCcw,
   Trash2,
   X,
 } from "lucide-react";
@@ -32,6 +35,7 @@ import {
   type CatalogBrochureBranding,
   type CatalogBrochureCurrency,
   type CatalogBrochureDescriptionMode,
+  type CatalogBrochureGalleryLayout,
   type CatalogBrochureLayout,
   type CatalogBrochureLanguage,
   type CatalogBrochurePhotoMode,
@@ -58,6 +62,8 @@ type SelectedProduct = {
   product: CatalogProduct;
   prices: Record<CatalogBrochureCurrency, string>;
   imageSource: string | null;
+  imageSources: string[];
+  galleryLayout: CatalogBrochureGalleryLayout;
 };
 
 type BulkAdjustmentMode = "percent" | "fixed";
@@ -91,13 +97,11 @@ function productImages(product: CatalogProduct) {
 }
 
 function selectedProductImages(entry: SelectedProduct) {
-  return Array.from(
-    new Set(
-      [entry.imageSource, ...productImages(entry.product)].filter((source): source is string =>
-        Boolean(source)
-      )
-    )
-  );
+  return entry.imageSources.length
+    ? entry.imageSources
+    : entry.imageSource
+      ? [entry.imageSource]
+      : [];
 }
 
 function detectLogoTone(image: HTMLImageElement): "light" | "dark" | "unknown" {
@@ -185,6 +189,7 @@ export default function AdminCatalogsPage() {
   );
   function addProduct(product: CatalogProduct) {
     if (selectedIds.has(product.id)) return;
+    const imageSources = productImages(product).slice(0, 8);
     setSelected((current) => [
       ...current,
       {
@@ -194,7 +199,9 @@ export default function AdminCatalogsPage() {
           USD: priceInput(catalogBrochurePrice(product, "USD")),
           UAH: priceInput(catalogBrochurePrice(product, "UAH")),
         },
-        imageSource: productImages(product)[0] ?? null,
+        imageSource: imageSources[0] ?? null,
+        imageSources,
+        galleryLayout: "auto",
       },
     ]);
     if (!brandName && product.brand) setBrandName(product.brand);
@@ -246,11 +253,53 @@ export default function AdminCatalogsPage() {
     setSelected((current) =>
       current.map((entry) => {
         if (entry.product.id !== id) return entry;
-        const sources = productImages(entry.product);
+        const sources = selectedProductImages(entry);
         if (sources.length < 2) return entry;
-        const currentIndex = Math.max(0, sources.indexOf(entry.imageSource ?? ""));
-        return { ...entry, imageSource: sources[(currentIndex + 1) % sources.length] };
+        const nextSources = [...sources.slice(1), sources[0]];
+        return { ...entry, imageSource: nextSources[0], imageSources: nextSources };
       })
+    );
+  }
+
+  function moveProductImage(id: string, imageIndex: number, direction: -1 | 1) {
+    setSelected((current) =>
+      current.map((entry) => {
+        if (entry.product.id !== id) return entry;
+        const nextIndex = imageIndex + direction;
+        if (nextIndex < 0 || nextIndex >= entry.imageSources.length) return entry;
+        const imageSources = [...entry.imageSources];
+        [imageSources[imageIndex], imageSources[nextIndex]] = [
+          imageSources[nextIndex],
+          imageSources[imageIndex],
+        ];
+        return { ...entry, imageSource: imageSources[0] ?? null, imageSources };
+      })
+    );
+  }
+
+  function removeProductImage(id: string, imageIndex: number) {
+    setSelected((current) =>
+      current.map((entry) => {
+        if (entry.product.id !== id || entry.imageSources.length <= 1) return entry;
+        const imageSources = entry.imageSources.filter((_, index) => index !== imageIndex);
+        return { ...entry, imageSource: imageSources[0] ?? null, imageSources };
+      })
+    );
+  }
+
+  function restoreProductImages(id: string) {
+    setSelected((current) =>
+      current.map((entry) => {
+        if (entry.product.id !== id) return entry;
+        const imageSources = productImages(entry.product).slice(0, 8);
+        return { ...entry, imageSource: imageSources[0] ?? null, imageSources };
+      })
+    );
+  }
+
+  function updateGalleryLayout(id: string, galleryLayout: CatalogBrochureGalleryLayout) {
+    setSelected((current) =>
+      current.map((entry) => (entry.product.id === id ? { ...entry, galleryLayout } : entry))
     );
   }
 
@@ -331,7 +380,9 @@ export default function AdminCatalogsPage() {
           showPrice,
           items: selected.map((entry) => ({
             productId: entry.product.id,
-            imageSource: entry.imageSource,
+            imageSource: entry.imageSources[0] ?? entry.imageSource,
+            imageSources: entry.imageSources.length ? entry.imageSources : undefined,
+            galleryLayout: entry.galleryLayout,
             priceOverride:
               entry.prices[currency].trim() === "" ? null : Number(entry.prices[currency]),
           })),
@@ -365,6 +416,11 @@ export default function AdminCatalogsPage() {
   const editorPreviewImages = (
     photoMode === "gallery" ? firstPreviewImages : firstPreviewImages.slice(0, 1)
   ).slice(0, 4);
+  const previewUsesFeatureLayout =
+    photoMode === "gallery" &&
+    editorPreviewImages.length > 1 &&
+    (firstEntry?.galleryLayout === "feature" ||
+      (firstEntry?.galleryLayout === "auto" && editorPreviewImages.length === 3));
   const productPages = catalogBrochureProductPageCount(selected.length, layout);
   const summaryPages = selected.length ? Math.ceil(selected.length / 8) : 0;
   const documentPages = selected.length ? productPages + summaryPages + 1 : "—";
@@ -1051,9 +1107,11 @@ export default function AdminCatalogsPage() {
                     className={`${styles.editorPaperGallery} ${
                       editorPreviewImages.length === 1
                         ? styles.editorPaperGallerySingle
-                        : editorPreviewImages.length === 3
-                          ? styles.editorPaperGalleryTriple
-                          : ""
+                        : previewUsesFeatureLayout
+                          ? styles.editorPaperGalleryFeature
+                          : editorPreviewImages.length === 3
+                            ? styles.editorPaperGalleryTriple
+                            : ""
                     }`}
                   >
                     {editorPreviewImages.length ? (
@@ -1074,7 +1132,8 @@ export default function AdminCatalogsPage() {
                   </div>
                 </div>
                 <div className={styles.editorCanvasHint}>
-                  Живий перегляд обкладинки. У PDF збережеться обраний порядок, ціни та всі фото.
+                  Живий перегляд обкладинки. Перше фото є головним, а приховані кадри не потраплять
+                  до PDF.
                 </div>
               </div>
               <div className={styles.editorProducts}>
@@ -1088,25 +1147,16 @@ export default function AdminCatalogsPage() {
                 <div className={styles.editorProductList}>
                   {selected.map((entry, index) => {
                     const images = selectedProductImages(entry);
+                    const allImages = productImages(entry.product).slice(0, 8);
                     return (
                       <article className={styles.editorProductCard} key={entry.product.id}>
                         <div className={styles.editorProductTop}>
                           <span className={styles.editorProductIndex}>
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <div className={styles.editorProductThumbs}>
-                            {images.slice(0, 4).map((source, imageIndex) => (
-                              <div
-                                className={styles.editorProductThumb}
-                                key={`${source}-${imageIndex}`}
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={source} alt="" />
-                              </div>
-                            ))}
-                            {!images.length ? (
-                              <div className={styles.editorProductThumb}>—</div>
-                            ) : null}
+                          <div className={styles.editorProductPhotoSummary}>
+                            <Images size={14} />
+                            {images.length} з {allImages.length} фото у PDF
                           </div>
                           <div className={styles.editorProductActions}>
                             <button
@@ -1143,6 +1193,111 @@ export default function AdminCatalogsPage() {
                             {entry.product.sku || "Артикул не вказаний"} · {images.length || 0} фото
                           </span>
                         </div>
+                        {images.length ? (
+                          <div className={styles.photoManager}>
+                            <div className={styles.photoManagerHeader}>
+                              <div>
+                                <strong>Фото товару</strong>
+                                <span>Перше фото буде головним та акцентним.</span>
+                              </div>
+                              {images.length < allImages.length ? (
+                                <button
+                                  type="button"
+                                  className={styles.photoRestoreButton}
+                                  onClick={() => restoreProductImages(entry.product.id)}
+                                >
+                                  <RotateCcw size={13} />
+                                  Відновити всі
+                                </button>
+                              ) : null}
+                            </div>
+                            <div className={styles.photoManagerGrid}>
+                              {images.map((source, imageIndex) => (
+                                <div className={styles.photoTile} key={`${source}-${imageIndex}`}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={source} alt={`Фото ${imageIndex + 1}`} />
+                                  <span className={styles.photoOrderBadge}>{imageIndex + 1}</span>
+                                  {imageIndex === 0 ? (
+                                    <span className={styles.photoPrimaryBadge}>Головне</span>
+                                  ) : null}
+                                  <div className={styles.photoTileActions}>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        moveProductImage(entry.product.id, imageIndex, -1)
+                                      }
+                                      disabled={imageIndex === 0}
+                                      aria-label={`Перемістити фото ${imageIndex + 1} ліворуч`}
+                                      title="Перемістити ліворуч"
+                                    >
+                                      <ArrowLeft size={14} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        moveProductImage(entry.product.id, imageIndex, 1)
+                                      }
+                                      disabled={imageIndex === images.length - 1}
+                                      aria-label={`Перемістити фото ${imageIndex + 1} праворуч`}
+                                      title="Перемістити праворуч"
+                                    >
+                                      <ArrowRight size={14} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={styles.photoRemoveButton}
+                                      onClick={() =>
+                                        removeProductImage(entry.product.id, imageIndex)
+                                      }
+                                      disabled={images.length <= 1}
+                                      aria-label={`Прибрати фото ${imageIndex + 1} з PDF`}
+                                      title={
+                                        images.length <= 1
+                                          ? "У PDF має залишитися хоча б одне фото"
+                                          : "Прибрати лише з цього PDF"
+                                      }
+                                    >
+                                      <X size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            {photoMode === "gallery" && images.length > 1 ? (
+                              <div className={styles.photoLayoutRow}>
+                                <div>
+                                  <strong>Композиція</strong>
+                                  <span>
+                                    «Авто» прибирає пусті місця для будь-якої кількості фото.
+                                  </span>
+                                </div>
+                                <div className={styles.photoLayoutControl}>
+                                  {(
+                                    [
+                                      ["auto", "Авто"],
+                                      ["feature", "Акцент"],
+                                      ["grid", "Сітка"],
+                                    ] as const
+                                  ).map(([value, label]) => (
+                                    <button
+                                      type="button"
+                                      key={value}
+                                      className={
+                                        entry.galleryLayout === value
+                                          ? styles.photoLayoutActive
+                                          : undefined
+                                      }
+                                      onClick={() => updateGalleryLayout(entry.product.id, value)}
+                                      aria-pressed={entry.galleryLayout === value}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
                         <label className={styles.editorPriceField}>
                           <span>Ціна · {currency}</span>
                           <input

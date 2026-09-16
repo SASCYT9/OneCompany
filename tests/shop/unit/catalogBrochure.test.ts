@@ -38,6 +38,22 @@ test("accepts a valid brochure request and optional zero price", () => {
     }),
     null
   );
+  assert.equal(
+    validateCatalogBrochureRequest({
+      ...validRequest,
+      items: [
+        {
+          productId: "product-1",
+          imageSources: [
+            "https://cdn.example.com/detail.jpg",
+            "https://cdn.example.com/product.jpg",
+          ],
+          galleryLayout: "feature",
+        },
+      ],
+    }),
+    null
+  );
 });
 
 test("accepts gallery and description presentation modes", () => {
@@ -78,6 +94,32 @@ test("rejects malformed product photo overrides", () => {
   });
   assert.ok(error);
   assert.match(error, /фото/i);
+
+  const emptyGallery = validateCatalogBrochureRequest({
+    ...validRequest,
+    items: [{ productId: "product-1", imageSources: [] }],
+  });
+  assert.match(emptyGallery ?? "", /фото/i);
+
+  const duplicateGallery = validateCatalogBrochureRequest({
+    ...validRequest,
+    items: [
+      {
+        productId: "product-1",
+        imageSources: [
+          "https://cdn.example.com/product.jpg",
+          "https://cdn.example.com/product.jpg",
+        ],
+      },
+    ],
+  });
+  assert.match(duplicateGallery ?? "", /унікальних фото/i);
+
+  const invalidLayout = validateCatalogBrochureRequest({
+    ...validRequest,
+    items: [{ productId: "product-1", galleryLayout: "masonry" }],
+  });
+  assert.match(invalidLayout ?? "", /розкладку фото/i);
 });
 
 test("requires a brand when brand branding is selected", () => {

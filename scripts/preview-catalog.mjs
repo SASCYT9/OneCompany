@@ -219,10 +219,19 @@ const server = createServer(async (req, res) => {
         if (index < 0) throw new Error("Demo product not found");
         const product = products[index];
         const fixture = productFixtures[index];
+        const requestedImages = Array.isArray(entry.imageSources)
+          ? Array.from(
+              new Set(entry.imageSources.filter((source) => product.imageSources.includes(source)))
+            )
+          : [];
         const selectedImage =
-          typeof entry.imageSource === "string" && product.imageSources.includes(entry.imageSource)
+          requestedImages[0] ||
+          (typeof entry.imageSource === "string" && product.imageSources.includes(entry.imageSource)
             ? entry.imageSource
-            : product.imageUrl;
+            : product.imageUrl);
+        const imageSources = requestedImages.length
+          ? requestedImages
+          : [selectedImage, ...product.imageSources.filter((source) => source !== selectedImage)];
         return {
           title: language === "en" ? product.titleEn : product.titleUa,
           description:
@@ -230,10 +239,10 @@ const server = createServer(async (req, res) => {
           sku: product.sku,
           brand: product.brand,
           image: selectedImage,
-          imageSources: [
-            selectedImage,
-            ...product.imageSources.filter((source) => source !== selectedImage),
-          ],
+          imageSources,
+          galleryLayout: ["auto", "feature", "grid"].includes(entry.galleryLayout)
+            ? entry.galleryLayout
+            : "auto",
           price: entry.priceOverride == null ? product.priceEur : Number(entry.priceOverride),
         };
       });
