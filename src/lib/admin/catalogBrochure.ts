@@ -2,6 +2,8 @@ export type CatalogBrochureLanguage = "ua" | "ru" | "en";
 export type CatalogBrochureCurrency = "EUR" | "USD" | "UAH";
 export type CatalogBrochureBranding = "onecompany" | "brand" | "none";
 export type CatalogBrochureLayout = "single" | "double";
+export type CatalogBrochurePhotoMode = "gallery" | "hero";
+export type CatalogBrochureDescriptionMode = "short" | "full" | "none";
 
 export type CatalogBrochureItemInput = {
   productId: string;
@@ -15,6 +17,8 @@ export type CatalogBrochureRequest = {
   language: CatalogBrochureLanguage;
   currency: CatalogBrochureCurrency;
   layout: CatalogBrochureLayout;
+  photoMode?: CatalogBrochurePhotoMode;
+  descriptionMode?: CatalogBrochureDescriptionMode;
   branding: CatalogBrochureBranding;
   brandName?: string | null;
   showPrice: boolean;
@@ -120,6 +124,15 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
   if (!["ua", "ru", "en"].includes(String(body.language))) return "Оберіть мову каталогу.";
   if (!["EUR", "USD", "UAH"].includes(String(body.currency))) return "Оберіть валюту каталогу.";
   if (!["single", "double"].includes(String(body.layout))) return "Оберіть розкладку каталогу.";
+  if (body.photoMode != null && !["gallery", "hero"].includes(String(body.photoMode))) {
+    return "Оберіть режим фотографій каталогу.";
+  }
+  if (
+    body.descriptionMode != null &&
+    !["short", "full", "none"].includes(String(body.descriptionMode))
+  ) {
+    return "Оберіть режим описів каталогу.";
+  }
   if (!["onecompany", "brand", "none"].includes(String(body.branding)))
     return "Оберіть логотип каталогу.";
   if (

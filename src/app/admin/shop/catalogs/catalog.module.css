@@ -699,6 +699,35 @@
   object-fit: cover;
 }
 
+.paperGallery {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 2px;
+  padding: 2px;
+}
+
+.paperGallery img {
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.galleryCount {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid #ffffff66;
+  border-radius: 999px;
+  background: #111b;
+  padding: 4px 7px;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .paperBody {
   min-height: 118px;
   padding: 17px 18px 19px;
@@ -811,7 +840,8 @@
 }
 
 .actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 8px;
   padding: 0 20px 20px;
 }
@@ -859,6 +889,448 @@
   background: #2a2c31;
 }
 
+.editorButton,
+.editorSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  border: 1px solid #ffffff1c;
+  border-radius: 8px;
+  background: #1d2430;
+  color: #cbdcff;
+  padding: 0 13px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.editorButton:hover:not(:disabled),
+.editorSecondary:hover {
+  border-color: #6c9cf755;
+  background: #263653;
+}
+
+.editorButton:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.editorBackdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: #050608c7;
+  padding: 24px;
+  backdrop-filter: blur(14px);
+}
+
+.editorDialog {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(1180px, 100%);
+  max-height: min(900px, calc(100vh - 48px));
+  overflow: hidden;
+  border: 1px solid #ffffff1c;
+  border-radius: 16px;
+  background: #131415;
+  box-shadow: 0 30px 100px #000b;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #ffffff12;
+  padding: 22px 24px 19px;
+}
+
+.editorHeader h2 {
+  margin: 6px 0 0;
+  color: #f4f6f8;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.editorHeader p {
+  margin: 7px 0 0;
+  color: #848d99;
+  font-size: 12px;
+}
+
+.editorClose {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #ffffff18;
+  border-radius: 8px;
+  background: #202225;
+  color: #b8c0ca;
+  cursor: pointer;
+}
+
+.editorClose:hover {
+  background: #2b2e33;
+  color: white;
+}
+
+.editorToolbar {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 0.7fr 0.7fr auto;
+  gap: 10px;
+  border-bottom: 1px solid #ffffff12;
+  background: #17191b;
+  padding: 14px 24px;
+}
+
+.editorField {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: #8f98a5;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.editorField input,
+.editorField select,
+.editorPriceField input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid #ffffff18;
+  border-radius: 7px;
+  background: #0d0e0f;
+  color: #f3f5f7;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: normal;
+  outline: 0;
+  text-transform: none;
+  color-scheme: dark;
+}
+
+.editorField input:focus,
+.editorField select:focus,
+.editorPriceField input:focus {
+  border-color: #699cf5;
+  box-shadow: 0 0 0 3px #3b82f618;
+}
+
+.editorToggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: end;
+  gap: 7px;
+  min-height: 36px;
+  color: #cbd1db;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.editorToggle input {
+  accent-color: #4e8bf7;
+}
+
+.editorBody {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(380px, 1.15fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editorCanvas,
+.editorProducts {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.editorCanvas {
+  border-right: 1px solid #ffffff12;
+  background: radial-gradient(circle at 18% 0%, #252b35 0, #17191b 43%, #111213 100%);
+}
+
+.editorCanvasLabel {
+  margin-bottom: 12px;
+  color: #7f8997;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.editorPaper {
+  overflow: hidden;
+  border: 1px solid #ffffff2a;
+  background: #fff;
+  color: #16191a;
+  box-shadow: 0 20px 40px #0006;
+}
+
+.editorPaperTop {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  background: #141718;
+  padding: 18px 20px 17px;
+  color: white;
+}
+
+.editorPaperLogo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 112px;
+  height: 24px;
+}
+
+.editorPaperLogo.brandMarkLight {
+  height: 32px;
+  padding: 4px 6px;
+}
+
+.editorPaperLogo img {
+  width: auto;
+  max-width: 112px;
+  height: 24px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.editorPaperTop span {
+  margin-top: 11px;
+  color: #c5ccce;
+  font-size: 7px;
+  letter-spacing: 0.18em;
+}
+
+.editorPaperTop strong {
+  max-width: 340px;
+  font-size: 24px;
+  line-height: 1.02;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.editorPaperGallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(74px, 1fr);
+  min-height: 175px;
+  max-height: 260px;
+  gap: 2px;
+  overflow: hidden;
+  background: #eff1f0;
+  color: #7b8386;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  place-items: center;
+  text-align: center;
+}
+
+.editorPaperGallery img {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.editorPaperGallerySingle {
+  grid-template-columns: 1fr;
+}
+
+.editorPaperGalleryTriple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.editorPaperBottom {
+  min-height: 105px;
+  padding: 15px 20px 18px;
+}
+
+.editorPaperBottom strong,
+.editorPaperBottom span:last-child {
+  display: block;
+}
+
+.editorPaperBottom strong {
+  max-width: 320px;
+  font-size: 16px;
+  line-height: 1.12;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.editorPaperBottom span:last-child {
+  margin-top: 8px;
+  color: #7a8286;
+  font-size: 7px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.editorCanvasHint {
+  margin-top: 12px;
+  color: #7f8997;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.editorProductsHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.editorProductsHeading h3 {
+  margin: 5px 0 0;
+  color: #f4f6f8;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.editorProductsHeading > span {
+  color: #8d97a4;
+  font-size: 11px;
+}
+
+.editorProductList {
+  display: grid;
+  gap: 9px;
+}
+
+.editorProductCard {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #ffffff14;
+  border-radius: 10px;
+  background: #191b1d;
+  padding: 11px;
+}
+
+.editorProductTop {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.editorProductIndex {
+  color: #82a7ff;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.editorProductThumbs {
+  display: flex;
+  min-width: 0;
+  gap: 5px;
+  overflow: hidden;
+}
+
+.editorProductThumb {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border: 1px solid #ffffff18;
+  border-radius: 6px;
+  background: #24272a;
+  color: #7b8490;
+  font-size: 12px;
+}
+
+.editorProductThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editorProductActions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.editorProductInfo {
+  min-width: 0;
+  padding-left: 36px;
+}
+
+.editorProductInfo strong,
+.editorProductInfo span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.editorProductInfo strong {
+  color: #f1f3f6;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.editorProductInfo span {
+  margin-top: 3px;
+  color: #808a97;
+  font-size: 10px;
+}
+
+.editorPriceField {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  align-items: center;
+  gap: 10px;
+  padding-left: 36px;
+  color: #8f98a5;
+  font-size: 10px;
+}
+
+.editorPriceField input {
+  min-height: 34px;
+  font-variant-numeric: tabular-nums;
+}
+
+.editorFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #ffffff12;
+  background: #17191b;
+  padding: 14px 24px;
+  color: #7e8793;
+  font-size: 11px;
+}
+
+.editorFooter > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editorFooter .primary {
+  flex: 0 0 auto;
+  min-height: 40px;
+}
+
 .alert {
   border: 1px solid #ff727733;
   border-radius: 8px;
@@ -890,6 +1362,24 @@
   }
   .preview {
     position: static;
+  }
+  .editorToolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .editorToggle {
+    align-self: center;
+  }
+  .editorBody {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+  .editorCanvas,
+  .editorProducts {
+    overflow: visible;
+  }
+  .editorCanvas {
+    border-right: 0;
+    border-bottom: 1px solid #ffffff12;
   }
 }
 
@@ -927,6 +1417,12 @@
     padding-left: 16px;
     padding-right: 16px;
   }
+  .actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .editorButton {
+    grid-column: 1 / -1;
+  }
   .paper {
     margin-left: 16px;
     margin-right: 16px;
@@ -961,5 +1457,67 @@
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: 1fr 1fr;
+  }
+  .editorBackdrop {
+    align-items: start;
+    padding: 8px;
+  }
+  .editorDialog {
+    max-height: calc(100vh - 16px);
+    border-radius: 12px;
+  }
+  .editorHeader,
+  .editorCanvas,
+  .editorProducts,
+  .editorFooter {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .editorHeader h2 {
+    font-size: 19px;
+  }
+  .editorHeader p {
+    line-height: 1.45;
+  }
+  .editorToolbar {
+    grid-template-columns: 1fr;
+    padding: 13px 16px;
+  }
+  .editorToggle {
+    align-self: start;
+  }
+  .editorProductTop {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .editorProductActions {
+    grid-column: 2;
+  }
+  .editorProductInfo,
+  .editorPriceField {
+    padding-left: 0;
+  }
+  .editorPriceField {
+    grid-template-columns: 1fr 110px;
+  }
+  .editorFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .editorFooter > div {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .editorFooter > div > button {
+    min-width: 0;
+    width: 100%;
+    padding-left: 9px;
+    padding-right: 9px;
+    white-space: normal;
+  }
+  .editorFooter .primary {
+    font-size: 10px;
+    line-height: 1.2;
   }
 }

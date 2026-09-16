@@ -243,6 +243,10 @@ const server = createServer(async (req, res) => {
         language,
         currency: ["EUR", "USD", "UAH"].includes(input.currency) ? input.currency : "EUR",
         layout: input.layout === "double" ? "double" : "single",
+        photoMode: input.photoMode === "hero" ? "hero" : "gallery",
+        descriptionMode: ["short", "full", "none"].includes(input.descriptionMode)
+          ? input.descriptionMode
+          : "full",
         branding: ["onecompany", "brand", "none"].includes(input.branding)
           ? input.branding
           : "onecompany",

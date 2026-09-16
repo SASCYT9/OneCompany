@@ -40,6 +40,37 @@ test("accepts a valid brochure request and optional zero price", () => {
   );
 });
 
+test("accepts gallery and description presentation modes", () => {
+  assert.equal(
+    validateCatalogBrochureRequest({
+      ...validRequest,
+      photoMode: "gallery",
+      descriptionMode: "short",
+    }),
+    null
+  );
+  assert.equal(
+    validateCatalogBrochureRequest({
+      ...validRequest,
+      photoMode: "hero",
+      descriptionMode: "none",
+    }),
+    null
+  );
+
+  const invalidPhotoMode = validateCatalogBrochureRequest({
+    ...validRequest,
+    photoMode: "carousel",
+  });
+  assert.match(invalidPhotoMode ?? "", /фотографій/i);
+
+  const invalidDescriptionMode = validateCatalogBrochureRequest({
+    ...validRequest,
+    descriptionMode: "verbose",
+  });
+  assert.match(invalidDescriptionMode ?? "", /описів/i);
+});
+
 test("rejects malformed product photo overrides", () => {
   const error = validateCatalogBrochureRequest({
     ...validRequest,

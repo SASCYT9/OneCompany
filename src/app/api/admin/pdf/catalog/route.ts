@@ -187,6 +187,8 @@ export async function POST(request: NextRequest) {
       language: input.language,
       currency: input.currency,
       layout: input.layout,
+      photoMode: input.photoMode ?? "gallery",
+      descriptionMode: input.descriptionMode ?? "full",
       branding: input.branding,
       brandLogoSrc,
       showPrice: input.showPrice,

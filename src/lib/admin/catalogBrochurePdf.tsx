@@ -10,8 +10,10 @@ import { loadProformaImages } from "./orderProformaImages";
 import type {
   CatalogBrochureBranding,
   CatalogBrochureCurrency,
+  CatalogBrochureDescriptionMode,
   CatalogBrochureLayout,
   CatalogBrochureLanguage,
+  CatalogBrochurePhotoMode,
 } from "./catalogBrochure";
 
 Font.register({
@@ -44,6 +46,8 @@ export type CatalogBrochurePdfInput = {
   language: CatalogBrochureLanguage;
   currency: CatalogBrochureCurrency;
   layout: CatalogBrochureLayout;
+  photoMode?: CatalogBrochurePhotoMode;
+  descriptionMode?: CatalogBrochureDescriptionMode;
   branding: CatalogBrochureBranding;
   brandLogoSrc: string | null;
   showPrice: boolean;
@@ -158,8 +162,14 @@ function productDeck(description: string, fallback: string) {
   return trimText(firstSentence && firstSentence.length >= 42 ? firstSentence : text, 128);
 }
 
-function productCopy(description: string, fallback: string) {
-  return trimText(safeText(description, fallback), 285);
+function productDescription(
+  description: string,
+  fallback: string,
+  mode: CatalogBrochureDescriptionMode,
+  maxLength: number
+) {
+  if (mode === "none") return "";
+  return trimText(safeText(description, fallback), mode === "short" ? maxLength : 285);
 }
 
 function titleSize(title: string) {
@@ -196,6 +206,50 @@ function ProductPhoto({
   return (
     <View style={{ ...imageStyle, ...styles.emptyPhoto }}>
       <Text style={styles.emptyPhotoLabel}>{emptyLabel}</Text>
+    </View>
+  );
+}
+
+function ProductGallery({
+  pictures,
+  emptyLabel,
+  photoMode,
+  heroStyle,
+  galleryStyle,
+  cellStyle,
+  galleryHeight,
+}: {
+  pictures: Array<Buffer | null>;
+  emptyLabel: string;
+  photoMode: CatalogBrochurePhotoMode;
+  heroStyle: Style;
+  galleryStyle: Style;
+  cellStyle: Style;
+  galleryHeight: number;
+}) {
+  const available = pictures.filter((picture): picture is Buffer => Boolean(picture));
+  if (available.length <= 1 || photoMode === "hero") {
+    return (
+      <ProductPhoto picture={available[0] ?? null} emptyLabel={emptyLabel} imageStyle={heroStyle} />
+    );
+  }
+  const columns = available.length === 2 ? 2 : Math.min(3, available.length);
+  const rows = Math.ceil(available.length / columns);
+  const cellHeight = Math.max(68, Math.floor(galleryHeight / rows));
+  return (
+    <View style={galleryStyle}>
+      {available.map((picture, index) => (
+        <ProductPhoto
+          key={`gallery-${index}`}
+          picture={picture}
+          emptyLabel={emptyLabel}
+          imageStyle={{
+            ...cellStyle,
+            width: `${100 / columns}%`,
+            height: cellHeight,
+          }}
+        />
+      ))}
     </View>
   );
 }
@@ -430,6 +484,21 @@ const styles = {
     objectFit: "cover" as const,
     backgroundColor: "#eff1f0",
   },
+  galleryBand: {
+    width: A4_SIZE.width,
+    height: 328,
+    marginLeft: -PAGE_MARGIN,
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    backgroundColor: "#eff1f0",
+  },
+  galleryCell: {
+    objectFit: "cover" as const,
+    borderRightWidth: 0.8,
+    borderBottomWidth: 0.8,
+    borderColor: "#ffffff",
+    backgroundColor: "#eff1f0",
+  },
   emptyPhoto: {
     justifyContent: "center" as const,
     alignItems: "center" as const,
@@ -530,10 +599,28 @@ const styles = {
     flexDirection: "row" as const,
     backgroundColor: "#eff1f0",
   },
-  doubleImage: {
+  doubleImageColumn: {
     width: "50%" as const,
     height: 286,
+  },
+  doubleImage: {
+    width: "100%" as const,
+    height: 286,
     objectFit: "cover" as const,
+    backgroundColor: "#eff1f0",
+  },
+  doubleProductGallery: {
+    width: "100%" as const,
+    height: 286,
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    backgroundColor: "#eff1f0",
+  },
+  doubleGalleryCell: {
+    objectFit: "cover" as const,
+    borderRightWidth: 0.7,
+    borderBottomWidth: 0.7,
+    borderColor: "#ffffff",
     backgroundColor: "#eff1f0",
   },
   doubleCaption: {
@@ -734,7 +821,7 @@ async function prepareCatalogPicture(picture: Buffer | null) {
 
 function SingleProductPage({
   item,
-  picture,
+  pictures,
   itemIndex,
   pageNumber,
   pageCount,
@@ -744,7 +831,7 @@ function SingleProductPage({
   generated,
 }: {
   item: CatalogBrochurePdfItem;
-  picture: Buffer | null;
+  pictures: Array<Buffer | null>;
   itemIndex: number;
   pageNumber: number;
   pageCount: number;
@@ -768,9 +855,19 @@ function SingleProductPage({
           {String(itemIndex + 1).padStart(2, "0")} / {t.collection}
         </Text>
         <Text style={{ ...styles.productTitle, fontSize: titleSize(title) }}>{title}</Text>
-        <Text style={styles.productDeck}>{productDeck(item.description, t.collection)}</Text>
+        {input.descriptionMode !== "short" && input.descriptionMode !== "none" ? (
+          <Text style={styles.productDeck}>{productDeck(item.description, t.collection)}</Text>
+        ) : null}
       </View>
-      <ProductPhoto picture={picture} emptyLabel={t.noPhoto} imageStyle={styles.fullBleedPhoto} />
+      <ProductGallery
+        pictures={pictures}
+        emptyLabel={t.noPhoto}
+        photoMode={input.photoMode ?? "hero"}
+        heroStyle={styles.fullBleedPhoto}
+        galleryStyle={styles.galleryBand}
+        cellStyle={styles.galleryCell}
+        galleryHeight={328}
+      />
       <Text style={styles.caption}>
         {safeText(item.brand, "OneCompany")} ·{" "}
         {t.generated.toLocaleLowerCase(localeMap[input.language])} {generated}
@@ -780,9 +877,16 @@ function SingleProductPage({
           <Text style={styles.detailLabel}>
             {String(itemIndex + 1).padStart(2, "0")} / {t.collection}
           </Text>
-          <Text style={styles.detailDescription}>
-            {productCopy(item.description, t.collection)}
-          </Text>
+          {input.descriptionMode !== "none" ? (
+            <Text style={styles.detailDescription}>
+              {productDescription(
+                item.description,
+                t.collection,
+                input.descriptionMode ?? "full",
+                150
+              )}
+            </Text>
+          ) : null}
           <Text style={styles.sku}>
             {t.sku}: {item.sku || "—"}
           </Text>
@@ -812,7 +916,7 @@ function DoubleProductPage({
   documentMark,
 }: {
   group: CatalogBrochurePdfItem[];
-  pictures: Array<Buffer | null>;
+  pictures: Array<Array<Buffer | null>>;
   startIndex: number;
   pageNumber: number;
   pageCount: number;
@@ -839,12 +943,17 @@ function DoubleProductPage({
       </View>
       <View style={styles.doubleImageBand}>
         {group.map((item, index) => (
-          <ProductPhoto
-            key={`${item.sku ?? item.title}-image`}
-            picture={pictures[index] ?? null}
-            emptyLabel={t.noPhoto}
-            imageStyle={styles.doubleImage}
-          />
+          <View key={`${item.sku ?? item.title}-image`} style={styles.doubleImageColumn}>
+            <ProductGallery
+              pictures={pictures[index] ?? []}
+              emptyLabel={t.noPhoto}
+              photoMode={input.photoMode ?? "hero"}
+              heroStyle={styles.doubleImage}
+              galleryStyle={styles.doubleProductGallery}
+              cellStyle={styles.doubleGalleryCell}
+              galleryHeight={286}
+            />
+          </View>
         ))}
       </View>
       <Text style={styles.doubleCaption}>{t.selectedDeck}</Text>
@@ -864,9 +973,16 @@ function DoubleProductPage({
             <Text style={styles.doubleProductTitle}>
               {trimText(safeText(item.title, "Product"), 102)}
             </Text>
-            <Text style={styles.doubleProductDescription}>
-              {trimText(safeText(item.description, t.collection), 185)}
-            </Text>
+            {input.descriptionMode !== "none" ? (
+              <Text style={styles.doubleProductDescription}>
+                {productDescription(
+                  item.description,
+                  t.collection,
+                  input.descriptionMode ?? "full",
+                  95
+                )}
+              </Text>
+            ) : null}
             {input.showPrice ? (
               <Text style={styles.doublePrice}>
                 {formatMoney(item.price, input.currency, input.language)}
@@ -894,19 +1010,36 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
   ]);
   const coverLogo = input.branding === "onecompany" ? oneCompanyLight : brandLogo;
   const pageLogo = input.branding === "onecompany" ? oneCompanyDark : brandLogo;
-  const loadedPictures = await loadProformaImages(
-    input.items.map((item) => ({
-      title: item.title,
-      productSlug: item.sku || item.title,
-      image: item.image,
-      imageSources: item.imageSources,
-      quantity: 1,
-      price: item.price ?? 0,
-      total: item.price ?? 0,
-    })),
-    { maxDimension: 1500 }
+  const imageSourceGroups = input.items.map((item) =>
+    Array.from(
+      new Set(
+        [item.image, ...item.imageSources].filter(
+          (source): source is string => typeof source === "string" && source.trim().length > 0
+        )
+      )
+    )
   );
-  const pictures = await Promise.all(loadedPictures.map(prepareCatalogPicture));
+  const imageRequests = imageSourceGroups.flatMap((sources, itemIndex) =>
+    sources.map((source, sourceIndex) => ({
+      title: input.items[itemIndex]?.title ?? "Product",
+      productSlug: `${input.items[itemIndex]?.sku || input.items[itemIndex]?.title || "product"}-${sourceIndex}`,
+      image: source,
+      imageSources: [source],
+      quantity: 1,
+      price: input.items[itemIndex]?.price ?? 0,
+      total: input.items[itemIndex]?.price ?? 0,
+    }))
+  );
+  const loadedPictures = await loadProformaImages(imageRequests, { maxDimension: 1500 });
+  let pictureOffset = 0;
+  const pictures = await Promise.all(
+    imageSourceGroups.map(async (sources) => {
+      const prepared = await Promise.all(
+        sources.map(() => prepareCatalogPicture(loadedPictures[pictureOffset++] ?? null))
+      );
+      return prepared;
+    })
+  );
   const productGroups = splitIntoGroups(input.items, input.layout === "double" ? 2 : 1);
   const summaryGroups = splitIntoGroups(input.items, SUMMARY_PAGE_SIZE);
   const pageCount = 1 + productGroups.length + summaryGroups.length;
@@ -937,7 +1070,7 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
           </Text>
         </View>
         <ProductPhoto
-          picture={pictures[0] ?? null}
+          picture={pictures[0]?.[0] ?? null}
           emptyLabel={t.noPhoto}
           imageStyle={styles.coverHero}
         />
@@ -963,7 +1096,7 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
             <DoubleProductPage
               key={`double-${groupIndex}`}
               group={group}
-              pictures={[pictures[startIndex] ?? null, pictures[startIndex + 1] ?? null]}
+              pictures={[pictures[startIndex] ?? [], pictures[startIndex + 1] ?? []]}
               startIndex={startIndex}
               pageNumber={pageNumber}
               pageCount={pageCount}
@@ -977,7 +1110,7 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
           <SingleProductPage
             key={`single-${startIndex}`}
             item={group[0]}
-            picture={pictures[startIndex] ?? null}
+            pictures={pictures[startIndex] ?? []}
             itemIndex={startIndex}
             pageNumber={pageNumber}
             pageCount={pageCount}
@@ -1010,7 +1143,7 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
             </View>
             {isFirst ? (
               <ProductPhoto
-                picture={pictures[0] ?? null}
+                picture={pictures[0]?.[0] ?? null}
                 emptyLabel={t.noPhoto}
                 imageStyle={styles.summaryHero}
               />
