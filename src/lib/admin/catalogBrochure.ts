@@ -83,6 +83,23 @@ export function catalogBrochureProductPageCount(itemCount: number, layout: Catal
   return layout === "double" ? Math.ceil(itemCount / 2) : itemCount;
 }
 
+export function catalogBrochureContentDisposition(title: string) {
+  const safeTitle = title
+    .trim()
+    .replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄ_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  const utf8FileName = `catalog-${safeTitle || "onecompany"}.pdf`;
+  const asciiFileName =
+    utf8FileName
+      .normalize("NFKD")
+      .replace(/[^\x20-\x7e]/g, "")
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "catalog-onecompany.pdf";
+
+  return `attachment; filename="${asciiFileName}"; filename*=UTF-8''${encodeURIComponent(utf8FileName)}`;
+}
+
 export function validateCatalogBrochureRequest(value: unknown): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return "Некоректні дані каталогу.";

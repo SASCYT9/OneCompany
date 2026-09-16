@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import {
+  catalogBrochureContentDisposition,
   catalogBrochurePrice,
   validateCatalogBrochureRequest,
   type CatalogBrochureRequest,
@@ -192,14 +193,10 @@ export async function POST(request: NextRequest) {
       generatedAt: new Date(),
       items,
     });
-    const safeTitle = input.title
-      .trim()
-      .replace(/[^a-zA-Z0-9а-яА-ЯіІїЇєЄ_-]+/g, "-")
-      .slice(0, 80);
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="catalog-${safeTitle || "onecompany"}.pdf"`,
+        "Content-Disposition": catalogBrochureContentDisposition(input.title),
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
       },

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   applyCatalogBrochureDiscount,
   applyCatalogBrochureFixedDiscount,
+  catalogBrochureContentDisposition,
   catalogBrochurePrice,
   catalogBrochureProductPageCount,
   validateCatalogBrochureRequest,
@@ -93,6 +94,13 @@ test("calculates product pages for both brochure layouts", () => {
   assert.equal(catalogBrochureProductPageCount(3, "single"), 3);
   assert.equal(catalogBrochureProductPageCount(3, "double"), 2);
   assert.equal(catalogBrochureProductPageCount(4, "double"), 2);
+});
+
+test("creates a ByteString-safe PDF filename for localized titles", () => {
+  const header = catalogBrochureContentDisposition("Нова конфігурація / Eventuri");
+  assert.match(header, /^attachment; filename="[\x20-\x7e]+"; filename\*=UTF-8''/);
+  assert.ok(!/[\u0080-\uFFFF]/.test(header));
+  assert.match(header, /catalog-%D0%9D%D0%BE%D0%B2%D0%B0/);
 });
 
 test("upgrades legacy HTTP supplier images only for known hosts", () => {
