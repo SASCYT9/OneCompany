@@ -151,6 +151,13 @@ test("PDF normalizes PNG, JPEG, WebP and AVIF bytes, including generic MIME resp
   }
 });
 
+test("local public product media is embedded without a network fetch", async () => {
+  const pictures = await loadProformaImages([item("/branding/og-image.png")]);
+  assert.ok(pictures[0]);
+  const metadata = await sharp(pictures[0]!).metadata();
+  assert.equal(metadata.format, "png");
+});
+
 test("a broken primary image falls back and repeated product images download once", async (t) => {
   const png = await sharp({ create: { width: 20, height: 10, channels: 3, background: "white" } })
     .png()

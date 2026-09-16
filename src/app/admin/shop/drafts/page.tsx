@@ -119,8 +119,8 @@ export default function AdminDraftsPage() {
     <AdminPage className="space-y-6">
       <AdminPageHeader
         eyebrow="Замовлення"
-        title="Чернетки та котирування"
-        description="Чернетки замовлень для B2B з гнучкими цінами. Зберіть котирування, надішліть дилеру, конвертуйте в активне замовлення після прийняття."
+        title="Проформи та котирування"
+        description="Підготуйте проформу до замовлення, підберіть товари та збережіть PDF. Після погодження перетворіть котирування на замовлення."
         actions={
           <>
             <button
@@ -136,7 +136,7 @@ export default function AdminDraftsPage() {
               className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
-              Нова чернетка
+              Створити проформу
             </Link>
           </>
         }
@@ -186,7 +186,7 @@ export default function AdminDraftsPage() {
               className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
             >
               <Plus className="h-4 w-4" />
-              Створити першу чернетку
+              Створити першу проформу
             </Link>
           }
         />

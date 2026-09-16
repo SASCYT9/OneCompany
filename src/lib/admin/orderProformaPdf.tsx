@@ -2,7 +2,7 @@ import React from "react";
 import { Document, Page, Text, View, Image, Font, renderToBuffer } from "@react-pdf/renderer";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { proformaLabels, type ProformaOrder, type ProformaSeller } from "./orderProforma";
+import { labelsForProforma, type ProformaOrder, type ProformaSeller } from "./orderProforma";
 import { orderAddressText, orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
 import { loadProformaImages } from "./orderProformaImages";
 
@@ -26,7 +26,7 @@ export async function renderOrderProformaPdf(
   seller: ProformaSeller,
   locale: "ua" | "en"
 ) {
-  const t = proformaLabels[locale];
+  const t = labelsForProforma(locale, order.isDraft);
   const fmt = (n: number) =>
     new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "de-DE", {
       style: "currency",

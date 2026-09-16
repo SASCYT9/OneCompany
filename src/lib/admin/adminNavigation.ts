@@ -158,8 +158,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
       },
       {
         href: "/admin/shop/drafts",
-        label: "Чернетки та котирування",
-        description: "B2B котирування, ціни на замовлення, посилання для клієнта.",
+        label: "Проформи та котирування",
+        description: "Проформи до замовлення, котирування та наявність для Telegram.",
         icon: "drafts",
       },
     ],
@@ -224,6 +224,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         label: "Комплекти",
         description: "Багатотоварні набори та правила збірки.",
         icon: "bundles",
+      },
+      {
+        href: "/admin/shop/catalogs",
+        label: "Презентаційні каталоги",
+        description: "Збірка красивих PDF-презентацій з вибраних товарів та цін.",
+        icon: "drafts",
       },
       {
         href: "/admin/shop/media",
@@ -433,6 +439,7 @@ const ADMIN_NAV_PERMISSION_BY_HREF: Readonly<Record<string, readonly string[]>> 
   "/admin/shop/categories": [ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ],
   "/admin/shop/collections": [ADMIN_PERMISSIONS.SHOP_COLLECTIONS_READ],
   "/admin/shop/bundles": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
+  "/admin/shop/catalogs": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
   "/admin/shop/media": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
   "/admin/shop/quality": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
   "/admin/shop/fitment": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],

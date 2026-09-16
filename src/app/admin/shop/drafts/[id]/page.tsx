@@ -274,16 +274,24 @@ export default function AdminDraftDetailPage() {
           className="inline-flex items-center gap-1 transition hover:text-zinc-300"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back to drafts
+          До проформ та котирувань
         </Link>
       </div>
 
       <AdminPageHeader
-        eyebrow="Draft order"
+        eyebrow="Проформа · котирування"
         title={draft.orderNumber}
         description={`${draft.customerName} · ${draft.email}`}
         actions={
           <>
+            <a
+              href={`/api/admin/pdf/proforma/${draft.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-200 hover:bg-blue-500/20"
+            >
+              Проформа · PDF / друк
+            </a>
             <AdminStatusBadge tone={stage.tone}>{stage.label}</AdminStatusBadge>
             {draft.customerGroupSnapshot.startsWith("B2B") ? (
               <span className="rounded-full border border-blue-500/25 bg-blue-500/8 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300">

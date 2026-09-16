@@ -154,6 +154,7 @@ export const adminProductListSelect = {
   tags: true,
   productType: true,
   image: true,
+  gallery: true,
   category: {
     select: {
       id: true,
@@ -176,7 +177,8 @@ export const adminProductListSelect = {
   isPublished: true,
   updatedAt: true,
   media: {
-    take: 1,
+    take: 4,
+    where: { mediaType: "IMAGE" },
     orderBy: { position: "asc" },
     select: { src: true },
   },
@@ -184,6 +186,7 @@ export const adminProductListSelect = {
     orderBy: [{ isDefault: "desc" }, { position: "asc" }],
     take: 1,
     select: {
+      image: true,
       priceUah: true,
       priceEur: true,
       priceEurEurope: true,
@@ -1922,7 +1925,13 @@ export function serializeAdminProductListItem(
       decimalToNumber(record.priceUsdB2b) ?? decimalToNumber(primaryVariant?.priceUsdB2b),
     isPublished: record.isPublished,
     updatedAt: record.updatedAt.toISOString(),
-    imageUrl: (Array.isArray(record.media) && record.media[0]?.src) || record.image || null,
+    imageUrl: record.image || record.media[0]?.src || primaryVariant?.image || null,
+    imageSources: [
+      record.image,
+      ...record.media.map((media) => media.src),
+      primaryVariant?.image,
+      ...(Array.isArray(record.gallery) ? record.gallery : []),
+    ].filter((src): src is string => typeof src === "string" && Boolean(src.trim())),
     variantsCount: "_count" in record ? record._count.variants : record.variants.length,
     mediaCount: "_count" in record ? record._count.media : record.media.length,
     collectionsCount: "_count" in record ? record._count.collections : record.collections.length,

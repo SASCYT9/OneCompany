@@ -5,6 +5,12 @@ import { randomBytes } from "crypto";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { writeAdminAuditLog, ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
+import {
+  draftMoney,
+  draftTotals,
+  validateDraftBody,
+  type CreateDraftBody,
+} from "@/lib/admin/proformaDraft";
 
 /**
  * GET  /api/admin/shop/drafts        → list draft orders
@@ -29,30 +35,6 @@ import { prisma } from "@/lib/prisma";
  *     validUntil?: ISO string
  *   }
  */
-
-type DraftItem = {
-  productSlug: string;
-  productId?: string | null;
-  variantId?: string | null;
-  title: string;
-  quantity: number;
-  price: number;
-  image?: string | null;
-};
-
-type CreateDraftBody = {
-  customerId?: string | null;
-  email?: string;
-  customerName?: string;
-  phone?: string | null;
-  currency?: string;
-  shippingAddress?: Record<string, unknown>;
-  items?: DraftItem[];
-  shippingCost?: number;
-  taxAmount?: number;
-  internalNote?: string | null;
-  validUntil?: string | null;
-};
 
 function generateDraftToken(): string {
   return randomBytes(24).toString("base64url");
@@ -140,16 +122,10 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
 
-    const body = (await request.json().catch(() => ({}))) as CreateDraftBody;
-
-    if (!body.email || !body.customerName) {
-      return NextResponse.json({ error: "email and customerName are required" }, { status: 400 });
-    }
-    if (!body.currency)
-      return NextResponse.json({ error: "currency is required" }, { status: 400 });
-    if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
-      return NextResponse.json({ error: "At least one line item is required" }, { status: 400 });
-    }
+    const input: unknown = await request.json().catch(() => null);
+    const validation = validateDraftBody(input);
+    if (validation) return NextResponse.json({ error: validation }, { status: 400 });
+    const body = input as CreateDraftBody;
 
     let customerGroup: "B2C" | "B2B_PENDING" | "B2B_APPROVED" = "B2C";
     if (body.customerId) {
@@ -157,62 +133,107 @@ export async function POST(request: NextRequest) {
         where: { id: body.customerId },
         select: { group: true },
       });
-      if (customer) customerGroup = customer.group as typeof customerGroup;
+      if (!customer)
+        return NextResponse.json({ error: "Клієнта не знайдено. Оновіть вибір." }, { status: 400 });
+      customerGroup = customer.group as typeof customerGroup;
     }
 
-    const subtotal = body.items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+    const productIds = [
+      ...new Set(body.items.flatMap((item) => (item.productId ? [item.productId] : []))),
+    ];
+    const products = productIds.length
+      ? await prisma.shopProduct.findMany({
+          where: { id: { in: productIds } },
+          select: {
+            id: true,
+            slug: true,
+            sku: true,
+            variants: { select: { id: true, sku: true, title: true } },
+          },
+        })
+      : [];
+    for (const item of body.items) {
+      const product = products.find((entry) => entry.id === item.productId);
+      if (
+        (item.productId && (!product || product.slug !== item.productSlug)) ||
+        (item.variantId && !product?.variants.some((variant) => variant.id === item.variantId))
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Товар або його варіант змінився. Приберіть позицію та додайте її з каталогу ще раз.",
+          },
+          { status: 400 }
+        );
+      }
+    }
     const shippingCost = body.shippingCost ?? 0;
     const taxAmount = body.taxAmount ?? 0;
-    const total = subtotal + shippingCost + taxAmount;
+    const { subtotal, total } = draftTotals(body.items, shippingCost, taxAmount);
 
     const orderNumber = generateDraftOrderNumber();
     const viewToken = generateDraftToken();
     const draftQuoteToken = generateDraftToken();
 
-    const draft = await prisma.shopOrder.create({
-      data: {
-        orderNumber,
-        viewToken,
-        status: "PENDING_REVIEW",
-        email: body.email,
-        customerName: body.customerName,
-        phone: body.phone ?? null,
-        customerId: body.customerId ?? null,
-        customerGroupSnapshot: customerGroup,
-        currency: body.currency,
-        subtotal,
-        shippingCost,
-        taxAmount,
-        total,
-        shippingAddress: (body.shippingAddress ?? {}) as object,
+    const draft = await prisma.$transaction(async (tx) => {
+      const created = await tx.shopOrder.create({
+        data: {
+          orderNumber,
+          viewToken,
+          status: "PENDING_REVIEW",
+          email: body.email.trim(),
+          customerName: body.customerName.trim(),
+          phone: body.phone ?? null,
+          customerId: body.customerId ?? null,
+          customerGroupSnapshot: customerGroup,
+          currency: body.currency,
+          subtotal,
+          shippingCost,
+          taxAmount,
+          total,
+          shippingAddress: (body.shippingAddress ?? {}) as object,
+          pricingSnapshot: {
+            items: body.items.map((item) => {
+              const product = products.find((entry) => entry.id === item.productId);
+              const variant = product?.variants.find((entry) => entry.id === item.variantId);
+              return {
+                slug: item.productSlug,
+                variantId: item.variantId ?? null,
+                sku: variant?.sku || product?.sku || item.sku || null,
+                variantTitle: variant?.title ?? null,
+              };
+            }),
+          },
 
-        ...({
-          isDraft: true,
-          draftQuoteToken,
-          draftValidUntil: body.validUntil ? new Date(body.validUntil) : null,
-          internalNote: body.internalNote ?? null,
-        } as Record<string, unknown>),
-        items: {
-          create: body.items.map((it) => ({
-            productSlug: it.productSlug,
-            productId: it.productId ?? null,
-            variantId: it.variantId ?? null,
-            title: it.title,
-            quantity: it.quantity,
-            price: it.price,
-            total: it.price * it.quantity,
-            image: it.image ?? null,
-          })),
+          ...({
+            isDraft: true,
+            draftQuoteToken,
+            draftValidUntil: body.validUntil ? new Date(body.validUntil) : null,
+            internalNote: body.internalNote ?? null,
+          } as Record<string, unknown>),
+          items: {
+            create: body.items.map((it) => ({
+              productSlug: it.productSlug,
+              productId: it.productId ?? null,
+              variantId: it.variantId ?? null,
+              title: it.title,
+              quantity: it.quantity,
+              price: draftMoney(it.price),
+              total: draftTotals([it]).total,
+              image: it.image ?? null,
+            })),
+          },
         },
-      },
-    });
+      });
 
-    await writeAdminAuditLog(prisma, session, {
-      scope: "shop",
-      action: "draft.create",
-      entityType: "shop.order",
-      entityId: draft.id,
-      metadata: { orderNumber, isDraft: true, customerId: body.customerId, total },
+      await writeAdminAuditLog(tx, session, {
+        scope: "shop",
+        action: "draft.create",
+        entityType: "shop.order",
+        entityId: created.id,
+        metadata: { orderNumber, isDraft: true, customerId: body.customerId, total },
+      });
+      return created;
     });
 
     return NextResponse.json({ id: draft.id, orderNumber: draft.orderNumber, draftQuoteToken });

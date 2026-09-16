@@ -646,6 +646,12 @@ export default function AdminOrdersPage() {
         actions={
           <>
             <AdminSavedViewsBar {...savedViews} />
+            <Link
+              href="/admin/shop/drafts/new"
+              className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-200 transition hover:bg-blue-500/20"
+            >
+              Створити проформу
+            </Link>
             <button
               type="button"
               onClick={() => void handleExport()}
@@ -1351,7 +1357,9 @@ function QvStat({
       <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         {label}
       </div>
-      <div className="mt-1 break-words text-sm font-semibold tabular-nums text-zinc-50">{value}</div>
+      <div className="mt-1 break-words text-sm font-semibold tabular-nums text-zinc-50">
+        {value}
+      </div>
     </div>
   );
 }

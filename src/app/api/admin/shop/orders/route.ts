@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
     const shippingZone = request.nextUrl.searchParams.get("shippingZone")?.trim() || "";
     const taxRegion = request.nextUrl.searchParams.get("taxRegion")?.trim() || "";
     const where: Prisma.ShopOrderWhereInput = {
+      isDraft: false,
       ...(status ? { status: status as Prisma.ShopOrderWhereInput["status"] } : {}),
       ...(query
         ? {

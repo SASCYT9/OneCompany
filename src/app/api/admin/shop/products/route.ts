@@ -13,6 +13,7 @@ import {
   shouldPersistAutomaticFitment,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
+import { getShopInStockProducts } from "@/lib/shopWarehouseInventory.server";
 import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductCreation } from "@/lib/shopCatalogMutationCoordinator.server";
@@ -38,6 +39,15 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")?.trim() || "ALL";
 
     const where: Prisma.ShopProductWhereInput = {};
+    const confirmed =
+      searchParams.get("availability") === "confirmed" ? await getShopInStockProducts() : null;
+    if (confirmed) where.id = { in: confirmed.map((product) => product.id) };
+
+    const stock = searchParams.get("stock");
+    if (stock && !["inStock", "preOrder", "inTransit"].includes(stock)) {
+      return NextResponse.json({ error: "Invalid stock filter" }, { status: 400 });
+    }
+    if (stock) where.stock = stock;
 
     if (brand !== "ALL") {
       where.brand = { equals: brand, mode: "insensitive" };
@@ -56,6 +66,7 @@ export async function GET(request: NextRequest) {
         { brand: { contains: search, mode: "insensitive" } },
         { vendor: { contains: search, mode: "insensitive" } },
         { sku: { contains: search, mode: "insensitive" } },
+        { variants: { some: { sku: { contains: search, mode: "insensitive" } } } },
       ];
     }
 
@@ -73,7 +84,13 @@ export async function GET(request: NextRequest) {
     ]);
 
     return NextResponse.json({
-      products: products.map(serializeAdminProductListItem),
+      products: products.map((product) => {
+        const result = serializeAdminProductListItem(product);
+        const availability = confirmed?.find((entry) => entry.id === product.id);
+        return availability
+          ? { ...result, stock: "inStock", sku: availability.sku ?? result.sku }
+          : result;
+      }),
       metadata: {
         totalCount,
         currentPage: page,

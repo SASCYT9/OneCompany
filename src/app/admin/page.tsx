@@ -335,7 +335,7 @@ export default function AdminDashboardPage() {
                 icon: Plus,
               },
               {
-                title: "Створити котирування",
+                title: "Створити проформу",
                 note: "Чернетка для клієнта",
                 href: "/admin/shop/drafts/new",
                 icon: FilePlus2,

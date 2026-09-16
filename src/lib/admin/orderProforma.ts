@@ -3,6 +3,7 @@ import { orderItemSnapshotDetails, orderProductLinks } from "@/lib/shopOrderPres
 import { proformaImageSources } from "./orderProformaImageSources";
 
 export type ProformaOrder = {
+  isDraft?: boolean;
   orderNumber: string;
   conversionNote?: string;
   createdAt: Date | string;
@@ -123,6 +124,25 @@ export const proformaLabels = {
     unknown: "Потребує уточнення",
   },
 };
+export function labelsForProforma(locale: "ua" | "en", isDraft = false) {
+  const labels = proformaLabels[locale];
+  if (!isDraft) return labels;
+  return {
+    ...labels,
+    order: locale === "ua" ? "НОМЕР ПРОФОРМИ" : "PROFORMA NUMBER",
+    date: locale === "ua" ? "ДАТА ПРОФОРМИ" : "PROFORMA DATE",
+    thanks: locale === "ua" ? "ДЯКУЄМО ЗА<br>ВАШ ІНТЕРЕС!" : "THANK YOU FOR<br>YOUR INTEREST!",
+    transfer:
+      locale === "ua"
+        ? "У призначенні платежу вкажіть номер проформи."
+        : "Please quote the proforma number as the payment reference.",
+    note:
+      locale === "ua"
+        ? "Попередня проформа · Не є підтвердженням замовлення або оплати"
+        : "Advance proforma · Not an order or payment confirmation",
+  };
+}
+
 const esc = (value: unknown) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -135,7 +155,7 @@ export function renderOrderProforma(
   locale: "ua" | "en" = "ua",
   recipientSelection?: string | null
 ) {
-  const t = proformaLabels[locale];
+  const t = labelsForProforma(locale, order.isDraft);
   const money = (v: number) =>
     esc(
       new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "de-DE", {
