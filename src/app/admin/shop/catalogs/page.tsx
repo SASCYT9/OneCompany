@@ -8,7 +8,10 @@ import {
   ArrowRight,
   ArrowUp,
   Check,
+  Copy,
+  Crop,
   Download,
+  ExternalLink,
   FileText,
   Globe2,
   Images,
@@ -17,6 +20,7 @@ import {
   Plus,
   Percent,
   Search,
+  Send,
   RotateCcw,
   Trash2,
   X,
@@ -36,8 +40,11 @@ import {
   type CatalogBrochureCurrency,
   type CatalogBrochureDescriptionMode,
   type CatalogBrochureGalleryLayout,
+  type CatalogBrochureImageEdit,
+  type CatalogBrochureItemDescriptionMode,
   type CatalogBrochureLayout,
   type CatalogBrochureLanguage,
+  type CatalogBrochurePageTemplate,
   type CatalogBrochurePhotoMode,
 } from "@/lib/admin/catalogBrochure";
 import styles from "./catalog.module.css";
@@ -64,6 +71,14 @@ type SelectedProduct = {
   imageSource: string | null;
   imageSources: string[];
   galleryLayout: CatalogBrochureGalleryLayout;
+  pageTemplate: CatalogBrochurePageTemplate;
+  descriptionMode: CatalogBrochureItemDescriptionMode;
+  titleOverride: string;
+  descriptionOverride: string;
+  showSku: boolean;
+  showBrand: boolean;
+  showPrice: boolean;
+  imageEdits: Record<string, CatalogBrochureImageEdit>;
 };
 
 type BulkAdjustmentMode = "percent" | "fixed";
@@ -146,13 +161,27 @@ export default function AdminCatalogsPage() {
   const [title, setTitle] = useState("Нова конфігурація");
   const [subtitle, setSubtitle] = useState("Презентаційний каталог");
   const [showPrice, setShowPrice] = useState(true);
+  const [clientName, setClientName] = useState("");
+  const [clientCompany, setClientCompany] = useState("");
+  const [managerName, setManagerName] = useState("");
+  const [managerPhone, setManagerPhone] = useState("");
+  const [managerEmail, setManagerEmail] = useState("");
+  const [personalNote, setPersonalNote] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [showContactPage, setShowContactPage] = useState(true);
   const [bulkAdjustmentMode, setBulkAdjustmentMode] = useState<BulkAdjustmentMode>("percent");
   const [bulkAdjustmentValue, setBulkAdjustmentValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
+  const [activeEditorPage, setActiveEditorPage] = useState<string>("cover");
+  const [activePhoto, setActivePhoto] = useState<{ productId: string; source: string } | null>(
+    null
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -202,6 +231,19 @@ export default function AdminCatalogsPage() {
         imageSource: imageSources[0] ?? null,
         imageSources,
         galleryLayout: "auto",
+        pageTemplate: "editorial",
+        descriptionMode: "inherit",
+        titleOverride: "",
+        descriptionOverride: "",
+        showSku: true,
+        showBrand: true,
+        showPrice: true,
+        imageEdits: Object.fromEntries(
+          imageSources.map((source) => [
+            source,
+            { source, fit: "cover" as const, focusX: 50, focusY: 50, zoom: 1 },
+          ])
+        ),
       },
     ]);
     if (!brandName && product.brand) setBrandName(product.brand);
@@ -303,6 +345,34 @@ export default function AdminCatalogsPage() {
     );
   }
 
+  function updateProductPresentation(id: string, patch: Partial<SelectedProduct>) {
+    setSelected((current) =>
+      current.map((entry) => (entry.product.id === id ? { ...entry, ...patch } : entry))
+    );
+  }
+
+  function updateImageEdit(id: string, source: string, patch: Partial<CatalogBrochureImageEdit>) {
+    setSelected((current) =>
+      current.map((entry) => {
+        if (entry.product.id !== id) return entry;
+        const currentEdit = entry.imageEdits[source] ?? {
+          source,
+          fit: "cover" as const,
+          focusX: 50,
+          focusY: 50,
+          zoom: 1,
+        };
+        return {
+          ...entry,
+          imageEdits: {
+            ...entry.imageEdits,
+            [source]: { ...currentEdit, ...patch, source },
+          },
+        };
+      })
+    );
+  }
+
   function applyBulkAdjustment(mode: BulkAdjustmentMode, amount: number) {
     if (!Number.isFinite(amount) || amount <= 0) {
       setError(
@@ -359,6 +429,53 @@ export default function AdminCatalogsPage() {
     applyBulkAdjustment(bulkAdjustmentMode, Number(normalized));
   }
 
+  function catalogPayload() {
+    return {
+      title,
+      subtitle,
+      language,
+      currency,
+      layout,
+      photoMode,
+      descriptionMode,
+      branding,
+      brandName: branding === "brand" ? brandName : null,
+      showPrice,
+      clientName: clientName || null,
+      clientCompany: clientCompany || null,
+      managerName: managerName || null,
+      managerPhone: managerPhone || null,
+      managerEmail: managerEmail || null,
+      personalNote: personalNote || null,
+      validUntil: validUntil || null,
+      showContactPage,
+      items: selected.map((entry) => ({
+        productId: entry.product.id,
+        imageSource: entry.imageSources[0] ?? entry.imageSource,
+        imageSources: entry.imageSources.length ? entry.imageSources : undefined,
+        galleryLayout: entry.galleryLayout,
+        pageTemplate: entry.pageTemplate,
+        descriptionMode: entry.descriptionMode,
+        titleOverride: entry.titleOverride || null,
+        descriptionOverride: entry.descriptionOverride || null,
+        showSku: entry.showSku,
+        showBrand: entry.showBrand,
+        showPrice: entry.showPrice,
+        imageEdits: entry.imageSources.map(
+          (source) =>
+            entry.imageEdits[source] ?? {
+              source,
+              fit: "cover" as const,
+              focusX: 50,
+              focusY: 50,
+              zoom: 1,
+            }
+        ),
+        priceOverride: entry.prices[currency].trim() === "" ? null : Number(entry.prices[currency]),
+      })),
+    };
+  }
+
   async function generatePdf() {
     setGenerating(true);
     setError("");
@@ -367,26 +484,7 @@ export default function AdminCatalogsPage() {
       const response = await fetch("/api/admin/pdf/catalog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          subtitle,
-          language,
-          currency,
-          layout,
-          photoMode,
-          descriptionMode,
-          branding,
-          brandName: branding === "brand" ? brandName : null,
-          showPrice,
-          items: selected.map((entry) => ({
-            productId: entry.product.id,
-            imageSource: entry.imageSources[0] ?? entry.imageSource,
-            imageSources: entry.imageSources.length ? entry.imageSources : undefined,
-            galleryLayout: entry.galleryLayout,
-            priceOverride:
-              entry.prices[currency].trim() === "" ? null : Number(entry.prices[currency]),
-          })),
-        }),
+        body: JSON.stringify(catalogPayload()),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -409,21 +507,61 @@ export default function AdminCatalogsPage() {
     }
   }
 
+  async function publishPresentation() {
+    setPublishing(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch("/api/admin/catalog-presentations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(catalogPayload()),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Не вдалося опублікувати презентацію.");
+      setPublishedUrl(data.url);
+      await navigator.clipboard?.writeText(data.url).catch(() => undefined);
+      setSuccess("Клієнтське посилання створено та скопійовано.");
+    } catch (reason) {
+      setError((reason as Error).message || "Не вдалося опублікувати презентацію.");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  async function copyPublishedUrl() {
+    if (!publishedUrl) return;
+    await navigator.clipboard?.writeText(publishedUrl);
+    setSuccess("Посилання скопійовано.");
+  }
+
   const firstEntry = selected[0];
   const firstProduct = firstEntry?.product;
   const firstPreviewImages = firstEntry ? selectedProductImages(firstEntry) : [];
   const firstPreviewImage = firstPreviewImages[0] || firstProduct?.imageUrl || null;
+  const editorPreviewEntry =
+    activeEditorPage === "cover"
+      ? firstEntry
+      : (selected.find((entry) => entry.product.id === activeEditorPage) ?? firstEntry);
+  const editorPreviewSourceImages = editorPreviewEntry
+    ? selectedProductImages(editorPreviewEntry)
+    : [];
   const editorPreviewImages = (
-    photoMode === "gallery" ? firstPreviewImages : firstPreviewImages.slice(0, 1)
+    photoMode === "gallery" ? editorPreviewSourceImages : editorPreviewSourceImages.slice(0, 1)
   ).slice(0, 4);
   const previewUsesFeatureLayout =
     photoMode === "gallery" &&
     editorPreviewImages.length > 1 &&
-    (firstEntry?.galleryLayout === "feature" ||
-      (firstEntry?.galleryLayout === "auto" && editorPreviewImages.length === 3));
+    (editorPreviewEntry?.galleryLayout === "feature" ||
+      (editorPreviewEntry?.galleryLayout === "auto" && editorPreviewImages.length === 3));
   const productPages = catalogBrochureProductPageCount(selected.length, layout);
   const summaryPages = selected.length ? Math.ceil(selected.length / 8) : 0;
-  const documentPages = selected.length ? productPages + summaryPages + 1 : "—";
+  const documentPages = selected.length
+    ? productPages +
+      summaryPages +
+      1 +
+      (showContactPage && (managerName || managerPhone || managerEmail || personalNote) ? 1 : 0)
+    : "—";
   const languageLabel = CATALOG_BROCHURE_LANGUAGES.find((entry) => entry.value === language)?.label;
   const brandLogoSrc = brandName ? getBrandLogo(brandName) : null;
   const selectedLogoSrc =
@@ -618,7 +756,88 @@ export default function AdminCatalogsPage() {
           <section className={styles.card}>
             <div className={styles.cardHeading}>
               <div>
-                <div className={styles.eyebrow}>02 / Каталог V2</div>
+                <div className={styles.eyebrow}>02 / Персоналізація</div>
+                <h2>Підготуйте для клієнта</h2>
+              </div>
+              <Send size={20} color="#79a9ff" aria-hidden="true" />
+            </div>
+            <div className={styles.fields}>
+              <label className={styles.field}>
+                Ім’я клієнта
+                <input
+                  value={clientName}
+                  onChange={(event) => setClientName(event.target.value)}
+                  maxLength={120}
+                />
+              </label>
+              <label className={styles.field}>
+                Компанія клієнта
+                <input
+                  value={clientCompany}
+                  onChange={(event) => setClientCompany(event.target.value)}
+                  maxLength={160}
+                />
+              </label>
+              <label className={styles.field}>
+                Менеджер
+                <input
+                  value={managerName}
+                  onChange={(event) => setManagerName(event.target.value)}
+                  maxLength={120}
+                />
+              </label>
+              <label className={styles.field}>
+                Пропозиція дійсна до
+                <input
+                  type="date"
+                  value={validUntil}
+                  onChange={(event) => setValidUntil(event.target.value)}
+                />
+              </label>
+              <label className={styles.field}>
+                Телефон менеджера
+                <input
+                  value={managerPhone}
+                  onChange={(event) => setManagerPhone(event.target.value)}
+                  maxLength={80}
+                />
+              </label>
+              <label className={styles.field}>
+                Email менеджера
+                <input
+                  type="email"
+                  value={managerEmail}
+                  onChange={(event) => setManagerEmail(event.target.value)}
+                  maxLength={180}
+                />
+              </label>
+              <label className={`${styles.field} ${styles.full}`}>
+                Персональне повідомлення
+                <textarea
+                  value={personalNote}
+                  onChange={(event) => setPersonalNote(event.target.value)}
+                  maxLength={700}
+                  rows={3}
+                  placeholder="Коротке звернення або важлива умова для клієнта"
+                />
+              </label>
+            </div>
+            <div className={styles.toggles}>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={showContactPage}
+                  onChange={(event) => setShowContactPage(event.target.checked)}
+                />
+                Додати фінальну сторінку з контактами
+              </label>
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <div className={styles.cardHeading}>
+              <div>
+                <div className={styles.eyebrow}>03 / Каталог V2</div>
                 <h2>Додайте товари</h2>
               </div>
               <Images size={20} color="#79a9ff" aria-hidden="true" />
@@ -676,7 +895,7 @@ export default function AdminCatalogsPage() {
           <section className={styles.card}>
             <div className={styles.cardHeading}>
               <div>
-                <div className={styles.eyebrow}>03 / Комплектація</div>
+                <div className={styles.eyebrow}>04 / Комплектація</div>
                 <h2>Порядок і ціни</h2>
               </div>
               <span className={styles.muted}>
@@ -980,6 +1199,15 @@ export default function AdminCatalogsPage() {
               </button>
               <button
                 type="button"
+                className={styles.publishButton}
+                onClick={publishPresentation}
+                disabled={publishing || selected.length === 0 || !title.trim() || !subtitle.trim()}
+              >
+                <Send size={16} />
+                {publishing ? "Публікуємо…" : "Створити посилання"}
+              </button>
+              <button
+                type="button"
                 className={styles.secondary}
                 onClick={() => {
                   setSelected([]);
@@ -991,6 +1219,22 @@ export default function AdminCatalogsPage() {
                 <Plus size={16} style={{ transform: "rotate(45deg)" }} />
               </button>
             </div>
+            {publishedUrl ? (
+              <div className={styles.publishedLink}>
+                <span>{publishedUrl}</span>
+                <button type="button" onClick={copyPublishedUrl} title="Скопіювати посилання">
+                  <Copy size={15} />
+                </button>
+                <a
+                  href={publishedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Відкрити презентацію"
+                >
+                  <ExternalLink size={15} />
+                </a>
+              </div>
+            ) : null}
           </section>
         </aside>
       </div>
@@ -1012,7 +1256,7 @@ export default function AdminCatalogsPage() {
           >
             <div className={styles.editorHeader}>
               <div>
-                <div className={styles.eyebrow}>04 / Перед генерацією</div>
+                <div className={styles.eyebrow}>05 / Перед генерацією</div>
                 <h2 id="catalog-editor-title">Фінальна редакція каталогу</h2>
                 <p>Перевірте обкладинку, фото та порядок позицій прямо в браузері.</p>
               </div>
@@ -1075,6 +1319,39 @@ export default function AdminCatalogsPage() {
               </label>
             </div>
             <div className={styles.editorBody}>
+              <aside className={styles.pageRail} aria-label="Сторінки каталогу">
+                <div className={styles.pageRailLabel}>Сторінки</div>
+                <button
+                  type="button"
+                  className={activeEditorPage === "cover" ? styles.pageThumbActive : undefined}
+                  onClick={() => setActiveEditorPage("cover")}
+                >
+                  <span className={styles.pageThumbPreview}>01</span>
+                  <strong>Обкладинка</strong>
+                </button>
+                {selected.map((entry, index) => (
+                  <button
+                    type="button"
+                    key={entry.product.id}
+                    className={
+                      activeEditorPage === entry.product.id ? styles.pageThumbActive : undefined
+                    }
+                    onClick={() => setActiveEditorPage(entry.product.id)}
+                  >
+                    <span className={styles.pageThumbImage}>
+                      {entry.imageSources[0] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={entry.imageSources[0]} alt="" />
+                      ) : (
+                        String(index + 2).padStart(2, "0")
+                      )}
+                    </span>
+                    <strong>
+                      {String(index + 2).padStart(2, "0")} · {productName(entry.product)}
+                    </strong>
+                  </button>
+                ))}
+              </aside>
               <div className={styles.editorCanvas}>
                 <div className={styles.editorCanvasLabel}>Попередній перегляд</div>
                 <div className={styles.editorPaper}>
@@ -1100,8 +1377,17 @@ export default function AdminCatalogsPage() {
                         />
                       </div>
                     ) : null}
-                    <span>ПРЕЗЕНТАЦІЙНИЙ КАТАЛОГ</span>
-                    <strong>{title || "Нова конфігурація"}</strong>
+                    <span>
+                      {activeEditorPage === "cover"
+                        ? "ПРЕЗЕНТАЦІЙНИЙ КАТАЛОГ"
+                        : `СТОРІНКА · ${(editorPreviewEntry?.pageTemplate ?? "editorial").toUpperCase()}`}
+                    </span>
+                    <strong>
+                      {activeEditorPage === "cover"
+                        ? title || "Нова конфігурація"
+                        : editorPreviewEntry?.titleOverride ||
+                          (editorPreviewEntry ? productName(editorPreviewEntry.product) : title)}
+                    </strong>
                   </div>
                   <div
                     className={`${styles.editorPaperGallery} ${
@@ -1115,25 +1401,43 @@ export default function AdminCatalogsPage() {
                     }`}
                   >
                     {editorPreviewImages.length ? (
-                      editorPreviewImages.map((source, index) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img key={`${source}-${index}`} src={source} alt="" />
-                      ))
+                      editorPreviewImages.map((source, index) => {
+                        const edit = editorPreviewEntry?.imageEdits[source];
+                        return (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            key={`${source}-${index}`}
+                            src={source}
+                            alt=""
+                            style={{
+                              objectFit: edit?.fit ?? "cover",
+                              objectPosition: `${edit?.focusX ?? 50}% ${edit?.focusY ?? 50}%`,
+                              transform: `scale(${edit?.zoom ?? 1})`,
+                              transformOrigin: `${edit?.focusX ?? 50}% ${edit?.focusY ?? 50}%`,
+                            }}
+                          />
+                        );
+                      })
                     ) : (
                       <span>ФОТО ТОВАРУ</span>
                     )}
                   </div>
                   <div className={styles.editorPaperBottom}>
                     <span className={styles.paperAccent} />
-                    <strong>{subtitle || "Презентаційний каталог"}</strong>
+                    <strong>
+                      {activeEditorPage === "cover"
+                        ? subtitle || "Презентаційний каталог"
+                        : editorPreviewEntry?.descriptionOverride || subtitle}
+                    </strong>
                     <span>
                       {selected.length} позицій · {currency} · {languageLabel}
                     </span>
                   </div>
                 </div>
                 <div className={styles.editorCanvasHint}>
-                  Живий перегляд обкладинки. Перше фото є головним, а приховані кадри не потраплять
-                  до PDF.
+                  {activeEditorPage === "cover"
+                    ? "Живий перегляд обкладинки. Виберіть сторінку зліва, щоб редагувати конкретний товар."
+                    : "Попередній перегляд вибраної сторінки. Кадрування, порядок фото й тексти повторяться у PDF."}
                 </div>
               </div>
               <div className={styles.editorProducts}>
@@ -1148,8 +1452,26 @@ export default function AdminCatalogsPage() {
                   {selected.map((entry, index) => {
                     const images = selectedProductImages(entry);
                     const allImages = productImages(entry.product).slice(0, 8);
+                    const editingSource =
+                      activePhoto?.productId === entry.product.id &&
+                      images.includes(activePhoto.source)
+                        ? activePhoto.source
+                        : images[0];
+                    const editingImage = editingSource
+                      ? (entry.imageEdits[editingSource] ?? {
+                          source: editingSource,
+                          fit: "cover" as const,
+                          focusX: 50,
+                          focusY: 50,
+                          zoom: 1,
+                        })
+                      : null;
                     return (
-                      <article className={styles.editorProductCard} key={entry.product.id}>
+                      <article
+                        className={styles.editorProductCard}
+                        key={entry.product.id}
+                        onFocus={() => setActiveEditorPage(entry.product.id)}
+                      >
                         <div className={styles.editorProductTop}>
                           <span className={styles.editorProductIndex}>
                             {String(index + 1).padStart(2, "0")}
@@ -1193,6 +1515,111 @@ export default function AdminCatalogsPage() {
                             {entry.product.sku || "Артикул не вказаний"} · {images.length || 0} фото
                           </span>
                         </div>
+                        <div className={styles.pageTemplatePanel}>
+                          <div>
+                            <strong>Шаблон сторінки</strong>
+                            <span>Окрема композиція для цієї позиції.</span>
+                          </div>
+                          <div className={styles.templateGrid}>
+                            {(
+                              [
+                                ["editorial", "Редакційний"],
+                                ["gallery", "Галерея"],
+                                ["technical", "Технічний"],
+                                ["minimal", "Мінімальний"],
+                              ] as const
+                            ).map(([value, label]) => (
+                              <button
+                                type="button"
+                                key={value}
+                                className={
+                                  entry.pageTemplate === value ? styles.templateActive : undefined
+                                }
+                                onClick={() => {
+                                  updateProductPresentation(entry.product.id, {
+                                    pageTemplate: value,
+                                  });
+                                  setActiveEditorPage(entry.product.id);
+                                }}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={styles.copyEditor}>
+                          <label>
+                            Назва на сторінці
+                            <input
+                              value={entry.titleOverride}
+                              onChange={(event) =>
+                                updateProductPresentation(entry.product.id, {
+                                  titleOverride: event.target.value,
+                                })
+                              }
+                              onFocus={() => setActiveEditorPage(entry.product.id)}
+                              placeholder={productName(entry.product)}
+                              maxLength={180}
+                            />
+                          </label>
+                          <label>
+                            Режим опису
+                            <select
+                              value={entry.descriptionMode}
+                              onChange={(event) =>
+                                updateProductPresentation(entry.product.id, {
+                                  descriptionMode: event.target
+                                    .value as CatalogBrochureItemDescriptionMode,
+                                })
+                              }
+                            >
+                              <option value="inherit">Як у каталозі</option>
+                              <option value="short">Короткий</option>
+                              <option value="full">Повний</option>
+                              <option value="technical">Технічний</option>
+                              <option value="custom">Власний текст</option>
+                              <option value="none">Без опису</option>
+                            </select>
+                          </label>
+                          {entry.descriptionMode === "custom" ? (
+                            <label className={styles.copyEditorFull}>
+                              Власний опис
+                              <textarea
+                                value={entry.descriptionOverride}
+                                onChange={(event) =>
+                                  updateProductPresentation(entry.product.id, {
+                                    descriptionOverride: event.target.value,
+                                  })
+                                }
+                                onFocus={() => setActiveEditorPage(entry.product.id)}
+                                rows={4}
+                                maxLength={1200}
+                              />
+                            </label>
+                          ) : null}
+                          <div className={styles.itemToggles}>
+                            {(
+                              [
+                                ["showSku", "Артикул"],
+                                ["showBrand", "Бренд"],
+                                ["showPrice", "Ціна"],
+                              ] as const
+                            ).map(([field, label]) => (
+                              <label key={field}>
+                                <input
+                                  type="checkbox"
+                                  checked={entry[field]}
+                                  onChange={(event) =>
+                                    updateProductPresentation(entry.product.id, {
+                                      [field]: event.target.checked,
+                                    })
+                                  }
+                                />
+                                {label}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
                         {images.length ? (
                           <div className={styles.photoManager}>
                             <div className={styles.photoManagerHeader}>
@@ -1213,9 +1640,25 @@ export default function AdminCatalogsPage() {
                             </div>
                             <div className={styles.photoManagerGrid}>
                               {images.map((source, imageIndex) => (
-                                <div className={styles.photoTile} key={`${source}-${imageIndex}`}>
+                                <div
+                                  className={`${styles.photoTile} ${editingSource === source ? styles.photoTileSelected : ""}`}
+                                  key={`${source}-${imageIndex}`}
+                                  onClick={() => {
+                                    setActivePhoto({ productId: entry.product.id, source });
+                                    setActiveEditorPage(entry.product.id);
+                                  }}
+                                >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={source} alt={`Фото ${imageIndex + 1}`} />
+                                  <img
+                                    src={source}
+                                    alt={`Фото ${imageIndex + 1}`}
+                                    style={{
+                                      objectFit: entry.imageEdits[source]?.fit ?? "cover",
+                                      objectPosition: `${entry.imageEdits[source]?.focusX ?? 50}% ${entry.imageEdits[source]?.focusY ?? 50}%`,
+                                      transform: `scale(${entry.imageEdits[source]?.zoom ?? 1})`,
+                                      transformOrigin: `${entry.imageEdits[source]?.focusX ?? 50}% ${entry.imageEdits[source]?.focusY ?? 50}%`,
+                                    }}
+                                  />
                                   <span className={styles.photoOrderBadge}>{imageIndex + 1}</span>
                                   {imageIndex === 0 ? (
                                     <span className={styles.photoPrimaryBadge}>Головне</span>
@@ -1263,6 +1706,72 @@ export default function AdminCatalogsPage() {
                                 </div>
                               ))}
                             </div>
+                            {editingSource && editingImage ? (
+                              <div className={styles.cropPanel}>
+                                <div className={styles.cropPanelTitle}>
+                                  <Crop size={14} /> Кадрування фото
+                                </div>
+                                <div className={styles.cropFitControl}>
+                                  {(["cover", "contain"] as const).map((fit) => (
+                                    <button
+                                      type="button"
+                                      key={fit}
+                                      className={
+                                        editingImage.fit === fit ? styles.cropFitActive : undefined
+                                      }
+                                      onClick={() =>
+                                        updateImageEdit(entry.product.id, editingSource, { fit })
+                                      }
+                                    >
+                                      {fit === "cover" ? "Заповнити" : "Вмістити"}
+                                    </button>
+                                  ))}
+                                </div>
+                                <label>
+                                  Масштаб <span>{editingImage.zoom.toFixed(2)}×</span>
+                                  <input
+                                    type="range"
+                                    min="1"
+                                    max="2"
+                                    step="0.05"
+                                    value={editingImage.zoom}
+                                    onChange={(event) =>
+                                      updateImageEdit(entry.product.id, editingSource, {
+                                        zoom: Number(event.target.value),
+                                      })
+                                    }
+                                  />
+                                </label>
+                                <label>
+                                  По горизонталі <span>{editingImage.focusX}%</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={editingImage.focusX}
+                                    onChange={(event) =>
+                                      updateImageEdit(entry.product.id, editingSource, {
+                                        focusX: Number(event.target.value),
+                                      })
+                                    }
+                                  />
+                                </label>
+                                <label>
+                                  По вертикалі <span>{editingImage.focusY}%</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={editingImage.focusY}
+                                    onChange={(event) =>
+                                      updateImageEdit(entry.product.id, editingSource, {
+                                        focusY: Number(event.target.value),
+                                      })
+                                    }
+                                  />
+                                </label>
+                              </div>
+                            ) : null}
                             {photoMode === "gallery" && images.length > 1 ? (
                               <div className={styles.photoLayoutRow}>
                                 <div>
@@ -1340,6 +1849,17 @@ export default function AdminCatalogsPage() {
                 >
                   <Download size={16} />
                   {generating ? "Генеруємо…" : "Завантажити фінальний PDF"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.publishButton}
+                  onClick={publishPresentation}
+                  disabled={
+                    publishing || selected.length === 0 || !title.trim() || !subtitle.trim()
+                  }
+                >
+                  <Send size={16} />
+                  {publishing ? "Публікуємо…" : "Посилання клієнту"}
                 </button>
               </div>
             </div>

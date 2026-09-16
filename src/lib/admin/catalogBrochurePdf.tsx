@@ -12,8 +12,11 @@ import type {
   CatalogBrochureCurrency,
   CatalogBrochureDescriptionMode,
   CatalogBrochureGalleryLayout,
+  CatalogBrochureImageEdit,
+  CatalogBrochureItemDescriptionMode,
   CatalogBrochureLayout,
   CatalogBrochureLanguage,
+  CatalogBrochurePageTemplate,
   CatalogBrochurePhotoMode,
 } from "./catalogBrochure";
 
@@ -39,6 +42,12 @@ export type CatalogBrochurePdfItem = {
   image: string | null;
   imageSources: string[];
   galleryLayout?: CatalogBrochureGalleryLayout;
+  pageTemplate?: CatalogBrochurePageTemplate;
+  descriptionMode?: CatalogBrochureItemDescriptionMode;
+  showSku?: boolean;
+  showBrand?: boolean;
+  showPrice?: boolean;
+  imageEdits?: CatalogBrochureImageEdit[];
   price: number | null;
 };
 
@@ -53,6 +62,14 @@ export type CatalogBrochurePdfInput = {
   branding: CatalogBrochureBranding;
   brandLogoSrc: string | null;
   showPrice: boolean;
+  clientName?: string | null;
+  clientCompany?: string | null;
+  managerName?: string | null;
+  managerPhone?: string | null;
+  managerEmail?: string | null;
+  personalNote?: string | null;
+  validUntil?: string | null;
+  showContactPage?: boolean;
   generatedAt: Date;
   items: CatalogBrochurePdfItem[];
 };
@@ -78,6 +95,10 @@ const labels = {
     note: "Фото та характеристики взято з каталогу OneCompany. Остаточна комплектація, сумісність і ціна підтверджуються менеджером.",
     generated: "СФОРМОВАНО",
     noPhoto: "ФОТО ТОВАРУ НЕ ДОДАНО",
+    preparedFor: "ПІДГОТОВЛЕНО ДЛЯ",
+    validUntil: "ПРОПОЗИЦІЯ ДІЙСНА ДО",
+    contact: "ВАШ ПЕРСОНАЛЬНИЙ МЕНЕДЖЕР",
+    contactTitle: "ЗВ’ЯЖІТЬСЯ З НАМИ",
   },
   ru: {
     catalog: "ПРЕЗЕНТАЦИОННЫЙ КАТАЛОГ",
@@ -94,6 +115,10 @@ const labels = {
     note: "Фото и характеристики взяты из каталога OneCompany. Итоговая комплектация, совместимость и цена подтверждаются менеджером.",
     generated: "СФОРМИРОВАНО",
     noPhoto: "ФОТО ТОВАРА НЕ ДОБАВЛЕНО",
+    preparedFor: "ПОДГОТОВЛЕНО ДЛЯ",
+    validUntil: "ПРЕДЛОЖЕНИЕ ДЕЙСТВИТЕЛЬНО ДО",
+    contact: "ВАШ ПЕРСОНАЛЬНЫЙ МЕНЕДЖЕР",
+    contactTitle: "СВЯЖИТЕСЬ С НАМИ",
   },
   en: {
     catalog: "PRESENTATION CATALOG",
@@ -110,6 +135,10 @@ const labels = {
     note: "Product imagery and details are taken from the OneCompany catalog. Final configuration, compatibility and pricing are confirmed by a manager.",
     generated: "GENERATED",
     noPhoto: "PRODUCT IMAGE NOT AVAILABLE",
+    preparedFor: "PREPARED FOR",
+    validUntil: "OFFER VALID UNTIL",
+    contact: "YOUR PERSONAL MANAGER",
+    contactTitle: "LET'S TALK",
   },
 } as const;
 
@@ -167,12 +196,17 @@ function productDeck(description: string, fallback: string) {
 function productDescription(
   description: string,
   fallback: string,
-  mode: CatalogBrochureDescriptionMode,
+  mode: CatalogBrochureDescriptionMode | CatalogBrochureItemDescriptionMode,
   maxLength: number
 ) {
   if (mode === "none") return "";
   return trimText(safeText(description, fallback), mode === "short" ? maxLength : 285);
 }
+
+type PreparedPicture = {
+  picture: Buffer | null;
+  edit?: CatalogBrochureImageEdit;
+};
 
 function titleSize(title: string) {
   if (title.length <= 44) return 31;
@@ -197,14 +231,32 @@ function splitIntoGroups<T>(values: T[], size: number) {
 
 function ProductPhoto({
   picture,
+  edit,
   emptyLabel,
   imageStyle,
 }: {
   picture: Buffer | null;
+  edit?: CatalogBrochureImageEdit;
   emptyLabel: string;
   imageStyle: Style;
 }) {
-  if (picture) return <Image src={picture} style={imageStyle} />;
+  if (picture) {
+    return (
+      <View style={{ ...imageStyle, overflow: "hidden" }}>
+        <Image
+          src={picture}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: edit?.fit ?? "cover",
+            objectPosition: `${edit?.focusX ?? 50}% ${edit?.focusY ?? 50}%`,
+            transform: `scale(${edit?.zoom ?? 1})`,
+            transformOrigin: `${edit?.focusX ?? 50}% ${edit?.focusY ?? 50}%`,
+          }}
+        />
+      </View>
+    );
+  }
   return (
     <View style={{ ...imageStyle, ...styles.emptyPhoto }}>
       <Text style={styles.emptyPhotoLabel}>{emptyLabel}</Text>
@@ -222,7 +274,7 @@ function ProductGallery({
   cellStyle,
   galleryHeight,
 }: {
-  pictures: Array<Buffer | null>;
+  pictures: PreparedPicture[];
   emptyLabel: string;
   photoMode: CatalogBrochurePhotoMode;
   galleryLayout: CatalogBrochureGalleryLayout;
@@ -231,10 +283,15 @@ function ProductGallery({
   cellStyle: Style;
   galleryHeight: number;
 }) {
-  const available = pictures.filter((picture): picture is Buffer => Boolean(picture));
+  const available = pictures.filter((entry) => Boolean(entry.picture));
   if (available.length <= 1 || photoMode === "hero") {
     return (
-      <ProductPhoto picture={available[0] ?? null} emptyLabel={emptyLabel} imageStyle={heroStyle} />
+      <ProductPhoto
+        picture={available[0]?.picture ?? null}
+        edit={available[0]?.edit}
+        emptyLabel={emptyLabel}
+        imageStyle={heroStyle}
+      />
     );
   }
 
@@ -244,12 +301,14 @@ function ProductGallery({
     return (
       <View style={{ ...galleryStyle, flexDirection: "row", flexWrap: "nowrap" }}>
         <ProductPhoto
-          picture={available[0]}
+          picture={available[0].picture}
+          edit={available[0].edit}
           emptyLabel={emptyLabel}
           imageStyle={{ ...cellStyle, width: "62%", height: galleryHeight }}
         />
         <ProductPhoto
-          picture={available[1]}
+          picture={available[1].picture}
+          edit={available[1].edit}
           emptyLabel={emptyLabel}
           imageStyle={{ ...cellStyle, width: "38%", height: galleryHeight }}
         />
@@ -260,18 +319,21 @@ function ProductGallery({
     return (
       <View style={{ ...galleryStyle, flexDirection: "row", flexWrap: "nowrap" }}>
         <ProductPhoto
-          picture={available[0]}
+          picture={available[0].picture}
+          edit={available[0].edit}
           emptyLabel={emptyLabel}
           imageStyle={{ ...cellStyle, width: "58%", height: galleryHeight }}
         />
         <View style={{ width: "42%", height: galleryHeight, flexDirection: "column" }}>
           <ProductPhoto
-            picture={available[1]}
+            picture={available[1].picture}
+            edit={available[1].edit}
             emptyLabel={emptyLabel}
             imageStyle={{ ...cellStyle, width: "100%", height: galleryHeight / 2 }}
           />
           <ProductPhoto
-            picture={available[2]}
+            picture={available[2].picture}
+            edit={available[2].edit}
             emptyLabel={emptyLabel}
             imageStyle={{ ...cellStyle, width: "100%", height: galleryHeight / 2 }}
           />
@@ -290,10 +352,11 @@ function ProductGallery({
           key={`gallery-row-${rowIndex}`}
           style={{ width: "100%", height: rowHeight, flexDirection: "row" }}
         >
-          {row.map((picture, index) => (
+          {row.map((entry, index) => (
             <ProductPhoto
               key={`gallery-${rowIndex}-${index}`}
-              picture={picture}
+              picture={entry.picture}
+              edit={entry.edit}
               emptyLabel={emptyLabel}
               imageStyle={{
                 ...cellStyle,
@@ -395,7 +458,7 @@ const styles = {
     padding: 0,
   },
   coverTop: {
-    height: 252,
+    height: 278,
     backgroundColor: "#141718",
     color: "#ffffff",
     paddingTop: 35,
@@ -449,7 +512,7 @@ const styles = {
   },
   coverHero: {
     width: A4_SIZE.width,
-    height: 382,
+    height: 356,
     objectFit: "cover" as const,
     backgroundColor: "#eceeed",
   },
@@ -824,6 +887,77 @@ const styles = {
     lineHeight: 1.4,
     color: "#7c8488",
   },
+  contactPage: {
+    fontFamily: "Catalog",
+    minHeight: A4_SIZE.height,
+    backgroundColor: "#141718",
+    color: "#ffffff",
+    paddingTop: 44,
+    paddingHorizontal: PAGE_MARGIN,
+    paddingBottom: 40,
+  },
+  contactKicker: {
+    marginTop: 72,
+    fontSize: 8,
+    letterSpacing: 2.2,
+    color: "#9ebd3a",
+  },
+  contactTitle: {
+    marginTop: 16,
+    maxWidth: 475,
+    fontSize: 42,
+    lineHeight: 1.02,
+    fontWeight: 700 as const,
+    textTransform: "uppercase" as const,
+  },
+  contactNote: {
+    marginTop: 28,
+    maxWidth: 440,
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: "#c5cbcd",
+  },
+  contactCard: {
+    position: "absolute" as const,
+    left: PAGE_MARGIN,
+    right: PAGE_MARGIN,
+    bottom: 72,
+    minHeight: 190,
+    borderTopWidth: 0.8,
+    borderTopColor: "#414748",
+    paddingTop: 26,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+  },
+  contactManager: {
+    maxWidth: 300,
+  },
+  contactLabel: {
+    marginBottom: 14,
+    fontSize: 7.5,
+    letterSpacing: 1.8,
+    color: "#8e9799",
+  },
+  contactName: {
+    fontSize: 24,
+    lineHeight: 1.1,
+    fontWeight: 700 as const,
+  },
+  contactLine: {
+    marginTop: 10,
+    fontSize: 10,
+    color: "#d9ddde",
+  },
+  contactValidity: {
+    width: 175,
+    alignItems: "flex-end" as const,
+  },
+  contactValidityValue: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: 700 as const,
+    textAlign: "right" as const,
+  },
 };
 
 async function loadLogo(source: string): Promise<LogoAsset | null> {
@@ -860,12 +994,10 @@ async function prepareCatalogPicture(picture: Buffer | null) {
     return await sharp(picture)
       .flatten({ background: "#ffffff" })
       .trim({ background: "#ffffff", threshold: 10 })
-      .resize(1500, 930, {
-        fit: "contain",
+      .resize(1800, 1200, {
+        fit: "inside",
         withoutEnlargement: false,
-        background: { r: 239, g: 241, b: 240, alpha: 1 },
       })
-      .flatten({ background: "#eff1f0" })
       .jpeg({ quality: 88, mozjpeg: true })
       .toBuffer();
   } catch {
@@ -885,7 +1017,7 @@ function SingleProductPage({
   generated,
 }: {
   item: CatalogBrochurePdfItem;
-  pictures: Array<Buffer | null>;
+  pictures: PreparedPicture[];
   itemIndex: number;
   pageNumber: number;
   pageCount: number;
@@ -896,6 +1028,17 @@ function SingleProductPage({
 }) {
   const t = labels[input.language];
   const title = safeText(item.title, "Product");
+  const template = item.pageTemplate ?? "editorial";
+  const effectiveDescriptionMode =
+    item.descriptionMode && item.descriptionMode !== "inherit"
+      ? item.descriptionMode
+      : (input.descriptionMode ?? "full");
+  const introHeight = template === "gallery" ? 132 : template === "technical" ? 145 : 126;
+  const galleryHeight = template === "gallery" ? 354 : template === "technical" ? 274 : 328;
+  const showDeck =
+    template !== "minimal" &&
+    effectiveDescriptionMode !== "short" &&
+    effectiveDescriptionMode !== "none";
   return (
     <Page size={A4_SIZE} style={styles.page} wrap>
       <PageHeader
@@ -904,12 +1047,12 @@ function SingleProductPage({
         title={safeText(input.title, t.catalog)}
         descriptor={`${String(itemIndex + 1).padStart(2, "0")} / ${t.collection}`}
       />
-      <View style={styles.introBlock}>
+      <View style={{ ...styles.introBlock, height: introHeight }}>
         <Text style={styles.sectionLabel}>
           {String(itemIndex + 1).padStart(2, "0")} / {t.collection}
         </Text>
         <Text style={{ ...styles.productTitle, fontSize: titleSize(title) }}>{title}</Text>
-        {input.descriptionMode !== "short" && input.descriptionMode !== "none" ? (
+        {showDeck ? (
           <Text style={styles.productDeck}>{productDeck(item.description, t.collection)}</Text>
         ) : null}
       </View>
@@ -918,13 +1061,13 @@ function SingleProductPage({
         emptyLabel={t.noPhoto}
         photoMode={input.photoMode ?? "hero"}
         galleryLayout={item.galleryLayout ?? "auto"}
-        heroStyle={styles.fullBleedPhoto}
-        galleryStyle={styles.galleryBand}
+        heroStyle={{ ...styles.fullBleedPhoto, height: galleryHeight }}
+        galleryStyle={{ ...styles.galleryBand, height: galleryHeight }}
         cellStyle={styles.galleryCell}
-        galleryHeight={328}
+        galleryHeight={galleryHeight}
       />
       <Text style={styles.caption}>
-        {safeText(item.brand, "OneCompany")} ·{" "}
+        {item.showBrand === false ? "" : `${safeText(item.brand, "OneCompany")} · `}
         {t.generated.toLocaleLowerCase(localeMap[input.language])} {generated}
       </Text>
       <View style={styles.detailRow}>
@@ -932,21 +1075,23 @@ function SingleProductPage({
           <Text style={styles.detailLabel}>
             {String(itemIndex + 1).padStart(2, "0")} / {t.collection}
           </Text>
-          {input.descriptionMode !== "none" ? (
+          {effectiveDescriptionMode !== "none" ? (
             <Text style={styles.detailDescription}>
               {productDescription(
                 item.description,
                 t.collection,
-                input.descriptionMode ?? "full",
-                150
+                effectiveDescriptionMode,
+                template === "technical" ? 230 : 150
               )}
             </Text>
           ) : null}
-          <Text style={styles.sku}>
-            {t.sku}: {item.sku || "—"}
-          </Text>
+          {item.showSku === false ? null : (
+            <Text style={styles.sku}>
+              {t.sku}: {item.sku || "—"}
+            </Text>
+          )}
         </View>
-        {input.showPrice ? (
+        {input.showPrice && item.showPrice !== false ? (
           <View style={styles.priceBlock}>
             <Text style={styles.priceLabel}>{t.price}</Text>
             <Text style={styles.price}>
@@ -971,7 +1116,7 @@ function DoubleProductPage({
   documentMark,
 }: {
   group: CatalogBrochurePdfItem[];
-  pictures: Array<Array<Buffer | null>>;
+  pictures: PreparedPicture[][];
   startIndex: number;
   pageNumber: number;
   pageCount: number;
@@ -1029,24 +1174,30 @@ function DoubleProductPage({
             <Text style={styles.doubleProductTitle}>
               {trimText(safeText(item.title, "Product"), 102)}
             </Text>
-            {input.descriptionMode !== "none" ? (
+            {(item.descriptionMode === "inherit" || !item.descriptionMode
+              ? input.descriptionMode
+              : item.descriptionMode) !== "none" ? (
               <Text style={styles.doubleProductDescription}>
                 {productDescription(
                   item.description,
                   t.collection,
-                  input.descriptionMode ?? "full",
+                  item.descriptionMode === "inherit" || !item.descriptionMode
+                    ? (input.descriptionMode ?? "full")
+                    : item.descriptionMode,
                   95
                 )}
               </Text>
             ) : null}
-            {input.showPrice ? (
+            {input.showPrice && item.showPrice !== false ? (
               <Text style={styles.doublePrice}>
                 {formatMoney(item.price, input.currency, input.language)}
               </Text>
             ) : null}
-            <Text style={styles.doubleSku}>
-              {t.sku}: {item.sku || "—"}
-            </Text>
+            {item.showSku === false ? null : (
+              <Text style={styles.doubleSku}>
+                {t.sku}: {item.sku || "—"}
+              </Text>
+            )}
           </View>
         ))}
       </View>
@@ -1089,16 +1240,25 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
   const loadedPictures = await loadProformaImages(imageRequests, { maxDimension: 1500 });
   let pictureOffset = 0;
   const pictures = await Promise.all(
-    imageSourceGroups.map(async (sources) => {
+    imageSourceGroups.map(async (sources, itemIndex) => {
       const prepared = await Promise.all(
-        sources.map(() => prepareCatalogPicture(loadedPictures[pictureOffset++] ?? null))
+        sources.map(async (source) => ({
+          picture: await prepareCatalogPicture(loadedPictures[pictureOffset++] ?? null),
+          edit: input.items[itemIndex]?.imageEdits?.find(
+            (candidate) => candidate.source === source
+          ),
+        }))
       );
       return prepared;
     })
   );
   const productGroups = splitIntoGroups(input.items, input.layout === "double" ? 2 : 1);
   const summaryGroups = splitIntoGroups(input.items, SUMMARY_PAGE_SIZE);
-  const pageCount = 1 + productGroups.length + summaryGroups.length;
+  const hasContactPage = Boolean(
+    input.showContactPage &&
+    (input.managerName || input.managerPhone || input.managerEmail || input.personalNote)
+  );
+  const pageCount = 1 + productGroups.length + summaryGroups.length + (hasContactPage ? 1 : 0);
   const total = input.items.every((item) => item.price != null)
     ? input.items.reduce((sum, item) => sum + (item.price ?? 0), 0)
     : null;
@@ -1114,6 +1274,13 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
         : "";
   const coverTitle = safeText(input.title, t.catalog);
   const coverSubtitle = safeText(input.subtitle, t.collection);
+  const clientLabel = safeText(input.clientCompany || input.clientName, "");
+  const formattedValidUntil = input.validUntil
+    ? new Intl.DateTimeFormat(localeMap[input.language], {
+        dateStyle: "long",
+        timeZone: "UTC",
+      }).format(new Date(`${input.validUntil}T00:00:00.000Z`))
+    : null;
 
   return renderToBuffer(
     <Document title={coverTitle} author="OneCompany">
@@ -1126,7 +1293,8 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
           </Text>
         </View>
         <ProductPhoto
-          picture={pictures[0]?.[0] ?? null}
+          picture={pictures[0]?.[0]?.picture ?? null}
+          edit={pictures[0]?.[0]?.edit}
           emptyLabel={t.noPhoto}
           imageStyle={styles.coverHero}
         />
@@ -1137,6 +1305,11 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
             {input.items.length} {t.positions.toLocaleLowerCase(localeMap[input.language])} ·{" "}
             {t.collection}
           </Text>
+          {clientLabel ? (
+            <Text style={{ ...styles.coverInfo, marginTop: 8 }}>
+              {t.preparedFor}: {clientLabel}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.coverFooter}>
           <Text style={styles.footerText}>{documentMark || t.catalog}</Text>
@@ -1199,7 +1372,8 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
             </View>
             {isFirst ? (
               <ProductPhoto
-                picture={pictures[0]?.[0] ?? null}
+                picture={pictures[0]?.[0]?.picture ?? null}
+                edit={pictures[0]?.[0]?.edit}
                 emptyLabel={t.noPhoto}
                 imageStyle={styles.summaryHero}
               />
@@ -1223,9 +1397,11 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
                   <Text style={styles.summaryNameText}>
                     {trimText(safeText(item.title, "Product"), 105)}
                   </Text>
-                  <Text style={styles.summarySku}>{item.sku || "—"}</Text>
+                  {item.showSku === false ? null : (
+                    <Text style={styles.summarySku}>{item.sku || "—"}</Text>
+                  )}
                 </View>
-                {input.showPrice ? (
+                {input.showPrice && item.showPrice !== false ? (
                   <Text style={styles.summaryPrice}>
                     {formatMoney(item.price, input.currency, input.language)}
                   </Text>
@@ -1245,6 +1421,36 @@ export async function renderCatalogBrochurePdf(input: CatalogBrochurePdfInput) {
           </Page>
         );
       })}
+
+      {hasContactPage ? (
+        <Page size="A4" style={styles.contactPage} wrap>
+          <LogoMark logo={coverLogo} branding={input.branding} surface="dark" />
+          <Text style={styles.contactKicker}>{t.contact}</Text>
+          <Text style={styles.contactTitle}>{t.contactTitle}</Text>
+          {input.personalNote ? <Text style={styles.contactNote}>{input.personalNote}</Text> : null}
+          <View style={styles.contactCard}>
+            <View style={styles.contactManager}>
+              <Text style={styles.contactLabel}>{t.contact}</Text>
+              {input.managerName ? (
+                <Text style={styles.contactName}>{input.managerName}</Text>
+              ) : null}
+              {input.managerPhone ? (
+                <Text style={styles.contactLine}>{input.managerPhone}</Text>
+              ) : null}
+              {input.managerEmail ? (
+                <Text style={styles.contactLine}>{input.managerEmail}</Text>
+              ) : null}
+            </View>
+            {formattedValidUntil ? (
+              <View style={styles.contactValidity}>
+                <Text style={styles.contactLabel}>{t.validUntil}</Text>
+                <Text style={styles.contactValidityValue}>{formattedValidUntil}</Text>
+              </View>
+            ) : null}
+          </View>
+          <PageFooter documentMark={documentMark} pageNumber={pageCount} pageCount={pageCount} />
+        </Page>
+      ) : null}
     </Document>
   );
 }

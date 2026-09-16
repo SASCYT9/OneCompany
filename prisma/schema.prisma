@@ -96,35 +96,54 @@ model TelegramAdmin {
 }
 
 model AdminUser {
-  id                       String                 @id @default(cuid())
-  email                    String                 @unique
-  name                     String?
-  isActive                 Boolean                @default(true)
-  lastLoginAt              DateTime?
-  createdAt                DateTime               @default(now())
-  updatedAt                DateTime               @updatedAt
-  passwordHash             String?
-  auditLogs                AdminAuditLog[]
-  roles                    AdminUserRole[]
-  opsProfile               OpsMemberProfile?
-  opsProjects              OpsProject[]           @relation("OpsProjectOwner")
-  opsTasksCreated          OpsTask[]              @relation("OpsTaskCreator")
-  opsTasksAssigned         OpsTask[]              @relation("OpsTaskAssignee")
-  opsTasksRequested        OpsTask[]              @relation("OpsTaskRequester")
-  opsTaskAssignments       OpsTaskAssignee[]      @relation("OpsTaskAssigneeUser")
-  opsTaskAssignmentsMade   OpsTaskAssignee[]      @relation("OpsTaskAssigneeActor")
-  opsTaskEvents            OpsTaskEvent[]         @relation("OpsTaskEventActor")
-  opsComments              OpsComment[]           @relation("OpsCommentAuthor")
-  opsTaskAttachments       OpsTaskAttachment[]    @relation("OpsTaskAttachmentActor")
-  opsKnowledgeArticles     OpsKnowledgeArticle[]  @relation("OpsKnowledgeAuthor")
-  opsKnowledgePublications OpsKnowledgeArticle[]  @relation("OpsKnowledgePublisher")
-  opsKnowledgeRevisions    OpsKnowledgeRevision[] @relation("OpsKnowledgeRevisionActor")
-  opsAutomationRuns        OpsAutomationRun[]     @relation("OpsAutomationRequester")
-  opsApprovalRequests      OpsApproval[]          @relation("OpsApprovalRequester")
-  opsApprovalDecisions     OpsApproval[]          @relation("OpsApprovalApprover")
-  opsTelegramBatches       OpsTelegramBatch[]     @relation("OpsTelegramBatchActor")
+  id                        String                     @id @default(cuid())
+  email                     String                     @unique
+  name                      String?
+  isActive                  Boolean                    @default(true)
+  lastLoginAt               DateTime?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  passwordHash              String?
+  auditLogs                 AdminAuditLog[]
+  roles                     AdminUserRole[]
+  opsProfile                OpsMemberProfile?
+  opsProjects               OpsProject[]               @relation("OpsProjectOwner")
+  opsTasksCreated           OpsTask[]                  @relation("OpsTaskCreator")
+  opsTasksAssigned          OpsTask[]                  @relation("OpsTaskAssignee")
+  opsTasksRequested         OpsTask[]                  @relation("OpsTaskRequester")
+  opsTaskAssignments        OpsTaskAssignee[]          @relation("OpsTaskAssigneeUser")
+  opsTaskAssignmentsMade    OpsTaskAssignee[]          @relation("OpsTaskAssigneeActor")
+  opsTaskEvents             OpsTaskEvent[]             @relation("OpsTaskEventActor")
+  opsComments               OpsComment[]               @relation("OpsCommentAuthor")
+  opsTaskAttachments        OpsTaskAttachment[]        @relation("OpsTaskAttachmentActor")
+  opsKnowledgeArticles      OpsKnowledgeArticle[]      @relation("OpsKnowledgeAuthor")
+  opsKnowledgePublications  OpsKnowledgeArticle[]      @relation("OpsKnowledgePublisher")
+  opsKnowledgeRevisions     OpsKnowledgeRevision[]     @relation("OpsKnowledgeRevisionActor")
+  opsAutomationRuns         OpsAutomationRun[]         @relation("OpsAutomationRequester")
+  opsApprovalRequests       OpsApproval[]              @relation("OpsApprovalRequester")
+  opsApprovalDecisions      OpsApproval[]              @relation("OpsApprovalApprover")
+  opsTelegramBatches        OpsTelegramBatch[]         @relation("OpsTelegramBatchActor")
+  catalogPresentationShares CatalogPresentationShare[]
 
   @@index([isActive])
+}
+
+model CatalogPresentationShare {
+  id           String     @id @default(cuid())
+  tokenHash    String     @unique
+  title        String
+  language     String
+  snapshot     Json
+  createdById  String?
+  createdAt    DateTime   @default(now())
+  expiresAt    DateTime?
+  viewCount    Int        @default(0)
+  lastViewedAt DateTime?
+  revokedAt    DateTime?
+  createdBy    AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([createdById, createdAt])
+  @@index([expiresAt])
 }
 
 model AdminRole {

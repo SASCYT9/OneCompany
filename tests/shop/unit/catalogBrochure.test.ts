@@ -87,6 +87,67 @@ test("accepts gallery and description presentation modes", () => {
   assert.match(invalidDescriptionMode ?? "", /описів/i);
 });
 
+test("accepts page editing, image framing, and client personalization", () => {
+  assert.equal(
+    validateCatalogBrochureRequest({
+      ...validRequest,
+      clientName: "Сергій",
+      clientCompany: "Urban Motors",
+      managerName: "Олександр",
+      managerPhone: "+380 00 000 00 00",
+      managerEmail: "manager@example.com",
+      personalNote: "Персональна конфігурація для вашого автомобіля.",
+      validUntil: "2026-12-31",
+      showContactPage: true,
+      items: [
+        {
+          productId: "product-1",
+          pageTemplate: "gallery",
+          descriptionMode: "custom",
+          titleOverride: "Персональна назва",
+          descriptionOverride: "Скорочений опис для презентації.",
+          showSku: false,
+          showBrand: true,
+          showPrice: true,
+          imageSources: ["https://cdn.example.com/product.jpg"],
+          imageEdits: [
+            {
+              source: "https://cdn.example.com/product.jpg",
+              fit: "cover",
+              focusX: 42,
+              focusY: 58,
+              zoom: 1.25,
+            },
+          ],
+        },
+      ],
+    }),
+    null
+  );
+});
+
+test("rejects invalid page image framing", () => {
+  const error = validateCatalogBrochureRequest({
+    ...validRequest,
+    items: [
+      {
+        productId: "product-1",
+        imageSources: ["https://cdn.example.com/product.jpg"],
+        imageEdits: [
+          {
+            source: "https://cdn.example.com/product.jpg",
+            fit: "cover",
+            focusX: 101,
+            focusY: 50,
+            zoom: 3,
+          },
+        ],
+      },
+    ],
+  });
+  assert.match(error ?? "", /кадрування/i);
+});
+
 test("rejects malformed product photo overrides", () => {
   const error = validateCatalogBrochureRequest({
     ...validRequest,

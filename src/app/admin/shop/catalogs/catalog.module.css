@@ -69,7 +69,8 @@
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid #ffffff1c;
@@ -81,6 +82,12 @@
   font-size: 13px;
   outline: none;
   color-scheme: dark;
+}
+
+.field textarea {
+  min-height: 86px;
+  resize: vertical;
+  line-height: 1.5;
 }
 
 .field input:focus,
@@ -841,9 +848,65 @@
 
 .actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   gap: 8px;
   padding: 0 20px 20px;
+}
+
+.publishButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #9ebd3a66;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #a8c746, #789624);
+  color: #11150a;
+  padding: 0 13px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.publishButton:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.publishedLink {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 5px;
+  align-items: center;
+  margin: 0 20px 20px;
+  border: 1px solid #9ebd3a33;
+  border-radius: 8px;
+  background: #9ebd3a0c;
+  padding: 7px;
+}
+
+.publishedLink span {
+  overflow: hidden;
+  color: #cddba4;
+  padding: 0 6px;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.publishedLink button,
+.publishedLink a {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 1px solid #ffffff18;
+  border-radius: 6px;
+  background: #202326;
+  color: #dce5c1;
 }
 
 .primary,
@@ -933,7 +996,7 @@
 .editorDialog {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  width: min(1180px, 100%);
+  width: min(1420px, 100%);
   max-height: min(900px, calc(100vh - 48px));
   overflow: hidden;
   border: 1px solid #ffffff1c;
@@ -1045,14 +1108,83 @@
 
 .editorBody {
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(380px, 1.15fr);
+  grid-template-columns: 170px minmax(300px, 0.82fr) minmax(420px, 1.18fr);
   min-height: 0;
   overflow: hidden;
+}
+
+.pageRail {
+  min-width: 0;
+  overflow-y: auto;
+  border-right: 1px solid #ffffff12;
+  background: #0d0f10;
+  padding: 16px 12px;
+}
+
+.pageRailLabel {
+  margin: 0 4px 10px;
+  color: #68727f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.pageRail button {
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  padding: 7px;
+  color: #8d97a3;
+  text-align: left;
+}
+
+.pageRail button:hover,
+.pageRail .pageThumbActive {
+  border-color: #548cf06b;
+  background: #1b2940;
+  color: #edf4ff;
+}
+
+.pageRail button strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pageThumbPreview,
+.pageThumbImage {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #ffffff17;
+  border-radius: 4px;
+  background: linear-gradient(160deg, #252b2d 0 46%, #f1f2f1 46% 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pageThumbImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .editorCanvas,
 .editorProducts {
   min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 20px 24px;
 }
@@ -1299,6 +1431,128 @@
   overflow-wrap: anywhere;
 }
 
+.pageTemplatePanel,
+.copyEditor {
+  margin-left: 36px;
+}
+
+.pageTemplatePanel {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(240px, 1.3fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #ffffff10;
+  border-radius: 8px;
+  background: #121416;
+  padding: 10px;
+}
+
+.pageTemplatePanel strong,
+.pageTemplatePanel span {
+  display: block;
+}
+
+.pageTemplatePanel strong {
+  color: #e8edf4;
+  font-size: 10px;
+}
+
+.pageTemplatePanel span {
+  margin-top: 3px;
+  color: #77818e;
+  font-size: 9px;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.templateGrid button {
+  min-height: 30px;
+  border: 1px solid #ffffff12;
+  border-radius: 5px;
+  background: #1c1f22;
+  color: #919ba8;
+  padding: 4px 5px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.templateGrid .templateActive {
+  border-color: #6d9ef6;
+  background: #2f6feb;
+  color: #fff;
+}
+
+.copyEditor {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 8px;
+}
+
+.copyEditor label {
+  display: grid;
+  gap: 5px;
+  color: #8f98a5;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.copyEditor input,
+.copyEditor select,
+.copyEditor textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #ffffff18;
+  border-radius: 7px;
+  background: #0d0e0f;
+  color: #f3f5f7;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: normal;
+  text-transform: none;
+  color-scheme: dark;
+}
+
+.copyEditor textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.copyEditorFull,
+.itemToggles {
+  grid-column: 1 / -1;
+}
+
+.itemToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.itemToggles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #ffffff12;
+  border-radius: 6px;
+  padding: 7px 9px;
+  color: #aab3bf;
+  font-size: 9px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.itemToggles input {
+  width: auto;
+  accent-color: #4e8bf7;
+}
+
 .photoManager {
   display: grid;
   gap: 10px;
@@ -1378,6 +1632,11 @@
   border: 1px solid #ffffff17;
   border-radius: 7px;
   background: #24272a;
+}
+
+.photoTileSelected {
+  border-color: #6e9ef7;
+  box-shadow: 0 0 0 2px #2f6feb44;
 }
 
 .photoTile img {
@@ -1462,6 +1721,68 @@
 .photoLayoutRow {
   border-top: 1px solid #ffffff0e;
   padding-top: 9px;
+}
+
+.cropPanel {
+  display: grid;
+  grid-template-columns: auto auto repeat(3, minmax(100px, 1fr));
+  gap: 9px;
+  align-items: center;
+  border-top: 1px solid #ffffff0e;
+  padding-top: 10px;
+}
+
+.cropPanelTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #dbe6fa;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cropFitControl {
+  display: inline-flex;
+  border: 1px solid #ffffff12;
+  border-radius: 6px;
+  background: #0c0e10;
+  padding: 2px;
+}
+
+.cropFitControl button {
+  min-height: 26px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #818b98;
+  padding: 0 7px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.cropFitControl .cropFitActive {
+  background: #2f6feb;
+  color: #fff;
+}
+
+.cropPanel label {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  color: #7f8995;
+  font-size: 8px;
+}
+
+.cropPanel label span {
+  color: #b8c7de;
+  font-variant-numeric: tabular-nums;
+}
+
+.cropPanel input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #4e8bf7;
 }
 
 .photoLayoutControl {
@@ -1562,6 +1883,21 @@
   color: #b6f1c9;
 }
 
+@media (max-width: 1200px) {
+  .editorBody {
+    grid-template-columns: 140px minmax(270px, 0.72fr) minmax(0, 1.28fr);
+  }
+  .pageTemplatePanel {
+    grid-template-columns: 1fr;
+  }
+  .templateGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cropPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1080px) {
   .workbench {
     grid-template-columns: minmax(0, 1fr) 320px;
@@ -1587,6 +1923,21 @@
   .editorBody {
     grid-template-columns: 1fr;
     overflow-y: auto;
+  }
+  .pageRail {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid #ffffff12;
+  }
+  .pageRailLabel {
+    display: none;
+  }
+  .pageRail button {
+    flex: 0 0 92px;
+    margin-bottom: 0;
   }
   .editorCanvas,
   .editorProducts {
@@ -1636,6 +1987,9 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .editorButton {
+    grid-column: 1 / -1;
+  }
+  .publishButton {
     grid-column: 1 / -1;
   }
   .paper {
@@ -1709,9 +2063,22 @@
   }
   .editorProductInfo,
   .editorPriceField,
-  .photoManager {
+  .photoManager,
+  .pageTemplatePanel,
+  .copyEditor {
     padding-left: 0;
     margin-left: 0;
+  }
+  .pageTemplatePanel,
+  .copyEditor {
+    grid-template-columns: 1fr;
+  }
+  .templateGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .copyEditorFull,
+  .itemToggles {
+    grid-column: auto;
   }
   .photoManagerGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1720,6 +2087,9 @@
   .photoLayoutRow {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .cropPanel {
+    grid-template-columns: 1fr;
   }
   .photoLayoutControl {
     width: 100%;

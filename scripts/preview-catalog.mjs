@@ -233,9 +233,14 @@ const server = createServer(async (req, res) => {
           ? requestedImages
           : [selectedImage, ...product.imageSources.filter((source) => source !== selectedImage)];
         return {
-          title: language === "en" ? product.titleEn : product.titleUa,
-          description:
-            fixture[`description${language === "ua" ? "Ua" : language === "ru" ? "Ru" : "En"}`],
+          title: String(
+            entry.titleOverride || (language === "en" ? product.titleEn : product.titleUa)
+          ),
+          description: String(
+            entry.descriptionMode === "custom" && entry.descriptionOverride
+              ? entry.descriptionOverride
+              : fixture[`description${language === "ua" ? "Ua" : language === "ru" ? "Ru" : "En"}`]
+          ),
           sku: product.sku,
           brand: product.brand,
           image: selectedImage,
@@ -243,6 +248,16 @@ const server = createServer(async (req, res) => {
           galleryLayout: ["auto", "feature", "grid"].includes(entry.galleryLayout)
             ? entry.galleryLayout
             : "auto",
+          pageTemplate: ["editorial", "gallery", "technical", "minimal"].includes(
+            entry.pageTemplate
+          )
+            ? entry.pageTemplate
+            : "editorial",
+          descriptionMode: entry.descriptionMode || "inherit",
+          showSku: entry.showSku !== false,
+          showBrand: entry.showBrand !== false,
+          showPrice: entry.showPrice !== false,
+          imageEdits: Array.isArray(entry.imageEdits) ? entry.imageEdits : [],
           price: entry.priceOverride == null ? product.priceEur : Number(entry.priceOverride),
         };
       });
@@ -261,6 +276,14 @@ const server = createServer(async (req, res) => {
           : "onecompany",
         brandLogoSrc: input.branding === "brand" ? "/logos/eventuri-v2.png" : null,
         showPrice: input.showPrice !== false,
+        clientName: input.clientName || null,
+        clientCompany: input.clientCompany || null,
+        managerName: input.managerName || null,
+        managerPhone: input.managerPhone || null,
+        managerEmail: input.managerEmail || null,
+        personalNote: input.personalNote || null,
+        validUntil: input.validUntil || null,
+        showContactPage: input.showContactPage === true,
         generatedAt: new Date(),
         items,
       });
@@ -275,6 +298,16 @@ const server = createServer(async (req, res) => {
       console.error("Preview catalog PDF render failed", error);
       return json({ error: "Не вдалося сформувати тестовий PDF." }, 500);
     }
+  }
+  if (url.pathname === "/api/admin/catalog-presentations" && req.method === "POST") {
+    await readJsonBody(req);
+    return json({ url: "http://127.0.0.1:3101/catalog/p/demo", expiresAt: null });
+  }
+  if (url.pathname === "/catalog/p/demo") {
+    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    return res.end(
+      '<!doctype html><meta charset="utf-8"><title>Demo presentation</title><style>body{margin:0;background:#111;color:white;font-family:Arial;padding:10vw}small{color:#9ebd3a;letter-spacing:.2em}h1{font-size:8vw;line-height:.9;margin:.3em 0;text-transform:uppercase}p{color:#aaa;font-size:2vw}</style><small>ПУБЛІЧНА ПРЕЗЕНТАЦІЯ</small><h1>Нова конфігурація</h1><p>Демонстраційне посилання локального стенда</p>'
+    );
   }
   if (/^\/(?:images|branding|brands|logos)\//.test(url.pathname)) {
     try {

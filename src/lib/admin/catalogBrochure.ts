@@ -5,6 +5,18 @@ export type CatalogBrochureLayout = "single" | "double";
 export type CatalogBrochurePhotoMode = "gallery" | "hero";
 export type CatalogBrochureDescriptionMode = "short" | "full" | "none";
 export type CatalogBrochureGalleryLayout = "auto" | "feature" | "grid";
+export type CatalogBrochurePageTemplate = "editorial" | "gallery" | "technical" | "minimal";
+export type CatalogBrochureItemDescriptionMode =
+  "inherit" | "short" | "full" | "technical" | "none" | "custom";
+export type CatalogBrochureImageFit = "cover" | "contain";
+
+export type CatalogBrochureImageEdit = {
+  source: string;
+  fit: CatalogBrochureImageFit;
+  focusX: number;
+  focusY: number;
+  zoom: number;
+};
 
 export type CatalogBrochureItemInput = {
   productId: string;
@@ -12,6 +24,14 @@ export type CatalogBrochureItemInput = {
   imageSource?: string | null;
   imageSources?: string[];
   galleryLayout?: CatalogBrochureGalleryLayout;
+  pageTemplate?: CatalogBrochurePageTemplate;
+  titleOverride?: string | null;
+  descriptionOverride?: string | null;
+  descriptionMode?: CatalogBrochureItemDescriptionMode;
+  showSku?: boolean;
+  showBrand?: boolean;
+  showPrice?: boolean;
+  imageEdits?: CatalogBrochureImageEdit[];
 };
 
 export type CatalogBrochureRequest = {
@@ -25,6 +45,14 @@ export type CatalogBrochureRequest = {
   branding: CatalogBrochureBranding;
   brandName?: string | null;
   showPrice: boolean;
+  clientName?: string | null;
+  clientCompany?: string | null;
+  managerName?: string | null;
+  managerPhone?: string | null;
+  managerEmail?: string | null;
+  personalNote?: string | null;
+  validUntil?: string | null;
+  showContactPage?: boolean;
   items: CatalogBrochureItemInput[];
 };
 
@@ -126,6 +154,8 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
     entry.trim().length > 0 &&
     entry.length <= 2048 &&
     !/[\u0000-\u001f\u007f]/.test(entry);
+  const optionalText = (entry: unknown, max: number) =>
+    entry == null || (typeof entry === "string" && entry.length <= max);
 
   if (!text(body.title, 140)) return "Вкажіть назву каталогу (до 140 символів).";
   if (!text(body.subtitle, 220)) return "Вкажіть підзаголовок каталогу (до 220 символів).";
@@ -158,6 +188,22 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
     return "Некоректна назва бренду.";
   }
   if (typeof body.showPrice !== "boolean") return "Некоректне налаштування відображення ціни.";
+  if (!optionalText(body.clientName, 120)) return "Ім’я клієнта задовге.";
+  if (!optionalText(body.clientCompany, 160)) return "Назва компанії клієнта задовга.";
+  if (!optionalText(body.managerName, 120)) return "Ім’я менеджера задовге.";
+  if (!optionalText(body.managerPhone, 80)) return "Телефон менеджера задовгий.";
+  if (!optionalText(body.managerEmail, 180)) return "Email менеджера задовгий.";
+  if (!optionalText(body.personalNote, 700)) return "Персональне повідомлення задовге.";
+  if (body.showContactPage != null && typeof body.showContactPage !== "boolean") {
+    return "Некоректне налаштування контактної сторінки.";
+  }
+  if (body.validUntil != null && body.validUntil !== "") {
+    if (typeof body.validUntil !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.validUntil)) {
+      return "Некоректна дата дії пропозиції.";
+    }
+    const validUntil = new Date(`${body.validUntil}T00:00:00.000Z`);
+    if (Number.isNaN(validUntil.getTime())) return "Некоректна дата дії пропозиції.";
+  }
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 40) {
     return "Додайте від 1 до 40 товарів.";
   }
@@ -199,6 +245,57 @@ export function validateCatalogBrochureRequest(value: unknown): string | null {
       !["auto", "feature", "grid"].includes(String(item.galleryLayout))
     ) {
       return `Оберіть розкладку фото товару в позиції ${index + 1}.`;
+    }
+    if (
+      item.pageTemplate != null &&
+      !["editorial", "gallery", "technical", "minimal"].includes(String(item.pageTemplate))
+    ) {
+      return `Оберіть шаблон сторінки товару в позиції ${index + 1}.`;
+    }
+    if (
+      item.descriptionMode != null &&
+      !["inherit", "short", "full", "technical", "none", "custom"].includes(
+        String(item.descriptionMode)
+      )
+    ) {
+      return `Оберіть режим опису товару в позиції ${index + 1}.`;
+    }
+    if (!optionalText(item.titleOverride, 180)) {
+      return `Назва товару в позиції ${index + 1} задовга.`;
+    }
+    if (!optionalText(item.descriptionOverride, 1200)) {
+      return `Опис товару в позиції ${index + 1} задовгий.`;
+    }
+    for (const field of ["showSku", "showBrand", "showPrice"] as const) {
+      if (item[field] != null && typeof item[field] !== "boolean") {
+        return `Перевірте видимість полів товару в позиції ${index + 1}.`;
+      }
+    }
+    if (item.imageEdits != null) {
+      if (!Array.isArray(item.imageEdits) || item.imageEdits.length > 8) {
+        return `Перевірте кадрування фото товару в позиції ${index + 1}.`;
+      }
+      for (const edit of item.imageEdits) {
+        if (!edit || typeof edit !== "object" || Array.isArray(edit)) {
+          return `Перевірте кадрування фото товару в позиції ${index + 1}.`;
+        }
+        const imageEdit = edit as Record<string, unknown>;
+        if (
+          !imageSource(imageEdit.source) ||
+          !["cover", "contain"].includes(String(imageEdit.fit)) ||
+          typeof imageEdit.focusX !== "number" ||
+          imageEdit.focusX < 0 ||
+          imageEdit.focusX > 100 ||
+          typeof imageEdit.focusY !== "number" ||
+          imageEdit.focusY < 0 ||
+          imageEdit.focusY > 100 ||
+          typeof imageEdit.zoom !== "number" ||
+          imageEdit.zoom < 1 ||
+          imageEdit.zoom > 2
+        ) {
+          return `Перевірте кадрування фото товару в позиції ${index + 1}.`;
+        }
+      }
     }
   }
   return null;
