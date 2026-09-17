@@ -219,7 +219,7 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
   // validated URL; tracing the local media archive here makes the Vercel
   // Function exceed the 250 MB limit.
   "/api/admin/pdf/**": CATALOG_PDF_TRACE_EXCLUDES,
-  "/api/catalog/p/[token]/pdf": CATALOG_PDF_TRACE_EXCLUDES,
+  "/api/catalog/p/**": CATALOG_PDF_TRACE_EXCLUDES,
 };
 
 const nextConfig: NextConfig = {
