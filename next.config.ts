@@ -166,6 +166,21 @@ const ADMIN_API_NO_MEDIA_EXCLUDES = [
   "wiki/**/*",
 ];
 
+// PDF catalog images are resolved from their trusted URL at request time.
+// Keep the small branding/font assets available, but never copy the local
+// storefront media archive into the serverless function bundle.
+const CATALOG_PDF_TRACE_EXCLUDES = [
+  "public/images/**/*",
+  "public/videos/**/*",
+  "public/models/**/*",
+  "public/logos.rar",
+  "Design/**/*",
+  "backups/**/*",
+  "docs/**/*",
+  "tests/**/*",
+  "wiki/**/*",
+];
+
 const fileBackedMediaTracingIncludes: Record<string, string[]> | undefined = isVercel
   ? undefined
   : {
@@ -200,6 +215,11 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
   // every public/images file. Explicit per-route excludes.
   "api/admin/shop/forged/references": ADMIN_API_NO_MEDIA_EXCLUDES,
   "api/admin/shop/forged/references/[slug]/generation": ADMIN_API_NO_MEDIA_EXCLUDES,
+  // Catalog PDF rendering fetches product photos by their validated URL;
+  // tracing the local media archive here makes the Vercel Function exceed
+  // the 250 MB limit.
+  "api/admin/pdf/catalog": CATALOG_PDF_TRACE_EXCLUDES,
+  "api/catalog/p/[token]/pdf": CATALOG_PDF_TRACE_EXCLUDES,
 };
 
 const nextConfig: NextConfig = {
