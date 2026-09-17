@@ -215,12 +215,11 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
   // every public/images file. Explicit per-route excludes.
   "api/admin/shop/forged/references": ADMIN_API_NO_MEDIA_EXCLUDES,
   "api/admin/shop/forged/references/[slug]/generation": ADMIN_API_NO_MEDIA_EXCLUDES,
-  // Catalog PDF rendering fetches product photos by their validated URL;
-  // tracing the local media archive here makes the Vercel Function exceed
-  // the 250 MB limit.
-  "api/admin/pdf/catalog": CATALOG_PDF_TRACE_EXCLUDES,
-  "api/admin/pdf/proforma/[orderId]": CATALOG_PDF_TRACE_EXCLUDES,
-  "api/catalog/p/[token]/pdf": CATALOG_PDF_TRACE_EXCLUDES,
+  // Catalog and proforma PDF rendering fetches product photos by their
+  // validated URL; tracing the local media archive here makes the Vercel
+  // Function exceed the 250 MB limit.
+  "/api/admin/pdf/**": CATALOG_PDF_TRACE_EXCLUDES,
+  "/api/catalog/p/[token]/pdf": CATALOG_PDF_TRACE_EXCLUDES,
 };
 
 const nextConfig: NextConfig = {
