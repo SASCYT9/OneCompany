@@ -1509,6 +1509,11 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const legacyGallery = Array.isArray(row.gallery)
     ? row.gallery.filter((item): item is string => typeof item === "string")
     : [];
+  // The media relation is the editable source of truth for product gallery
+  // uploads. Keep the legacy JSON gallery as a fallback for imported products
+  // that do not have relation rows yet; preferring it whenever non-empty would
+  // hide newly uploaded admin media behind stale legacy values.
+  const gallerySource = galleryFromMedia.length ? galleryFromMedia : legacyGallery;
   const rawPrimaryImage = row.image ?? primaryVariant?.image ?? galleryFromMedia[0] ?? "";
   const brandFallbackImage = resolveBrandFallbackImage(row.brand, row.vendor);
   const brabusFallbackImage = resolveBrabusFallbackImage({
@@ -1529,9 +1534,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const catalogFallbackImage = brabusFallbackImage ?? brandFallbackImage;
   const resolvedPrimaryImage = resolveCatalogAssetUrl(rawPrimaryImage, catalogFallbackImage);
   const resolvedGallery = uniqueStrings(
-    (legacyGallery.length ? legacyGallery : galleryFromMedia).map((url) =>
-      resolveCatalogAssetUrl(url, catalogFallbackImage)
-    )
+    gallerySource.map((url) => resolveCatalogAssetUrl(url, catalogFallbackImage))
   );
   const productGallery = resolvedGallery.length
     ? resolvedGallery
