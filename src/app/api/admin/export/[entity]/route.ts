@@ -257,6 +257,7 @@ async function exportProducts(filters: Record<string, string>) {
   const where: Record<string, unknown> = {};
   if (filters.status) where.status = filters.status;
   if (filters.brand) where.brand = filters.brand;
+  if (filters.stock) where.stock = filters.stock;
   if (filters.search) {
     where.OR = [
       { titleEn: { contains: filters.search, mode: "insensitive" } },
@@ -279,6 +280,7 @@ async function exportProducts(filters: Record<string, string>) {
       brand: true,
       vendor: true,
       status: true,
+      stock: true,
       isPublished: true,
       priceEur: true,
       priceUsd: true,
@@ -298,6 +300,7 @@ async function exportProducts(filters: Record<string, string>) {
     "Brand",
     "Vendor",
     "Status",
+    "Stock",
     "Published",
     "Price EUR",
     "Price USD",
@@ -315,6 +318,7 @@ async function exportProducts(filters: Record<string, string>) {
     p.brand ?? "",
     p.vendor ?? "",
     p.status,
+    p.stock,
     p.isPublished ? "true" : "false",
     p.priceEur != null ? Number(p.priceEur).toFixed(2) : "",
     p.priceUsd != null ? Number(p.priceUsd).toFixed(2) : "",

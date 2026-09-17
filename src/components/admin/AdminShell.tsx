@@ -21,7 +21,6 @@ import {
   Image as ImageIcon,
   ImagePlus,
   Inbox,
-  Layers,
   LayoutDashboard,
   ListTodo,
   LogOut,
@@ -37,7 +36,6 @@ import {
   Menu,
   Plug,
   Tag,
-  Truck,
   FolderKanban,
   X as XIcon,
   Undo2,
@@ -47,6 +45,7 @@ import {
   Boxes,
   FileText,
   Mail,
+  Wrench,
 } from "lucide-react";
 
 import {
@@ -69,6 +68,7 @@ const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string 
   orders: Package,
   customers: Users,
   catalog: ShoppingBag,
+  tools: Wrench,
   inventory: Boxes,
   categories: FolderTree,
   collections: Tag,
@@ -78,7 +78,6 @@ const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string 
   seo: Sparkles,
   imports: FileInput,
   csv: Archive,
-  turn14: Layers,
   audit: Database,
   logistics: Warehouse,
   taxes: Receipt,
@@ -141,22 +140,12 @@ type GlobalSearchResponse = {
       group: string;
       isActive: boolean;
     }>;
-    turn14: Array<{
-      id: string;
-      partNumber: string;
-      mfrPartNumber: string | null;
-      productName: string;
-      brand: string;
-      dealerPrice: number | null;
-      retailPrice: number | null;
-      weight: number | null;
-    }>;
   };
 };
 
 const EMPTY_SEARCH: GlobalSearchResponse = {
   total: 0,
-  results: { orders: [], products: [], customers: [], turn14: [] },
+  results: { orders: [], products: [], customers: [] },
 };
 
 const COMMAND_ACTIONS = [
@@ -171,12 +160,6 @@ const COMMAND_ACTIONS = [
     label: "Відкрити фіди",
     description: "Експорт-посилання дистриб’юторів та попередній перегляд",
     icon: Archive,
-  },
-  {
-    href: "/admin/shop/turn14",
-    label: "Перевірка залишків Turn14",
-    description: "Каталог постачальника та робочий процес залишків",
-    icon: Truck,
   },
   {
     href: "/admin/shop/import",
@@ -360,7 +343,6 @@ export default function AdminShell({
           c: "/admin/shop/customers",
           i: "/admin/shop/inventory",
           s: "/admin/settings",
-          t: "/admin/shop/turn14",
         };
         const route = map[event.key.toLowerCase()];
         if (
@@ -847,9 +829,6 @@ export default function AdminShell({
                 {allowedHrefSet.has("/admin/shop/inventory") ? (
                   <ShortcutRow keys={["G", "I"]} label="Склад" />
                 ) : null}
-                {allowedHrefSet.has("/admin/shop/turn14") ? (
-                  <ShortcutRow keys={["G", "T"]} label="Turn14" />
-                ) : null}
                 {allowedHrefSet.has("/admin/settings") ? (
                   <ShortcutRow keys={["G", "S"]} label="Налаштування" />
                 ) : null}
@@ -905,7 +884,6 @@ function getFirstSearchHref(search: GlobalSearchResponse) {
   if (product) return `/admin/shop/${product.id}`;
   const customer = search.results.customers[0];
   if (customer) return `/admin/shop/customers/${customer.id}`;
-  if (search.results.turn14[0]) return "/admin/shop/turn14";
   return null;
 }
 
@@ -984,20 +962,6 @@ function CommandCenterResults({
                   meta={[customer.companyName, customer.email].filter(Boolean).join(" · ")}
                   badge={customer.group.replace(/_/g, " ")}
                   onClick={() => onNavigate(`/admin/shop/customers/${customer.id}`)}
-                />
-              ))}
-            </SearchGroup>
-
-            <SearchGroup title="Turn14">
-              {search.results.turn14.map((item) => (
-                <SearchResultButton
-                  key={item.id}
-                  title={item.productName}
-                  meta={[item.brand, item.partNumber, item.mfrPartNumber]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  badge={item.weight != null ? `${item.weight} lb` : "каталог"}
-                  onClick={() => onNavigate("/admin/shop/turn14")}
                 />
               ))}
             </SearchGroup>

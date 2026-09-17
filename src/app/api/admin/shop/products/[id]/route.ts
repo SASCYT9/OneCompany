@@ -113,7 +113,20 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json(serializeAdminProduct(product));
+    const catalogProjection = await prisma.shopCatalogProjection.findUnique({
+      where: {
+        productId_locale: {
+          productId: product.id,
+          locale: "ua",
+        },
+      },
+      select: { primaryMediaUrl: true },
+    });
+    const serialized = serializeAdminProduct(product);
+    const canonicalImage = catalogProjection?.primaryMediaUrl?.trim();
+    return NextResponse.json(
+      canonicalImage ? { ...serialized, image: canonicalImage } : serialized
+    );
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

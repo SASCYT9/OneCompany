@@ -2,17 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import {
-  Search,
-  Save,
-  Trash2,
-  Plus,
-  Users,
-  Percent,
-  DollarSign,
-  Loader2,
-  Calculator,
-} from "lucide-react";
+import { Search, Save, Trash2, Plus, DollarSign, Loader2, Calculator } from "lucide-react";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
 
@@ -218,13 +208,6 @@ export default function CustomerPricingPage() {
             >
               <Calculator className="h-4 w-4" />
               Price simulator
-            </Link>
-            <Link
-              href="/admin/shop/turn14/markups"
-              className="inline-flex items-center gap-2 rounded-none border border-amber-300/20 bg-amber-500/10 px-4 py-2.5 text-sm text-blue-300 transition hover:bg-amber-500/15"
-            >
-              <Percent className="h-4 w-4" />
-              Brand markups
             </Link>
             <button
               type="button"

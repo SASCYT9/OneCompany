@@ -216,6 +216,13 @@ test("selects the requested currency price", () => {
   assert.equal(catalogBrochurePrice({ priceEur: null }, "EUR"), null);
 });
 
+test("converts a missing brochure currency from an available price", () => {
+  const rates = { UAH: 1, USD: 40, EUR: 45 } as const;
+  assert.equal(catalogBrochurePrice({ priceEur: null, priceUsd: 100 }, "EUR", rates), 88.89);
+  assert.equal(catalogBrochurePrice({ priceEur: null, priceUah: 4500 }, "EUR", rates), 100);
+  assert.equal(catalogBrochurePrice({ priceEur: null }, "EUR", rates), null);
+});
+
 test("applies custom percentage and fixed brochure discounts", () => {
   assert.equal(applyCatalogBrochureDiscount(2690, 7.5), 2488.25);
   assert.equal(applyCatalogBrochureDiscount(100, 100), 0);

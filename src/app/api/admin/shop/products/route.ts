@@ -18,6 +18,7 @@ import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidatio
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductCreation } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import { tokenizeShopSearchQuery } from "@/lib/shopSearch";
 import {
   NORMALIZED_FITMENT_KEY,
   NORMALIZED_FITMENT_NAMESPACE,
@@ -37,42 +38,53 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || "";
     const brand = searchParams.get("brand")?.trim() || "ALL";
     const status = searchParams.get("status")?.trim() || "ALL";
+    const stock = searchParams.get("stock")?.trim() || "ALL";
 
-    const where: Prisma.ShopProductWhereInput = {};
+    const baseWhere: Prisma.ShopProductWhereInput = {};
     const confirmed =
       searchParams.get("availability") === "confirmed" ? await getShopInStockProducts() : null;
-    if (confirmed) where.id = { in: confirmed.map((product) => product.id) };
+    if (confirmed) baseWhere.id = { in: confirmed.map((product) => product.id) };
 
-    const stock = searchParams.get("stock");
-    if (stock && !["inStock", "preOrder", "inTransit"].includes(stock)) {
+    if (stock !== "ALL" && !["inStock", "outOfStock", "preOrder", "inTransit"].includes(stock)) {
       return NextResponse.json({ error: "Invalid stock filter" }, { status: 400 });
     }
-    if (stock) where.stock = stock;
-
-    if (brand !== "ALL") {
-      where.brand = { equals: brand, mode: "insensitive" };
-    }
+    if (stock !== "ALL") baseWhere.stock = stock;
 
     if (status !== "ALL") {
       // @ts-expect-error type checking against the Prisma schema status
-      where.status = status;
+      baseWhere.status = status;
     }
 
-    if (search) {
-      where.OR = [
-        { slug: { contains: search, mode: "insensitive" } },
-        { titleEn: { contains: search, mode: "insensitive" } },
-        { titleUa: { contains: search, mode: "insensitive" } },
-        { brand: { contains: search, mode: "insensitive" } },
-        { vendor: { contains: search, mode: "insensitive" } },
-        { sku: { contains: search, mode: "insensitive" } },
-        { variants: { some: { sku: { contains: search, mode: "insensitive" } } } },
-      ];
-    }
+    const searchFields = (value: string): Prisma.ShopProductWhereInput[] => [
+      { slug: { contains: value, mode: "insensitive" } },
+      { titleEn: { contains: value, mode: "insensitive" } },
+      { titleUa: { contains: value, mode: "insensitive" } },
+      { brand: { contains: value, mode: "insensitive" } },
+      { vendor: { contains: value, mode: "insensitive" } },
+      { sku: { contains: value, mode: "insensitive" } },
+      { variants: { some: { sku: { contains: value, mode: "insensitive" } } } },
+    ];
+    const tokens = tokenizeShopSearchQuery(search);
+    // Match every meaningful token across the searchable product fields.
+    // This handles "Widetrack Urban", mixed-language queries and SKUs with
+    // separators without requiring the exact stored word order.
+    const searchWhere: Prisma.ShopProductWhereInput = search
+      ? {
+          AND: tokens.length
+            ? tokens.map((token) => ({ OR: searchFields(token) }))
+            : [{ OR: searchFields(search) }],
+        }
+      : {};
+    const where: Prisma.ShopProductWhereInput = {
+      ...baseWhere,
+      ...searchWhere,
+      ...(brand !== "ALL" ? { brand: { equals: brand, mode: "insensitive" } } : {}),
+    };
+    const brandWhere: Prisma.ShopProductWhereInput = { ...baseWhere, ...searchWhere };
 
     const skip = (page - 1) * limit;
 
-    const [totalCount, products] = await prisma.$transaction([
+    const [totalCount, products, brandGroups] = await prisma.$transaction([
       prisma.shopProduct.count({ where }),
       prisma.shopProduct.findMany({
         where,
@@ -81,21 +93,56 @@ export async function GET(request: NextRequest) {
         take: limit,
         select: adminProductListSelect,
       }),
+      prisma.shopProduct.groupBy({
+        by: ["brand"],
+        where: brandWhere,
+        orderBy: { _count: { brand: "desc" } },
+        _count: { brand: true },
+      }),
     ]);
+
+    // Catalog V2 stores the storefront's canonical primary image. Use it for
+    // admin cards when available so managers see the same photo as buyers,
+    // while retaining legacy product/media URLs as fallbacks.
+    const projectionImages = await prisma.shopCatalogProjection.findMany({
+      where: {
+        locale: "ua",
+        productId: { in: products.map((product) => product.id) },
+      },
+      select: { productId: true, primaryMediaUrl: true },
+    });
+    const canonicalImageByProductId = new Map(
+      projectionImages
+        .filter((entry) => entry.primaryMediaUrl?.trim())
+        .map((entry) => [entry.productId, entry.primaryMediaUrl!.trim()])
+    );
 
     return NextResponse.json({
       products: products.map((product) => {
         const result = serializeAdminProductListItem(product);
+        const canonicalImage = canonicalImageByProductId.get(product.id);
+        const imageSources = canonicalImage
+          ? [canonicalImage, ...result.imageSources.filter((source) => source !== canonicalImage)]
+          : result.imageSources;
         const availability = confirmed?.find((entry) => entry.id === product.id);
-        return availability
-          ? { ...result, stock: "inStock", sku: availability.sku ?? result.sku }
-          : result;
+        return {
+          ...result,
+          ...(canonicalImage ? { imageUrl: canonicalImage, imageSources } : {}),
+          ...(availability ? { stock: "inStock", sku: availability.sku ?? result.sku } : {}),
+        };
       }),
       metadata: {
         totalCount,
         currentPage: page,
         totalPages: Math.ceil(totalCount / limit),
         limit,
+        brands: brandGroups
+          .filter((entry) => entry.brand?.trim())
+          .map((entry) => ({
+            brand: entry.brand!.trim(),
+            count: typeof entry._count === "object" ? (entry._count.brand ?? 0) : 0,
+          }))
+          .sort((a, b) => b.count - a.count || a.brand.localeCompare(b.brand)),
       },
     });
   } catch (error) {

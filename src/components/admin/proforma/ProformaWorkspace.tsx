@@ -7,6 +7,8 @@ import {
   ArrowUpRight,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Loader2,
   Package,
@@ -40,6 +42,8 @@ import {
 } from "./shared";
 import styles from "./proforma.module.css";
 
+type ProductBrand = { brand: string; count: number };
+
 export function ProformaWorkspace() {
   const [tab, setTab] = useState<"proforma" | "stock">("proforma");
   const [customerSearch, setCustomerSearch] = useState("");
@@ -59,7 +63,12 @@ export function ProformaWorkspace() {
   const [locale, setLocale] = useState("ua");
   const [recipient, setRecipient] = useState("recipient-1");
   const [search, setSearch] = useState("");
+  const [brandFilter, setBrandFilter] = useState("ALL");
+  const [brands, setBrands] = useState<ProductBrand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productPage, setProductPage] = useState(1);
+  const [productTotal, setProductTotal] = useState(0);
+  const [productPages, setProductPages] = useState(1);
   const [productLoading, setProductLoading] = useState(true);
   const [productError, setProductError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -153,10 +162,16 @@ export function ProformaWorkspace() {
     setProductLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(
-          `/api/admin/shop/products?search=${encodeURIComponent(search.trim())}&limit=12`,
-          { signal: controller.signal, cache: "no-store" }
-        );
+        const params = new URLSearchParams({
+          search: search.trim(),
+          page: String(productPage),
+          limit: "50",
+        });
+        if (brandFilter !== "ALL") params.set("brand", brandFilter);
+        const response = await fetch(`/api/admin/shop/products?${params.toString()}`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
         if (!response.ok)
           throw new Error(
             response.status === 403
@@ -164,7 +179,12 @@ export function ProformaWorkspace() {
               : "Каталог не завантажився. Спробуйте ще раз."
           );
         const data = await response.json();
-        if (!controller.signal.aborted) setProducts(data.products ?? []);
+        if (!controller.signal.aborted) {
+          setProducts(data.products ?? []);
+          setProductTotal(Number(data.metadata?.totalCount) || 0);
+          setProductPages(Math.max(1, Number(data.metadata?.totalPages) || 1));
+          setBrands(Array.isArray(data.metadata?.brands) ? data.metadata.brands : []);
+        }
       } catch (err) {
         if (!controller.signal.aborted)
           setProductError(err instanceof Error ? err.message : "Помилка каталогу.");
@@ -176,7 +196,7 @@ export function ProformaWorkspace() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, retry]);
+  }, [brandFilter, search, productPage, retry]);
 
   function addProduct(product: Product, variant: Variant | null) {
     const price = draftCatalogPrice(product, variant, currency, approvedB2b);
@@ -229,11 +249,29 @@ export function ProformaWorkspace() {
       if (!response.ok)
         throw new Error("Не вдалося завантажити варіанти товару. Спробуйте ще раз.");
       const detail: Product = await response.json();
+      // Keep the canonical Catalog V2 image selected in the search result.
+      // The detail endpoint contains the editable DB record and may still
+      // expose legacy media, so merge it only as a fallback for this draft.
+      const detailWithCanonicalImages: Product = {
+        ...detail,
+        imageUrl: product.imageUrl ?? detail.imageUrl ?? detail.image ?? null,
+        imageSources: catalogImageSources([
+          ...(product.imageUrl ? [product.imageUrl] : []),
+          ...(product.imageSources ?? []),
+          detail.image,
+          detail.imageUrl,
+          ...(detail.imageSources ?? []),
+          ...(detail.gallery ?? []),
+        ]),
+      };
       setTab("proforma");
-      if ((detail.variants?.length ?? 0) > 1) {
-        setSelectedProduct(detail);
-        setVariantId(detail.variants!.find((v) => v.isDefault)?.id ?? detail.variants![0].id);
-      } else addProduct(detail, detail.variants?.[0] ?? null);
+      if ((detailWithCanonicalImages.variants?.length ?? 0) > 1) {
+        setSelectedProduct(detailWithCanonicalImages);
+        setVariantId(
+          detailWithCanonicalImages.variants!.find((v) => v.isDefault)?.id ??
+            detailWithCanonicalImages.variants![0].id
+        );
+      } else addProduct(detailWithCanonicalImages, detailWithCanonicalImages.variants?.[0] ?? null);
     } catch (err) {
       setTab("proforma");
       setProductError(err instanceof Error ? err.message : "Помилка товару.");
@@ -503,7 +541,10 @@ export function ProformaWorkspace() {
                   <input
                     aria-label="Пошук товарів"
                     value={search}
-                    onChange={(event) => setSearch(event.target.value)}
+                    onChange={(event) => {
+                      setSearch(event.target.value);
+                      setProductPage(1);
+                    }}
                     placeholder="Назва, бренд або артикул…"
                   />
                 </label>
@@ -522,6 +563,33 @@ export function ProformaWorkspace() {
                     ))}
                   </select>
                 </Field>
+              </div>
+              <div className={styles.brandFilters} aria-label="Фільтр товарів за брендом">
+                <button
+                  type="button"
+                  className={`${styles.brandFilter} ${brandFilter === "ALL" ? styles.brandFilterActive : ""}`}
+                  aria-pressed={brandFilter === "ALL"}
+                  onClick={() => {
+                    setBrandFilter("ALL");
+                    setProductPage(1);
+                  }}
+                >
+                  Усі бренди <span>{productTotal || ""}</span>
+                </button>
+                {brands.map((entry) => (
+                  <button
+                    key={entry.brand}
+                    type="button"
+                    className={`${styles.brandFilter} ${brandFilter === entry.brand ? styles.brandFilterActive : ""}`}
+                    aria-pressed={brandFilter === entry.brand}
+                    onClick={() => {
+                      setBrandFilter(entry.brand);
+                      setProductPage(1);
+                    }}
+                  >
+                    {entry.brand} <span>{entry.count}</span>
+                  </button>
+                ))}
               </div>
               {items.length > 0 && (
                 <p className={styles.hint}>
@@ -581,8 +649,33 @@ export function ProformaWorkspace() {
                   ))}
                 </div>
               )}
+              <div className={styles.pagination} aria-label="Сторінки результатів пошуку товарів">
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  aria-label="Попередня сторінка товарів"
+                  disabled={productLoading || productPage <= 1}
+                  onClick={() => setProductPage((value) => value - 1)}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span>
+                  {productTotal > 0
+                    ? `Показано ${Math.min(50, products.length)} з ${productTotal} · сторінка ${productPage} з ${productPages}`
+                    : "0 товарів"}
+                </span>
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  aria-label="Наступна сторінка товарів"
+                  disabled={productLoading || productPage >= productPages}
+                  onClick={() => setProductPage((value) => value + 1)}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
               <p className={styles.hint}>
-                До 12 результатів — уточніть пошук для інших товарів.{" "}
+                Пошук охоплює весь каталог; показано до 50 товарів на сторінці.{" "}
                 {approvedB2b
                   ? "Підставляємо доступні каталожні B2B-ціни; персональні знижки узгодьте вручну."
                   : "Підставляємо роздрібні ціни каталогу."}

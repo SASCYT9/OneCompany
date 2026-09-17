@@ -276,6 +276,42 @@
   font-size: 11px;
 }
 
+.resultCount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.resultPagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.resultPagination button {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid #ffffff18;
+  border-radius: 6px;
+  background: #111214;
+  color: #b8c1cf;
+  cursor: pointer;
+}
+
+.resultPagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.resultPagination button:not(:disabled):hover {
+  border-color: #699cf5;
+  color: #f2f5fb;
+}
+
 .selectedList {
   display: grid;
   gap: 8px;
@@ -848,12 +884,20 @@
 
 .actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 0 20px 20px;
 }
 
+.actions > button {
+  min-width: 0;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .publishButton {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -926,7 +970,8 @@
 }
 
 .primary {
-  flex: 1;
+  grid-column: 1 / -1;
+  min-width: 0;
   border: 1px solid #72a7ff60;
   background: linear-gradient(180deg, #4f8ff6, #2458bd);
   color: white;
@@ -979,6 +1024,11 @@
 .editorButton:disabled {
   cursor: default;
   opacity: 0.42;
+}
+
+.editorButton {
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .editorBackdrop {

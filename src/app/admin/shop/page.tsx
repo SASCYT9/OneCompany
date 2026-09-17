@@ -10,7 +10,6 @@ import {
   Eye,
   Layers,
   Layers3,
-  Loader2,
   Pencil,
   Plus,
   Search,
@@ -21,7 +20,7 @@ import {
 import {
   AdminActionBar,
   AdminEmptyState,
-  AdminEntityToolbar,
+  AdminFilterBar,
   AdminInlineAlert,
   AdminMetricCard,
   AdminMetricGrid,
@@ -34,7 +33,6 @@ import {
 import { AdminSkeletonKpiGrid, AdminSkeletonTable } from "@/components/admin/AdminSkeleton";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
-import { AdminSavedViewsBar, useSavedViews } from "@/components/admin/AdminSavedViews";
 import { ProductQuickView } from "@/app/admin/shop/components/ProductQuickView";
 import { AdminMobileCard } from "@/components/admin/AdminMobileCard";
 import { AdminBrandHero } from "@/components/admin/AdminBrandHero";
@@ -75,6 +73,39 @@ type ShopProductListItem = {
   mediaCount: number;
   collectionsCount: number;
 };
+
+type ProductBrand = {
+  brand: string;
+  count: number;
+};
+
+type ProductStock = "inStock" | "outOfStock" | "preOrder" | "inTransit" | string;
+
+function stockLabel(stock: ProductStock) {
+  if (stock === "inStock") return "В наявності";
+  if (stock === "outOfStock") return "Немає в наявності";
+  if (stock === "inTransit") return "В дорозі";
+  return "Під замовлення";
+}
+
+function stockTone(stock: ProductStock): "success" | "danger" | "warning" | "default" {
+  if (stock === "inStock") return "success";
+  if (stock === "outOfStock") return "danger";
+  if (stock === "preOrder") return "warning";
+  return "default";
+}
+
+function StockStatusBadge({ stock }: { stock: ProductStock }) {
+  return <AdminStatusBadge tone={stockTone(stock)}>{stockLabel(stock)}</AdminStatusBadge>;
+}
+
+function stockFilterLabel(stock: string) {
+  if (stock === "inStock") return "В наявності";
+  if (stock === "outOfStock") return "Немає в наявності";
+  if (stock === "preOrder") return "Під замовлення";
+  if (stock === "inTransit") return "В дорозі";
+  return "Усі стани";
+}
 
 function priceLabel(product: ShopProductListItem) {
   if (product.priceEur != null) return `€${product.priceEur}`;
@@ -177,6 +208,7 @@ function AdminShopPageContent() {
   const searchParam = searchParams.get("search") || "";
   const brandParam = searchParams.get("brand") || "ALL";
   const statusParam = searchParams.get("status") || "ALL";
+  const stockParam = searchParams.get("stock") || "ALL";
 
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -185,13 +217,13 @@ function AdminShopPageContent() {
     totalPages: 1,
     currentPage: 1,
     limit: 50,
+    brands: [] as ProductBrand[],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkUpdating, setBulkUpdating] = useState(false);
-  const [storefrontBackfilling, setStorefrontBackfilling] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParam);
   const [quickViewId, setQuickViewId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -210,28 +242,6 @@ function AdminShopPageContent() {
     return counts;
   }, [products]);
 
-  // Saved views — filter combinations stored in localStorage
-  const savedViews = useSavedViews({
-    scope: "products",
-    currentValue: { search: searchParam, brand: brandParam, status: statusParam },
-    presets: [
-      { name: "Усі товари", value: { search: "", brand: "ALL", status: "ALL" } },
-      { name: "Лише активні", value: { status: "ACTIVE" } },
-      { name: "Чернетки", value: { status: "DRAFT" } },
-      { name: "Архів", value: { status: "ARCHIVED" } },
-      { name: "Brabus", value: { brand: "Brabus", status: "ALL" } },
-      { name: "Akrapovic", value: { brand: "Akrapovic", status: "ALL" } },
-      { name: "RaceChip", value: { brand: "RaceChip", status: "ALL" } },
-    ],
-    onApply: (v) => {
-      updateParams({
-        search: (v.search as string) ?? "",
-        brand: (v.brand as string) ?? "ALL",
-        status: (v.status as string) ?? "ALL",
-      });
-    },
-  });
-
   async function handleExport() {
     setExporting(true);
     try {
@@ -239,6 +249,7 @@ function AdminShopPageContent() {
         search: searchParam,
         brand: brandParam !== "ALL" ? brandParam : "",
         status: statusParam !== "ALL" ? statusParam : "",
+        stock: stockParam !== "ALL" ? stockParam : "",
       });
       const filtersB64 = btoa(unescape(encodeURIComponent(filtersJson)));
       const response = await fetch(`/api/admin/export/products?filters=${filtersB64}`, {
@@ -266,21 +277,6 @@ function AdminShopPageContent() {
       setExporting(false);
     }
   }
-
-  const commonBrands = [
-    "ADRO",
-    "Akrapovic",
-    "Brabus",
-    "Burger Motorsports",
-    "CSF",
-    "DO88",
-    "GiroDisc",
-    "MHT",
-    "Mishimoto",
-    "OHLINS",
-    "RaceChip",
-    "Urban Automotive",
-  ];
 
   function updateParams(newParams: Record<string, string | number | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -343,7 +339,11 @@ function AdminShopPageContent() {
 
       setProducts((data as { products?: ShopProductListItem[] }).products || []);
       if ((data as { metadata?: typeof metadata }).metadata) {
-        setMetadata((data as { metadata: typeof metadata }).metadata);
+        const nextMetadata = (data as { metadata: typeof metadata }).metadata;
+        setMetadata({
+          ...nextMetadata,
+          brands: Array.isArray(nextMetadata.brands) ? nextMetadata.brands : [],
+        });
       }
     } finally {
       setLoading(false);
@@ -351,10 +351,11 @@ function AdminShopPageContent() {
   }
 
   useEffect(() => {
+    setSearchInput(searchParam);
     setSelectedIds(new Set());
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, searchParam]);
 
   async function handleArchive(id: string) {
     const ok = await confirm({
@@ -415,55 +416,26 @@ function AdminShopPageContent() {
     }
   }
 
-  async function handleStorefrontBackfill() {
-    const ok = await confirm({
-      tone: "warning",
-      title: "Нормалізувати storefront-теги для всього каталогу?",
-      description:
-        "Кожен товар отримає рівно один тег store:* залежно від сигналів Urban / Brabus / Main. Поточні теги буде замінено.",
-      confirmLabel: "Виконати нормалізацію",
-    });
-    if (!ok) return;
-
-    setStorefrontBackfilling(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const response = await fetch("/api/admin/shop/products/backfill-storefront", {
-        method: "POST",
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        setError((data as { error?: string }).error || "Не вдалося нормалізувати storefront-теги");
-        return;
-      }
-
-      const payload = data as {
-        updatedCount?: number;
-        totalCount?: number;
-        storefrontCounts?: { urban?: number; brabus?: number; main?: number };
-      };
-
-      setSuccess(
-        `Storefront-теги нормалізовано: оновлено ${payload.updatedCount ?? 0} з ${payload.totalCount ?? 0}. Urban: ${
-          payload.storefrontCounts?.urban ?? 0
-        }, Brabus: ${payload.storefrontCounts?.brabus ?? 0}, Main: ${payload.storefrontCounts?.main ?? 0}.`
-      );
-      await load();
-    } catch (backfillError) {
-      setError((backfillError as Error).message || "Не вдалося нормалізувати storefront-теги");
-    } finally {
-      setStorefrontBackfilling(false);
-    }
-  }
-
   const selectedCount = selectedIds.size;
   const selectionLabel =
     selectedCount === 0
       ? "Нічого не вибрано"
       : `${selectedCount} вибрано для масової зміни статусу.`;
+
+  const availableBrands = useMemo(() => {
+    const options = [...metadata.brands];
+    if (brandParam !== "ALL" && !options.some((entry) => entry.brand === brandParam)) {
+      options.unshift({ brand: brandParam, count: metadata.totalCount });
+    }
+    return options;
+  }, [brandParam, metadata.brands, metadata.totalCount]);
+
+  const activeFilterCount = [
+    brandActive,
+    statusParam !== "ALL",
+    stockParam !== "ALL",
+    Boolean(searchParam),
+  ].filter(Boolean).length;
 
   // Build active filter chips
   const filterChips: FilterChip[] = [];
@@ -482,6 +454,14 @@ function AdminShopPageContent() {
       label: "Статус",
       value: statusParam,
       onRemove: () => updateParams({ status: "ALL" }),
+    });
+  }
+  if (stockParam !== "ALL") {
+    filterChips.push({
+      id: "stock",
+      label: "Наявність",
+      value: stockFilterLabel(stockParam),
+      onRemove: () => updateParams({ stock: "ALL" }),
     });
   }
   if (searchParam) {
@@ -515,19 +495,6 @@ function AdminShopPageContent() {
         <Upload className="h-4 w-4" />
         Імпорт
       </Link>
-      <button
-        type="button"
-        onClick={handleStorefrontBackfill}
-        disabled={storefrontBackfilling}
-        className="inline-flex items-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/8 px-4 py-2.5 text-sm text-blue-300 transition hover:bg-blue-500/12 disabled:opacity-60"
-      >
-        {storefrontBackfilling ? (
-          <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
-        ) : (
-          <Layers3 className="h-4 w-4" />
-        )}
-        Нормалізувати
-      </button>
       <Link
         href="/admin/shop/new"
         className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
@@ -580,21 +547,10 @@ function AdminShopPageContent() {
         <AdminPageHeader
           eyebrow="Каталог"
           title="Товари"
-          description="Основний каталог: відповідальність за товари, стан публікації, колекції, покриття медіа та швидкий доступ до редагування."
-          actions={
-            <>
-              <AdminSavedViewsBar {...savedViews} />
-              {headerActions}
-            </>
-          }
+          description="Керуйте товарами, цінами, медіа та публікацією з одного робочого каталогу."
+          actions={headerActions}
         />
       )}
-
-      {brandActive ? (
-        <div className="-mt-2">
-          <AdminSavedViewsBar {...savedViews} />
-        </div>
-      ) : null}
 
       <AdminMetricGrid>
         <AdminMetricCard
@@ -630,21 +586,57 @@ function AdminShopPageContent() {
       <AdminFilterChips
         chips={filterChips}
         onClearAll={
-          filterChips.length > 1
+          filterChips.length > 0
             ? () => {
                 setSearchInput("");
-                updateParams({ brand: "ALL", status: "ALL", search: "" });
+                updateParams({ brand: "ALL", status: "ALL", stock: "ALL", search: "" });
               }
             : undefined
         }
       />
 
-      <AdminEntityToolbar>
-        <div className="flex flex-1 flex-wrap items-center gap-3">
+      <AdminFilterBar
+        collapsible
+        collapsibleCount={activeFilterCount}
+        primary={
+          <label className="flex w-full min-w-0 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100">
+            <Search className="h-4 w-4 shrink-0 text-zinc-500" />
+            <input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  updateParams({ search: searchInput });
+                }
+              }}
+              placeholder="Назва, SKU, slug або бренд"
+              className="w-full min-w-0 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
+              aria-label="Пошук товарів"
+            />
+          </label>
+        }
+      >
+        <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:flex md:min-w-[280px]">
+          <Search className="h-4 w-4 shrink-0 text-zinc-500" />
+          <input
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                updateParams({ search: searchInput });
+              }
+            }}
+            placeholder="Назва, SKU, slug або бренд"
+            className="w-full min-w-0 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
+            aria-label="Пошук товарів"
+          />
+        </label>
+
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
           <select
             value={statusParam}
             onChange={(event) => updateParams({ status: event.target.value })}
-            className="rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden"
+            className="min-w-0 flex-1 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden sm:flex-none"
             aria-label="Фільтр за статусом"
           >
             <option value="ALL">Усі статуси</option>
@@ -654,37 +646,35 @@ function AdminShopPageContent() {
           </select>
 
           <select
+            value={stockParam}
+            onChange={(event) => updateParams({ stock: event.target.value })}
+            className="min-w-0 flex-1 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden sm:flex-none"
+            aria-label="Фільтр за наявністю"
+          >
+            <option value="ALL">Усі стани</option>
+            <option value="inStock">В наявності</option>
+            <option value="outOfStock">Немає в наявності</option>
+            <option value="preOrder">Під замовлення</option>
+            <option value="inTransit">В дорозі</option>
+          </select>
+
+          <select
             value={brandParam}
             onChange={(event) => updateParams({ brand: event.target.value })}
-            className="rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden"
+            className="min-w-0 flex-1 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden sm:min-w-[190px] sm:flex-none"
             aria-label="Фільтр за брендом"
           >
             <option value="ALL">Усі бренди</option>
-            {commonBrands.map((brand) => (
+            {availableBrands.map(({ brand, count }) => (
               <option key={brand} value={brand}>
-                {brand}
+                {brand} · {count}
               </option>
             ))}
           </select>
-
-          <label className="flex w-full min-w-0 flex-1 items-center gap-2 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 md:min-w-[280px]">
-            <Search className="h-4 w-4 text-zinc-500" />
-            <input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  updateParams({ search: searchInput });
-                }
-              }}
-              placeholder="Пошук за slug, SKU, брендом або назвою — натисніть Enter"
-              className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
-            />
-          </label>
         </div>
 
-        <AdminDensityToggle value={density} onChange={setDensity} />
-      </AdminEntityToolbar>
+        <AdminDensityToggle className="ml-auto" value={density} onChange={setDensity} />
+      </AdminFilterBar>
 
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
       {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
@@ -770,12 +760,13 @@ function AdminShopPageContent() {
                       <AdminStatusBadge tone={getStatusTone(product.status)}>
                         {product.status}
                       </AdminStatusBadge>
+                      <StockStatusBadge stock={product.stock} />
                     </div>
                   }
                   rows={[
                     { label: "Ціна", value: priceLabel(product) },
                     { label: "Варіантів", value: product.variantsCount },
-                    { label: "Залишок", value: product.stock },
+                    { label: "Наявність", value: <StockStatusBadge stock={product.stock} /> },
                     { label: "Публікація", value: product.isPublished ? "Так" : "Прихований" },
                   ]}
                   footer={
@@ -917,6 +908,7 @@ function AdminShopPageContent() {
                             {!product.isPublished ? (
                               <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>
                             ) : null}
+                            <StockStatusBadge stock={product.stock} />
                           </div>
                         </td>
                         <td className={cn("px-4", rowPad)}>
@@ -942,15 +934,6 @@ function AdminShopPageContent() {
                           )}
                         >
                           <div className="flex items-center justify-end gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
-                            <button
-                              type="button"
-                              onClick={() => setQuickViewId(product.id)}
-                              data-action="quick-view"
-                              className="rounded-none border border-blue-500/25 bg-blue-500/8 p-2 text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-500/[0.14]"
-                              title="Швидкий перегляд (без переходу)"
-                            >
-                              <Eye className="h-4 w-4" aria-label="Швидкий перегляд" />
-                            </button>
                             <Link
                               href={`/admin/shop/${product.id}`}
                               className="rounded-none border border-white/10 p-2 text-zinc-300 transition hover:bg-white/6 hover:text-zinc-50"

@@ -8,6 +8,8 @@ import {
   ArrowRight,
   ArrowUp,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Crop,
   Download,
@@ -49,6 +51,7 @@ import {
 } from "@/lib/admin/catalogBrochure";
 import styles from "./catalog.module.css";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { useAdminCurrency } from "@/lib/admin/currencyContext";
 
 type CatalogProduct = {
   id: string;
@@ -147,9 +150,13 @@ function detectLogoTone(image: HTMLImageElement): "light" | "dark" | "unknown" {
 }
 
 export default function AdminCatalogsPage() {
+  const { rates, ratesLoading } = useAdminCurrency();
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [selected, setSelected] = useState<SelectedProduct[]>([]);
   const [search, setSearch] = useState("");
+  const [productPage, setProductPage] = useState(1);
+  const [productTotal, setProductTotal] = useState(0);
+  const [resultPages, setResultPages] = useState(1);
   const [currency, setCurrency] = useState<CatalogBrochureCurrency>("EUR");
   const [layout, setLayout] = useState<CatalogBrochureLayout>("single");
   const [photoMode, setPhotoMode] = useState<CatalogBrochurePhotoMode>("gallery");
@@ -188,7 +195,10 @@ export default function AdminCatalogsPage() {
     const timer = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({ page: "1", limit: "24" });
+        const params = new URLSearchParams({
+          page: String(productPage),
+          limit: "50",
+        });
         if (search.trim()) params.set("search", search.trim());
         const response = await fetch(`/api/admin/shop/catalogs/products?${params.toString()}`, {
           cache: "no-store",
@@ -197,6 +207,8 @@ export default function AdminCatalogsPage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "Не вдалося завантажити товари.");
         setProducts(Array.isArray(data.products) ? data.products : []);
+        setProductTotal(Number(data.metadata?.totalCount) || 0);
+        setResultPages(Math.max(1, Number(data.metadata?.totalPages) || 1));
         setError("");
       } catch (reason) {
         if ((reason as Error).name !== "AbortError") setError((reason as Error).message);
@@ -208,7 +220,7 @@ export default function AdminCatalogsPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [search]);
+  }, [search, productPage]);
 
   const selectedIds = useMemo(() => new Set(selected.map((entry) => entry.product.id)), [selected]);
   const brandOptions = useMemo(
@@ -224,9 +236,9 @@ export default function AdminCatalogsPage() {
       {
         product,
         prices: {
-          EUR: priceInput(catalogBrochurePrice(product, "EUR")),
-          USD: priceInput(catalogBrochurePrice(product, "USD")),
-          UAH: priceInput(catalogBrochurePrice(product, "UAH")),
+          EUR: priceInput(catalogBrochurePrice(product, "EUR", rates)),
+          USD: priceInput(catalogBrochurePrice(product, "USD", rates)),
+          UAH: priceInput(catalogBrochurePrice(product, "UAH", rates)),
         },
         imageSource: imageSources[0] ?? null,
         imageSources,
@@ -647,6 +659,10 @@ export default function AdminCatalogsPage() {
                     </option>
                   ))}
                 </select>
+                <span className={styles.fieldHint}>
+                  Відсутні ціни автоматично перераховуються за курсом НБУ
+                  {ratesLoading ? " · оновлюємо курс…" : ""}.
+                </span>
               </label>
               <label className={styles.field}>
                 Розкладка товарів
@@ -846,7 +862,10 @@ export default function AdminCatalogsPage() {
               <Search size={17} aria-hidden="true" />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setProductPage(1);
+                }}
                 placeholder="Пошук за назвою, артикулом або брендом"
               />
             </label>
@@ -878,7 +897,7 @@ export default function AdminCatalogsPage() {
                           {isSelected ? (
                             <Check size={15} />
                           ) : (
-                            money(catalogBrochurePrice(product, currency), currency)
+                            money(catalogBrochurePrice(product, currency, rates), currency)
                           )}
                         </span>
                       </button>
@@ -887,7 +906,33 @@ export default function AdminCatalogsPage() {
                 : null}
             </div>
             <div className={styles.resultFooter}>
-              <span>Пошук через Catalog V2 · показано до 24 товарів</span>
+              <div className={styles.resultCount}>
+                <span>
+                  Пошук через Catalog V2 ·{" "}
+                  {productTotal > 0 ? `знайдено ${productTotal}` : "0 товарів"}
+                </span>
+                <div className={styles.resultPagination} aria-label="Сторінки результатів каталогу">
+                  <button
+                    type="button"
+                    aria-label="Попередня сторінка товарів"
+                    disabled={loading || productPage <= 1}
+                    onClick={() => setProductPage((value) => value - 1)}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <span>
+                    {productPage} / {resultPages}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Наступна сторінка товарів"
+                    disabled={loading || productPage >= resultPages}
+                    onClick={() => setProductPage((value) => value + 1)}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
               <span>{selected.length} вибрано</span>
             </div>
           </section>
@@ -908,7 +953,9 @@ export default function AdminCatalogsPage() {
                   <div className={styles.bulkLabel}>
                     <Percent size={14} /> Масова зміна цін
                   </div>
-                  <div className={styles.bulkHint}>Від поточних цін у {currency}</div>
+                  <div className={styles.bulkHint}>
+                    Від поточних цін у {currency} · конвертація відсутніх цін за курсом НБУ
+                  </div>
                 </div>
                 <div className={styles.bulkActions} aria-label="Швидкі знижки">
                   {[5, 10, 15, 20].map((percent) => (

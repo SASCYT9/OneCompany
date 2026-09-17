@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
       access,
       ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ
     );
-    const canReadTurn14 = currentAdminHasPermission(access, ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE);
-    if (!canReadOrders && !canReadProducts && !canReadCustomers && !canReadTurn14) {
+    if (!canReadOrders && !canReadProducts && !canReadCustomers) {
       throw new Error("FORBIDDEN");
     }
 
@@ -30,11 +29,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         query,
         total: 0,
-        results: { orders: [], products: [], customers: [], turn14: [] },
+        results: { orders: [], products: [], customers: [] },
       });
     }
 
-    const [orders, products, customers, turn14] = await Promise.all([
+    const [orders, products, customers] = await Promise.all([
       canReadOrders
         ? prisma.shopOrder.findMany({
             where: {
@@ -110,35 +109,11 @@ export async function GET(request: NextRequest) {
             },
           })
         : Promise.resolve([]),
-      canReadTurn14
-        ? prisma.turn14CatalogItem.findMany({
-            where: {
-              OR: [
-                { partNumber: { contains: query, mode: "insensitive" } },
-                { mfrPartNumber: { contains: query, mode: "insensitive" } },
-                { productName: { contains: query, mode: "insensitive" } },
-                { brand: { contains: query, mode: "insensitive" } },
-              ],
-            },
-            orderBy: { updatedAt: "desc" },
-            take: TAKE_PER_GROUP,
-            select: {
-              id: true,
-              partNumber: true,
-              mfrPartNumber: true,
-              productName: true,
-              brand: true,
-              dealerPrice: true,
-              retailPrice: true,
-              weight: true,
-            },
-          })
-        : Promise.resolve([]),
     ]);
 
     return NextResponse.json({
       query,
-      total: orders.length + products.length + customers.length + turn14.length,
+      total: orders.length + products.length + customers.length,
       results: {
         orders: orders.map((order) => ({
           ...order,
@@ -149,7 +124,6 @@ export async function GET(request: NextRequest) {
         })),
         products,
         customers,
-        turn14,
       },
     });
   } catch (error) {

@@ -5,7 +5,10 @@ import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { catalogImageSources } from "@/lib/admin/catalogImageSources";
 import { adminProductListSelect, serializeAdminProductListItem } from "@/lib/shopAdminCatalog";
-import { queryShopCatalogProjection } from "@/lib/shopCatalogProjectionQuery.server";
+import {
+  countShopCatalogProjection,
+  queryShopCatalogProjection,
+} from "@/lib/shopCatalogProjectionQuery.server";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -17,21 +20,32 @@ export async function GET(request: NextRequest) {
   try {
     await assertAdminRequest(await cookies(), ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
     const search = request.nextUrl.searchParams.get("search")?.trim() || "";
-    const requestedLimit = Number(request.nextUrl.searchParams.get("limit") || 24);
+    const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") || 1));
+    const requestedLimit = Number(request.nextUrl.searchParams.get("limit") || 50);
     const limit = Number.isSafeInteger(requestedLimit)
-      ? Math.min(24, Math.max(1, requestedLimit))
-      : 24;
-    const projection = await queryShopCatalogProjection({
+      ? Math.min(100, Math.max(1, requestedLimit))
+      : 50;
+    const query = {
       locale: "ua",
       text: search || null,
       limit,
+      offset: (page - 1) * limit,
       order: "default",
-    });
+    } as const;
+    const [projection, totalCount] = await Promise.all([
+      queryShopCatalogProjection(query),
+      countShopCatalogProjection(query),
+    ]);
     const ids = projection.items.map((item) => item.productId);
     if (ids.length === 0) {
       return NextResponse.json({
         products: [],
-        metadata: { totalCount: 0, currentPage: 1, totalPages: 1, limit },
+        metadata: {
+          totalCount,
+          currentPage: page,
+          totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+          limit,
+        },
         source: projection.source,
       });
     }
@@ -45,6 +59,10 @@ export async function GET(request: NextRequest) {
       const row = byId.get(item.productId);
       if (!row) return [];
       const serialized = serializeAdminProductListItem(row);
+      const projectionPrice = (value: string | null) => {
+        const parsed = value == null ? NaN : Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+      };
       const imageSources = catalogImageSources([
         item.primaryMediaUrl,
         serialized.imageUrl,
@@ -53,6 +71,9 @@ export async function GET(request: NextRequest) {
       return [
         {
           ...serialized,
+          priceEur: serialized.priceEur ?? projectionPrice(item.minPriceEur),
+          priceUsd: serialized.priceUsd ?? projectionPrice(item.minPriceUsd),
+          priceUah: serialized.priceUah ?? projectionPrice(item.minPriceUah),
           imageUrl: imageSources[0] ?? null,
           imageSources,
           catalogSource: projection.source,
@@ -65,9 +86,9 @@ export async function GET(request: NextRequest) {
       {
         products,
         metadata: {
-          totalCount: products.length,
-          currentPage: 1,
-          totalPages: projection.hasMore ? 2 : 1,
+          totalCount,
+          currentPage: page,
+          totalPages: Math.max(1, Math.ceil(totalCount / limit)),
           limit,
         },
         source: projection.source,

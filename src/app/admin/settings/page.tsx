@@ -2,20 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  Bell,
-  Globe,
-  Loader2,
-  Mail,
-  MapPin,
-  Palette,
-  Phone,
-  RefreshCw,
-  Save,
-  Search,
-  Shield,
-  Store,
-} from "lucide-react";
+import Link from "next/link";
+import { Globe, Loader2, RefreshCw, Save, Shield, Store } from "lucide-react";
 
 import {
   AdminDangerZone,
@@ -634,6 +622,35 @@ export default function AdminSettingsPage() {
                   { label: "Accent", value: draft.accentColor },
                 ]}
               />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard
+              title="Службові інструменти"
+              description="Рідше потрібні системні розділи, зібрані тут, щоб не перевантажувати основне меню."
+            >
+              <nav className="grid gap-1" aria-label="Службові інструменти">
+                <Link
+                  href="/admin/shop/settings"
+                  className="flex items-center gap-2 rounded-none px-3 py-2.5 text-sm text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
+                >
+                  <Store className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                  Налаштування магазину
+                </Link>
+                <Link
+                  href="/admin/settings/integrations"
+                  className="flex items-center gap-2 rounded-none px-3 py-2.5 text-sm text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
+                >
+                  <Globe className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                  Інтеграції
+                </Link>
+                <Link
+                  href="/admin/backups"
+                  className="flex items-center gap-2 rounded-none px-3 py-2.5 text-sm text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
+                >
+                  <Shield className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                  Резервні копії
+                </Link>
+              </nav>
             </AdminInspectorCard>
           </>
         }

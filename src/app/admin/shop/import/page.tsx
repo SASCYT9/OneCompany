@@ -418,6 +418,62 @@ export default function AdminShopImportPage() {
         />
       </AdminMetricGrid>
 
+      <AdminEditorSection
+        id="import-tools"
+        title="Інструменти імпортів"
+        description="Усі пов’язані з імпортом дії зібрані в одному місці. Turn14 прибрано з робочої навігації."
+      >
+        <div className="grid gap-3 md:grid-cols-3">
+          <Link
+            href="/admin/shop/stock"
+            className="group flex items-start gap-3 rounded-none border border-white/10 bg-black/20 p-4 transition hover:border-blue-500/40 hover:bg-blue-500/5"
+          >
+            <Upload className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-sm font-medium text-zinc-100">
+                CSV-імпорт залишків
+                <ExternalLink className="h-3.5 w-3.5 text-zinc-500 transition group-hover:text-blue-300" />
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-zinc-500">
+                Старий імпорт і зіставлення колонок.
+              </span>
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/shop/feed"
+            className="group flex items-start gap-3 rounded-none border border-white/10 bg-black/20 p-4 transition hover:border-blue-500/40 hover:bg-blue-500/5"
+          >
+            <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-sm font-medium text-zinc-100">
+                Експорт фідів
+                <ExternalLink className="h-3.5 w-3.5 text-zinc-500 transition group-hover:text-blue-300" />
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-zinc-500">
+                Посилання на товарні та складські фіди.
+              </span>
+            </span>
+          </Link>
+
+          <Link
+            href="/admin/shop/audit"
+            className="group flex items-start gap-3 rounded-none border border-white/10 bg-black/20 p-4 transition hover:border-blue-500/40 hover:bg-blue-500/5"
+          >
+            <FileClock className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-sm font-medium text-zinc-100">
+                Аудит імпортів
+                <ExternalLink className="h-3.5 w-3.5 text-zinc-500 transition group-hover:text-blue-300" />
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-zinc-500">
+                Історія змін і результати попередніх запусків.
+              </span>
+            </span>
+          </Link>
+        </div>
+      </AdminEditorSection>
+
       <AdminActionBar>
         <div className="space-y-1">
           <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-zinc-500">

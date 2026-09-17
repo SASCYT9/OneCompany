@@ -1,5 +1,6 @@
 export type CatalogBrochureLanguage = "ua" | "ru" | "en";
 export type CatalogBrochureCurrency = "EUR" | "USD" | "UAH";
+export type CatalogBrochureExchangeRates = Record<CatalogBrochureCurrency, number>;
 export type CatalogBrochureBranding = "onecompany" | "brand" | "none";
 export type CatalogBrochureLayout = "single" | "double";
 export type CatalogBrochurePhotoMode = "gallery" | "hero";
@@ -90,15 +91,36 @@ export function catalogBrochurePrice(
     priceUsd?: number | null;
     priceUah?: number | null;
   },
-  currency: CatalogBrochureCurrency
+  currency: CatalogBrochureCurrency,
+  rates?: CatalogBrochureExchangeRates
 ) {
-  const value =
-    currency === "EUR"
-      ? product.priceEur
-      : currency === "USD"
-        ? product.priceUsd
-        : product.priceUah;
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+  const values: Record<CatalogBrochureCurrency, number | null | undefined> = {
+    EUR: product.priceEur,
+    USD: product.priceUsd,
+    UAH: product.priceUah,
+  };
+  const direct = values[currency];
+  if (typeof direct === "number" && Number.isFinite(direct) && direct >= 0) return direct;
+  if (
+    !rates ||
+    !Object.values(rates).every(
+      (value) => typeof value === "number" && Number.isFinite(value) && value > 0
+    )
+  ) {
+    return null;
+  }
+
+  const fallbackOrder: CatalogBrochureCurrency[] =
+    currency === "EUR" ? ["USD", "UAH"] : currency === "USD" ? ["EUR", "UAH"] : ["EUR", "USD"];
+  const source = fallbackOrder.find((candidate) => {
+    const value = values[candidate];
+    return typeof value === "number" && Number.isFinite(value) && value >= 0;
+  });
+  if (!source) return null;
+  const sourceValue = values[source] as number;
+  const inUah = source === "UAH" ? sourceValue : sourceValue * rates[source];
+  const converted = currency === "UAH" ? inUah : inUah / rates[currency];
+  return Number.isFinite(converted) && converted >= 0 ? roundCatalogPrice(converted) : null;
 }
 
 function roundCatalogPrice(value: number) {

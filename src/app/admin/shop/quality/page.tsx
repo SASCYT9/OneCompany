@@ -202,19 +202,19 @@ export default function CatalogQualityPage() {
                 href="/admin/shop/media"
                 className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-sm text-zinc-300 hover:bg-white/6"
               >
-                Media library
+                Медіатека
+              </Link>
+              <Link
+                href="/admin/shop/fitment"
+                className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-sm text-zinc-300 hover:bg-white/6"
+              >
+                Сумісність
               </Link>
               <Link
                 href="/admin/shop/seo"
                 className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-sm text-zinc-300 hover:bg-white/6"
               >
                 SEO AI
-              </Link>
-              <Link
-                href="/admin/shop?status=DRAFT"
-                className="rounded-full border border-white/10 bg-white/3 px-3 py-2 text-sm text-zinc-300 hover:bg-white/6"
-              >
-                Draft products
               </Link>
             </div>
           </AdminActionBar>

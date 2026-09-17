@@ -18,6 +18,7 @@ export type AdminNavIconKey =
   | "orders"
   | "customers"
   | "catalog"
+  | "tools"
   | "inventory"
   | "categories"
   | "collections"
@@ -27,7 +28,6 @@ export type AdminNavIconKey =
   | "seo"
   | "imports"
   | "csv"
-  | "turn14"
   | "audit"
   | "logistics"
   | "taxes"
@@ -232,41 +232,16 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "drafts",
       },
       {
-        href: "/admin/shop/media",
-        label: "Медіа",
-        description: "Зображення товарів та завантажені файли.",
-        icon: "media",
-      },
-      {
         href: "/admin/shop/quality",
-        label: "Контроль якості",
-        description: "Прогалини в каталозі, SEO-проблеми та масові виправлення.",
-        icon: "seo",
-      },
-      {
-        href: "/admin/shop/fitment",
-        label: "Сумісність",
-        description: "Перевірка марки, моделі, кузова та років для пошуку за авто.",
-        icon: "tag",
-      },
-      {
-        href: "/admin/shop/ai-quality",
-        label: "One AI Quality",
-        description:
-          "Контроль покриття знань, черги перевірки, відгуків, трас запитів та індексації.",
-        icon: "seo",
+        label: "Інструменти каталогу",
+        description: "Медіа, якість, сумісність та SEO в одному робочому центрі.",
+        icon: "tools",
       },
       {
         href: "/admin/shop/pricing",
         label: "Ціни",
         description: "Керування B2C та B2B цінами.",
         icon: "pricing",
-      },
-      {
-        href: "/admin/shop/seo",
-        label: "SEO AI",
-        description: "AI-генерація SEO для каталогу та QA-інструменти.",
-        icon: "seo",
       },
     ],
   },
@@ -280,30 +255,6 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         label: "Центр імпортів",
         description: "CSV-імпорти, тестові прогони та результати.",
         icon: "imports",
-      },
-      {
-        href: "/admin/shop/stock",
-        label: "CSV-імпорт",
-        description: "Старий імпорт залишків та зіставлення колонок.",
-        icon: "csv",
-      },
-      {
-        href: "/admin/shop/feed",
-        label: "Експорт фідів",
-        description: "URL-адреси експорту товарів та залишків для дистриб’юторів.",
-        icon: "csv",
-      },
-      {
-        href: "/admin/shop/turn14",
-        label: "Turn14",
-        description: "Проксі постачальника, націнки на бренди, керування синхронізацією.",
-        icon: "turn14",
-      },
-      {
-        href: "/admin/shop/audit",
-        label: "Аудит імпортів",
-        description: "Історія змін каталогу та трасування імпортів.",
-        icon: "audit",
       },
     ],
   },
@@ -380,38 +331,20 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   },
   {
     key: "system",
-    label: "Система",
-    description: "Налаштування, доступи, бекапи.",
+    label: "Адміністрування",
+    description: "Налаштування системи та команди.",
     items: [
       {
         href: "/admin/settings",
         label: "Налаштування",
-        description: "Глобальні параметри та бізнес-правила.",
-        icon: "settings",
-      },
-      {
-        href: "/admin/shop/settings",
-        label: "Налаштування магазину",
-        description: "Параметри електронної комерції та значення за замовчуванням.",
+        description: "Глобальні параметри, магазин та службові інструменти.",
         icon: "settings",
       },
       {
         href: "/admin/users",
-        label: "Команда и доступы",
-        description: "Логины, пароли, роли и Telegram.",
+        label: "Команда та доступи",
+        description: "Користувачі, ролі, права та Telegram.",
         icon: "users",
-      },
-      {
-        href: "/admin/settings/integrations",
-        label: "Інтеграції",
-        description: "Mailchimp, Meta Ads, Google-сервіси.",
-        icon: "integrations",
-      },
-      {
-        href: "/admin/backups",
-        label: "Резервні копії",
-        description: "Бекапи та контроль відновлення.",
-        icon: "backups",
       },
     ],
   },

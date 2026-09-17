@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Boxes, CheckSquare, Download, RefreshCcw, Search, Warehouse } from "lucide-react";
+import { Boxes, CheckSquare, Download, Search, Warehouse } from "lucide-react";
 
 import {
   AdminActionBar,
@@ -14,6 +14,7 @@ import {
   AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
+  AdminStatusBadge,
   AdminTableShell,
 } from "@/components/admin/AdminPrimitives";
 import {
@@ -109,7 +110,7 @@ function AdminInventoryPageContent() {
     try {
       const response = await fetch(`/api/admin/export/inventory`, { cache: "no-store" });
       if (!response.ok) {
-        toast.error("Could not export inventory");
+        toast.error("Не вдалося експортувати склад");
         return;
       }
       const blob = await response.blob();
@@ -123,9 +124,9 @@ function AdminInventoryPageContent() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      toast.success("Inventory exported", `Downloaded ${a.download}`);
+      toast.success("Склад експортовано", `Завантажено ${a.download}`);
     } catch (e) {
-      toast.error("Export failed", (e as Error).message);
+      toast.error("Експорт не вдався", (e as Error).message);
     } finally {
       setExporting(false);
     }
@@ -136,10 +137,6 @@ function AdminInventoryPageContent() {
       setBrandFilter(searchParams.get("brand") as string);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    void load();
-  }, []);
 
   const filteredVariants = useMemo(() => {
     let list = variants;
@@ -174,25 +171,37 @@ function AdminInventoryPageContent() {
   const visibleIds = filteredVariants.map((variant) => variant.id);
   const selectedVisibleCount = visibleIds.filter((id) => selectedIds.includes(id)).length;
 
-  async function load() {
+  function toggleSelectAllVisible() {
+    if (selectedVisibleCount === visibleIds.length && visibleIds.length > 0) {
+      setSelectedIds((current) => current.filter((id) => !visibleIds.includes(id)));
+      return;
+    }
+    selectVisible();
+  }
+
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const response = await fetch("/api/admin/shop/inventory");
       const data = await response.json().catch(() => ({ variants: [], locations: [] }));
       if (!response.ok) {
-        setError(data.error || "Failed to load inventory");
+        setError(data.error || "Не вдалося завантажити склад");
         return;
       }
       setVariants(data.variants || []);
       setLocations(data.locations || []);
-      if (data.locations && data.locations.length > 0 && !selectedLocationId) {
-        setSelectedLocationId(data.locations[0].id);
+      if (data.locations && data.locations.length > 0) {
+        setSelectedLocationId((current) => current || data.locations[0].id);
       }
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   function toggleSelection(id: string) {
     setSelectedIds((current) =>
@@ -213,11 +222,11 @@ function AdminInventoryPageContent() {
     setSuccess("");
 
     if (!selectedIds.length) {
-      setError("Select at least one variant.");
+      setError("Виберіть хоча б один варіант.");
       return;
     }
     if (bulk.inventoryQty.trim() && bulk.inventoryAdjustment.trim()) {
-      setError("Use either set quantity or adjustment, not both.");
+      setError("Використовуйте або встановлення кількості, або зміну — не обидва поля одночасно.");
       return;
     }
 
@@ -225,7 +234,7 @@ function AdminInventoryPageContent() {
     if (bulk.inventoryQty.trim()) {
       const qty = Number(bulk.inventoryQty);
       if (!Number.isFinite(qty) || qty < 0) {
-        setError("Inventory quantity cannot be negative.");
+        setError("Кількість на складі не може бути від’ємною.");
         return;
       }
     }
@@ -234,7 +243,7 @@ function AdminInventoryPageContent() {
     if (bulk.inventoryAdjustment.trim()) {
       const adj = Number(bulk.inventoryAdjustment);
       if (!Number.isFinite(adj)) {
-        setError("Adjustment must be a number.");
+        setError("Зміна кількості має бути числом.");
         return;
       }
       if (adj < 0) {
@@ -248,7 +257,7 @@ function AdminInventoryPageContent() {
         });
         if (wouldGoNegative) {
           setError(
-            "Adjustment would push at least one variant below zero. Reduce the adjustment or exclude variants with low stock."
+            "Зміна зменшить залишок одного з варіантів нижче нуля. Зменште коригування або приберіть товари з малим залишком."
           );
           return;
         }
@@ -268,7 +277,7 @@ function AdminInventoryPageContent() {
     if (bulk.fulfillmentService.trim()) payload.fulfillmentService = bulk.fulfillmentService.trim();
 
     if (Object.keys(payload).length <= 2) {
-      setError("Enter at least one bulk inventory change.");
+      setError("Вкажіть хоча б одну зміну залишку.");
       return;
     }
 
@@ -281,10 +290,10 @@ function AdminInventoryPageContent() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Failed to update inventory");
+        setError(data.error || "Не вдалося оновити залишки");
         return;
       }
-      setSuccess(`Updated ${data.updatedCount ?? selectedIds.length} variants.`);
+      setSuccess(`Оновлено варіантів: ${data.updatedCount ?? selectedIds.length}.`);
       setBulk(createEmptyBulkState());
       await load();
     } finally {
@@ -297,7 +306,7 @@ function AdminInventoryPageContent() {
       <AdminPage>
         <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           <Warehouse className="h-4 w-4 animate-pulse" />
-          Loading inventory…
+          Завантаження складу…
         </div>
       </AdminPage>
     );
@@ -306,9 +315,9 @@ function AdminInventoryPageContent() {
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
-        eyebrow="Catalog"
-        title="Inventory"
-        description="Operational stock control for variant quantities, inventory policy, and fulfillment metadata across warehouse locations."
+        eyebrow="Каталог"
+        title="Склад"
+        description="Керуйте фактичними залишками варіантів товарів у вибраній локації."
         actions={
           <>
             <button
@@ -318,21 +327,7 @@ function AdminInventoryPageContent() {
               className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6 disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              {exporting ? "Exporting…" : "Export CSV"}
-            </button>
-            <Link
-              href="/admin/shop/pricing"
-              className="rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6"
-            >
-              Pricing
-            </Link>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="inline-flex items-center gap-2 rounded-none border border-white/10 bg-white/3 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/6"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
+              {exporting ? "Експорт…" : "Експорт CSV"}
             </button>
           </>
         }
@@ -340,18 +335,18 @@ function AdminInventoryPageContent() {
 
       <AdminMetricGrid>
         <AdminMetricCard
-          label="Variants"
+          label="Варіанти"
           value={variants.length}
-          meta="Rows available for stock operations"
+          meta="Позиції, доступні для роботи із залишками"
           tone="accent"
         />
         <AdminMetricCard
-          label="Locations"
+          label="Локації"
           value={locations.length}
-          meta="Warehouse destinations loaded"
+          meta="Підключені склади та точки зберігання"
         />
         <AdminMetricCard
-          label="In stock"
+          label="Є залишок"
           value={
             variants.filter(
               (variant) =>
@@ -359,10 +354,10 @@ function AdminInventoryPageContent() {
                   ?.stockedQuantity || 0) > 0
             ).length
           }
-          meta="Positive stocked quantity in the selected location"
+          meta="Позитивна кількість у вибраній локації"
         />
         <AdminMetricCard
-          label="Zero / negative"
+          label="Потрібне поповнення"
           value={
             variants.filter(
               (variant) =>
@@ -370,14 +365,14 @@ function AdminInventoryPageContent() {
                   ?.stockedQuantity || 0) <= 0
             ).length
           }
-          meta="Variants needing replenishment review"
+          meta="Нульовий або від’ємний залишок"
         />
       </AdminMetricGrid>
 
       <AdminFilterBar className="space-y-3">
         <div className="flex flex-wrap gap-3">
           <SelectField
-            label="Location"
+            label="Локація"
             value={selectedLocationId}
             onChange={setSelectedLocationId}
             options={locations.map((location) => ({
@@ -387,7 +382,7 @@ function AdminInventoryPageContent() {
             className="md:min-w-[260px]"
           />
           <SelectField
-            label="Brand"
+            label="Бренд"
             value={brandFilter}
             onChange={setBrandFilter}
             options={[
@@ -401,7 +396,7 @@ function AdminInventoryPageContent() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search by product, variant, SKU, or collection"
+              placeholder="Пошук товару, варіанту, SKU або колекції"
               className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
             />
           </label>
@@ -411,42 +406,33 @@ function AdminInventoryPageContent() {
       {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
       {success ? <AdminInlineAlert tone="success">{success}</AdminInlineAlert> : null}
 
-      <AdminActionBar>
-        <div className="space-y-1">
-          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-            Selection
+      {selectedIds.length > 0 ? (
+        <AdminActionBar>
+          <div className="flex items-center gap-2">
+            <CheckSquare className="h-4 w-4 text-blue-400" />
+            <div className="text-sm text-zinc-200">
+              Вибрано {selectedIds.length} · у поточному фільтрі {selectedVisibleCount}
+            </div>
           </div>
-          <div className="text-sm text-zinc-200">
-            {selectedIds.length} selected, {selectedVisibleCount} visible in the current filter set
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={selectVisible}
-            className="rounded-none border border-white/10 bg-white/3 px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/6"
-          >
-            Select visible
-          </button>
           <button
             type="button"
             onClick={clearSelection}
-            className="rounded-none border border-white/10 bg-white/3 px-3.5 py-2 text-sm text-zinc-200 transition hover:bg-white/6"
+            className="rounded-none border border-white/10 bg-white/3 px-3.5 py-2 text-sm text-zinc-300 transition hover:bg-white/6"
           >
-            Clear
+            Очистити вибір
           </button>
-        </div>
-      </AdminActionBar>
+        </AdminActionBar>
+      ) : null}
 
       <div className="rounded-none border border-white/10 bg-[#171717] p-5">
         <div className="mb-4">
-          <h3 className="text-lg font-medium text-zinc-50">Bulk update</h3>
+          <h3 className="text-lg font-medium text-zinc-50">Масова зміна залишків</h3>
           <p className="mt-1 text-sm text-zinc-400">
-            Set inventory quantities or apply a delta across selected variants. Product stock state
-            syncs automatically after update.
+            Виберіть варіанти в таблиці та встановіть кількість або зміну. Статус товару
+            синхронізується автоматично.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <InputField
             label="Встановити кількість"
             value={bulk.inventoryQty}
@@ -459,32 +445,41 @@ function AdminInventoryPageContent() {
             onChange={(value) => setBulk((current) => ({ ...current, inventoryAdjustment: value }))}
             type="number"
           />
-          <SelectField
-            label="Inventory policy"
-            value={bulk.inventoryPolicy}
-            onChange={(value) =>
-              setBulk((current) => ({
-                ...current,
-                inventoryPolicy: value as BulkInventoryState["inventoryPolicy"],
-              }))
-            }
-            options={[
-              { value: "", label: "Keep as is" },
-              { value: "CONTINUE", label: "Continue" },
-              { value: "DENY", label: "Deny" },
-            ]}
-          />
-          <InputField
-            label="Відстеження складу"
-            value={bulk.inventoryTracker}
-            onChange={(value) => setBulk((current) => ({ ...current, inventoryTracker: value }))}
-          />
-          <InputField
-            label="Служба виконання"
-            value={bulk.fulfillmentService}
-            onChange={(value) => setBulk((current) => ({ ...current, fulfillmentService: value }))}
-          />
         </div>
+        <details className="mt-4 rounded-none border border-white/8 bg-black/15 px-4 py-3">
+          <summary className="cursor-pointer text-sm font-medium text-zinc-300">
+            Розширені параметри складу
+          </summary>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <SelectField
+              label="Політика залишків"
+              value={bulk.inventoryPolicy}
+              onChange={(value) =>
+                setBulk((current) => ({
+                  ...current,
+                  inventoryPolicy: value as BulkInventoryState["inventoryPolicy"],
+                }))
+              }
+              options={[
+                { value: "", label: "Залишити без змін" },
+                { value: "CONTINUE", label: "Дозволити замовлення" },
+                { value: "DENY", label: "Заборонити замовлення" },
+              ]}
+            />
+            <InputField
+              label="Відстеження складу"
+              value={bulk.inventoryTracker}
+              onChange={(value) => setBulk((current) => ({ ...current, inventoryTracker: value }))}
+            />
+            <InputField
+              label="Служба виконання"
+              value={bulk.fulfillmentService}
+              onChange={(value) =>
+                setBulk((current) => ({ ...current, fulfillmentService: value }))
+              }
+            />
+          </div>
+        </details>
         <div className="mt-4 flex justify-end">
           <button
             type="button"
@@ -493,15 +488,15 @@ function AdminInventoryPageContent() {
             className="inline-flex items-center gap-2 rounded-none bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
           >
             <Boxes className="h-4 w-4" />
-            {applying ? "Applying…" : "Apply to selected"}
+            {applying ? "Застосування…" : `Застосувати до вибраних (${selectedIds.length})`}
           </button>
         </div>
       </div>
 
       {filteredVariants.length === 0 ? (
         <AdminEmptyState
-          title="No variants match this inventory view"
-          description="Adjust the location, brand, or search filters to surface variants that need stock actions."
+          title="Немає варіантів для цього перегляду складу"
+          description="Змініть локацію, бренд або пошук, щоб знайти варіанти для роботи із залишками."
         />
       ) : (
         <AdminTableShell>
@@ -509,90 +504,104 @@ function AdminInventoryPageContent() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-white/3">
-                  <th className="px-4 py-3 font-medium text-zinc-400">Select</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Product</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Variant</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Collections</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Qty</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Policy</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Tracker</th>
-                  <th className="px-4 py-3 font-medium text-zinc-400">Actions</th>
+                  <th className="w-14 px-4 py-3 font-medium text-zinc-400">
+                    <input
+                      type="checkbox"
+                      checked={visibleIds.length > 0 && selectedVisibleCount === visibleIds.length}
+                      onChange={toggleSelectAllVisible}
+                      aria-label="Вибрати всі видимі варіанти"
+                      className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
+                    />
+                  </th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Товар</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Варіант</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Колекції</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Кількість</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Політика</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Відстеження</th>
+                  <th className="px-4 py-3 font-medium text-zinc-400">Дії</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredVariants.map((variant) => (
-                  <tr
-                    key={variant.id}
-                    className="border-b border-white/5 align-top transition hover:bg-white/2"
-                  >
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(variant.id)}
-                        onChange={() => toggleSelection(variant.id)}
-                        className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="font-medium text-white">
-                        {variant.product.titleEn || variant.product.titleUa}
-                      </div>
-                      <div className="mt-1 font-mono text-xs text-white/45">
-                        {variant.product.slug}
-                      </div>
-                      <div className="mt-1 text-xs text-white/45">
-                        {[variant.product.brand, variant.product.vendor]
-                          .filter(Boolean)
-                          .join(" · ") || "—"}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="text-white/80">
-                        {variant.title || `Variant #${variant.position}`}{" "}
-                        {variant.isDefault ? "· Default" : ""}
-                      </div>
-                      <div className="mt-1 font-mono text-xs text-white/45">
-                        {variant.sku || "No SKU"}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex max-w-[280px] flex-wrap gap-1.5">
-                        {variant.product.collectionHandles.length ? (
-                          variant.product.collectionHandles.map((handle) => (
-                            <span
-                              key={handle}
-                              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
-                            >
-                              {handle}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-white/35">No collections</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-white/80">
-                      <div className="text-lg font-medium">
-                        {variant.inventoryLevels?.find((l) => l.locationId === selectedLocationId)
-                          ?.stockedQuantity || 0}
-                      </div>
-                      <div className="text-[10px] text-white/40 uppercase mt-1">Stocked</div>
-                    </td>
-                    <td className="px-4 py-4 text-white/70">{variant.inventoryPolicy}</td>
-                    <td className="px-4 py-4 text-white/45">
-                      <div>{variant.inventoryTracker || "—"}</div>
-                      <div className="mt-1 text-xs">{variant.fulfillmentService || "—"}</div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <Link
-                        href={`/admin/shop/${variant.productId}`}
-                        className="text-sm text-white/70 hover:text-white"
-                      >
-                        Edit product
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {filteredVariants.map((variant) => {
+                  const locationQuantity =
+                    variant.inventoryLevels?.find((l) => l.locationId === selectedLocationId)
+                      ?.stockedQuantity || 0;
+                  return (
+                    <tr
+                      key={variant.id}
+                      className="border-b border-white/5 align-top transition hover:bg-white/2"
+                    >
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(variant.id)}
+                          onChange={() => toggleSelection(variant.id)}
+                          className="h-4 w-4 rounded-none border-white/20 bg-zinc-950"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="font-medium text-white">
+                          {variant.product.titleEn || variant.product.titleUa}
+                        </div>
+                        <div className="mt-1 font-mono text-xs text-white/45">
+                          {variant.product.slug}
+                        </div>
+                        <div className="mt-1 text-xs text-white/45">
+                          {[variant.product.brand, variant.product.vendor]
+                            .filter(Boolean)
+                            .join(" · ") || "—"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-white/80">
+                          {variant.title || `Варіант №${variant.position}`}{" "}
+                          {variant.isDefault ? "· Основний" : ""}
+                        </div>
+                        <div className="mt-1 font-mono text-xs text-white/45">
+                          {variant.sku || "Без SKU"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex max-w-[280px] flex-wrap gap-1.5">
+                          {variant.product.collectionHandles.length ? (
+                            variant.product.collectionHandles.map((handle) => (
+                              <span
+                                key={handle}
+                                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
+                              >
+                                {handle}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-white/35">Немає колекцій</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-white/80">
+                        <div className="text-lg font-medium">{locationQuantity}</div>
+                        <div className="mt-2">
+                          <AdminStatusBadge tone={locationQuantity > 0 ? "success" : "danger"}>
+                            {locationQuantity > 0 ? "В наявності" : "Немає в наявності"}
+                          </AdminStatusBadge>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-white/70">{variant.inventoryPolicy}</td>
+                      <td className="px-4 py-4 text-white/45">
+                        <div>{variant.inventoryTracker || "—"}</div>
+                        <div className="mt-1 text-xs">{variant.fulfillmentService || "—"}</div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <Link
+                          href={`/admin/shop/${variant.productId}`}
+                          className="text-sm text-white/70 hover:text-white"
+                        >
+                          Редагувати товар
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
