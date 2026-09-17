@@ -62,6 +62,56 @@ test("checkout settings preview applies shipping zones, tax regions and totals",
   assert.equal((quote.pricingSnapshot as { audience: string }).audience, "b2c");
 });
 
+test("Ukraine supplier quote is not bypassed by a zero free-shipping threshold", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { EUR: 1, USD: 1.152174, UAH: 53 },
+    shippingZones: [
+      {
+        id: "ua-standard",
+        name: "Ukraine",
+        countries: ["Ukraine", "UA"],
+        regions: [],
+        baseRate: 0,
+        perItemRate: 0,
+        freeOver: 0,
+        minimumSubtotal: null,
+        currency: "UAH",
+        enabled: true,
+      },
+    ],
+    taxRegions: [],
+    orderNotificationEmail: null,
+    b2bNotes: null,
+  } as any);
+
+  const quote = buildCheckoutSettingsPreview(settings, {
+    currency: "USD",
+    subtotal: 1299,
+    itemCount: 1,
+    items: [
+      {
+        total: 1299,
+        quantity: 1,
+        pricingBaseRegion: "default",
+        brandName: "Revozport",
+        shippingToUaUsd: 49,
+      },
+    ],
+    shippingAddress: {
+      line1: "Test",
+      city: "Kyiv",
+      country: "UA",
+    },
+  });
+
+  assert.equal(quote.shippingCost, 49);
+  assert.equal(quote.total, 1348);
+});
+
 test("checkout settings preview applies admin-configured EU VAT by destination country", () => {
   const settings = buildShopSettingsRuntimeFromPayload({
     b2bVisibilityMode: "approved_only",

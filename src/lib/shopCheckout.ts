@@ -264,13 +264,18 @@ function calculateShippingCost(
   items: ResolvedCheckoutItem[]
 ): ShippingCostResult {
   if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
-  if (zone.freeOver != null && subtotal >= zone.freeOver) {
+  const usesSupplierUkraineQuotes = isUkraineShippingZone(zone);
+  const hasSupplierUkraineQuote =
+    usesSupplierUkraineQuotes && items.some((item) => item.shippingToUaUsd != null);
+
+  // A supplier quote is the authoritative Ukraine freight for Revozport. Do
+  // not let a generic free-shipping threshold short-circuit that quote.
+  if (zone.freeOver != null && subtotal >= zone.freeOver && !hasSupplierUkraineQuote) {
     return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   }
 
   let totalCost = zone.baseRate;
   const brandsRequiringQuote = new Set<string>();
-  const usesSupplierUkraineQuotes = isUkraineShippingZone(zone);
 
   // Default fallback rule (special id '__default__') applies to any item whose
   // brand has no dedicated rule. Read once up front.
@@ -719,6 +724,12 @@ export function buildCheckoutSettingsPreview(
       total: number;
       quantity?: number;
       pricingBaseRegion: "default" | "europe";
+      brandName?: string | null;
+      weightKg?: number | null;
+      length?: number | null;
+      width?: number | null;
+      height?: number | null;
+      shippingToUaUsd?: number | null;
     }>;
   }
 ) {
@@ -739,12 +750,12 @@ export function buildCheckoutSettingsPreview(
       pricingSource: "b2c",
       pricingBaseRegion: item.pricingBaseRegion,
       discountPercent: null,
-      brandName: null,
-      weightKg: null,
-      length: null,
-      width: null,
-      height: null,
-      shippingToUaUsd: null,
+      brandName: item.brandName ?? null,
+      weightKg: item.weightKg ?? null,
+      length: item.length ?? null,
+      width: item.width ?? null,
+      height: item.height ?? null,
+      shippingToUaUsd: item.shippingToUaUsd ?? null,
     };
   });
   const subtotal = previewItems.length
