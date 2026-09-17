@@ -18,6 +18,7 @@ import {
   type ShopPriceAudience,
 } from "@/lib/shopPricingAudience";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
+import { isUkraineShippingZone } from "@/lib/revozportShipping";
 
 type CheckoutRequestItem = {
   slug: string;
@@ -54,6 +55,8 @@ type ResolvedCheckoutItem = {
   length: number | null;
   width: number | null;
   height: number | null;
+  /** Exact supplier sea-freight quote to Ukraine, in USD, when available. */
+  shippingToUaUsd: number | null;
 };
 
 type CheckoutRuleSnapshot = {
@@ -267,6 +270,7 @@ function calculateShippingCost(
 
   let totalCost = zone.baseRate;
   const brandsRequiringQuote = new Set<string>();
+  const usesSupplierUkraineQuotes = isUkraineShippingZone(zone);
 
   // Default fallback rule (special id '__default__') applies to any item whose
   // brand has no dedicated rule. Read once up front.
@@ -320,6 +324,13 @@ function calculateShippingCost(
       let itemCost = 0;
       let handledByRule = false;
 
+      if (usesSupplierUkraineQuotes && item.shippingToUaUsd != null) {
+        itemCost =
+          convertAmount(item.shippingToUaUsd, "USD", zone.currency, settings.currencyRates) *
+          item.quantity;
+        handledByRule = true;
+      }
+
       // Primary dimensions and fallback logic
       const w = item.weightKg ?? zone.fallbackWeightKg;
       const l = item.length ?? zone.fallbackLength;
@@ -336,7 +347,7 @@ function calculateShippingCost(
       const standardCostForOne = physicalDeliveryCost + volumeSurcharge;
 
       const rule = resolveItemRule(item.brandName);
-      if (rule) {
+      if (rule && !handledByRule) {
         handledByRule = true;
         const warehouseDeliveryCostForOne = actualWeight * rule.warehouseRatePerKg;
         // Use the item's brand for cart-level keying so default-rule applications
@@ -400,7 +411,20 @@ function calculateShippingCost(
   } else {
     const actualItemCount =
       items.length > 0 ? items.reduce((sum, item) => sum + item.quantity, 0) : itemCount;
-    totalCost += zone.perItemRate * actualItemCount;
+    if (usesSupplierUkraineQuotes && items.length > 0) {
+      totalCost += items.reduce((sum, item) => {
+        if (item.shippingToUaUsd == null) {
+          return sum + zone.perItemRate * item.quantity;
+        }
+        return (
+          sum +
+          convertAmount(item.shippingToUaUsd, "USD", zone.currency, settings.currencyRates) *
+            item.quantity
+        );
+      }, 0);
+    } else {
+      totalCost += zone.perItemRate * actualItemCount;
+    }
   }
 
   return {
@@ -520,6 +544,7 @@ function buildPricingSnapshot(params: {
       pricingSource: item.pricingSource,
       pricingBaseRegion: item.pricingBaseRegion,
       discountPercent: item.discountPercent,
+      shippingToUaUsd: item.shippingToUaUsd,
     })),
     itemCount,
     subtotal,
@@ -719,6 +744,7 @@ export function buildCheckoutSettingsPreview(
       length: null,
       width: null,
       height: null,
+      shippingToUaUsd: null,
     };
   });
   const subtotal = previewItems.length
@@ -817,6 +843,7 @@ export async function buildCheckoutQuote(
       length: variant?.length ?? product.length ?? null,
       width: variant?.width ?? product.width ?? null,
       height: variant?.height ?? product.height ?? null,
+      shippingToUaUsd: variant?.shippingToUaUsd ?? product.shippingToUaUsd ?? null,
     });
     subtotal = roundMoney(subtotal + total);
     itemCount += quantity;

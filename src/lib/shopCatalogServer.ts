@@ -43,6 +43,7 @@ import {
 import { isBrabusLocalImage, resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import { resolveBundleInventory } from "@/lib/shopBundles";
 import { prisma } from "@/lib/prisma";
+import { parseRevozportShippingQuotes } from "@/lib/revozportShipping";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
@@ -1497,6 +1498,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       }))
     : [];
   const primaryVariant = row.variants.find((variant) => variant.isDefault) ?? row.variants[0];
+  const revozportShipping = parseRevozportShippingQuotes(row.metafields ?? []);
   const sortedMedia = [...row.media].sort((a, b) => a.position - b.position);
   const galleryFromMedia = sortedMedia
     .filter((item) => item.mediaType === "IMAGE")
@@ -1832,6 +1834,8 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         : (primaryVariant as any)?.height != null
           ? Number((primaryVariant as any).height)
           : null,
+    shippingToUaUsd: revozportShipping.seaUsd,
+    airShippingToUaUsd: revozportShipping.airUsd,
     b2bCompareAt:
       productB2BCompareAt.eur > 0 || productB2BCompareAt.usd > 0 || productB2BCompareAt.uah > 0
         ? productB2BCompareAt
@@ -1887,6 +1891,8 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         length: (variant as any).length != null ? Number((variant as any).length) : null,
         width: (variant as any).width != null ? Number((variant as any).width) : null,
         height: (variant as any).height != null ? Number((variant as any).height) : null,
+        shippingToUaUsd: revozportShipping.seaUsd,
+        airShippingToUaUsd: revozportShipping.airUsd,
         b2bPrice:
           variantB2BPrice.eur > 0 || variantB2BPrice.usd > 0 || variantB2BPrice.uah > 0
             ? variantB2BPrice

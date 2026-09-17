@@ -168,6 +168,19 @@ export const OUR_STORES: OurStore[] = [
     imageUrl: "/images/shop/products/eventuri-carbon-intake-g8x.webp",
   },
   {
+    id: "revozport",
+    name: "Revozport",
+    nameUk: "Revozport",
+    description:
+      "Aerospace-grade carbon aero and OEM+ design for BMW, Audi, Porsche, Tesla, and Corvette.",
+    descriptionUk:
+      "Карбонова аеродинаміка аерокосмічного рівня та дизайн OEM+ для BMW, Audi, Porsche, Tesla і Corvette.",
+    href: "/shop/catalog?brand=Revozport",
+    external: false,
+    imageUrl: "/logos/revozport-white.png",
+    gridSpan: "standard",
+  },
+  {
     id: "ipe",
     name: "iPE Exhaust",
     nameUk: "iPE Exhaust",

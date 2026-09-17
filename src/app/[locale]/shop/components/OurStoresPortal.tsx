@@ -31,6 +31,7 @@ function resolveHref(locale: string, store: (typeof OUR_STORES)[number]) {
     eventuri: `/${locale}/shop/eventuri`,
     kw: `/${locale}/shop/catalog?brand=${encodeURIComponent("KW Suspensions")}`,
     fi: `/${locale}/shop/catalog?brand=${encodeURIComponent("Fi EXHAUST")}`,
+    revozport: `/${locale}/shop/catalog?brand=${encodeURIComponent("Revozport")}`,
   };
   return map[store.id] ?? store.href ?? "#";
 }
@@ -56,6 +57,7 @@ const STORE_ORDER = [
   "kw",
   "fi",
   "eventuri",
+  "revozport",
 ];
 
 /* ── Reusable store card ─────────────────────────────────────── */

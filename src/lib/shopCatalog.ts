@@ -48,6 +48,10 @@ export type ShopProductVariantSummary = {
   length?: number | null;
   width?: number | null;
   height?: number | null;
+  /** Supplier-provided sea freight to Ukraine in USD, if available. */
+  shippingToUaUsd?: number | null;
+  /** Supplier-provided air freight to Ukraine in USD, if available. */
+  airShippingToUaUsd?: number | null;
 };
 
 export type ShopProductExternalVideo = {
@@ -108,6 +112,10 @@ export interface ShopProduct {
   length?: number | null;
   width?: number | null;
   height?: number | null;
+  /** Supplier-provided sea freight to Ukraine in USD, if available. */
+  shippingToUaUsd?: number | null;
+  /** Supplier-provided air freight to Ukraine in USD, if available. */
+  airShippingToUaUsd?: number | null;
   image: string;
   gallery?: string[];
   externalVideos?: ShopProductExternalVideo[];
