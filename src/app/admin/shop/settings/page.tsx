@@ -33,6 +33,7 @@ import {
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
+import { addMissingShopMarketZones } from "@/lib/shopMarkets";
 
 type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
@@ -141,12 +142,7 @@ type BrandShippingBracketForm = {
 };
 
 type BrandShippingRuleMode =
-  | "fixed"
-  | "multiplier"
-  | "free"
-  | "tiered"
-  | "percent"
-  | "manual_quote";
+  "fixed" | "multiplier" | "free" | "tiered" | "percent" | "manual_quote";
 
 type BrandShippingRuleForm = {
   id: string;
@@ -825,6 +821,22 @@ export default function AdminShopSettingsPage() {
     }));
   }
 
+  function prepareMarketShippingZones() {
+    setForm((current) => ({
+      ...current,
+      shippingZones: addMissingShopMarketZones(current.shippingZones, (market) => ({
+        ...createShippingZoneForm(current.shippingZones.length + 1),
+        id: market.shippingZoneId,
+        name: market.ua,
+        countriesText: market.countries.join(", "),
+        currency: market.currency,
+        ratePerKg: "0",
+        volSurchargePerKg: "0",
+        enabled: false,
+      })),
+    }));
+  }
+
   function addBrandShippingRule() {
     setForm((current) => ({
       ...current,
@@ -1316,6 +1328,14 @@ export default function AdminShopSettingsPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                onClick={prepareMarketShippingZones}
+                className="inline-flex items-center gap-2 rounded-none border border-white/15 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
+                <Globe2 className="h-4 w-4" />
+                Україна / Європа / США
+              </button>
+              <button
+                type="button"
                 onClick={loadEuVatTaxRegions}
                 className="inline-flex items-center gap-2 rounded-none border border-emerald-500/30 px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/10"
               >
@@ -1332,6 +1352,12 @@ export default function AdminShopSettingsPage() {
               Додати зону доставки
             </button>
           </div>
+          <p className="mb-4 text-sm text-white/55">
+            Кнопка регіонів додає відсутні зони перед загальною зоною «*». Наявні тарифи
+            зберігаються. Нові зони вимкнені: спочатку задайте підтверджені тарифи й умови доставки,
+            увімкніть зони та збережіть налаштування. Америка охоплює лише США. Канада й інші країни
+            залишаються в загальній зоні. Валюта тарифу не визначає податок.
+          </p>
           <div className="space-y-4">
             {form.shippingZones.map((zone, index) => (
               <div
@@ -1808,6 +1834,25 @@ export default function AdminShopSettingsPage() {
               <Plus className="h-4 w-4" />
               Додати правило податку
             </button>
+          </div>
+          <div className="mb-4 space-y-2 rounded-none border border-white/10 bg-zinc-950/70 p-4 text-sm text-white/65">
+            <p>
+              Україна: ПДВ при продажу, імпортний ПДВ та мито — різні розрахунки. Потрібні статус
+              продавця, країна відправлення, імпортер і умови оплати митних платежів.
+            </p>
+            <p>
+              Європа: ставка VAT залежить від країни та операції; європейська зона включає також
+              країни поза ЄС. Реєстрація B2B сама по собі не підтверджує звільнення від VAT.
+            </p>
+            <p>
+              США: немає єдиної ставки sales tax для всієї країни. Потрібні податкові реєстрації
+              продавця та адреса доставки, зокрема штат і місцева юрисдикція.
+            </p>
+            <p>
+              Поточний checkout включає в базу податку лише позиції з окремою європейською ціною.
+              Для інших позицій нуль у розрахунку не підтверджує відсутність податкових зобов’язань.
+              Ці правила не обчислюють імпортне мито.
+            </p>
           </div>
           <div className="space-y-4">
             {form.taxRegions.map((region, index) => (

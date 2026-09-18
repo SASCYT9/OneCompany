@@ -22,9 +22,14 @@ function normalizeCountryToken(value: string | null | undefined) {
     .replace(/[^A-Z0-9]+/g, " ");
 }
 
+export const EUROPE_PRICING_COUNTRIES: readonly EuropePricingCountry[] = [
+  ...EU_VAT_COUNTRIES,
+  ...NON_EU_EUROPE_PRICING_COUNTRIES,
+];
+
 const EUROPE_PRICING_COUNTRY_LOOKUP = new Set<string>();
 
-for (const country of [...EU_VAT_COUNTRIES, ...NON_EU_EUROPE_PRICING_COUNTRIES]) {
+for (const country of EUROPE_PRICING_COUNTRIES) {
   EUROPE_PRICING_COUNTRY_LOOKUP.add(normalizeCountryToken(country.code));
   EUROPE_PRICING_COUNTRY_LOOKUP.add(normalizeCountryToken(country.name));
   for (const alias of country.aliases ?? []) {

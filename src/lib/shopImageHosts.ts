@@ -1,6 +1,8 @@
 // Shared by the storefront image optimizer and server-generated product documents.
 export const SHOP_REMOTE_IMAGE_HOSTS = [
   "cdn.shopify.com",
+  "revozport.com",
+  "www.revozport.com",
   "cdn11.bigcommerce.com",
   "www.racechip.eu",
   "www.brabus.com",

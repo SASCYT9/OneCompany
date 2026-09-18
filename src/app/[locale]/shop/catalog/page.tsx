@@ -21,6 +21,7 @@ import { canUsePremiumCatalogProjection } from "@/lib/shopCatalogPremiumEligibil
 import { resolveLocale } from "@/lib/seo";
 import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
+import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { prisma } from "@/lib/prisma";
@@ -281,7 +282,13 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       canonicalProducts.map((product) => [
         product.productId,
         {
-          price: product.price,
+          price: addRevozportUkraineShippingToPriceSet(
+            product.price,
+            product.brand,
+            pricingContext.priceCountry,
+            product.weightKg,
+            pricingContext.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 }
+          ),
           europePrice: product.europePrice ?? null,
           b2bPrice: product.b2bPrice ?? null,
           compareAt: product.compareAt ?? null,

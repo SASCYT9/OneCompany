@@ -112,6 +112,57 @@ test("Ukraine supplier quote is not bypassed by a zero free-shipping threshold",
   assert.equal(quote.total, 1348);
 });
 
+test("Revozport shipping uses the $25 per kg rule for supplier shipping weight", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "USD",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { EUR: 1, USD: 1.152174, UAH: 53 },
+    shippingZones: [
+      {
+        id: "worldwide",
+        name: "Worldwide",
+        countries: ["*"],
+        regions: [],
+        baseRate: 0,
+        perItemRate: 0,
+        freeOver: 0,
+        minimumSubtotal: null,
+        currency: "USD",
+        enabled: true,
+      },
+    ],
+    taxRegions: [],
+    orderNotificationEmail: null,
+    b2bNotes: null,
+  } as any);
+
+  const quote = buildCheckoutSettingsPreview(settings, {
+    currency: "USD",
+    subtotal: 4566,
+    itemCount: 1,
+    items: [
+      {
+        total: 4566,
+        quantity: 1,
+        pricingBaseRegion: "default",
+        brandName: "Revozport",
+        weightKg: 39.916,
+        shippingToUaUsd: 99,
+      },
+    ],
+    shippingAddress: {
+      line1: "Test",
+      city: "New York",
+      country: "US",
+    },
+  });
+
+  assert.equal(quote.shippingCost, 997.9);
+  assert.equal(quote.total, 5563.9);
+});
+
 test("checkout settings preview applies admin-configured EU VAT by destination country", () => {
   const settings = buildShopSettingsRuntimeFromPayload({
     b2bVisibilityMode: "approved_only",

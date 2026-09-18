@@ -328,6 +328,7 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("adro")) return "/images/shop/adro/adro-logo-white.svg";
   if (b.includes("brabus")) return "/logos/brabus.svg";
   if (b.includes("racechip")) return "/logos/racechip.png";
+  if (b.includes("revozport")) return "/brands/revozport-logo.png";
   if (b.includes("do88")) return "/logos/do88.png";
   if (b.includes("csf")) return "/images/shop/csf/csf-logo.svg";
   if (b.includes("ohlins")) return "/logos/ohlins.svg";
@@ -374,7 +375,7 @@ const LOGO_CONTRAST_LIFT_BRANDS = [
   "vorsteiner",
 ];
 
-const LOGO_INVERT_BRANDS = ["brabus"];
+const LOGO_INVERT_BRANDS = ["brabus", "revozport"];
 
 const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban", "eventuri"];
 
@@ -389,6 +390,7 @@ const LOGO_WIDE_MARK_BRANDS = [
   "ilmberger",
   "ohlins",
   "racechip",
+  "revozport",
   "remus",
   "urban",
 ];
@@ -679,11 +681,17 @@ function SafeProductImage({
   className?: string;
   isMini?: boolean;
 }) {
-  const cleanUrl = (value: string) =>
-    value.replace(/(https?:\/\/)|(\/)+/g, (match, protocol) => {
+  const cleanUrl = (value: string) => {
+    const trimmed = value.trim();
+    // Shopify frequently returns protocol-relative CDN URLs (`//cdn...`).
+    // Collapsing those slashes turns them into a local `/cdn...` path and
+    // makes every catalog-card image fail while the same PDP image works.
+    if (trimmed.startsWith("//")) return `https:${trimmed}`;
+    return trimmed.replace(/(https?:\/\/)|(\/)+/g, (match, protocol) => {
       if (protocol) return protocol;
       return "/";
     });
+  };
   const sources = Array.from(
     new Set([src, ...fallbackSrcs].map((value) => String(value ?? "").trim()).filter(Boolean))
   ).map(cleanUrl);

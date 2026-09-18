@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from decimal import Decimal, ROUND_HALF_UP
 import html
 import json
 import re
@@ -38,6 +39,47 @@ IMAGE_CACHE_FILE = OUTPUT_DIR / "revozport-image-cache.json"
 SKU_RE = re.compile(r"^RZ-[A-Z0-9-]+$")
 IN_TO_CM = 2.54
 LB_TO_KG = 0.45359237
+REVOZPORT_SHIPPING_RATE_USD_PER_KG = 25
+REVOZPORT_SHIPPING_SAFETY_MULTIPLIER = 1.10
+
+# The supplier workbook has a package/shipping weight for most products, but
+# some rows contain only the part weight (or no weight at all). Those rows are
+# still useful catalog candidates, so we estimate a conservative packed weight
+# from comparable Revozport parts. The estimate is always marked in the
+# payload and must not be confused with a supplier-confirmed measurement.
+ESTIMATED_SHIPPING_WEIGHT_BY_TYPE_KG = {
+    "hood": 39.92,
+    "rear trunk": 19.96,
+    "side skirts": 9.98,
+    "side fender": 9.98,
+    "fender arches": 9.98,
+    "rear wing": 9.98,
+    "rear diffuser": 7.98,
+    "undertray": 7.98,
+    "front lip": 4.99,
+    "splitters": 4.99,
+    "splitter": 4.99,
+    "front splitter": 4.99,
+    "spoiler": 4.99,
+    "bumper": 7.98,
+    "grill": 3.18,
+    "air intake vents": 1.50,
+    "air intake": 3.18,
+    "vents": 1.50,
+    "vent": 1.50,
+    "canard": 1.50,
+    "mirror": 1.50,
+    "tailpipe": 3.18,
+}
+DEFAULT_ESTIMATED_SHIPPING_WEIGHT_KG = 4.99
+
+
+def find_weight_baseline(value: str) -> tuple[float, str] | None:
+    normalized = text(value).lower()
+    for part_type, candidate in ESTIMATED_SHIPPING_WEIGHT_BY_TYPE_KG.items():
+        if part_type in normalized:
+            return candidate, part_type
+    return None
 
 SHEET_MAKES = {
     "AUDI": "Audi",
@@ -98,6 +140,47 @@ def positive_number(value: Any) -> float | None:
 def metric(value: Any, factor: float) -> float | None:
     parsed = positive_number(value)
     return round(parsed * factor, 3) if parsed is not None else None
+
+
+def round_currency(value: float) -> float:
+    return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def estimate_shipping_weight_kg(
+    name: str,
+    product_type: str,
+    product_weight_kg: float | None,
+    length_cm: float | None,
+    width_cm: float | None,
+    height_cm: float | None,
+) -> tuple[float, str]:
+    """Estimate packed shipping weight when the workbook is incomplete.
+
+    The baseline is based on the median shipping weights of comparable rows in
+    the same workbook. Product weight can only increase the estimate; it never
+    replaces the package-weight baseline. Large known package dimensions can
+    also lift a generic estimate to the next safe packaging band.
+    """
+    baseline = DEFAULT_ESTIMATED_SHIPPING_WEIGHT_KG
+    matched_type = "generic carbon aero"
+    # Prefer the structured product type. Searching the full title first can
+    # misclassify "hood fins" as a full hood or a canard as a bumper part.
+    match = find_weight_baseline(product_type) or find_weight_baseline(name)
+    if match is not None:
+        baseline, matched_type = match
+
+    estimate = baseline
+    if product_weight_kg is not None and product_weight_kg > 0:
+        estimate = max(estimate, product_weight_kg * 1.8)
+
+    if all(value is not None and value > 0 for value in (length_cm, width_cm, height_cm)):
+        volume_m3 = (length_cm * width_cm * height_cm) / 1_000_000
+        max_dimension_cm = max(length_cm, width_cm, height_cm)
+        if volume_m3 >= 0.28 or max_dimension_cm >= 180:
+            estimate = max(estimate, 9.98)
+
+    source = "estimated_from_product_weight" if product_weight_kg is not None else "estimated_by_part_type"
+    return round(estimate * REVOZPORT_SHIPPING_SAFETY_MULTIPLIER, 3), f"{source}:{matched_type}"
 
 
 def year_value(value: Any) -> int | None:
@@ -388,10 +471,27 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
         height_cm = metric(choose_number(detail, "PACKAGE HEIGHT (IN)"), IN_TO_CM)
         shipping_weight_kg = metric(choose_number(detail, "SHIPPING WEIGHT(LBS)"), LB_TO_KG)
         product_weight_kg = metric(choose_number(detail, "PRODUCT WEIGHT (LBS)"), LB_TO_KG)
-        weight_kg = shipping_weight_kg or product_weight_kg
-        weight_is_estimated = shipping_weight_kg is None and product_weight_kg is not None
+        if shipping_weight_kg is not None:
+            weight_kg = shipping_weight_kg
+            weight_source = "workbook_shipping_weight"
+            weight_is_estimated = False
+        else:
+            weight_kg, weight_source = estimate_shipping_weight_kg(
+                name,
+                product_type,
+                product_weight_kg,
+                length_cm,
+                width_cm,
+                height_cm,
+            )
+            weight_is_estimated = True
         dimensions_complete = all(value is not None for value in (length_cm, width_cm, height_cm))
         weight_complete = weight_kg is not None
+        calculated_shipping_usd = (
+            round_currency(weight_kg * REVOZPORT_SHIPPING_RATE_USD_PER_KG)
+            if weight_kg is not None
+            else None
+        )
 
         if include_images and url:
             image = cache.get(url)
@@ -427,8 +527,10 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             counts["missing_price"] += 1
         if not dimensions_complete:
             counts["missing_dimensions"] += 1
-        if not weight_complete:
-            counts["missing_weight"] += 1
+        if shipping_weight_kg is None:
+            counts["missing_source_shipping_weight"] += 1
+        if weight_is_estimated:
+            counts["estimated_weight"] += 1
         if not image:
             counts["missing_image"] += 1
         if len(rows) > 1:
@@ -436,15 +538,17 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
 
         short_en = f"{name}. Revozport carbon aero component for {display_fitment}."
         short_ua = f"{title_ua}. Карбоновий компонент Revozport для {display_fitment}."
+        weight_label_en = "shipping weight"
+        weight_label_ua = "вага для доставки"
         dims_text_en = (
             f"Package: {length_cm:.1f} × {width_cm:.1f} × {height_cm:.1f} cm; "
-            f"shipping weight: {weight_kg:.3f} kg."
+            f"{weight_label_en}: {weight_kg:.3f} kg."
             if dimensions_complete and weight_kg is not None
             else "Package dimensions and shipping weight require review."
         )
         dims_text_ua = (
             f"Упаковка: {length_cm:.1f} × {width_cm:.1f} × {height_cm:.1f} см; "
-            f"вага для доставки: {weight_kg:.3f} кг."
+            f"{weight_label_ua}: {weight_kg:.3f} кг."
             if dimensions_complete and weight_kg is not None
             else "Габарити упаковки та вага для доставки потребують перевірки."
         )
@@ -453,14 +557,14 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             f"<ul><li>SKU: {html.escape(sku)}</li>"
             f"<li>Material: {html.escape(material or 'See official specification')}</li>"
             f"<li>{html.escape(dims_text_en)}</li>"
-            f"<li>Ukraine sea delivery: {('$' + format(sea, '.2f')) if sea is not None else 'quote required'}</li></ul>"
+            f"<li>Worldwide delivery: {('$' + format(calculated_shipping_usd, '.2f') + ' at $25/kg') if calculated_shipping_usd is not None else 'weight required'}</li></ul>"
         )
         body_ua = (
             f"<p>{html.escape(short_ua)}</p>"
             f"<ul><li>Артикул: {html.escape(sku)}</li>"
             f"<li>Матеріал: {html.escape(material or 'див. офіційну специфікацію')}</li>"
             f"<li>{html.escape(dims_text_ua)}</li>"
-            f"<li>Морська доставка в Україну: {('$' + format(sea, '.2f')) if sea is not None else 'потрібен запит'}</li></ul>"
+            f"<li>Доставка по світу: {('$' + format(calculated_shipping_usd, '.2f') + ' за правилом $25/кг') if calculated_shipping_usd is not None else 'потрібна вага'}</li></ul>"
         )
         media = (
             [{"src": image, "altText": name, "position": 1, "mediaType": "IMAGE"}]
@@ -481,6 +585,15 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             metafields.append(meta("revozport_logistics", "product_weight_kg", f"{product_weight_kg:.3f}", "number_decimal"))
         if shipping_weight_kg is not None:
             metafields.append(meta("revozport_logistics", "shipping_weight_kg", f"{shipping_weight_kg:.3f}", "number_decimal"))
+        else:
+            metafields.append(meta("revozport_logistics", "shipping_weight_kg", f"{weight_kg:.3f}", "number_decimal"))
+            metafields.append(meta("revozport_logistics", "estimated_shipping_weight_kg", f"{weight_kg:.3f}", "number_decimal"))
+        metafields.append(meta("revozport_logistics", "shipping_weight_source", weight_source))
+        metafields.append(meta("revozport_logistics", "shipping_rate_usd_per_kg", f"{REVOZPORT_SHIPPING_RATE_USD_PER_KG:.2f}", "number_decimal"))
+        if weight_is_estimated:
+            metafields.append(meta("revozport_logistics", "estimated_weight_safety_margin_pct", "10.00", "number_decimal"))
+        if calculated_shipping_usd is not None:
+            metafields.append(meta("revozport_logistics", "calculated_shipping_usd", f"{calculated_shipping_usd:.2f}", "number_decimal"))
 
         product = {
             "slug": f"revozport-{slugify(sku)}",
@@ -538,12 +651,12 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             "highlights": {
                 "ua": [
                     "Офіційна ціна Revozport у USD" if msrp is not None else "Ціна уточнюється за офіційним прайсом",
-                    "Доставка в Україну розраховується за ставкою SEA Revozport" if sea is not None else "Доставка в Україну — за запитом",
+                    "Доставка: $25/кг; вага для доставки вказана",
                     "Сумісність і дані упаковки збережені з прайсу виробника",
                 ],
                 "en": [
                     "Official Revozport USD price" if msrp is not None else "Price requires official quote",
-                    "Ukraine delivery uses the Revozport SEA quote" if sea is not None else "Ukraine delivery quoted separately",
+                    "Delivery: $25/kg; shipping weight included",
                     "Fitment and package data retained from the manufacturer workbook",
                 ],
             },
@@ -599,8 +712,10 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
                     "height": choose_number(detail, "PACKAGE HEIGHT (IN)"),
                 },
                 "shippingWeightLbs": choose_number(detail, "SHIPPING WEIGHT(LBS)"),
+                "estimatedShippingWeightKg": weight_kg if weight_is_estimated else None,
+                "shippingWeightSource": weight_source,
                 "productWeightLbs": choose_number(detail, "PRODUCT WEIGHT (LBS)"),
-                "statusReason": "complete source data" if status == "ACTIVE" else "missing price, image, dimensions, or weight",
+                "statusReason": "complete source data" if status == "ACTIVE" else "normalized logistics data; review remaining source gaps",
             },
         }
         products.append(product)
