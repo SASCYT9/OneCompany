@@ -18,6 +18,11 @@ import {
   resolveShopProductPricing,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
+import {
+  calculateRevozportShippingUsd,
+  isRevozportBrand,
+  isUkraineCountry,
+} from "@/lib/revozportShipping";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
@@ -186,6 +191,10 @@ export function ShopProductVariantPurchaseSection({
     };
   }, [currentVariant, product]);
   const pricing = resolveShopProductPricing(currentProduct, viewerContext);
+  const ukraineDeliveryIncluded =
+    isUkraineCountry(viewerContext.priceCountry) &&
+    isRevozportBrand(product.brand) &&
+    calculateRevozportShippingUsd(currentVariant?.weightKg ?? product.weightKg) != null;
 
   const handleSelect = (axisIndex: number, value: string) => {
     setSelected((previous) => {
@@ -223,6 +232,13 @@ export function ShopProductVariantPurchaseSection({
             </div>
             <ShopAvailabilityBadge availability={availability} locale={isUa ? "ua" : "en"} />
           </div>
+          {ukraineDeliveryIncluded ? (
+            <p className="mt-3 text-xs leading-relaxed text-emerald-600 dark:text-emerald-400">
+              {isUa
+                ? "Доставка в Україну вже включена у ціну. Для інших країн доставка розраховується окремо в Checkout."
+                : "Delivery to Ukraine is included in the price. Other destinations are calculated separately at checkout."}
+            </p>
+          ) : null}
           {compareAt ? (
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40">
