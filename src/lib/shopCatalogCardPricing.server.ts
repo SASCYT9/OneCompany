@@ -18,6 +18,7 @@ export type ShopCatalogCardPricing = Readonly<{
   b2bCompareAt: ShopMoneySet | null;
   brand: string | null;
   sku: string | null;
+  weightKg: number | null;
   primaryMediaUrl: string | null;
   imageSources: string[];
   defaultVariantId: string | null;
@@ -43,6 +44,7 @@ type ShopCatalogCardPricingRow = {
   id: string;
   brand: string | null;
   vendor: string | null;
+  productWeight: unknown;
   image: string | null;
   sku: string | null;
   priceEur: unknown;
@@ -74,6 +76,7 @@ type ShopCatalogCardPricingRow = {
   variantCompareAtEurB2b: unknown;
   variantCompareAtUsdB2b: unknown;
   variantCompareAtUahB2b: unknown;
+  variantWeight: unknown;
   mediaSrc: string | null;
 };
 
@@ -96,6 +99,7 @@ async function readShopCatalogCardPricingRows(
        LIMIT 1) AS "storefrontDisplayValue",
       product."brand",
       product."vendor",
+      product."weight" AS "productWeight",
       product."image",
       product."sku",
       product."priceEur",
@@ -127,6 +131,7 @@ async function readShopCatalogCardPricingRows(
       variant."compareAtEurB2b" AS "variantCompareAtEurB2b",
       variant."compareAtUsdB2b" AS "variantCompareAtUsdB2b",
       variant."compareAtUahB2b" AS "variantCompareAtUahB2b",
+      variant."weight" AS "variantWeight",
       media."src" AS "mediaSrc"
     FROM "ShopProduct" product
     LEFT JOIN LATERAL (
@@ -134,6 +139,7 @@ async function readShopCatalogCardPricingRows(
         candidate."id", candidate."sku", candidate."image",
         candidate."priceEur", candidate."priceEurEurope", candidate."priceUsd", candidate."priceUah",
         candidate."priceEurB2b", candidate."priceUsdB2b", candidate."priceUahB2b",
+        candidate."weight",
         candidate."compareAtEur", candidate."compareAtUsd", candidate."compareAtUah",
         candidate."compareAtEurB2b", candidate."compareAtUsdB2b", candidate."compareAtUahB2b"
       FROM "ShopProductVariant" candidate
@@ -241,6 +247,12 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
         ),
         brand: resolveShopProductBrand(row) || null,
         sku: row.sku ?? variant.sku ?? null,
+        weightKg:
+          row.variantWeight != null
+            ? Number(row.variantWeight)
+            : row.productWeight != null
+              ? Number(row.productWeight)
+              : null,
         primaryMediaUrl: row.image?.trim() || variant.image?.trim() || row.mediaSrc?.trim() || null,
         imageSources: [
           ...new Set(

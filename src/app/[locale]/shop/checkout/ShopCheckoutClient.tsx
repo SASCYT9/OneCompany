@@ -40,6 +40,7 @@ type CheckoutQuote = {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  shippingIncludedInPrice?: boolean;
   taxableSubtotal?: number;
   taxableShippingCost?: number;
   taxAmount: number;
@@ -646,11 +647,15 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
               <div className="flex items-center justify-between font-light">
                 <span>{isUa ? "Доставка" : "Shipping"}</span>
                 <span className="tabular-nums">
-                  {quote?.shippingCost === 0
+                  {quote?.shippingIncludedInPrice
                     ? isUa
-                      ? "За тарифами перевізника"
-                      : "Calculated by carrier"
-                    : formatShopMoney(locale, quote?.shippingCost ?? 0, quoteCurrency)}
+                      ? "Включена у ціну"
+                      : "Included in price"
+                    : quote?.shippingCost === 0
+                      ? isUa
+                        ? "За тарифами перевізника"
+                        : "Calculated by carrier"
+                      : formatShopMoney(locale, quote?.shippingCost ?? 0, quoteCurrency)}
                 </span>
               </div>
               {showVatLine ? (

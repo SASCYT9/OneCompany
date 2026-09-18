@@ -2,6 +2,7 @@ import type { CustomerGroup } from "@prisma/client";
 import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
+import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 
 export type ShopPriceAudience = "b2c" | "b2b";
 export type ShopResolvedPriceSource = "b2c" | "b2b-explicit" | "b2b-discount";
@@ -14,6 +15,7 @@ export type ShopViewerPricingContext = {
   b2bVisibilityMode: string;
   isAuthenticated: boolean;
   priceCountry: string | null;
+  currencyRates?: { EUR: number; USD: number; UAH: number };
   /**
    * Optional pre-loaded discount maps (lowercased brand → discount %)
    * used by the 3-tier per-brand resolution. If absent, only the
@@ -244,6 +246,7 @@ export function buildShopViewerPricingContext(
     b2bVisibilityMode: settings.b2bVisibilityMode,
     isAuthenticated,
     priceCountry: options?.priceCountry ?? null,
+    currencyRates: settings.currencyRates,
     systemBrandDiscountMap: brandMaps?.systemBrandDiscountMap,
     customerBrandDiscountMap: brandMaps?.customerBrandDiscountMap,
   };
@@ -322,8 +325,15 @@ export function resolveShopProductPricing(product: ShopProduct, context: ShopVie
   // Brand falls back to vendor — see the comment on the brand resolver
   // for the full 4-tier discount priority.
   const brand = product.brand ?? (product as any).vendor ?? null;
+  const deliveredUkrainePrice = addRevozportUkraineShippingToPriceSet(
+    product.price,
+    brand,
+    context.priceCountry,
+    product.weightKg,
+    context.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 }
+  );
   return resolveShopPriceBands({
-    b2cPrice: product.price,
+    b2cPrice: deliveredUkrainePrice,
     europePrice: product.europePrice ?? null,
     b2cCompareAt: product.compareAt ?? null,
     b2bPrice: product.b2bPrice ?? null,

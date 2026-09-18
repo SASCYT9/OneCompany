@@ -18,7 +18,13 @@ import {
   type ShopPriceAudience,
 } from "@/lib/shopPricingAudience";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
-import { isUkraineShippingZone } from "@/lib/revozportShipping";
+import {
+  addRevozportUkraineShippingToPriceSet,
+  calculateRevozportShippingUsd,
+  isRevozportBrand,
+  isUkraineCountry,
+  isUkraineShippingZone,
+} from "@/lib/revozportShipping";
 
 type CheckoutRequestItem = {
   slug: string;
@@ -55,8 +61,9 @@ type ResolvedCheckoutItem = {
   length: number | null;
   width: number | null;
   height: number | null;
-  /** Exact supplier sea-freight quote to Ukraine, in USD, when available. */
+  /** Legacy supplier sea-freight quote to Ukraine, in USD, when available. */
   shippingToUaUsd: number | null;
+  shippingIncludedInPrice: boolean;
 };
 
 type CheckoutRuleSnapshot = {
@@ -82,6 +89,7 @@ export type CheckoutQuote = {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  shippingIncludedInPrice: boolean;
   taxableSubtotal: number;
   taxableShippingCost: number;
   taxAmount: number;
@@ -265,12 +273,24 @@ function calculateShippingCost(
 ): ShippingCostResult {
   if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   const usesSupplierUkraineQuotes = isUkraineShippingZone(zone);
+  const hasRevozportWeightRate = items.some(
+    (item) =>
+      !item.shippingIncludedInPrice &&
+      isRevozportBrand(item.brandName) &&
+      calculateRevozportShippingUsd(item.weightKg) != null
+  );
   const hasSupplierUkraineQuote =
-    usesSupplierUkraineQuotes && items.some((item) => item.shippingToUaUsd != null);
+    usesSupplierUkraineQuotes &&
+    items.some((item) => !item.shippingIncludedInPrice && item.shippingToUaUsd != null);
 
-  // A supplier quote is the authoritative Ukraine freight for Revozport. Do
-  // not let a generic free-shipping threshold short-circuit that quote.
-  if (zone.freeOver != null && subtotal >= zone.freeOver && !hasSupplierUkraineQuote) {
+  // Revozport's weight rate and the legacy Ukraine quote must not be bypassed
+  // by a generic free-shipping threshold.
+  if (
+    zone.freeOver != null &&
+    subtotal >= zone.freeOver &&
+    !hasRevozportWeightRate &&
+    !hasSupplierUkraineQuote
+  ) {
     return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   }
 
@@ -329,10 +349,20 @@ function calculateShippingCost(
       let itemCost = 0;
       let handledByRule = false;
 
-      if (usesSupplierUkraineQuotes && item.shippingToUaUsd != null) {
+      const revozportShippingUsd = isRevozportBrand(item.brandName)
+        ? item.shippingIncludedInPrice
+          ? null
+          : calculateRevozportShippingUsd(item.weightKg)
+        : null;
+      const shippingUsd =
+        revozportShippingUsd ??
+        (!item.shippingIncludedInPrice && usesSupplierUkraineQuotes ? item.shippingToUaUsd : null);
+
+      if (item.shippingIncludedInPrice) {
+        handledByRule = true;
+      } else if (shippingUsd != null) {
         itemCost =
-          convertAmount(item.shippingToUaUsd, "USD", zone.currency, settings.currencyRates) *
-          item.quantity;
+          convertAmount(shippingUsd, "USD", zone.currency, settings.currencyRates) * item.quantity;
         handledByRule = true;
       }
 
@@ -416,15 +446,25 @@ function calculateShippingCost(
   } else {
     const actualItemCount =
       items.length > 0 ? items.reduce((sum, item) => sum + item.quantity, 0) : itemCount;
-    if (usesSupplierUkraineQuotes && items.length > 0) {
+    if (items.length > 0) {
       totalCost += items.reduce((sum, item) => {
-        if (item.shippingToUaUsd == null) {
+        if (item.shippingIncludedInPrice) return sum;
+        const revozportShippingUsd = isRevozportBrand(item.brandName)
+          ? item.shippingIncludedInPrice
+            ? null
+            : calculateRevozportShippingUsd(item.weightKg)
+          : null;
+        const shippingUsd =
+          revozportShippingUsd ??
+          (!item.shippingIncludedInPrice && usesSupplierUkraineQuotes
+            ? item.shippingToUaUsd
+            : null);
+        if (shippingUsd == null) {
           return sum + zone.perItemRate * item.quantity;
         }
         return (
           sum +
-          convertAmount(item.shippingToUaUsd, "USD", zone.currency, settings.currencyRates) *
-            item.quantity
+          convertAmount(shippingUsd, "USD", zone.currency, settings.currencyRates) * item.quantity
         );
       }, 0);
     } else {
@@ -492,6 +532,7 @@ function buildPricingSnapshot(params: {
   subtotal: number;
   regionalAdjustmentAmount: number;
   shippingCost: number;
+  shippingIncludedInPrice: boolean;
   taxableSubtotal: number;
   taxableShippingCost: number;
   taxAmount: number;
@@ -509,6 +550,7 @@ function buildPricingSnapshot(params: {
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    shippingIncludedInPrice,
     taxableSubtotal,
     taxableShippingCost,
     taxAmount,
@@ -550,11 +592,13 @@ function buildPricingSnapshot(params: {
       pricingBaseRegion: item.pricingBaseRegion,
       discountPercent: item.discountPercent,
       shippingToUaUsd: item.shippingToUaUsd,
+      shippingIncludedInPrice: item.shippingIncludedInPrice,
     })),
     itemCount,
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    shippingIncludedInPrice,
     taxableSubtotal,
     taxableShippingCost,
     taxAmount,
@@ -631,6 +675,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     input.items
   );
   const shippingCost = shippingResult.cost;
+  const shippingIncludedInPrice =
+    input.items.length > 0 && input.items.every((item) => item.shippingIncludedInPrice);
   const taxableShippingCost = input.items.length
     ? calculateProportionalAmount(shippingCost, taxableSubtotal, adjustedSubtotal)
     : shippingCost;
@@ -648,6 +694,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    shippingIncludedInPrice,
     taxableSubtotal,
     taxableShippingCost,
     taxAmount,
@@ -665,6 +712,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     subtotal,
     regionalAdjustmentAmount,
     shippingCost,
+    shippingIncludedInPrice,
     taxableSubtotal,
     taxableShippingCost,
     taxAmount,
@@ -756,6 +804,7 @@ export function buildCheckoutSettingsPreview(
       width: item.width ?? null,
       height: item.height ?? null,
       shippingToUaUsd: item.shippingToUaUsd ?? null,
+      shippingIncludedInPrice: false,
     };
   });
   const subtotal = previewItems.length
@@ -815,9 +864,16 @@ export async function buildCheckoutQuote(
     const variant = rawItem.variantId
       ? product.variants?.find((entry) => entry.id === rawItem.variantId)
       : undefined;
+    const variantWeightKg = variant?.weightKg ?? product.weightKg ?? null;
     const pricing = variant
       ? resolveShopPriceBands({
-          b2cPrice: variant.price,
+          b2cPrice: addRevozportUkraineShippingToPriceSet(
+            variant.price,
+            product.brand,
+            input.shippingAddress.country,
+            variantWeightKg,
+            settings.currencyRates
+          ),
           europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
           b2bPrice: variant.b2bPrice ?? null,
@@ -855,6 +911,10 @@ export async function buildCheckoutQuote(
       width: variant?.width ?? product.width ?? null,
       height: variant?.height ?? product.height ?? null,
       shippingToUaUsd: variant?.shippingToUaUsd ?? product.shippingToUaUsd ?? null,
+      shippingIncludedInPrice:
+        isUkraineCountry(input.shippingAddress.country) &&
+        isRevozportBrand(product.brand) &&
+        calculateRevozportShippingUsd(variantWeightKg) != null,
     });
     subtotal = roundMoney(subtotal + total);
     itemCount += quantity;

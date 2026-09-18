@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / ".tmp" / "revozport-catalog-preview.json"
 OUTPUT = ROOT / ".tmp" / "revozport-preview.html"
+SHIPPING_RATE_USD_PER_KG = 25
 
 
 def esc(value: object) -> str:
@@ -22,7 +23,9 @@ def card(product: dict) -> str:
     status = product.get("status", "DRAFT")
     status_label = "Готово до перевірки" if status == "ACTIVE" else "Чернетка"
     price = product.get("priceUsd")
-    sea = source.get("seaShippingUsd")
+    weight = product.get("weight")
+    shipping = float(weight) * SHIPPING_RATE_USD_PER_KG if weight else None
+    shipping_label = "Доставка: $"
     image_html = (
         f'<img src="{esc(image)}" alt="{esc(product.get("titleEn"))}" loading="lazy">'
         if image
@@ -36,7 +39,7 @@ def card(product: dict) -> str:
     <p class="ua">{esc(product.get("titleUa"))}</p>
     <div class="facts">
       <span>{"$" + format(float(price), ",.2f") if price is not None else "Ціна уточнюється"}</span>
-      <span>{"SEA UA: $" + format(float(sea), ",.2f") if sea is not None else "SEA UA: уточнюється"}</span>
+      <span>{shipping_label + format(shipping, ",.2f") if shipping is not None else "Доставка: уточнюється"}</span>
     </div>
     <div class="meta">{esc(source.get("sheet"))} · {"Фото є" if image else "Без фото"}</div>
   </div>

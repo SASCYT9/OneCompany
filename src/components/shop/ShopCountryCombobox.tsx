@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { SHOP_COUNTRIES, resolveShopCountry, type ShopCountry } from "@/lib/shopCountries";
+import { groupShopCountriesByMarket } from "@/lib/shopMarkets";
 import { cn } from "@/lib/utils";
 
 function normalizeSearch(value: string | null | undefined) {
@@ -72,6 +73,8 @@ export function ShopCountrySearchList({
     });
   }, [query]);
 
+  const countryGroups = useMemo(() => groupShopCountriesByMarket(countries), [countries]);
+
   return (
     <div className={cn("space-y-2", className)}>
       <div className="relative">
@@ -96,33 +99,40 @@ export function ShopCountrySearchList({
         className={cn("max-h-72 overflow-y-auto pr-1", listClassName)}
       >
         {countries.length ? (
-          countries.map((country) => {
-            const selected = value === country.value;
-            return (
-              <button
-                key={country.value}
-                type="button"
-                role="option"
-                aria-selected={selected}
-                onClick={() => {
-                  onChange(country.value);
-                  onSelect?.();
-                }}
-                className={cn(
-                  "flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-[13px] transition",
-                  selected
-                    ? "bg-foreground text-background"
-                    : "text-foreground/75 hover:bg-foreground/8 hover:text-foreground"
-                )}
-              >
-                <span className="min-w-0 truncate">{getShopCountryLabel(country, locale)}</span>
-                <span className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.14em] opacity-65">
-                  {country.code !== "ZZ" ? country.code : null}
-                  {selected ? <Check className="h-3.5 w-3.5" strokeWidth={2} /> : null}
-                </span>
-              </button>
-            );
-          })
+          countryGroups.map((group) => (
+            <div key={group.id} role="group" aria-label={isUa ? group.ua : group.en}>
+              <div className="px-2.5 pb-1 pt-3 text-[10px] uppercase tracking-[0.14em] text-foreground/45">
+                {isUa ? group.ua : group.en}
+              </div>
+              {group.countries.map((country) => {
+                const selected = value === country.value;
+                return (
+                  <button
+                    key={country.value}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => {
+                      onChange(country.value);
+                      onSelect?.();
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-[13px] transition",
+                      selected
+                        ? "bg-foreground text-background"
+                        : "text-foreground/75 hover:bg-foreground/8 hover:text-foreground"
+                    )}
+                  >
+                    <span className="min-w-0 truncate">{getShopCountryLabel(country, locale)}</span>
+                    <span className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.14em] opacity-65">
+                      {country.code !== "ZZ" ? country.code : null}
+                      {selected ? <Check className="h-3.5 w-3.5" strokeWidth={2} /> : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))
         ) : (
           <div className="rounded-lg px-2.5 py-3 text-sm text-foreground/50">
             {isUa ? "Країну не знайдено" : "No countries found"}
