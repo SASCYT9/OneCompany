@@ -185,7 +185,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       customerGroup: session?.group,
       isAuthenticated: Boolean(session),
       customerB2BDiscountPercent: session?.b2bDiscountPercent,
-      priceCountry: query.country,
+      priceCountry: query.country ?? (resolvedLocale === "ua" ? "Ukraine" : null),
     });
     const effectivePriceContext = buildShopCatalogEffectivePriceContext({
       viewer: pricingContext,

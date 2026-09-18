@@ -128,7 +128,9 @@ export default async function ShopProductPage({ params }: Props) {
   // bottom of the page. Main path only awaits shop settings.
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
+    priceCountry: isUa ? "Ukraine" : null,
+  });
   const pricing = resolveShopProductPricing(product, viewerContext);
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);

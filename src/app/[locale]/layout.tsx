@@ -78,6 +78,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       {heroPosterSrc && <link rel="preload" href={heroPosterSrc} as="image" />}
       <ShopCurrencyProvider
         defaultCurrency={shopSettingsRuntime?.defaultCurrency ?? "UAH"}
+        defaultCountry={locale === "ua" ? "Ukraine" : undefined}
         initialRates={shopSettingsRuntime?.currencyRates ?? null}
       >
         <div

@@ -443,7 +443,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // live context via useShopViewerContext in client layouts (Brabus/Burger
   // already wired). The default inline layout renders anon prices on detail
   // pages for B2B users; correct B2B pricing always applies in cart/checkout.
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
+    priceCountry: isUa ? "Ukraine" : null,
+  });
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant =
     product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
