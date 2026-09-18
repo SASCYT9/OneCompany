@@ -37,6 +37,7 @@ import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
+import { isRevozportBrand } from "@/lib/revozportShipping";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -107,6 +108,25 @@ function normalizeImage(value: string | null | undefined) {
   return normalized.startsWith("//") ? `https:${normalized}` : normalized;
 }
 
+function appendRevozportShippingWeight(
+  html: string,
+  product: ShopProduct,
+  locale: SupportedLocale
+) {
+  if (!isRevozportBrand(product.brand)) return html;
+  if (typeof product.weightKg !== "number" || !Number.isFinite(product.weightKg)) return html;
+  if (/(?:Вага відправлення|Shipping weight)\s*:/i.test(html)) return html;
+
+  const label = locale === "ua" ? "Вага відправлення" : "Shipping weight";
+  const unit = locale === "ua" ? "кг" : "kg";
+  const specHtml = `<p><strong>${label}:</strong> ${product.weightKg} ${unit}</p>`;
+  const deliveryHeading = /<h[1-6][^>]*>\s*(?:Доставка|Delivery)\s*<\/h[1-6]>/i;
+  const match = deliveryHeading.exec(html);
+
+  if (!match || match.index == null) return `${html}${specHtml}`;
+  return `${html.slice(0, match.index)}${specHtml}${html.slice(match.index)}`;
+}
+
 export default async function ShopProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
@@ -138,6 +158,11 @@ export default async function ShopProductPage({ params }: Props) {
   const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
   const descriptionSections = extractShopProductDescriptionSections(
     longDescription || shortDescription
+  );
+  descriptionSections.introHtml = appendRevozportShippingWeight(
+    descriptionSections.introHtml,
+    product,
+    resolvedLocale
   );
   const gallery = (product.gallery?.length ? product.gallery : [product.image])
     .map(normalizeImage)
@@ -305,3 +330,4 @@ async function RelatedProductsSection({
     </section>
   );
 }
+
