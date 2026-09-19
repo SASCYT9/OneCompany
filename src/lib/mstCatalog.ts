@@ -1,3 +1,10 @@
+import {
+  upgradeSupplierFitmentContractToV2,
+  type SupplierFitmentApplication,
+  type SupplierFitmentImportContract,
+  type SupplierFitmentV1Contract,
+} from "@/lib/shopImportFitment";
+
 export const MST_PRICE_MARKUP_RATE = 1.1;
 export const MST_GBP_TO_USD_RATE = 1.37;
 
@@ -52,6 +59,154 @@ export type MstCatalogProduct = {
     priceUsd: number | null;
   };
 };
+
+function titleYearRange(title: string) {
+  const range = title.match(/\b(20\d{2})\s*-\s*(20\d{2})\b/);
+  if (range) return { yearFrom: Number(range[1]), yearTo: Number(range[2]) };
+
+  const from = title.match(/\b(20\d{2})\+\b/);
+  if (from) return { yearFrom: Number(from[1]), yearTo: null };
+
+  const single = title.match(/\b(20\d{2})\b/);
+  return single ? { yearFrom: Number(single[1]), yearTo: Number(single[1]) } : null;
+}
+
+function titleTokens(title: string, pattern: RegExp) {
+  return Array.from(new Set(title.match(pattern) ?? []));
+}
+
+function mstModels(title: string) {
+  const models = new Set<string>();
+  const signals: Array<[string, RegExp]> = [
+    ["Supra", /\bSupra\b/i],
+    ["Z4", /\bZ4\b/i],
+    ["Countryman", /\bCountryman\b/i],
+    ["X1", /\bX1\b/i],
+    ["X2", /\bX2\b/i],
+    ["X3M", /\bX3M\b/i],
+    ["X4M", /\bX4M\b/i],
+    ["X3", /\bX3\b/i],
+    ["X4", /\bX4\b/i],
+    ["M2", /\bM2\b/i],
+    ["M3", /\bM3\b/i],
+    ["M4", /\bM4\b/i],
+    ["M5", /\bM5\b/i],
+    ["M135", /\bM135\b/i],
+    ["M235", /\bM235\b/i],
+    ["M240i", /\bM240i\b/i],
+    ["M340i", /\bM340i\b/i],
+    ["140i", /\b140i\b/i],
+    ["240i", /\b240i\b/i],
+    ["340i", /\b340i\b/i],
+    ["440i", /\b440i\b/i],
+    ["120", /\b120\b/i],
+    ["125i", /\b125i\b/i],
+    ["228i", /\b228i\b/i],
+    ["320i", /\b320i\b/i],
+    ["328i", /\b328i\b/i],
+    ["330i", /\b330i\b/i],
+    ["335i", /\b335i\b/i],
+    ["428i", /\b428i\b/i],
+    ["435i", /\b435i\b/i],
+    ["530i", /\b530i\b/i],
+    ["535i", /\b535i\b/i],
+    ["540i", /\b540i\b/i],
+    ["520i", /\b520i\b/i],
+    ["528i", /\b528i\b/i],
+  ];
+  for (const [model, signal] of signals) {
+    if (signal.test(title)) models.add(model);
+  }
+  if (/\bG\s*series\b/i.test(title)) models.add("G Series");
+  return Array.from(models);
+}
+
+/**
+ * Build a conservative, source-backed fitment draft from the official MST title.
+ * The applications are useful for manager review, but remain needs_review because
+ * the title alone cannot prove every model-year, engine-generation, or turbo clause.
+ */
+export function buildMstSupplierFitment(
+  product: Pick<MstCatalogProduct, "titleEn" | "sku" | "source">
+): SupplierFitmentImportContract {
+  const title = product.titleEn;
+  const years = titleYearRange(title);
+  const engines = titleTokens(title, /\b[ BNS]\d{2}\b/gi).map((value) =>
+    value.trim().toUpperCase()
+  );
+  const chassisCodes = titleTokens(title, /\b(?:A9[01]|[EFGU]\d{2}|[EFGU]\dX)\b/gi).map((value) =>
+    value.toUpperCase()
+  );
+  const models = mstModels(title);
+  const makes = [
+    ...(product.sku.startsWith("TY-") || /\bToyota\b|\bSupra\b/i.test(title) ? ["Toyota"] : []),
+    ...(product.sku.startsWith("BW-") || /\bBMW\b|\bZ4\b/i.test(title) ? ["BMW"] : []),
+    ...(/\bMini\b|\bCountryman\b/i.test(title) ? ["Mini"] : []),
+  ];
+  const uniqueMakes = Array.from(new Set(makes));
+  const applications: SupplierFitmentApplication[] = [];
+
+  for (const make of uniqueMakes) {
+    const makeModels =
+      make === "Toyota"
+        ? models.filter((model) => model === "Supra")
+        : make === "BMW"
+          ? models.filter((model) => model !== "Supra" && model !== "Countryman")
+          : models.filter((model) => model === "Countryman");
+    const resolvedModels = makeModels.length ? makeModels : [null];
+    const resolvedChassis = chassisCodes.length ? chassisCodes : [null];
+    const resolvedEngines = engines.length ? engines : [null];
+    for (const model of resolvedModels) {
+      for (const chassisCode of resolvedChassis) {
+        for (const engine of resolvedEngines) {
+          if (!model && !chassisCode) continue;
+          applications.push({
+            vehicleType: "car",
+            make,
+            model,
+            chassisCode,
+            yearFrom: years?.yearFrom ?? null,
+            yearTo: years?.yearTo ?? null,
+            engine,
+            fuel: null,
+            bodyStyle: null,
+            drivetrain: null,
+            transmission: null,
+            market: null,
+            opfGpf: "unknown",
+          });
+        }
+      }
+    }
+  }
+
+  const uniqueApplications = Array.from(
+    new Map(applications.map((application) => [JSON.stringify(application), application])).values()
+  );
+  const caveats = Array.from(title.matchAll(/\(\*?(Only[^)]*)\)/gi), (match) => match[1].trim());
+  const note = [
+    "Parsed from the official MST product title for manager review.",
+    caveats.length ? `Manufacturer caveat: ${caveats.join("; ")}.` : null,
+    "Confirm exact model year, engine generation, and any turbo configuration before claiming fitment.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const v1: SupplierFitmentV1Contract = {
+    version: 1,
+    mode: uniqueApplications.length ? "vehicle_specific" : "needs_review",
+    scope: "auto",
+    applications: uniqueApplications,
+    parentSku: null,
+    source: {
+      supplier: "MST Performance",
+      sourceRef: product.source.officialUrl,
+      sourceUpdatedAt: null,
+    },
+    note,
+  };
+  return v1.mode === "vehicle_specific" ? upgradeSupplierFitmentContractToV2(v1) : v1;
+}
 
 const SENDIT_SKU_ALIASES: Readonly<Record<string, string>> = {
   "MST-BW-F90M5": "MST-BW-F90M5-BK",

@@ -14,12 +14,12 @@ import {
   coordinateShopCatalogProductCreationWithClient,
   coordinateShopCatalogProductMutationWithClient,
 } from "../src/lib/shopCatalogMutationCoordinator.server";
-import { calculateMstRetailPrice, type MstCatalogProduct } from "../src/lib/mstCatalog";
 import {
-  SUPPLIER_FITMENT_KEY,
-  SUPPLIER_FITMENT_NAMESPACE,
-  type SupplierFitmentContract,
-} from "../src/lib/shopImportFitment";
+  buildMstSupplierFitment,
+  calculateMstRetailPrice,
+  type MstCatalogProduct,
+} from "../src/lib/mstCatalog";
+import { SUPPLIER_FITMENT_KEY, SUPPLIER_FITMENT_NAMESPACE } from "../src/lib/shopImportFitment";
 
 const SOURCE_PATH = path.resolve("data/mst-products.json");
 const CHANGE_DOMAINS = [
@@ -39,6 +39,22 @@ type MstCatalogFile = {
   products: MstCatalogProduct[];
 };
 
+async function retryTransient<T>(action: () => Promise<T>) {
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      return await action();
+    } catch (error) {
+      const code =
+        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+      if (!(code === "P1017" || code === "P2024" || code === "P2034") || attempt === 5) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+    }
+  }
+  throw new Error("MST import retry loop exhausted");
+}
+
 function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -48,20 +64,8 @@ function htmlDescription(summary: string, heading: string, sellingPoints: string
   return `<p>${escapeHtml(summary)}</p><p><strong>${escapeHtml(heading)}</strong></p><ul>${items}</ul>`;
 }
 
-function fitmentFor(product: MstCatalogProduct): SupplierFitmentContract {
-  return {
-    version: 1,
-    mode: "needs_review",
-    scope: "auto",
-    applications: [],
-    parentSku: null,
-    source: {
-      supplier: "MST Performance",
-      sourceRef: product.source.officialUrl,
-      sourceUpdatedAt: null,
-    },
-    note: `Vehicle-specific compatibility is retained in the official title and source page for ${product.sku}; normalize exact model/year/engine clauses before publication.`,
-  };
+function fitmentFor(product: MstCatalogProduct) {
+  return buildMstSupplierFitment(product);
 }
 
 function payloadFor(
@@ -107,7 +111,9 @@ function payloadFor(
     bodyHtmlEn,
     leadTimeUa: null,
     leadTimeEn: null,
-    stock: "inStock",
+    // Sendit availability is supplier availability, not OneCompany warehouse stock.
+    // Until a warehouse quantity is confirmed, expose these as preorder items.
+    stock: "preOrder",
     collectionUa: product.categoryUa,
     collectionEn: product.categoryEn,
     priceEur: null,
@@ -192,6 +198,18 @@ function payloadFor(
         namespace: "mst_import",
         key: "sendit_sku",
         value: product.source.senditMatchedSku!,
+        valueType: "single_line_text_field",
+      },
+      {
+        namespace: "mst_import",
+        key: "manufacturer_availability",
+        value: product.source.manufacturerAvailability ?? "unknown",
+        valueType: "single_line_text_field",
+      },
+      {
+        namespace: "mst_import",
+        key: "sendit_availability",
+        value: product.source.senditAvailability ?? "unknown",
         valueType: "single_line_text_field",
       },
       {
@@ -332,39 +350,43 @@ async function main() {
         );
       }
       if (bySlug) {
-        const mutation = await coordinateShopCatalogProductMutationWithClient(prisma, {
-          productId: bySlug.id,
-          expectedCatalogVersion: bySlug.catalogVersion.toString(),
-          changeDomains: CHANGE_DOMAINS,
-          async mutateAndSnapshot(tx, nextCatalogVersion) {
-            await tx.shopProduct.update({
-              where: { id: bySlug.id },
-              data: buildAdminProductSnapshotMergeUpdateData(product, bySlug),
-            });
-            return buildShopCatalogAdminSnapshot(tx, bySlug.id, nextCatalogVersion, {
-              type: "IMPORT",
-              id: "mst-import@system.local",
-              reason: "mst.draft-update",
-            });
-          },
-        });
+        const mutation = await retryTransient(() =>
+          coordinateShopCatalogProductMutationWithClient(prisma, {
+            productId: bySlug.id,
+            expectedCatalogVersion: bySlug.catalogVersion.toString(),
+            changeDomains: CHANGE_DOMAINS,
+            async mutateAndSnapshot(tx, nextCatalogVersion) {
+              await tx.shopProduct.update({
+                where: { id: bySlug.id },
+                data: buildAdminProductSnapshotMergeUpdateData(product, bySlug),
+              });
+              return buildShopCatalogAdminSnapshot(tx, bySlug.id, nextCatalogVersion, {
+                type: "IMPORT",
+                id: "mst-import@system.local",
+                reason: "mst.draft-update",
+              });
+            },
+          })
+        );
         outboxIds.push(mutation.outboxId);
         updated += 1;
       } else {
         const createData = buildAdminProductCreateData(product);
-        const mutation = await coordinateShopCatalogProductCreationWithClient(prisma, {
-          changeDomains: CHANGE_DOMAINS,
-          async create(tx) {
-            return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
-          },
-          snapshot(tx, productId, initialCatalogVersion) {
-            return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
-              type: "IMPORT",
-              id: "mst-import@system.local",
-              reason: "mst.draft-create",
-            });
-          },
-        });
+        const mutation = await retryTransient(() =>
+          coordinateShopCatalogProductCreationWithClient(prisma, {
+            changeDomains: CHANGE_DOMAINS,
+            async create(tx) {
+              return (await tx.shopProduct.create({ data: createData, select: { id: true } })).id;
+            },
+            snapshot(tx, productId, initialCatalogVersion) {
+              return buildShopCatalogAdminSnapshot(tx, productId, initialCatalogVersion, {
+                type: "IMPORT",
+                id: "mst-import@system.local",
+                reason: "mst.draft-create",
+              });
+            },
+          })
+        );
         outboxIds.push(mutation.outboxId);
         created += 1;
       }
