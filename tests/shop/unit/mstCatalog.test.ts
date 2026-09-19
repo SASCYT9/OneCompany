@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildMstSupplierFitment,
   buildMstCatalogProduct,
   calculateMstRetailPrice,
   canonicalMstSku,
@@ -9,6 +10,84 @@ import {
   isRequestedMstProduct,
   senditSkuCandidates,
 } from "../../../src/lib/mstCatalog";
+
+test("MST fitment drafts preserve source applications without pretending manager verification", () => {
+  const fitment = buildMstSupplierFitment({
+    sku: "BW-S5802",
+    titleEn: "MST 2021+ BMW G80 G82 M3 M4 Competition S58 Cold Air Intake System (BW-S5802)",
+    source: {
+      officialUrl: "https://www.mst-performance.com/en/products/bw-s5802",
+      senditUrl: "https://sendit.parts/example/",
+      senditMatchedSku: "MST-BW-S5802",
+      manufacturerAvailability: "http://schema.org/InStock",
+      senditAvailability: "https://schema.org/InStock",
+    },
+  });
+  assert.equal(fitment.version, 2);
+  if (fitment.version !== 2) throw new Error("Expected MST V2 fitment");
+  assert.equal(fitment.mode, "vehicle_specific");
+  assert.ok(fitment.policy.clauses.every((clause) => clause.verification === "NEEDS_REVIEW"));
+  assert.ok(
+    fitment.policy.clauses.some((clause) =>
+      clause.constraints.some(
+        (constraint) =>
+          constraint.dimension === "make" &&
+          constraint.state === "EXACT" &&
+          constraint.values.includes("BMW")
+      )
+    )
+  );
+  assert.ok(
+    fitment.policy.clauses.some((clause) =>
+      clause.constraints.some(
+        (constraint) =>
+          constraint.dimension === "chassis" &&
+          constraint.state === "EXACT" &&
+          constraint.values.includes("G80")
+      )
+    )
+  );
+  assert.ok(
+    fitment.policy.clauses.some((clause) =>
+      clause.constraints.some(
+        (constraint) =>
+          constraint.dimension === "engine" &&
+          constraint.state === "EXACT" &&
+          constraint.values.includes("S58")
+      )
+    )
+  );
+  assert.match(fitment.note ?? "", /manager review/i);
+});
+
+test("MST conditional turbo products retain the manufacturer caveat in fitment notes", () => {
+  const fitment = buildMstSupplierFitment({
+    sku: "TY-SUP08",
+    titleEn: "MST Toyota Supra A90/A91 B58 3.0 Intake + Inlet (Only for Pure 900 turbo) (TY-SUP08)",
+    source: {
+      officialUrl: "https://www.mst-performance.com/en/products/ty-sup08",
+      senditUrl: "https://sendit.parts/example/",
+      senditMatchedSku: "MST-TY-SUP08",
+      manufacturerAvailability: "http://schema.org/OutOfStock",
+      senditAvailability: "https://schema.org/InStock",
+    },
+  });
+  assert.equal(fitment.version, 2);
+  if (fitment.version !== 2) throw new Error("Expected MST V2 fitment");
+  assert.ok(
+    fitment.policy.clauses.some((clause) =>
+      clause.constraints.some(
+        (constraint) =>
+          constraint.dimension === "make" &&
+          constraint.state === "EXACT" &&
+          constraint.values.includes("Toyota")
+      )
+    )
+  );
+  assert.match(fitment.note ?? "", /Pure 900/i);
+  assert.equal(fitment.mode, "vehicle_specific");
+  assert.ok(fitment.policy.clauses.every((clause) => clause.verification === "NEEDS_REVIEW"));
+});
 
 test("MST pricing applies Sendit inc. VAT + 10%, the 1.37 cross, then rounds USD up to 5", () => {
   assert.deepEqual(calculateMstRetailPrice(680.06), {
