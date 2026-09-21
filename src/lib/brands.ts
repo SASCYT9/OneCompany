@@ -1490,6 +1490,14 @@ export const brandsEurope: LocalBrand[] = [
     website: "https://www.res-exhaust.com",
   },
   {
+    name: "Revozport",
+    description:
+      "Hong Kong-based carbon-fiber specialists creating precision-fit aerodynamic components for performance and luxury vehicles.",
+    descriptionUA:
+      "Гонконзький виробник карбонових компонентів, що створює точні аеродинамічні рішення для спортивних і преміальних автомобілів.",
+    website: "https://revozport.com",
+  },
+  {
     name: "Red Star Exhaust",
     description:
       "Performance exhaust specialists crafting valvetronic and titanium systems for sports cars and motorcycles, with racing-spec downpipes and slip-on options.",
@@ -2593,6 +2601,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   Remus: { country: "Austria", subcategory: "Exhaust" },
   "Renegade Design": { country: "UAE", subcategory: "Aero" },
   "RES Exhaust": { country: "China", subcategory: "Exhaust" },
+  Revozport: { country: "Hong Kong", subcategory: "Aero" },
   "Ronin Design": { country: "Italy", subcategory: "Aero" },
   "Sachs Performance": { country: "Germany", subcategory: "Drivetrain" },
   Schrick: { country: "Germany", subcategory: "Engine" },
