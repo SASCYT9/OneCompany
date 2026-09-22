@@ -22,7 +22,14 @@ const order = {
   shippingCost: 20,
   taxAmount: 10,
   items: [
-    { title: "Brake pads", productSlug: "test-brakes", quantity: 3, price: 74.48, total: 223.44 },
+    {
+      title: "Brake pads",
+      productSlug: "test-brakes",
+      quantity: 3,
+      price: 74.48,
+      total: 223.44,
+      image: "https://blob.example.com/products/brake-pads.png",
+    },
   ],
 };
 const payment = {
@@ -55,6 +62,10 @@ test("invoice uses integer kopecks, debit, persisted basket and explicit environ
     invoice.amount
   );
   assert.equal(invoice.merchantPaymInfo.basketOrder[0].qty, 3);
+  assert.equal(
+    invoice.merchantPaymInfo.basketOrder[0].icon,
+    "https://blob.example.com/products/brake-pads.png"
+  );
   assert.equal(invoice.webHookUrl, "https://preview.example.com/api/shop/monobank/callback");
   assert.match(
     invoice.redirectUrl,
@@ -62,6 +73,27 @@ test("invoice uses integer kopecks, debit, persisted basket and explicit environ
   );
   assert.equal("saveCardData" in invoice, false);
   assert.equal("customerEmails" in invoice.merchantPaymInfo, false);
+});
+
+test("invoice resolves local product icons and drops unsafe image URLs", () => {
+  const local = buildMonobankInvoice(
+    { ...order, items: [{ ...order.items[0], image: "/images/brakes.png" }] },
+    payment.id,
+    "ua",
+    "https://onecompany.global"
+  );
+  assert.equal(
+    local.merchantPaymInfo.basketOrder[0].icon,
+    "https://onecompany.global/images/brakes.png"
+  );
+
+  const unsafe = buildMonobankInvoice(
+    { ...order, items: [{ ...order.items[0], image: "javascript:alert(1)" }] },
+    payment.id,
+    "ua",
+    "https://onecompany.global"
+  );
+  assert.equal("icon" in unsafe.merchantPaymInfo.basketOrder[0], false);
 });
 
 test("basket discounts reconcile to the charged total", () => {

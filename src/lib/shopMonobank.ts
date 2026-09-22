@@ -138,8 +138,22 @@ type InvoiceOrder = {
     quantity: number;
     price: number | { toString(): string };
     total: number | { toString(): string };
+    image?: string | null;
   }>;
 };
+
+function monobankBasketIcon(value: string | null | undefined, publicUrl: string) {
+  const raw = value?.trim();
+  if (!raw || raw.length > 2048) return null;
+  try {
+    const normalized = raw.startsWith("//") ? `https:${raw}` : raw;
+    const url = new URL(normalized, publicUrl);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
 
 export function buildMonobankInvoice(
   order: InvoiceOrder,
@@ -160,6 +174,7 @@ export function buildMonobankInvoice(
     if (sum <= 0 || !Number.isSafeInteger(sum * item.quantity) || sum * item.quantity !== total) {
       throw new MonobankError("MONOBANK_INVALID_BASKET_TOTAL", true);
     }
+    const icon = monobankBasketIcon(item.image, publicUrl);
     return {
       name: item.title.slice(0, 256),
       qty: item.quantity,
@@ -167,6 +182,7 @@ export function buildMonobankInvoice(
       total,
       unit: "шт.",
       code: (item.variantId || item.productSlug).slice(0, 128),
+      ...(icon ? { icon } : {}),
     };
   });
   for (const [code, name, value] of [
