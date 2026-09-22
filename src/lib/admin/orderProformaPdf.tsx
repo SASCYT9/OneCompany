@@ -58,7 +58,9 @@ export async function renderOrderProformaPdf(
       ? locale === "ua"
         ? "Банківський переказ"
         : "Bank transfer"
-      : order.paymentMethod;
+      : order.paymentMethod === "MONOBANK"
+        ? locale === "ua" ? "Картка · plata by mono" : "Card · plata by mono"
+        : order.paymentMethod;
   const label = { fontWeight: 700 as const, fontSize: 9, marginBottom: 9 };
   return renderToBuffer(
     <Document title={`${t.title} ${order.orderNumber}`} author="OneCompany">

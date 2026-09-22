@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import type { ShopOrder } from "@prisma/client";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { generateOrderNumber, generateViewToken } from "@/lib/shopOrder";
@@ -22,13 +23,21 @@ import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdmin
 
 import { createWhitepayCryptoOrder, createWhitepayFiatOrder } from "@/lib/shopWhitepay";
 import { prisma } from "@/lib/prisma";
+import {
+  isMonobankEnabled,
+  monobankCheckoutKey,
+  monobankMinorUnits,
+  monobankRequestHash,
+  MonobankError,
+} from "@/lib/shopMonobank";
+import { prepareMonobankPayment } from "@/lib/shopMonobankPayments";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ["EUR", "USD", "UAH"] as const;
 
-const PAYMENT_METHODS = ["FOP", "WHITEBIT", "WHITEPAY_FIAT"] as const;
+const PAYMENT_METHODS = ["FOP", "WHITEBIT", "WHITEPAY_FIAT", "MONOBANK"] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 function normalizePaymentMethod(value: unknown): PaymentMethod {
@@ -52,7 +61,21 @@ type CheckoutBody = {
   currency?: string;
   locale?: string;
   paymentMethod?: string;
+  checkoutKey?: string;
+  expectedAmount?: number;
 };
+
+async function monobankCheckoutResponse(order: { id: string; orderNumber: string; viewToken: string }, locale: string) {
+  let redirectUrl: string | undefined;
+  try {
+    redirectUrl = await prepareMonobankPayment(prisma, order.id, locale);
+  } catch (error) {
+    // The persisted order is the recovery path; never ask the buyer to create it again.
+    console.error("[Checkout monobank]", error instanceof MonobankError ? error.code : "MONOBANK_PAYMENT_UNAVAILABLE");
+  }
+  return { orderNumber: order.orderNumber, viewToken: order.viewToken, redirectUrl };
+}
+
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
   try {
@@ -61,7 +84,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid checkout" }, { status: 400 });
+  }
+
   const session = await getCurrentShopCustomerSession();
+  const paymentMethod = normalizePaymentMethod(body.paymentMethod);
+  let monoKeyHash: string | undefined;
+  let monoRequestHash: string | undefined;
+  if (paymentMethod === "MONOBANK") {
+    if (!isMonobankEnabled()) return NextResponse.json({ error: "MONOBANK_UNAVAILABLE" }, { status: 503 });
+    try {
+      monoKeyHash = monobankCheckoutKey(body.checkoutKey);
+    } catch {
+      return NextResponse.json({ error: "Invalid checkout key" }, { status: 400 });
+    }
+    monoRequestHash = monobankRequestHash(body, session?.customerId ?? null);
+    const existing = await prisma.shopMonobankPayment.findUnique({
+      where: { checkoutKeyHash: monoKeyHash }, include: { order: true },
+    });
+    if (existing) {
+      if (existing.requestHash !== monoRequestHash) {
+        return NextResponse.json({ error: "Checkout key already used" }, { status: 409 });
+      }
+      return NextResponse.json(await monobankCheckoutResponse(existing.order, body.locale ?? "en"), {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+  }
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
   const activeCart = await resolveShopCart(prisma, {
@@ -127,8 +177,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No valid items in cart" }, { status: 400 });
   }
 
-  const paymentMethod = normalizePaymentMethod(body.paymentMethod);
-
   if (quote.requiresQuote) {
     return NextResponse.json(
       {
@@ -139,6 +187,15 @@ export async function POST(req: NextRequest) {
       },
       { status: 409 }
     );
+  }
+
+  if (paymentMethod === "MONOBANK") {
+    if (quote.currency !== "UAH" || quote.total <= 0) {
+      return NextResponse.json({ error: "MONOBANK_REQUIRES_UAH_QUOTE" }, { status: 400 });
+    }
+    if (!Number.isSafeInteger(body.expectedAmount) || body.expectedAmount !== monobankMinorUnits(quote.total)) {
+      return NextResponse.json({ error: "MONOBANK_QUOTE_CHANGED" }, { status: 409 });
+    }
   }
 
   const orderNumber = await generateOrderNumber();
@@ -173,7 +230,16 @@ export async function POST(req: NextRequest) {
 
   const orderData = {
     orderNumber,
-    status: "PENDING_REVIEW" as const,
+    status: paymentMethod === "MONOBANK" ? "PENDING_PAYMENT" as const : "PENDING_REVIEW" as const,
+    ...(paymentMethod === "MONOBANK" ? {
+      paymentStatus: "PENDING",
+      monobankPayment: {
+        create: {
+          checkoutKeyHash: monoKeyHash!, requestHash: monoRequestHash!,
+          amount: monobankMinorUnits(quote.total),
+        },
+      },
+    } : {}),
     paymentMethod,
     customerId: session?.customerId ?? null,
     customerGroupSnapshot: session?.group ?? "B2C",
@@ -211,9 +277,23 @@ export async function POST(req: NextRequest) {
   // By default, do not redirect immediately (Hybrid Checkout).
   // Exception: WHITEBIT payment method has an auto-redirect override per user request.
 
-  let order = await prisma.shopOrder.create({
-    data: orderData,
-  });
+  let order: ShopOrder;
+  try {
+    order = await prisma.shopOrder.create({ data: orderData });
+  } catch (error) {
+    if (monoKeyHash && (error as { code?: string }).code === "P2002") {
+      const existing = await prisma.shopMonobankPayment.findUnique({
+        where: { checkoutKeyHash: monoKeyHash }, include: { order: true },
+      });
+      if (existing && existing.requestHash === monoRequestHash) {
+        return NextResponse.json(await monobankCheckoutResponse(existing.order, locale), {
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
+      return NextResponse.json({ error: "Checkout in progress; please retry" }, { status: 409 });
+    }
+    throw error;
+  }
 
   const oneAiOrderSignals = quote.items.flatMap((item) => {
     const attribution = oneAiAttributionByItem.get(`${item.productSlug}::${item.variantId ?? ""}`);
@@ -302,7 +382,13 @@ export async function POST(req: NextRequest) {
   }
   await dispatchCrmWebhook("order.created", order).catch(() => {});
 
-  await createInitialOrderEvent(prisma, order.id);
+  if (paymentMethod === "MONOBANK") {
+    await prisma.shopOrderStatusEvent.create({
+      data: { orderId: order.id, fromStatus: null, toStatus: "PENDING_PAYMENT", actorType: "system", actorName: "checkout", note: "Order created for plata by mono payment." },
+    });
+  } else {
+    await createInitialOrderEvent(prisma, order.id);
+  }
   if (session?.customerId) {
     await upsertCustomerDefaultShippingAddress(prisma, session.customerId, shippingAddress);
   }
@@ -377,6 +463,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Admin shop order notification failed (non-blocking):", err);
+  }
+
+  if (paymentMethod === "MONOBANK") {
+    redirectUrl = (await monobankCheckoutResponse(order, locale)).redirectUrl;
   }
 
   const response = NextResponse.json({

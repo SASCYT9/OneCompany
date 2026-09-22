@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { prisma } from "@/lib/prisma";
+import { publicMonobankPayment, refreshMonobankPayment } from "@/lib/shopMonobankPayments";
 
 export async function GET(
   req: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
   const token = req.nextUrl.searchParams.get("token");
   const session = await getCurrentShopCustomerSession();
 
-  const order = await prisma.shopOrder.findFirst({
+  let order = await prisma.shopOrder.findFirst({
     where: token?.trim()
       ? { orderNumber, viewToken: token }
       : session?.customerId
@@ -29,6 +30,26 @@ export async function GET(
       return NextResponse.json({ error: "Token required" }, { status: 400 });
     }
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  let monobankPayment = null;
+  if (order.paymentMethod === "MONOBANK") {
+    // Do not query the new table for legacy orders before the migration is deployed.
+    let payment = await prisma.shopMonobankPayment.findUnique({ where: { orderId: order.id } });
+    if (payment) {
+      try {
+        await refreshMonobankPayment(prisma, payment);
+      } catch {
+        console.warn("[Monobank] Status refresh unavailable");
+      }
+      const refreshed = await prisma.shopOrder.findUnique({
+        where: { id: order.id },
+        include: { items: true, shipments: { orderBy: [{ createdAt: "desc" }] } },
+      });
+      if (refreshed) order = refreshed;
+      payment = await prisma.shopMonobankPayment.findUnique({ where: { orderId: order.id } });
+    }
+    monobankPayment = publicMonobankPayment(payment, order.status, order.paymentStatus);
   }
 
   const itemsList = order.items.map((i) => {
@@ -94,6 +115,8 @@ export async function GET(
     orderNumber: order.orderNumber,
     status: order.status,
     paymentMethod: order.paymentMethod ?? "FOP",
+    paymentStatus: order.paymentStatus,
+    monobankPayment,
     email: order.email,
     customerName: order.customerName,
     phone: order.phone,
@@ -125,5 +148,5 @@ export async function GET(
       shippedAt: shipment.shippedAt?.toISOString() ?? null,
       deliveredAt: shipment.deliveredAt?.toISOString() ?? null,
     })),
-  });
+  }, { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } });
 }

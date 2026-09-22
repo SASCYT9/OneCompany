@@ -6,13 +6,15 @@
 import { NextResponse } from 'next/server';
 import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
 import { prisma } from '@/lib/prisma';
+import { isMonobankEnabled } from '@/lib/shopMonobank';
 
 export async function GET() {
   try {
     const record = await getOrCreateShopSettings(prisma);
     const settings = getShopSettingsRuntime(record);
 
-    const methods: Array<'FOP' | 'STRIPE' | 'WHITEBIT'> = ['FOP', 'WHITEBIT'];
+    const methods: Array<'FOP' | 'WHITEBIT' | 'MONOBANK'> = ['FOP', 'WHITEBIT'];
+    if (isMonobankEnabled() && settings.enabledCurrencies.includes('UAH')) methods.push('MONOBANK');
 
     const fopDetails =
       settings.fopCompanyName ||
@@ -32,7 +34,7 @@ export async function GET() {
     return NextResponse.json({
       methods,
       fopDetails,
-    });
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) {
     console.error('Payment options', e);
     return NextResponse.json(

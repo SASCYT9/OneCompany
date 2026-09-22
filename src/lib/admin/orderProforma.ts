@@ -182,8 +182,9 @@ export function renderOrderProforma(
           FOP: "Банківський переказ",
           WHITEBIT: "Криптовалюта · Whitepay",
           WHITEPAY_FIAT: "Картка · Whitepay",
+          MONOBANK: "Картка · plata by mono",
         }
-      : { FOP: "Bank transfer", WHITEBIT: "Crypto · Whitepay", WHITEPAY_FIAT: "Card · Whitepay" };
+      : { FOP: "Bank transfer", WHITEBIT: "Crypto · Whitepay", WHITEPAY_FIAT: "Card · Whitepay", MONOBANK: "Card · plata by mono" };
   const delivery: Record<string, string> =
     locale === "ua"
       ? { NOVA_POSHTA: "Нова Пошта", SPECIAL: "Спецдоставка", PICKUP: "Самовивіз" }
