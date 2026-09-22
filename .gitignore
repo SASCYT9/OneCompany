@@ -153,6 +153,7 @@ scripts/_check_*.mjs
 /*.log
 /.codex-*
 /.tmp-*
+/.husky/_/
 /.ops-data/
 /.playwright-cli/
 
