@@ -534,6 +534,75 @@ export async function persistShopCatalogProjectionBuild(
   });
 }
 
+/**
+ * Fast path for MEDIA-only catalog changes. Media migrations do not change
+ * SKU, fitment, taxonomy, search, or facet data, so rebuilding and deleting
+ * those rows only increases transaction time and serializable contention.
+ * Fall back to the full persistence path if the current projection is absent
+ * or inconsistent, preserving the normal correctness guard.
+ */
+export async function persistShopCatalogMediaProjectionBuild(
+  incoming: ShopCatalogProjectionBuild
+): Promise<ShopCatalogProjectionPersistResult> {
+  return prisma.$transaction(
+    async (tx) => {
+      const currentRows = await tx.shopCatalogProjection.findMany({
+        where: { productId: incoming.productId },
+        select: { locale: true, projectionVersion: true, contentHash: true },
+      });
+      const plan = planShopCatalogProjectionPersistence(currentRows, incoming);
+      if (
+        plan.decision === "INSERT" ||
+        plan.decision === "VERSION_CONFLICT" ||
+        plan.decision === "INCONSISTENT_CURRENT_STATE"
+      ) {
+        return persistInTransaction(tx, incoming);
+      }
+      if (!plan.apply) {
+        return {
+          productId: plan.productId,
+          projectionVersion: plan.projectionVersion.toString(),
+          decision: plan.decision,
+          applied: false,
+          rowCount: 0,
+        };
+      }
+
+      for (const rawRow of plan.projectionRows) {
+        const row = rawRow as Record<string, unknown>;
+        const updated = await tx.shopCatalogProjection.updateMany({
+          where: { productId: plan.productId, locale: String(row.locale) },
+          data: {
+            schemaVersion: Number(row.schemaVersion),
+            sourceVersion: row.sourceVersion as bigint,
+            catalogVersion: row.catalogVersion as bigint,
+            projectionVersion: row.projectionVersion as bigint,
+            sourceUpdatedAt: (row.sourceUpdatedAt as Date | null) ?? null,
+            sourceContentHash: String(row.sourceContentHash),
+            primaryMediaAssetId: (row.primaryMediaAssetId as string | null) ?? null,
+            primaryMediaUrl: (row.primaryMediaUrl as string | null) ?? null,
+            primaryMediaWidth: (row.primaryMediaWidth as number | null) ?? null,
+            primaryMediaHeight: (row.primaryMediaHeight as number | null) ?? null,
+            primaryMediaVersion: (row.primaryMediaVersion as string | null) ?? null,
+            contentHash: String(row.contentHash),
+          },
+        });
+        if (updated.count !== 1) {
+          throw new Error(`Could not update media projection ${plan.productId}/${String(row.locale)}`);
+        }
+      }
+      return {
+        productId: plan.productId,
+        projectionVersion: plan.projectionVersion.toString(),
+        decision: plan.decision,
+        applied: true,
+        rowCount: plan.projectionRows.length,
+      };
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 }
+  );
+}
+
 /** Processes exactly one bounded keyset page so a caller can checkpoint after every page. */
 export async function rebuildShopCatalogProjectionPage(input: {
   source: ShopCatalogProjectionRebuildSource;

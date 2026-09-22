@@ -302,6 +302,146 @@ async function failJob(
   };
 }
 
+async function setMediaReceiptsPublishing(
+  job: ShopCatalogClaimedOutbox,
+  targets: readonly ShopCatalogProjectionTarget[],
+  workerId: string
+) {
+  return prisma.$transaction(async (tx) => {
+    const lease = await tx.shopCatalogOutbox.findFirst({
+      where: {
+        id: job.id,
+        status: ShopCatalogOutboxStatus.PROCESSING,
+        lockedBy: workerId,
+        leaseExpiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    if (!lease) throw new Error(`Lost lease for catalog outbox ${job.id}`);
+    const updated = await tx.shopCatalogPublicationReceipt.updateMany({
+      where: {
+        entityType: job.entityType,
+        entityId: job.entityId,
+        target: { in: [...targets] },
+        appliedVersion: { lt: job.canonicalVersion },
+      },
+      data: {
+        processingVersion: job.canonicalVersion,
+        status: "PUBLISHING",
+        lastError: null,
+      },
+    });
+    return updated.count > 0;
+  });
+}
+
+async function completeMediaReceipts(
+  job: ShopCatalogClaimedOutbox,
+  targets: readonly ShopCatalogProjectionTarget[],
+  workerId: string
+) {
+  await prisma.$transaction(async (tx) => {
+    const lease = await tx.shopCatalogOutbox.findFirst({
+      where: {
+        id: job.id,
+        status: ShopCatalogOutboxStatus.PROCESSING,
+        lockedBy: workerId,
+        leaseExpiresAt: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+    if (!lease) throw new Error(`Lost lease for catalog outbox ${job.id}`);
+    await tx.shopCatalogPublicationReceipt.updateMany({
+      where: {
+        entityType: job.entityType,
+        entityId: job.entityId,
+        target: { in: [...targets] },
+        processingVersion: job.canonicalVersion,
+      },
+      data: {
+        appliedRevisionId: job.revisionId,
+        appliedVersion: job.canonicalVersion,
+        processingVersion: null,
+        failedVersion: null,
+        status: "PUBLISHED",
+        lastError: null,
+      },
+    });
+  });
+}
+
+async function completeOutboxAndProduct(job: ShopCatalogClaimedOutbox, workerId: string) {
+  return prisma.$transaction(async (tx) => {
+    const outbox = await tx.shopCatalogOutbox.updateMany({
+      where: {
+        id: job.id,
+        status: ShopCatalogOutboxStatus.PROCESSING,
+        lockedBy: workerId,
+        leaseExpiresAt: { gt: new Date() },
+      },
+      data: {
+        status: ShopCatalogOutboxStatus.COMPLETED,
+        processedAt: new Date(),
+        lockedBy: null,
+        lockedAt: null,
+        leaseExpiresAt: null,
+        lastError: null,
+      },
+    });
+    if (outbox.count !== 1) return false;
+
+    if (job.entityType === "PRODUCT" && job.productId) {
+      const product = await tx.shopProduct.updateMany({
+        where: {
+          id: job.productId,
+          catalogVersion: { gte: job.canonicalVersion },
+          publishedCatalogVersion: { lt: job.canonicalVersion },
+        },
+        data: { publishedCatalogVersion: job.canonicalVersion },
+      });
+      if (product.count !== 1) {
+        const alreadyPublished = await tx.shopProduct.count({
+          where: {
+            id: job.productId,
+            publishedCatalogVersion: { gte: job.canonicalVersion },
+          },
+        });
+        if (alreadyPublished !== 1) {
+          throw new Error(`Could not publish catalog version for ${job.id}`);
+        }
+      }
+    }
+    return true;
+  });
+}
+
+async function processMediaOnlyShopCatalogOutboxJob(input: {
+  job: ShopCatalogClaimedOutbox;
+  workerId: string;
+  handlers: ShopCatalogOutboxTargetHandlers;
+  targets: readonly ShopCatalogProjectionTarget[];
+}): Promise<ShopCatalogOutboxProcessResult> {
+  try {
+    const handler = input.targets.map((target) => input.handlers[target]).find(Boolean);
+    if (!handler) throw new Error(`No catalog outbox handler registered for ${input.targets[0]}`);
+    const shouldApply = await setMediaReceiptsPublishing(input.job, input.targets, input.workerId);
+    if (shouldApply) {
+      await handler({ job: input.job, target: input.targets[0] });
+      await completeMediaReceipts(input.job, input.targets, input.workerId);
+    }
+    const completed = await completeOutboxAndProduct(input.job, input.workerId);
+    if (!completed) throw new Error(`Lost lease for catalog outbox ${input.job.id}`);
+    return {
+      jobId: input.job.id,
+      status: "COMPLETED",
+      targets: Object.freeze([...input.targets]),
+      error: null,
+    };
+  } catch (error) {
+    return failJob(input.job, input.workerId, boundedError(error), input.targets);
+  }
+}
+
 export async function processShopCatalogOutboxJob(input: {
   job: ShopCatalogClaimedOutbox;
   workerId: string;
@@ -309,6 +449,13 @@ export async function processShopCatalogOutboxJob(input: {
 }): Promise<ShopCatalogOutboxProcessResult> {
   const workerId = requiredWorkerId(input.workerId);
   const targets = projectionTargets(input.job.payload);
+  const mediaOnly =
+    input.job.entityType === "PRODUCT" &&
+    input.job.changeDomains.length > 0 &&
+    input.job.changeDomains.every((domain) => domain === "MEDIA");
+  if (mediaOnly) {
+    return processMediaOnlyShopCatalogOutboxJob({ ...input, targets });
+  }
   try {
     for (const target of targets) {
       const handler = input.handlers[target];
@@ -318,51 +465,7 @@ export async function processShopCatalogOutboxJob(input: {
       await handler({ job: input.job, target });
       await completeTarget(input.job, target, workerId);
     }
-    const completed = await prisma.$transaction(async (tx) => {
-      const outbox = await tx.shopCatalogOutbox.updateMany({
-        where: {
-          id: input.job.id,
-          status: ShopCatalogOutboxStatus.PROCESSING,
-          lockedBy: workerId,
-          leaseExpiresAt: { gt: new Date() },
-        },
-        data: {
-          status: ShopCatalogOutboxStatus.COMPLETED,
-          processedAt: new Date(),
-          lockedBy: null,
-          lockedAt: null,
-          leaseExpiresAt: null,
-          lastError: null,
-        },
-      });
-      if (outbox.count !== 1) return false;
-
-      // The product is publicly current only after every required target has
-      // acknowledged this immutable revision. Keep that publication pointer in
-      // the same transaction as the durable outbox completion.
-      if (input.job.entityType === "PRODUCT" && input.job.productId) {
-        const product = await tx.shopProduct.updateMany({
-          where: {
-            id: input.job.productId,
-            catalogVersion: { gte: input.job.canonicalVersion },
-            publishedCatalogVersion: { lt: input.job.canonicalVersion },
-          },
-          data: { publishedCatalogVersion: input.job.canonicalVersion },
-        });
-        if (product.count !== 1) {
-          const alreadyPublished = await tx.shopProduct.count({
-            where: {
-              id: input.job.productId,
-              publishedCatalogVersion: { gte: input.job.canonicalVersion },
-            },
-          });
-          if (alreadyPublished !== 1) {
-            throw new Error(`Could not publish catalog version for ${input.job.id}`);
-          }
-        }
-      }
-      return true;
-    });
+    const completed = await completeOutboxAndProduct(input.job, workerId);
     if (!completed) throw new Error(`Lost lease for catalog outbox ${input.job.id}`);
     return {
       jobId: input.job.id,

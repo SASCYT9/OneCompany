@@ -160,6 +160,8 @@
     "shop:ai:release-guard": "tsx scripts/check-shop-ai-v2-release-activation.ts",
     "media:migrate:dry": "tsx scripts/migrate-runtime-media-to-blob.ts --dry-run",
     "media:migrate": "tsx scripts/migrate-runtime-media-to-blob.ts --commit",
+    "shop:media:blob:dry": "tsx --env-file=.env.local scripts/migrate-shop-product-media-to-blob.ts",
+    "shop:media:blob": "tsx --env-file=.env.local scripts/migrate-shop-product-media-to-blob.ts --commit",
     "shop:brabus:images-to-blob:dry": "tsx --env-file=.env.local scripts/migrate-brabus-images-to-blob.ts",
     "shop:brabus:images-to-blob": "tsx --env-file=.env.local scripts/migrate-brabus-images-to-blob.ts --commit",
     "shop:ipe:import:dry": "tsx scripts/import-ipe-catalog.ts --dry-run",
