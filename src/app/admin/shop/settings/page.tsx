@@ -55,12 +55,14 @@ type ShopShippingZone = {
   freeOver: number | null;
   minimumSubtotal: number | null;
   currency: ShopCurrencyCode;
+  shippingMode?: "calculated" | "included";
   enabled: boolean;
 };
 
 type ShopBrandShippingRule = {
   id: string;
   brandName: string;
+  shippingZoneId?: string | null;
   mode: "fixed" | "multiplier" | "free" | "tiered" | "percent" | "manual_quote";
   value: number;
   warehouseRatePerKg: number;
@@ -132,6 +134,7 @@ type ShippingZoneForm = {
   freeOver: string;
   minimumSubtotal: string;
   currency: ShopCurrencyCode;
+  shippingMode: "calculated" | "included";
   enabled: boolean;
 };
 
@@ -147,6 +150,7 @@ type BrandShippingRuleMode =
 type BrandShippingRuleForm = {
   id: string;
   brandName: string;
+  shippingZoneId: string;
   mode: BrandShippingRuleMode;
   value: string;
   warehouseRatePerKg: string;
@@ -305,6 +309,7 @@ function createShippingZoneForm(seed: number): ShippingZoneForm {
     freeOver: "",
     minimumSubtotal: "",
     currency: "EUR",
+    shippingMode: "calculated",
     enabled: true,
   };
 }
@@ -313,6 +318,7 @@ function createBrandShippingRuleForm(seed: number): BrandShippingRuleForm {
   return {
     id: `brand-rule-${seed}`,
     brandName: "",
+    shippingZoneId: "",
     mode: "free",
     value: "0",
     warehouseRatePerKg: "0",
@@ -427,12 +433,14 @@ function settingsToForm(settings: ShopSettingsResponse): ShopSettingsFormState {
       freeOver: formatNumber(zone.freeOver),
       minimumSubtotal: formatNumber(zone.minimumSubtotal),
       currency: zone.currency,
+      shippingMode: zone.shippingMode ?? "calculated",
       enabled: zone.enabled,
     })),
     brandShippingRules:
       settings.brandShippingRules?.map((rule) => ({
         id: rule.id,
         brandName: rule.brandName,
+        shippingZoneId: rule.shippingZoneId ?? "",
         mode: rule.mode,
         value: formatNumber(rule.value),
         warehouseRatePerKg: formatNumber(rule.warehouseRatePerKg),
@@ -503,11 +511,13 @@ function formToPayload(form: ShopSettingsFormState) {
       freeOver: parseNullableNumber(zone.freeOver),
       minimumSubtotal: parseNullableNumber(zone.minimumSubtotal),
       currency: zone.currency,
+      shippingMode: zone.shippingMode,
       enabled: zone.enabled,
     })),
     brandShippingRules: form.brandShippingRules.map((rule) => ({
       id: rule.id.trim(),
       brandName: rule.brandName.trim(),
+      shippingZoneId: rule.shippingZoneId.trim() || null,
       mode: rule.mode,
       value: parseNumber(rule.value),
       warehouseRatePerKg: parseNumber(rule.warehouseRatePerKg),
@@ -1448,6 +1458,17 @@ export default function AdminShopSettingsPage() {
                     options={[
                       { value: "flat", label: "За кількість (Flat)" },
                       { value: "volumetric", label: "За вагою (Volumetric)" },
+                    ]}
+                  />
+                  <SelectField
+                    label="Режим доставки"
+                    value={zone.shippingMode}
+                    onChange={(value) =>
+                      updateShippingZone(index, "shippingMode", value as "calculated" | "included")
+                    }
+                    options={[
+                      { value: "calculated", label: "Розраховувати доставку" },
+                      { value: "included", label: "Включена в ціну товару" },
                     ]}
                   />
                   <InputField

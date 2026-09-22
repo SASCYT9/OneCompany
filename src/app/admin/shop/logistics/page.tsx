@@ -367,6 +367,12 @@ export default function LogisticsPage() {
               <Receipt className="w-3.5 h-3.5" /> Регіональні Податки
             </Link>
             <Link
+              href="/admin/shop/logistics/landed-cost"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-emerald-500/20 bg-emerald-500/5 text-emerald-300 text-[11px] uppercase tracking-widest font-medium hover:bg-emerald-500/10 transition-all"
+            >
+              <Receipt className="w-3.5 h-3.5" /> Європа · Landed cost
+            </Link>
+            <Link
               href="/admin/shop/logistics/brand-rules"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-none border border-blue-500/20 bg-blue-500/5 text-blue-300 text-[11px] uppercase tracking-widest font-medium hover:bg-blue-500/10 transition-all"
             >

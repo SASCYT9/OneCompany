@@ -23,6 +23,11 @@ export type OrderConfirmationEmailProps = {
   shippingCost: number;
   taxAmount: number;
   total: number;
+  landedCost?: {
+    mode: 'DDP' | 'DAP' | 'QUOTE';
+    includedAmount: number;
+    dueAtDeliveryAmount: number;
+  } | null;
   locale: 'ua' | 'en';
   viewOrderUrl: string;
   items: Array<{ title: string; quantity: number; total: number }>;
@@ -76,6 +81,7 @@ export const OrderConfirmationEmail = ({
   shippingCost,
   taxAmount,
   total,
+  landedCost,
   locale,
   viewOrderUrl,
   items,
@@ -125,9 +131,35 @@ export const OrderConfirmationEmail = ({
               <Section style={itemRow}>
                 <Text style={value}>{t.shipping}: {currency} {shippingCost.toFixed(0)}</Text>
               </Section>
-              <Section style={itemRow}>
-                <Text style={value}>{t.tax}: {currency} {taxAmount.toFixed(0)}</Text>
-              </Section>
+              {landedCost ? (
+                <Section style={itemRow}>
+                  <Text style={value}>
+                    {landedCost.mode === 'DDP'
+                      ? locale === 'ua'
+                        ? 'Імпортні витрати · DDP'
+                        : 'Import charges · DDP'
+                      : landedCost.mode === 'DAP'
+                        ? locale === 'ua'
+                          ? 'Імпорт при доставці · DAP'
+                          : 'Import at delivery · DAP'
+                        : locale === 'ua'
+                          ? 'Імпортні витрати · quote'
+                          : 'Import charges · quote'}:{' '}
+                    {landedCost.mode === 'QUOTE'
+                      ? locale === 'ua'
+                        ? 'Після підтвердження'
+                        : 'After confirmation'
+                      : `${currency} ${(landedCost.mode === 'DDP'
+                          ? landedCost.includedAmount
+                          : landedCost.dueAtDeliveryAmount
+                        ).toFixed(0)}`}
+                  </Text>
+                </Section>
+              ) : (
+                <Section style={itemRow}>
+                  <Text style={value}>{t.tax}: {currency} {taxAmount.toFixed(0)}</Text>
+                </Section>
+              )}
               <Section style={itemRow}>
                 <Text style={totalRow}>
                   {t.total}: {currency} {total.toFixed(0)}

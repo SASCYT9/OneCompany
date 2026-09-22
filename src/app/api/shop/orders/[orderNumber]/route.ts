@@ -88,6 +88,8 @@ export async function GET(
     }
   }
 
+  const pricingSnapshot = order.pricingSnapshot as Record<string, unknown> | null;
+
   return NextResponse.json({
     orderNumber: order.orderNumber,
     status: order.status,
@@ -100,31 +102,17 @@ export async function GET(
     customerGroupSnapshot: order.customerGroupSnapshot,
     subtotal: Number(order.subtotal),
     regionalAdjustmentAmount: Number(
-      ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalAdjustmentAmount as
-        | number
-        | undefined) ?? 0
+      (pricingSnapshot?.regionalAdjustmentAmount as number | undefined) ?? 0
     ),
     shippingCost: Number(order.shippingCost),
-    taxableSubtotal: Number(
-      ((order.pricingSnapshot as Record<string, unknown> | null)?.taxableSubtotal as
-        | number
-        | undefined) ?? 0
-    ),
-    taxableShippingCost: Number(
-      ((order.pricingSnapshot as Record<string, unknown> | null)?.taxableShippingCost as
-        | number
-        | undefined) ?? 0
-    ),
+    taxableSubtotal: Number((pricingSnapshot?.taxableSubtotal as number | undefined) ?? 0),
+    taxableShippingCost: Number((pricingSnapshot?.taxableShippingCost as number | undefined) ?? 0),
     taxAmount: Number(order.taxAmount),
     total: Number(order.total),
     pricingSnapshot: order.pricingSnapshot,
-    regionalPricingRule:
-      ((order.pricingSnapshot as Record<string, unknown> | null)?.regionalPricingRule as
-        | object
-        | undefined) ?? null,
-    showTaxesIncludedNotice: Boolean(
-      (order.pricingSnapshot as Record<string, unknown> | null)?.showTaxesIncludedNotice
-    ),
+    landedCost: (pricingSnapshot?.landedCost as object | null | undefined) ?? null,
+    regionalPricingRule: (pricingSnapshot?.regionalPricingRule as object | undefined) ?? null,
+    showTaxesIncludedNotice: Boolean(pricingSnapshot?.showTaxesIncludedNotice),
     createdAt: order.createdAt.toISOString(),
     items: itemsList,
     shipments: order.shipments.map((shipment) => ({
