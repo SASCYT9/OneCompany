@@ -1,7 +1,10 @@
 import "server-only";
 
 import { buildShopCatalogProjection } from "./shopCatalogProjection.server";
-import { persistShopCatalogProjectionBuild } from "./shopCatalogProjectionPersistence.server";
+import {
+  persistShopCatalogMediaProjectionBuild,
+  persistShopCatalogProjectionBuild,
+} from "./shopCatalogProjectionPersistence.server";
 import { projectionSourceFromRevision } from "./shopCatalogProjectionSource.server";
 import {
   claimShopCatalogOutbox,
@@ -34,6 +37,8 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
     };
   }
   let persisted: Promise<void> | null = null;
+  const mediaOnly =
+    job.changeDomains.length > 0 && job.changeDomains.every((domain) => domain === "MEDIA");
   const publish = async () => {
     if (!persisted) {
       persisted = (async () => {
@@ -52,7 +57,12 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
           createdAt: job.revision?.createdAt ?? null,
           snapshot: job.revision?.snapshot ?? null,
         });
-        await persistShopCatalogProjectionBuild(buildShopCatalogProjection(source));
+        const build = buildShopCatalogProjection(source);
+        if (mediaOnly) {
+          await persistShopCatalogMediaProjectionBuild(build);
+        } else {
+          await persistShopCatalogProjectionBuild(build);
+        }
       })();
     }
     await persisted;
