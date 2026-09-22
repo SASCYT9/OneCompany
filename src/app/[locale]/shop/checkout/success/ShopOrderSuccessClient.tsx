@@ -12,10 +12,24 @@ import {
   isExternalCatalogProductSlug,
 } from "@/lib/shopStorefrontRouting";
 
+type LandedCost = {
+  ruleName: string;
+  mode: "DDP" | "DAP" | "QUOTE";
+  guaranteed: boolean;
+  dutyAmount: number;
+  importVatAmount: number;
+  brokerageAmount: number;
+  handlingAmount: number;
+  includedAmount: number;
+  dueAtDeliveryAmount: number;
+};
+
 type OrderData = {
   orderNumber: string;
   status: string;
   paymentMethod?: string;
+  paymentStatus?: string;
+  monobankPayment?: { status: string; canPay: boolean } | null;
   email: string;
   customerName: string;
   currency: string;
@@ -26,6 +40,7 @@ type OrderData = {
   taxableShippingCost?: number;
   taxAmount: number;
   total: number;
+  landedCost: LandedCost | null;
   showTaxesIncludedNotice: boolean;
   createdAt: string;
   items: Array<{
@@ -62,13 +77,17 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   const [fopDetails, setFopDetails] = useState<FopDetails | null>(null);
   const [loading, setLoading] = useState(!!(orderNumber && token));
   const [error, setError] = useState("");
+  const [paymentError, setPaymentError] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const trackedRef = useRef(false);
   const isUa = locale === "ua";
   const showRegionalAdjustment = Boolean(order && hasMoneyAmount(order.regionalAdjustmentAmount));
   const showVatLine = Boolean(
     order &&
-      (hasMoneyAmount(order.taxAmount) ||
-        (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
+    !order.landedCost &&
+    (hasMoneyAmount(order.taxAmount) ||
+      (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
   );
 
   useEffect(() => {
@@ -77,16 +96,25 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       setError(isUa ? "Немає даних замовлення." : "No order data.");
       return;
     }
-    fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`)
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let polls = 0;
+    const loadOrder = () => fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`, { cache: "no-store" })
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
         return r.json();
       })
       .then((data) => {
+        if (disposed) return;
         setOrder(data);
+        setError("");
         if (!trackedRef.current) {
           trackedRef.current = true;
           trackOrderPlaced(data.orderNumber, data.total, data.currency);
+        }
+        if (data.paymentMethod === "MONOBANK" &&
+            !["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "FAILED"].includes(data.paymentStatus) && polls++ < 12) {
+          timer = setTimeout(loadOrder, 5000);
         }
         if (data.paymentMethod === "FOP") {
           return fetch("/api/shop/checkout/payment-options")
@@ -97,9 +125,32 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
             .catch(() => {});
         }
       })
-      .catch(() => setError(isUa ? "Замовлення не знайдено." : "Order not found."))
-      .finally(() => setLoading(false));
-  }, [orderNumber, token, isUa]);
+      .catch(() => { if (!disposed && polls === 0) setError(isUa ? "Замовлення не знайдено." : "Order not found."); })
+      .finally(() => { if (!disposed) setLoading(false); });
+    void loadOrder();
+    return () => { disposed = true; if (timer) clearTimeout(timer); };
+  }, [orderNumber, token, isUa, refreshKey]);
+
+  const resumePayment = async () => {
+    if (paying || !orderNumber || !token) return;
+    setPaying(true);
+    setPaymentError("");
+    try {
+      const response = await fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}/monobank`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, locale }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.redirectUrl) throw new Error("Payment unavailable");
+      window.location.assign(data.redirectUrl);
+    } catch {
+      setPaymentError(isUa ? "Оплата зараз недоступна. Оновіть статус або зверніться до менеджера з номером замовлення." : "Payment is currently unavailable. Refresh the status or contact us with your order number.");
+      setRefreshKey((value) => value + 1);
+    } finally {
+      setPaying(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -156,6 +207,38 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
           <p className="mt-4 text-sm text-foreground/75 dark:text-foreground/60">
             {isUa ? "Ми надішлемо підтвердження на" : "We will send confirmation to"} {order.email}
           </p>
+          {order.paymentMethod === "MONOBANK" && (
+            <div className="mt-6 rounded-2xl border border-foreground/10 bg-card/40 p-5 text-left" aria-live="polite">
+              <p className="text-sm font-medium">
+                {order.paymentStatus === "PAID"
+                  ? isUa ? "Оплату підтверджено" : "Payment confirmed"
+                  : order.paymentStatus === "REFUNDED"
+                    ? isUa ? "Кошти повернено" : "Payment refunded"
+                    : order.paymentStatus === "PARTIALLY_REFUNDED"
+                      ? isUa ? "Кошти частково повернено" : "Payment partially refunded"
+                      : order.paymentStatus === "FAILED"
+                        ? isUa ? "Оплату не завершено" : "Payment not completed"
+                        : isUa ? "Очікуємо підтвердження оплати" : "Awaiting payment confirmation"}
+              </p>
+              <p className="mt-1 text-xs text-foreground/70">plata by mono · Apple Pay · Google Pay</p>
+              {order.monobankPayment?.canPay && (
+                <button type="button" disabled={paying} onClick={resumePayment} className="mt-4 rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-50">
+                  {paying ? isUa ? "Завантаження…" : "Loading…" : isUa ? "Продовжити оплату" : "Continue payment"}
+                </button>
+              )}
+              {!["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus ?? "") && (
+                <button type="button" onClick={() => setRefreshKey((value) => value + 1)} className="ml-4 mt-4 text-sm underline">
+                  {isUa ? "Оновити статус" : "Refresh status"}
+                </button>
+              )}
+              {order.monobankPayment && !order.monobankPayment.canPay && !["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus ?? "") && (
+                <p className="mt-3 text-xs text-foreground/70">
+                  {isUa ? "Якщо статус не оновлюється, зверніться до менеджера з номером цього замовлення." : "If the status does not update, contact us with this order number."}
+                </p>
+              )}
+              {paymentError && <p role="alert" className="mt-3 text-sm text-red-500">{paymentError}</p>}
+            </div>
+          )}
           <div className="mt-6 border-t border-foreground/10 pt-6 text-left">
             <p className="text-xs uppercase tracking-wider text-foreground/65 dark:text-foreground/45">
               {isUa ? "Склад замовлення" : "Order summary"}
@@ -256,6 +339,51 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                 {isUa ? "Доставка" : "Shipping"}:{" "}
                 {formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
               </p>
+              {order.landedCost ? (
+                <div className="mt-3 rounded-xl border border-primary/15 bg-primary/5 px-3 py-3 text-xs">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>
+                      {order.landedCost.mode === "DDP"
+                        ? isUa
+                          ? "Імпортні витрати · DDP"
+                          : "Import charges · DDP"
+                        : order.landedCost.mode === "DAP"
+                          ? isUa
+                            ? "Імпорт при доставці · DAP"
+                            : "Import at delivery · DAP"
+                          : isUa
+                            ? "Імпортні витрати · quote"
+                            : "Import charges · quote"}
+                    </span>
+                    <span className="tabular-nums">
+                      {order.landedCost.mode === "QUOTE"
+                        ? isUa
+                          ? "Після підтвердження"
+                          : "After confirmation"
+                        : formatShopMoney(
+                            locale,
+                            order.landedCost.mode === "DDP"
+                              ? order.landedCost.includedAmount
+                              : order.landedCost.dueAtDeliveryAmount,
+                            order.currency as ShopCurrencyCode
+                          )}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-foreground/60 dark:text-foreground/45">
+                    {order.landedCost.mode === "DDP"
+                      ? order.landedCost.guaranteed
+                        ? isUa
+                          ? `Включено у total · ${order.landedCost.ruleName}`
+                          : `Included in total · ${order.landedCost.ruleName}`
+                        : isUa
+                          ? "Включено у total за поточним розрахунком"
+                          : "Included in total using the current estimate"
+                      : isUa
+                        ? "Орієнтовна сума при імпорті"
+                        : "Estimated amount due at import"}
+                  </p>
+                </div>
+              ) : null}
               {showVatLine ? (
                 <p>
                   VAT:{" "}

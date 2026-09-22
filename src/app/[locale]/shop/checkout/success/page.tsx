@@ -8,10 +8,10 @@ type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ orde
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const l = resolveLocale(locale);
-  return buildNoIndexPageMetadata(l, 'shop/checkout/success', {
+  return { ...buildNoIndexPageMetadata(l, 'shop/checkout/success', {
     title: l === 'ua' ? 'Замовлення прийнято | One Company' : 'Order confirmed | One Company',
     description: l === 'ua' ? 'Ваше замовлення прийнято.' : 'Your order has been placed.',
-  });
+  }), referrer: 'no-referrer' };
 }
 
 export default async function ShopOrderSuccessPage({ params, searchParams }: Props) {

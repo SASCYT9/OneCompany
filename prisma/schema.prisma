@@ -1433,6 +1433,7 @@ model ShopOrder {
   events              ShopOrderStatusEvent[]
   shipments           ShopShipment[]
   returns             ShopOrderReturn[]
+  monobankPayment     ShopMonobankPayment?
   opsTasks            OpsTask[]
   opsComments         OpsComment[]
   opsTelegramContexts OpsTelegramContext[]
@@ -1443,6 +1444,24 @@ model ShopOrder {
   @@index([discountCode])
   @@index([isDraft])
   @@index([orderNumber], map: "ShopOrder_orderNumber_idx")
+}
+
+model ShopMonobankPayment {
+  id                 String    @id @default(cuid())
+  orderId            String    @unique
+  checkoutKeyHash    String    @unique
+  requestHash        String
+  invoiceId          String?   @unique
+  pageUrl            String?
+  amount             Int
+  ccy                Int       @default(980)
+  status             String    @default("new")
+  providerModifiedAt DateTime?
+  lastSyncedAt       DateTime?
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
 }
 
 model ShopOrderItem {
