@@ -49,6 +49,16 @@ export function isShopLandedCostCheckoutEnabled(
   return String(value ?? "").trim() === "1";
 }
 
+/**
+ * Keeps new zone-scoped/included-shipping rules in preview mode until their
+ * production totals have been approved independently from the existing rules.
+ */
+export function isShopAdvancedLogisticsPricingEnabled(
+  value = process.env.SHOP_ADVANCED_LOGISTICS_PRICING_ENABLED
+) {
+  return String(value ?? "").trim() === "1";
+}
+
 export type CheckoutShippingAddress = {
   line1: string;
   line2?: string;
@@ -140,6 +150,7 @@ type CheckoutQuoteSummaryInput = {
   itemCount: number;
   items: ResolvedCheckoutItem[];
   landedCostRules?: ShopLandedCostRule[];
+  advancedLogisticsPricingEnabled?: boolean;
 };
 
 function roundMoney(value: number) {
@@ -288,10 +299,11 @@ function calculateShippingCost(
   settings: ShopSettingsRuntime,
   subtotal: number,
   itemCount: number,
-  items: ResolvedCheckoutItem[]
+  items: ResolvedCheckoutItem[],
+  advancedLogisticsPricingEnabled: boolean
 ): ShippingCostResult {
   if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
-  if (zone.shippingMode === "included") {
+  if (advancedLogisticsPricingEnabled && zone.shippingMode === "included") {
     return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   }
   const resolvedZoneId = zone.id;
@@ -339,14 +351,17 @@ function calculateShippingCost(
           r.id !== SHOP_BRAND_DEFAULT_RULE_ID &&
           r.brandName.trim().toLowerCase() === normalizedBrand
       );
-      const scoped = brandRules.find((r) => r.shippingZoneId === resolvedZoneId);
-      if (scoped) return scoped;
       const global = brandRules.find((r) => !r.shippingZoneId);
+      if (!advancedLogisticsPricingEnabled && global) return global;
+      const scoped = brandRules.find((r) => r.shippingZoneId === resolvedZoneId);
+      if (advancedLogisticsPricingEnabled && scoped) return scoped;
       if (global) return global;
     }
 
+    const globalDefault = defaultRules.find((r) => !r.shippingZoneId) ?? null;
+    if (!advancedLogisticsPricingEnabled) return globalDefault;
     const scopedDefault = defaultRules.find((r) => r.shippingZoneId === resolvedZoneId);
-    return scopedDefault ?? defaultRules.find((r) => !r.shippingZoneId) ?? null;
+    return scopedDefault ?? globalDefault;
   }
 
   if (zone.calcMode === "volumetric") {
@@ -740,7 +755,8 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     input.settings,
     subtotal,
     itemCount,
-    input.items
+    input.items,
+    input.advancedLogisticsPricingEnabled === true
   );
   const shippingCost = shippingResult.cost;
   const shippingIncludedInPrice =
@@ -886,6 +902,7 @@ export function buildCheckoutSettingsPreview(
       height?: number | null;
       shippingToUaUsd?: number | null;
     }>;
+    advancedLogisticsPricingEnabled?: boolean;
   }
 ) {
   const currency = resolveRequestedCurrency(settings, input.currency);
@@ -932,6 +949,7 @@ export function buildCheckoutSettingsPreview(
     itemCount,
     items: previewItems,
     landedCostRules: [],
+    advancedLogisticsPricingEnabled: input.advancedLogisticsPricingEnabled !== false,
   });
 }
 
@@ -1042,5 +1060,6 @@ export async function buildCheckoutQuote(
     itemCount,
     items: resolvedItems,
     landedCostRules,
+    advancedLogisticsPricingEnabled: isShopAdvancedLogisticsPricingEnabled(),
   });
 }
