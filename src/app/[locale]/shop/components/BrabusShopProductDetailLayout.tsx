@@ -23,6 +23,7 @@ import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 
 type Props = {
   locale: string;
@@ -471,6 +472,21 @@ export function BrabusShopProductDetailLayout({
           color: var(--b-red);
           margin-bottom: 1rem;
         }
+        .b-brand--link {
+          display: inline-block;
+          text-decoration: underline;
+          text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+          text-underline-offset: 0.35em;
+          transition: color 0.2s, text-decoration-color 0.2s;
+        }
+        .b-brand--link:hover {
+          color: var(--b-fg);
+          text-decoration-color: var(--b-red);
+        }
+        .b-brand--link:focus-visible {
+          outline: 2px solid var(--b-red);
+          outline-offset: 4px;
+        }
         .b-title {
           font-size: clamp(1.4rem, 2vw, 1.8rem);
           font-weight: 300;
@@ -849,7 +865,11 @@ export function BrabusShopProductDetailLayout({
               </div>
 
               {/* Title Block */}
-              <div className="b-brand">{product.brand}</div>
+              <ShopBrandLink
+                brand={product.brand}
+                locale={resolvedLocale}
+                className="b-brand b-brand--link"
+              />
               <h1 className="b-title">{productTitle}</h1>
 
               {/* Mini Specs */}

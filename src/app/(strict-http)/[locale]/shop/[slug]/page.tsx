@@ -29,6 +29,7 @@ import { extractShopProductDescriptionSections } from "@/lib/shopProductDescript
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
@@ -205,9 +206,11 @@ export default async function ShopProductPage({ params }: Props) {
           </div>
 
           <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
-            <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
-              {product.brand}
-            </p>
+            <ShopBrandLink
+              brand={product.brand}
+              locale={resolvedLocale}
+              className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+            />
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
               {productTitle}
             </h1>

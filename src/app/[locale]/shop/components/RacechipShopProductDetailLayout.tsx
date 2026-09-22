@@ -17,6 +17,7 @@ import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 
 type Props = {
   locale: SupportedLocale;
@@ -201,7 +202,12 @@ export default function RacechipShopProductDetailLayout({
             <div className="mb-4 md:mb-6">
               <span className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] sm:tracking-[0.2em] text-[#ff4a00] font-black bg-[#ff4a00]/10 px-3 py-1.5 rounded-sm border border-[#ff4a00]/20 mb-4 md:mb-6">
                 <Zap size={13} strokeWidth={2.5} />
-                RaceChip GTS 5 + App Control
+                <ShopBrandLink
+                  brand={product.brand}
+                  locale={locale}
+                  className="underline decoration-current/35 underline-offset-4 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4a00]"
+                />
+                <span aria-hidden="true">GTS 5 + App Control</span>
               </span>
               <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4 break-words">
                 {productTitle}
