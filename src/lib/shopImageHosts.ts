@@ -15,6 +15,8 @@ export const SHOP_REMOTE_IMAGE_HOSTS = [
   "images.unsplash.com",
   "kwsuspension.shop",
   "fiexhaust.shop",
+  "www.fi-exhaust.com",
+  "img.shoplineapp.com",
   "smgassets.blob.core.windows.net",
   "parts.ford.com",
   "www.akrapovic.com",
@@ -30,4 +32,6 @@ export const SHOP_REMOTE_IMAGE_HOSTS = [
   "cdn.sanity.io",
   "houseofurban.co.uk",
   "ind-distribution.com",
+  "ducatiomaha.com",
+  "amsducati.com",
 ];
