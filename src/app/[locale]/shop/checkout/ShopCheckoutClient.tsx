@@ -761,7 +761,24 @@ export default function ShopCheckoutClient({
           <section className={styles.section} aria-labelledby="checkout-payment">
             <div className={styles.sectionHead}>
               <h2 id="checkout-payment">{isUa ? "Оплата" : "Payment"}</h2>
-              {monoAvailable && <span className={styles.provider}>plata by mono</span>}
+              {monoAvailable && (
+                <span className={styles.monoProviderLogo} aria-label="plata by mono">
+                  <Image
+                    src="/images/payments/plata-by-mono-light.svg"
+                    alt="plata by mono"
+                    width={136}
+                    height={28}
+                    className={styles.monoProviderLogoLight}
+                  />
+                  <Image
+                    src="/images/payments/plata-by-mono-dark.svg"
+                    alt=""
+                    width={136}
+                    height={28}
+                    className={styles.monoProviderLogoDark}
+                  />
+                </span>
+              )}
             </div>
             {monoAvailable ? (
               <>
