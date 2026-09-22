@@ -803,12 +803,33 @@ export default function ShopCheckoutClient({
                         {isUa ? "Оплата карткою" : "Card payment"}
                       </span>
                       <span className={styles.cardLogos}>
-                        <Image src="/images/payments/visa.svg" alt="Visa" width={30} height={20} />
                         <Image
-                          src="/images/payments/mastercard.svg"
+                          src="/images/payments/mono-visa-light.svg"
+                          alt="Visa"
+                          width={37}
+                          height={12}
+                          className={`${styles.paymentLogoLight} ${styles.cardLogoVisa}`}
+                        />
+                        <Image
+                          src="/images/payments/mono-visa-dark.svg"
+                          alt=""
+                          width={37}
+                          height={12}
+                          className={`${styles.paymentLogoDark} ${styles.cardLogoVisa}`}
+                        />
+                        <Image
+                          src="/images/payments/mono-mastercard-light.svg"
                           alt="Mastercard"
-                          width={30}
-                          height={20}
+                          width={26}
+                          height={16}
+                          className={`${styles.paymentLogoLight} ${styles.cardLogoMastercard}`}
+                        />
+                        <Image
+                          src="/images/payments/mono-mastercard-dark.svg"
+                          alt=""
+                          width={26}
+                          height={16}
+                          className={`${styles.paymentLogoDark} ${styles.cardLogoMastercard}`}
                         />
                       </span>
                     </div>
@@ -818,8 +839,38 @@ export default function ShopCheckoutClient({
                         : "Visa and Mastercard from Ukrainian and international banks."}
                     </p>
                     <div className={styles.walletNames}>
-                      <span>Apple Pay</span>
-                      <span>Google Pay</span>
+                      <span aria-label="Apple Pay">
+                        <Image
+                          src="/images/payments/mono-apple-pay-light.svg"
+                          alt="Apple Pay"
+                          width={57}
+                          height={24}
+                          className={styles.paymentLogoLight}
+                        />
+                        <Image
+                          src="/images/payments/mono-apple-pay-dark.svg"
+                          alt=""
+                          width={57}
+                          height={24}
+                          className={styles.paymentLogoDark}
+                        />
+                      </span>
+                      <span aria-label="Google Pay">
+                        <Image
+                          src="/images/payments/mono-google-pay-light.svg"
+                          alt="Google Pay"
+                          width={62}
+                          height={24}
+                          className={styles.paymentLogoLight}
+                        />
+                        <Image
+                          src="/images/payments/mono-google-pay-dark.svg"
+                          alt=""
+                          width={62}
+                          height={24}
+                          className={styles.paymentLogoDark}
+                        />
+                      </span>
                     </div>
                     {form.paymentMethod === "MONOBANK" && (
                       <p className={styles.paymentDetail}>

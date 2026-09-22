@@ -305,12 +305,16 @@
   margin-left: auto;
 }
 .cardLogos img {
-  width: 30px;
-  height: 20px;
+  display: block;
   object-fit: contain;
-  background: #fff;
-  border-radius: 3px;
-  padding: 2px;
+}
+.cardLogoVisa {
+  width: 37px;
+  height: auto;
+}
+.cardLogoMastercard {
+  width: 26px;
+  height: auto;
 }
 .paymentDetail {
   margin: 9px 0 0 26px;
@@ -327,13 +331,26 @@
 }
 .walletNames span {
   display: inline-flex;
-  gap: 5px;
   align-items: center;
+  justify-content: center;
   border: 1px solid var(--checkout-border);
   border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 400;
+  min-height: 28px;
+  padding: 2px 9px;
+}
+.walletNames img {
+  display: block;
+  width: auto;
+  height: 17px;
+}
+.paymentLogoDark {
+  display: none !important;
+}
+:global(.dark) .paymentLogoLight {
+  display: none !important;
+}
+:global(.dark) .paymentLogoDark {
+  display: block !important;
 }
 .monoProviderLogo {
   display: flex;
