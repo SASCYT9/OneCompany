@@ -4,6 +4,7 @@ import "./fixtures/register-server-only.mjs";
 import { buildShopSettingsRuntimeFromPayload } from "../../../src/lib/shopAdminSettings";
 import {
   buildCheckoutSettingsPreview,
+  isShopAdvancedLogisticsPricingEnabled,
   isShopLandedCostCheckoutEnabled,
 } from "../../../src/lib/shopCheckout";
 import { EU_VAT_COUNTRIES } from "../../../src/lib/shopEuVat";
@@ -14,6 +15,13 @@ test("landed-cost calculations stay disconnected from checkout unless explicitly
   assert.equal(isShopLandedCostCheckoutEnabled("0"), false);
   assert.equal(isShopLandedCostCheckoutEnabled("true"), false);
   assert.equal(isShopLandedCostCheckoutEnabled("1"), true);
+});
+
+test("advanced logistics pricing stays in preview until explicitly enabled", () => {
+  assert.equal(isShopAdvancedLogisticsPricingEnabled(undefined), false);
+  assert.equal(isShopAdvancedLogisticsPricingEnabled("0"), false);
+  assert.equal(isShopAdvancedLogisticsPricingEnabled("true"), false);
+  assert.equal(isShopAdvancedLogisticsPricingEnabled("1"), true);
 });
 
 test("checkout settings preview applies shipping zones, tax regions and totals", () => {
@@ -305,6 +313,83 @@ test("a zone with shipping included in prices bypasses supplier and brand freigh
   assert.equal(quote.shippingCost, 0);
   assert.equal(quote.total, 1299);
   assert.equal(quote.requiresQuote, false);
+});
+
+test("live-safe mode ignores new included and zone-scoped shipping rules", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { EUR: 1, USD: 1, UAH: 1 },
+    shippingZones: [
+      {
+        id: "eu-zone",
+        name: "Europe",
+        countries: ["DE"],
+        regions: [],
+        calcMode: "volumetric",
+        baseRate: 10,
+        perItemRate: 0,
+        ratePerKg: 0,
+        volSurchargePerKg: 0,
+        volumetricDivisor: 5000,
+        fallbackWeightKg: 1,
+        fallbackLength: 10,
+        fallbackWidth: 10,
+        fallbackHeight: 10,
+        freeOver: null,
+        minimumSubtotal: null,
+        currency: "EUR",
+        shippingMode: "included",
+        enabled: true,
+      },
+    ],
+    brandShippingRules: [
+      {
+        id: "eventuri-eu",
+        brandName: "Eventuri",
+        shippingZoneId: "eu-zone",
+        mode: "fixed",
+        value: 120,
+        warehouseRatePerKg: 0,
+        currency: "EUR",
+        enabled: true,
+      },
+      {
+        id: "__default__",
+        brandName: "",
+        shippingZoneId: null,
+        mode: "fixed",
+        value: 40,
+        warehouseRatePerKg: 0,
+        currency: "EUR",
+        enabled: true,
+      },
+    ],
+    taxRegions: [],
+    orderNotificationEmail: null,
+    b2bNotes: null,
+  } as any);
+
+  const quote = buildCheckoutSettingsPreview(settings, {
+    currency: "EUR",
+    subtotal: 1000,
+    itemCount: 1,
+    items: [
+      {
+        total: 1000,
+        quantity: 1,
+        pricingBaseRegion: "default",
+        brandName: "Eventuri",
+      },
+    ],
+    shippingAddress: { line1: "Test", city: "Berlin", country: "DE" },
+    advancedLogisticsPricingEnabled: false,
+  });
+
+  assert.equal(quote.shippingCost, 50);
+  assert.equal(quote.total, 1050);
 });
 
 test("Revozport shipping uses the $25 per kg rule for supplier shipping weight", () => {
