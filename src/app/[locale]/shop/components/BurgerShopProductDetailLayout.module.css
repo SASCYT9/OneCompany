@@ -11,6 +11,22 @@
   gap: 32px;
 }
 
+.brandLink {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-underline-offset: 4px;
+  transition: color 0.2s;
+}
+
+.brandLink:hover {
+  color: var(--burger-yellow, #ffd700);
+}
+
+.brandLink:focus-visible {
+  outline: 2px solid var(--burger-yellow, #ffd700);
+  outline-offset: 4px;
+}
+
 @media (min-width: 1024px) {
   .content {
     padding: 48px 48px 80px;

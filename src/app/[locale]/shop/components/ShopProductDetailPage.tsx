@@ -61,6 +61,7 @@ import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import { ShopProductGallery } from "./ShopProductGallery";
 import { ShopProductVideos } from "./ShopProductVideos";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { Do88CompatibleVehiclesBlock } from "./Do88CompatibleVehiclesBlock";
 import { Do88VehicleCompatibilityAlert } from "./Do88VehicleCompatibilityAlert";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
@@ -443,7 +444,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // live context via useShopViewerContext in client layouts (Brabus/Burger
   // already wired). The default inline layout renders anon prices on detail
   // pages for B2B users; correct B2B pricing always applies in cart/checkout.
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
+    priceCountry: isUa ? "Ukraine" : null,
+  });
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant =
     product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
@@ -898,9 +901,11 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                   />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
-                    {product.brand}
-                  </p>
+                  <ShopBrandLink
+                    brand={product.brand}
+                    locale={resolvedLocale}
+                    className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+                  />
                   {product.vendor ? (
                     <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
                       {product.vendor}

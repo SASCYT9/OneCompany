@@ -108,18 +108,25 @@ function normalizeRates(value: Partial<Rates> | null | undefined): Rates {
 type ShopCurrencyProviderProps = {
   children: ReactNode;
   defaultCurrency?: CurrencyCode;
+  defaultCountry?: string;
   initialRates?: Partial<Rates> | null;
 };
 
 export function ShopCurrencyProvider({
   children,
   defaultCurrency = "UAH",
+  defaultCountry,
   initialRates,
 }: ShopCurrencyProviderProps) {
   const normalizedDefaultCurrency = normalizeCurrency(defaultCurrency, "UAH");
-  const initialRegion = currencyToRegion(normalizedDefaultCurrency);
+  const normalizedDefaultCountry = defaultCountry
+    ? normalizeCountry(defaultCountry, defaultCountryForRegion(currencyToRegion(normalizedDefaultCurrency)))
+    : defaultCountryForRegion(currencyToRegion(normalizedDefaultCurrency));
+  const initialRegion = defaultCountry
+    ? countryToRegion(normalizedDefaultCountry)
+    : currencyToRegion(normalizedDefaultCurrency);
   const [region, setRegionState] = useState<ShopRegionCode>(initialRegion);
-  const [country, setCountryState] = useState<string>(defaultCountryForRegion(initialRegion));
+  const [country, setCountryState] = useState<string>(normalizedDefaultCountry);
   const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
   const [rates] = useState<Rates | null>(normalizeRates(initialRates));
 

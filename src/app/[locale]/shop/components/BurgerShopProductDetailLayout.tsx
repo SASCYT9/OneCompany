@@ -27,6 +27,7 @@ import styles from "./BurgerShopProductDetailLayout.module.css";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 
 type Props = {
   locale: string;
@@ -336,7 +337,10 @@ export function BurgerShopProductDetailLayout({
                   />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <div
+                  <ShopBrandLink
+                    brand={product.brand}
+                    locale={resolvedLocale}
+                    className={styles.brandLink}
                     style={{
                       fontSize: 11,
                       letterSpacing: "0.22em",
@@ -344,9 +348,7 @@ export function BurgerShopProductDetailLayout({
                       color: "hsl(var(--foreground) / 0.65)",
                       fontWeight: 600,
                     }}
-                  >
-                    {product.brand}
-                  </div>
+                  />
                   {product.sku && (
                     <div
                       style={{

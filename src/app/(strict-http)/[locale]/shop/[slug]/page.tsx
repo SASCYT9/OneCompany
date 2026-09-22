@@ -29,6 +29,7 @@ import { extractShopProductDescriptionSections } from "@/lib/shopProductDescript
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
+import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
@@ -37,6 +38,7 @@ import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
+import { isRevozportBrand } from "@/lib/revozportShipping";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -107,6 +109,25 @@ function normalizeImage(value: string | null | undefined) {
   return normalized.startsWith("//") ? `https:${normalized}` : normalized;
 }
 
+function appendRevozportShippingWeight(
+  html: string,
+  product: ShopProduct,
+  locale: SupportedLocale
+) {
+  if (!isRevozportBrand(product.brand)) return html;
+  if (typeof product.weightKg !== "number" || !Number.isFinite(product.weightKg)) return html;
+  if (/(?:Вага відправлення|Shipping weight)\s*:/i.test(html)) return html;
+
+  const label = locale === "ua" ? "Вага відправлення" : "Shipping weight";
+  const unit = locale === "ua" ? "кг" : "kg";
+  const specHtml = `<p><strong>${label}:</strong> ${product.weightKg} ${unit}</p>`;
+  const deliveryHeading = /<h[1-6][^>]*>\s*(?:Доставка|Delivery)\s*<\/h[1-6]>/i;
+  const match = deliveryHeading.exec(html);
+
+  if (!match || match.index == null) return `${html}${specHtml}`;
+  return `${html.slice(0, match.index)}${specHtml}${html.slice(match.index)}`;
+}
+
 export default async function ShopProductPage({ params }: Props) {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
@@ -128,7 +149,9 @@ export default async function ShopProductPage({ params }: Props) {
   // bottom of the page. Main path only awaits shop settings.
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null);
+  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
+    priceCountry: isUa ? "Ukraine" : null,
+  });
   const pricing = resolveShopProductPricing(product, viewerContext);
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
@@ -136,6 +159,11 @@ export default async function ShopProductPage({ params }: Props) {
   const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
   const descriptionSections = extractShopProductDescriptionSections(
     longDescription || shortDescription
+  );
+  descriptionSections.introHtml = appendRevozportShippingWeight(
+    descriptionSections.introHtml,
+    product,
+    resolvedLocale
   );
   const gallery = (product.gallery?.length ? product.gallery : [product.image])
     .map(normalizeImage)
@@ -178,9 +206,11 @@ export default async function ShopProductPage({ params }: Props) {
           </div>
 
           <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
-            <p className="text-xs uppercase tracking-[0.18em] text-foreground/75 dark:text-foreground/60">
-              {product.brand}
-            </p>
+            <ShopBrandLink
+              brand={product.brand}
+              locale={resolvedLocale}
+              className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+            />
             <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
               {productTitle}
             </h1>

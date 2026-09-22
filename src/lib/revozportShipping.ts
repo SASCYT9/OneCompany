@@ -12,6 +12,7 @@ export const REVOZPORT_LOGISTICS_NAMESPACE = "revozport_logistics";
 export const REVOZPORT_SEA_SHIPPING_KEY = "sea_shipping_usd";
 export const REVOZPORT_AIR_SHIPPING_KEY = "air_shipping_usd";
 export const REVOZPORT_SHIPPING_RATE_USD_PER_KG = 25;
+export const REVOZPORT_USD_TO_UAH_RATE = 46;
 
 export type RevozportCurrencyRates = {
   EUR: number;
@@ -79,16 +80,41 @@ export function addRevozportUkraineShippingToPriceSet(
   const shippingUsd = calculateRevozportShippingUsd(weightKg);
   if (shippingUsd == null) return price;
 
-  const fromUsd = (currency: keyof RevozportCurrencyRates) => {
-    if (currency === "USD") return shippingUsd;
-    const eurAmount = shippingUsd / rates.USD;
-    return currency === "EUR" ? eurAmount : eurAmount * rates.UAH;
-  };
+  const hasValue = (value: number | null | undefined) =>
+    typeof value === "number" && Number.isFinite(value) && value > 0;
+  const eurRate = rates.EUR > 0 ? rates.EUR : 1;
+  const usdRate = rates.USD > 0 ? rates.USD : 1.152174;
+
+  // Revozport imports are normally USD-only. Complete the product price
+  // before adding shipping; otherwise missing EUR/UAH fields would contain
+  // only the delivery amount. Ukraine uses the agreed fixed rate of 46 UAH/USD.
+  const basePrice = hasValue(price.usd)
+    ? {
+        usd: price.usd,
+        eur: (price.usd / usdRate) * eurRate,
+        uah: price.usd * REVOZPORT_USD_TO_UAH_RATE,
+      }
+    : hasValue(price.eur)
+      ? {
+          eur: price.eur,
+          usd: (price.eur / eurRate) * usdRate,
+          uah: (price.eur / eurRate) * usdRate * REVOZPORT_USD_TO_UAH_RATE,
+        }
+      : hasValue(price.uah)
+        ? {
+            uah: price.uah,
+            usd: price.uah / REVOZPORT_USD_TO_UAH_RATE,
+            eur: (price.uah / REVOZPORT_USD_TO_UAH_RATE / usdRate) * eurRate,
+          }
+        : price;
+
+  const shippingEur = (shippingUsd / usdRate) * eurRate;
+  const shippingUah = shippingUsd * REVOZPORT_USD_TO_UAH_RATE;
 
   return {
-    eur: price.eur + fromUsd("EUR"),
-    usd: price.usd + fromUsd("USD"),
-    uah: price.uah + fromUsd("UAH"),
+    eur: basePrice.eur + shippingEur,
+    usd: basePrice.usd + shippingUsd,
+    uah: basePrice.uah + shippingUah,
   };
 }
 

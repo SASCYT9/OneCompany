@@ -80,6 +80,32 @@ export function buildShopStorefrontRootPath(locale: string, segment: StorefrontS
 }
 
 /**
+ * Build the storefront destination for a product's brand label.
+ *
+ * Brands with a dedicated storefront use its full catalog surface. Eventuri
+ * has a curated landing page that contains the complete brand line, while
+ * every other valid brand stays in the main catalog with a brand filter.
+ */
+export function buildShopStorefrontBrandPath(
+  locale: string,
+  brand: string | null | undefined
+) {
+  const normalizedBrand = normalizeStorefrontKey(brand);
+  const normalizedLabel = brand?.trim();
+
+  if (!normalizedLabel) return `/${locale}/shop`;
+  if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
+
+  const segment = STOREFRONT_SEGMENT_BY_BRAND.get(normalizedBrand);
+  if (segment) {
+    const route = STOREFRONT_ROUTE_REGISTRY.find((item) => item.segment === segment);
+    return `/${locale}/shop/${segment}/${route?.listingSurface ?? "catalog"}`;
+  }
+
+  return `/${locale}/shop/catalog?brand=${encodeURIComponent(normalizedLabel)}`;
+}
+
+/**
  * Prefer the canonical storefront URL returned by the catalog API, but never
  * allow an unexpected locale or a non-shop URL to become a client-side
  * navigation target. Older API responses without `href` continue to use the

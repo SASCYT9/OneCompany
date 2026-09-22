@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildShopStorefrontProductPath,
+  buildShopStorefrontBrandPath,
   resolveShopCatalogProductHref,
   resolveShopStorefrontSegment,
 } from "../../../src/lib/shopStorefrontRouting";
@@ -62,6 +63,25 @@ test("buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront"
     }),
     "ipe"
   );
+});
+
+test("brand labels link to the complete dedicated storefront or a filtered catalog", () => {
+  assert.equal(buildShopStorefrontBrandPath("ua", "Eventuri"), "/ua/shop/eventuri");
+  assert.equal(buildShopStorefrontBrandPath("en", "Urban Automotive"), "/en/shop/urban/products");
+  for (const route of STOREFRONT_ROUTE_REGISTRY) {
+    for (const brandAlias of route.brandAliases) {
+      assert.equal(
+        buildShopStorefrontBrandPath("ua", brandAlias),
+        `/ua/shop/${route.segment}/${route.listingSurface}`
+      );
+    }
+  }
+  assert.equal(
+    buildShopStorefrontBrandPath("ua", "KW Suspensions"),
+    "/ua/shop/catalog?brand=KW%20Suspensions"
+  );
+  assert.equal(buildShopStorefrontBrandPath("en", "Remus"), "/en/shop/catalog?brand=Remus");
+  assert.equal(buildShopStorefrontBrandPath("ua", ""), "/ua/shop");
 });
 
 test("storefront route registry is the complete declarative routing and listing configuration", () => {
