@@ -25,12 +25,29 @@ import {
   isUkraineCountry,
   isUkraineShippingZone,
 } from "@/lib/revozportShipping";
+import {
+  calculateShopLandedCost,
+  normalizeShopLandedCostRule,
+  resolveShopLandedCostRule,
+  type ShopLandedCostBreakdown,
+  type ShopLandedCostRule,
+} from "@/lib/shopLandedCost";
 
 type CheckoutRequestItem = {
   slug: string;
   quantity: number;
   variantId?: string | null;
 };
+
+/**
+ * Landed-cost rules are deliberately disconnected from live checkout totals
+ * until the production data and DDP/DAP assumptions have been approved.
+ */
+export function isShopLandedCostCheckoutEnabled(
+  value = process.env.SHOP_LANDED_COST_CHECKOUT_ENABLED
+) {
+  return String(value ?? "").trim() === "1";
+}
 
 export type CheckoutShippingAddress = {
   line1: string;
@@ -94,6 +111,7 @@ export type CheckoutQuote = {
   taxableShippingCost: number;
   taxAmount: number;
   total: number;
+  landedCost: ShopLandedCostBreakdown | null;
   itemCount: number;
   items: ResolvedCheckoutItem[];
   shippingZone: CheckoutRuleSnapshot | null;
@@ -121,6 +139,7 @@ type CheckoutQuoteSummaryInput = {
   subtotal: number;
   itemCount: number;
   items: ResolvedCheckoutItem[];
+  landedCostRules?: ShopLandedCostRule[];
 };
 
 function roundMoney(value: number) {
@@ -272,6 +291,10 @@ function calculateShippingCost(
   items: ResolvedCheckoutItem[]
 ): ShippingCostResult {
   if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
+  if (zone.shippingMode === "included") {
+    return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
+  }
+  const resolvedZoneId = zone.id;
   const usesSupplierUkraineQuotes = isUkraineShippingZone(zone);
   const hasRevozportWeightRate = items.some(
     (item) =>
@@ -297,25 +320,33 @@ function calculateShippingCost(
   let totalCost = zone.baseRate;
   const brandsRequiringQuote = new Set<string>();
 
-  // Default fallback rule (special id '__default__') applies to any item whose
-  // brand has no dedicated rule. Read once up front.
-  const defaultRule = settings.brandShippingRules.find(
+  // A rule can be global (legacy behavior) or scoped to the matched checkout
+  // zone. The scoped rule wins, then the brand's global rule, then the global
+  // fallback. This makes it possible to configure, for example, one fixed
+  // Eventuri tariff for EU and another for the USA without changing the
+  // existing all-regions rules.
+  const defaultRules = settings.brandShippingRules.filter(
     (r) => r.enabled && r.id === SHOP_BRAND_DEFAULT_RULE_ID
   );
 
-  /** Resolve the rule that should govern shipping for an item: brand-specific
-   * first, then the global default. Returns null if neither applies. */
   function resolveItemRule(itemBrandName: string | null): ShopBrandShippingRule | null {
-    if (itemBrandName) {
-      const specific = settings.brandShippingRules.find(
+    const normalizedBrand = itemBrandName?.trim().toLowerCase();
+
+    if (normalizedBrand) {
+      const brandRules = settings.brandShippingRules.filter(
         (r) =>
           r.enabled &&
           r.id !== SHOP_BRAND_DEFAULT_RULE_ID &&
-          r.brandName.toLowerCase() === itemBrandName.toLowerCase()
+          r.brandName.trim().toLowerCase() === normalizedBrand
       );
-      if (specific) return specific;
+      const scoped = brandRules.find((r) => r.shippingZoneId === resolvedZoneId);
+      if (scoped) return scoped;
+      const global = brandRules.find((r) => !r.shippingZoneId);
+      if (global) return global;
     }
-    return defaultRule ?? null;
+
+    const scopedDefault = defaultRules.find((r) => r.shippingZoneId === resolvedZoneId);
+    return scopedDefault ?? defaultRules.find((r) => !r.shippingZoneId) ?? null;
   }
 
   if (zone.calcMode === "volumetric") {
@@ -490,6 +521,40 @@ function calculateTaxAmount(
   return roundMoney(base * region.rate);
 }
 
+async function loadShopLandedCostRules(prisma: PrismaClient): Promise<ShopLandedCostRule[]> {
+  try {
+    const records = await prisma.shopTaxRegionRule.findMany({
+      where: { isActive: true, landedCostEnabled: true },
+      orderBy: [{ sortOrder: "asc" }, { regionCode: "asc" }],
+    });
+    return records.map((record) =>
+      normalizeShopLandedCostRule({
+        id: record.id,
+        regionCode: record.regionCode,
+        regionName: record.regionName,
+        regionNameUa: record.regionNameUa,
+        taxRate: record.taxRate,
+        customsDutyPct: record.customsDutyPct,
+        appliesToShipping: record.appliesToShipping,
+        incoterm: record.incoterm as ShopLandedCostRule["incoterm"],
+        brokerageFee: record.brokerageFee,
+        handlingFee: record.handlingFee,
+        insurancePct: record.insurancePct,
+        riskReservePct: record.riskReservePct,
+        importerOfRecord: record.importerOfRecord,
+        ddpGuarantee: record.ddpGuarantee,
+        isActive: record.isActive,
+      })
+    );
+  } catch (error) {
+    // Keep checkout compatible with databases that have not received the
+    // landed-cost migration yet. The legacy JSON tax/shipping path remains the
+    // safe fallback until the migration is deployed.
+    console.warn("[shop-checkout] landed-cost rules unavailable", error);
+    return [];
+  }
+}
+
 function calculateEuropeTaxableSubtotal(items: ResolvedCheckoutItem[], subtotal: number) {
   if (!items.length) return subtotal;
 
@@ -537,6 +602,7 @@ function buildPricingSnapshot(params: {
   taxableShippingCost: number;
   taxAmount: number;
   total: number;
+  landedCost: ShopLandedCostBreakdown | null;
   itemCount: number;
   items: ResolvedCheckoutItem[];
   shippingZone: ShopShippingZone | null;
@@ -555,6 +621,7 @@ function buildPricingSnapshot(params: {
     taxableShippingCost,
     taxAmount,
     total,
+    landedCost,
     itemCount,
     items,
     shippingZone,
@@ -603,6 +670,7 @@ function buildPricingSnapshot(params: {
     taxableShippingCost,
     taxAmount,
     total,
+    landedCost,
     shippingZone: shippingZone
       ? {
           id: shippingZone.id,
@@ -680,9 +748,46 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
   const taxableShippingCost = input.items.length
     ? calculateProportionalAmount(shippingCost, taxableSubtotal, adjustedSubtotal)
     : shippingCost;
-  const taxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
-  const taxAmount = calculateTaxAmount(taxRegion, taxableSubtotal, taxableShippingCost);
-  const total = roundMoney(adjustedSubtotal + shippingCost + taxAmount);
+  const configuredLandedCostRule = resolveShopLandedCostRule(
+    input.landedCostRules ?? [],
+    input.shippingAddress.country
+  );
+  const configuredTaxRegion = resolveTaxRegion(input.settings, input.shippingAddress);
+  const taxRegion =
+    configuredTaxRegion ??
+    (configuredLandedCostRule
+      ? {
+          id: configuredLandedCostRule.id,
+          name: configuredLandedCostRule.regionNameUa || configuredLandedCostRule.regionName,
+          countries: [
+            configuredLandedCostRule.regionCode,
+            configuredLandedCostRule.regionName,
+            configuredLandedCostRule.regionNameUa,
+          ],
+          regions: [],
+          rate: configuredLandedCostRule.taxRate / 100,
+          appliesToShipping: configuredLandedCostRule.appliesToShipping,
+          enabled: true,
+        }
+      : null);
+  const legacyTaxAmount = calculateTaxAmount(taxRegion, taxableSubtotal, taxableShippingCost);
+  const landedCost = calculateShopLandedCost({
+    rule: configuredLandedCostRule,
+    country: input.shippingAddress.country,
+    currency,
+    subtotal: adjustedSubtotal,
+    shippingCost,
+    customsValue: adjustedSubtotal,
+    freightAmount: shippingCost,
+  });
+  const taxAmount =
+    landedCost?.mode === "DDP" ? landedCost.importVatAmount : landedCost ? 0 : legacyTaxAmount;
+  const total = roundMoney(
+    adjustedSubtotal +
+      shippingCost +
+      (landedCost?.mode === "DDP" ? landedCost.includedAmount : 0) +
+      (landedCost?.mode === "DDP" ? 0 : taxAmount)
+  );
 
   const pricingSnapshot = buildPricingSnapshot({
     settings: input.settings,
@@ -704,6 +809,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     shippingZone,
     taxRegion,
     regionalPricingRule,
+    landedCost,
   });
 
   return {
@@ -717,6 +823,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
     taxableShippingCost,
     taxAmount,
     total,
+    landedCost,
     itemCount,
     items: input.items,
     shippingZone: shippingZone
@@ -756,7 +863,7 @@ function buildQuoteFromSummary(input: CheckoutQuoteSummaryInput): CheckoutQuote 
       : null,
     showTaxesIncludedNotice: input.settings.showTaxesIncludedNotice,
     pricingSnapshot,
-    requiresQuote: shippingResult.requiresQuote,
+    requiresQuote: shippingResult.requiresQuote || Boolean(landedCost?.requiresQuote),
     brandsRequiringQuote: shippingResult.brandsRequiringQuote,
   };
 }
@@ -824,6 +931,7 @@ export function buildCheckoutSettingsPreview(
     subtotal,
     itemCount,
     items: previewItems,
+    landedCostRules: [],
   });
 }
 
@@ -840,6 +948,9 @@ export async function buildCheckoutQuote(
 ): Promise<CheckoutQuote> {
   const settingsRecord = await getOrCreateShopSettings(prisma);
   const settings = getShopSettingsRuntime(settingsRecord);
+  const landedCostRules = isShopLandedCostCheckoutEnabled()
+    ? await loadShopLandedCostRules(prisma)
+    : [];
   const currency = resolveRequestedCurrency(settings, input.currency);
   const pricingContext = await buildShopViewerPricingContextServer({
     prisma,
@@ -930,5 +1041,6 @@ export async function buildCheckoutQuote(
     subtotal,
     itemCount,
     items: resolvedItems,
+    landedCostRules,
   });
 }

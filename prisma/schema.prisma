@@ -964,6 +964,15 @@ model ShopTaxRegionRule {
   taxLabel       String?
   taxLabelUa     String?
   customsDutyPct Float    @default(0)
+  landedCostEnabled Boolean @default(false)
+  appliesToShipping Boolean @default(true)
+  incoterm       String   @default("DAP")
+  brokerageFee   Float    @default(0)
+  handlingFee    Float    @default(0)
+  insurancePct   Float    @default(0)
+  riskReservePct Float    @default(0)
+  importerOfRecord String?
+  ddpGuarantee   Boolean  @default(false)
   isInclusive    Boolean  @default(false)
   isActive       Boolean  @default(true)
   notes          String?

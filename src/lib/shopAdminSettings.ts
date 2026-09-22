@@ -6,6 +6,9 @@ import { isLocalStorefrontMode } from "@/lib/localStorefront";
 export const SHOP_CURRENCIES = ["EUR", "USD", "UAH"] as const;
 export type ShopCurrencyCode = (typeof SHOP_CURRENCIES)[number];
 
+export const SHOP_SHIPPING_MODES = ["calculated", "included"] as const;
+export type ShopShippingMode = (typeof SHOP_SHIPPING_MODES)[number];
+
 export type ShopShippingZone = {
   id: string;
   name: string;
@@ -24,6 +27,8 @@ export type ShopShippingZone = {
   freeOver: number | null;
   minimumSubtotal: number | null;
   currency: ShopCurrencyCode;
+  /** Whether checkout calculates freight for this zone or treats it as included in item prices. */
+  shippingMode: ShopShippingMode;
   enabled: boolean;
   etaMinDays: number | null;
   etaMaxDays: number | null;
@@ -49,6 +54,12 @@ export type ShopBrandShippingBracket = {
 export type ShopBrandShippingRule = {
   id: string;
   brandName: string;
+  /**
+   * Optional shipping-zone override. An empty/null value is the legacy
+   * all-regions rule for this brand; a zone id scopes the rule to that
+   * destination/fulfillment zone.
+   */
+  shippingZoneId: string | null;
   mode: ShopBrandShippingMode;
   /** For fixed/multiplier/percent. Ignored for tiered/manual_quote/free. */
   value: number;
@@ -188,6 +199,7 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     freeOver: 0,
     minimumSubtotal: null,
     currency: "UAH",
+    shippingMode: "calculated",
     enabled: true,
     etaMinDays: 1,
     etaMaxDays: 3,
@@ -210,6 +222,7 @@ export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [
     freeOver: null,
     minimumSubtotal: null,
     currency: "EUR",
+    shippingMode: "calculated",
     enabled: true,
     etaMinDays: 7,
     etaMaxDays: 14,
@@ -310,6 +323,12 @@ function normalizeCurrencyCode(
 
 function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
   const zones = asObjectArray(value).map((entry, index) => {
+    const shippingModeRaw = stringValue(entry.shippingMode, "calculated").trim().toLowerCase();
+    const shippingMode: ShopShippingMode = (SHOP_SHIPPING_MODES as readonly string[]).includes(
+      shippingModeRaw
+    )
+      ? (shippingModeRaw as ShopShippingMode)
+      : "calculated";
     const countries = stringArray(entry.countries);
     const regions = stringArray(entry.regions);
     const baseRate = Number(entry.baseRate ?? 0);
@@ -353,6 +372,7 @@ function normalizeShopShippingZones(value: unknown): ShopShippingZone[] {
       minimumSubtotal:
         minimumSubtotal != null && Number.isFinite(minimumSubtotal) ? minimumSubtotal : null,
       currency: normalizeCurrencyCode(entry.currency, "EUR"),
+      shippingMode,
       enabled: entry.enabled !== false,
       etaMinDays: etaMinDays != null && Number.isFinite(etaMinDays) ? etaMinDays : null,
       etaMaxDays: etaMaxDays != null && Number.isFinite(etaMaxDays) ? etaMaxDays : null,
@@ -412,6 +432,7 @@ function normalizeShopBrandShippingRules(value: unknown): ShopBrandShippingRule[
     return {
       id: stringValue(entry.id, `brand-rule-${index + 1}`) || `brand-rule-${index + 1}`,
       brandName: stringValue(entry.brandName, ""),
+      shippingZoneId: stringValue(entry.shippingZoneId ?? entry.zoneId, "").trim() || null,
       mode,
       value: Number.isFinite(valueNum) ? valueNum : 0,
       warehouseRatePerKg: Number.isFinite(warehouseRatePerKgNum) ? warehouseRatePerKgNum : 0,

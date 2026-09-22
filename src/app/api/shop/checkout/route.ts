@@ -129,6 +129,18 @@ export async function POST(req: NextRequest) {
 
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
 
+  if (quote.requiresQuote) {
+    return NextResponse.json(
+      {
+        error: "Manual quote required before checkout",
+        requiresQuote: true,
+        landedCost: quote.landedCost,
+        brandsRequiringQuote: quote.brandsRequiringQuote,
+      },
+      { status: 409 }
+    );
+  }
+
   const orderNumber = await generateOrderNumber();
   const viewToken = generateViewToken();
   const locale = (body.locale === "ua" ? "ua" : "en") as "ua" | "en";
@@ -314,6 +326,7 @@ export async function POST(req: NextRequest) {
           subtotal: quote.subtotal,
           shippingCost: quote.shippingCost,
           taxAmount: quote.taxAmount,
+          landedCost: quote.landedCost,
           total: quote.total,
           locale,
           viewOrderUrl,
@@ -373,16 +386,20 @@ export async function POST(req: NextRequest) {
     subtotal: quote.subtotal,
     regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
     shippingCost: quote.shippingCost,
+    shippingIncludedInPrice: quote.shippingIncludedInPrice,
     taxableSubtotal: quote.taxableSubtotal,
     taxableShippingCost: quote.taxableShippingCost,
     taxAmount: quote.taxAmount,
     total: quote.total,
+    landedCost: quote.landedCost,
     currency: quote.currency,
     pricingAudience: quote.pricingAudience,
     shippingZone: quote.shippingZone,
     taxRegion: quote.taxRegion,
     regionalPricingRule: quote.regionalPricingRule,
     showTaxesIncludedNotice: quote.showTaxesIncludedNotice,
+    requiresQuote: quote.requiresQuote,
+    brandsRequiringQuote: quote.brandsRequiringQuote,
   });
   response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
     path: "/",

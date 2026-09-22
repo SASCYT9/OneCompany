@@ -2,8 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import "./fixtures/register-server-only.mjs";
 import { buildShopSettingsRuntimeFromPayload } from "../../../src/lib/shopAdminSettings";
-import { buildCheckoutSettingsPreview } from "../../../src/lib/shopCheckout";
+import {
+  buildCheckoutSettingsPreview,
+  isShopLandedCostCheckoutEnabled,
+} from "../../../src/lib/shopCheckout";
 import { EU_VAT_COUNTRIES } from "../../../src/lib/shopEuVat";
+
+test("landed-cost calculations stay disconnected from checkout unless explicitly enabled", () => {
+  assert.equal(isShopLandedCostCheckoutEnabled(undefined), false);
+  assert.equal(isShopLandedCostCheckoutEnabled(""), false);
+  assert.equal(isShopLandedCostCheckoutEnabled("0"), false);
+  assert.equal(isShopLandedCostCheckoutEnabled("true"), false);
+  assert.equal(isShopLandedCostCheckoutEnabled("1"), true);
+});
 
 test("checkout settings preview applies shipping zones, tax regions and totals", () => {
   const settings = buildShopSettingsRuntimeFromPayload({
@@ -62,6 +73,125 @@ test("checkout settings preview applies shipping zones, tax regions and totals",
   assert.equal((quote.pricingSnapshot as { audience: string }).audience, "b2c");
 });
 
+test("brand shipping rules can use different fixed amounts for each destination zone", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { EUR: 1, USD: 1, UAH: 1 },
+    shippingZones: [
+      {
+        id: "eu-zone",
+        name: "Europe",
+        countries: ["Germany", "DE"],
+        regions: [],
+        calcMode: "volumetric",
+        baseRate: 0,
+        perItemRate: 0,
+        ratePerKg: 0,
+        volSurchargePerKg: 0,
+        volumetricDivisor: 5000,
+        fallbackWeightKg: 1,
+        fallbackLength: 10,
+        fallbackWidth: 10,
+        fallbackHeight: 10,
+        freeOver: null,
+        minimumSubtotal: null,
+        currency: "EUR",
+        enabled: true,
+        etaMinDays: null,
+        etaMaxDays: null,
+      },
+      {
+        id: "us-zone",
+        name: "United States",
+        countries: ["United States", "US"],
+        regions: [],
+        calcMode: "volumetric",
+        baseRate: 0,
+        perItemRate: 0,
+        ratePerKg: 0,
+        volSurchargePerKg: 0,
+        volumetricDivisor: 5000,
+        fallbackWeightKg: 1,
+        fallbackLength: 10,
+        fallbackWidth: 10,
+        fallbackHeight: 10,
+        freeOver: null,
+        minimumSubtotal: null,
+        currency: "USD",
+        enabled: true,
+        etaMinDays: null,
+        etaMaxDays: null,
+      },
+    ],
+    brandShippingRules: [
+      {
+        id: "eventuri-eu",
+        brandName: "Eventuri",
+        shippingZoneId: "eu-zone",
+        mode: "fixed",
+        value: 120,
+        warehouseRatePerKg: 0,
+        currency: "EUR",
+        enabled: true,
+      },
+      {
+        id: "eventuri-us",
+        brandName: "Eventuri",
+        shippingZoneId: "us-zone",
+        mode: "fixed",
+        value: 180,
+        warehouseRatePerKg: 0,
+        currency: "USD",
+        enabled: true,
+      },
+      {
+        id: "__default__",
+        brandName: "",
+        mode: "fixed",
+        value: 40,
+        warehouseRatePerKg: 0,
+        currency: "EUR",
+        enabled: true,
+      },
+    ],
+    taxRegions: [],
+    orderNotificationEmail: null,
+    b2bNotes: null,
+  } as any);
+
+  const baseInput = {
+    currency: "EUR" as const,
+    subtotal: 1000,
+    itemCount: 1,
+    items: [
+      {
+        total: 1000,
+        quantity: 1,
+        pricingBaseRegion: "default" as const,
+        brandName: "Eventuri",
+      },
+    ],
+  };
+
+  const euQuote = buildCheckoutSettingsPreview(settings, {
+    ...baseInput,
+    shippingAddress: { line1: "Test", city: "Berlin", country: "DE" },
+  });
+  assert.equal(euQuote.shippingCost, 120);
+  assert.equal(euQuote.total, 1120);
+
+  const usQuote = buildCheckoutSettingsPreview(settings, {
+    ...baseInput,
+    currency: "USD",
+    shippingAddress: { line1: "Test", city: "New York", country: "US" },
+  });
+  assert.equal(usQuote.shippingCost, 180);
+  assert.equal(usQuote.total, 1180);
+});
+
 test("Ukraine supplier quote is not bypassed by a zero free-shipping threshold", () => {
   const settings = buildShopSettingsRuntimeFromPayload({
     b2bVisibilityMode: "approved_only",
@@ -110,6 +240,71 @@ test("Ukraine supplier quote is not bypassed by a zero free-shipping threshold",
 
   assert.equal(quote.shippingCost, 49);
   assert.equal(quote.total, 1348);
+});
+
+test("a zone with shipping included in prices bypasses supplier and brand freight rules", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    b2bVisibilityMode: "approved_only",
+    defaultB2bDiscountPercent: null,
+    defaultCurrency: "EUR",
+    enabledCurrencies: ["EUR", "USD", "UAH"],
+    currencyRates: { EUR: 1, USD: 1.152174, UAH: 53 },
+    shippingZones: [
+      {
+        id: "ua-standard",
+        name: "Ukraine",
+        countries: ["Ukraine", "UA"],
+        regions: [],
+        baseRate: 50,
+        perItemRate: 20,
+        freeOver: null,
+        minimumSubtotal: null,
+        currency: "UAH",
+        shippingMode: "included",
+        enabled: true,
+      },
+    ],
+    brandShippingRules: [
+      {
+        id: "revozport-ua",
+        brandName: "Revozport",
+        shippingZoneId: "ua-standard",
+        mode: "fixed",
+        value: 250,
+        warehouseRatePerKg: 0,
+        currency: "UAH",
+        enabled: true,
+      },
+    ],
+    taxRegions: [],
+    orderNotificationEmail: null,
+    b2bNotes: null,
+  } as any);
+
+  const quote = buildCheckoutSettingsPreview(settings, {
+    currency: "USD",
+    subtotal: 1299,
+    itemCount: 1,
+    items: [
+      {
+        total: 1299,
+        quantity: 1,
+        pricingBaseRegion: "default",
+        brandName: "Revozport",
+        weightKg: 39.916,
+        shippingToUaUsd: 49,
+      },
+    ],
+    shippingAddress: {
+      line1: "Test",
+      city: "Kyiv",
+      country: "UA",
+    },
+  });
+
+  assert.equal(quote.shippingCost, 0);
+  assert.equal(quote.total, 1299);
+  assert.equal(quote.requiresQuote, false);
 });
 
 test("Revozport shipping uses the $25 per kg rule for supplier shipping weight", () => {

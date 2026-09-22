@@ -15,6 +15,17 @@ type PreviewRequestBody = {
     currency?: string;
     subtotal?: number;
     itemCount?: number;
+    items?: Array<{
+      total?: number;
+      quantity?: number;
+      pricingBaseRegion?: "default" | "europe";
+      brandName?: string | null;
+      weightKg?: number | null;
+      length?: number | null;
+      width?: number | null;
+      height?: number | null;
+      shippingToUaUsd?: number | null;
+    }>;
     shippingAddress?: {
       line1?: string;
       line2?: string;
@@ -50,6 +61,19 @@ export async function POST(request: NextRequest) {
       currency: normalizePreviewCurrency(preview.currency, settings.defaultCurrency),
       subtotal: Number(preview.subtotal ?? 0),
       itemCount: Number(preview.itemCount ?? 1),
+      items: Array.isArray(preview.items)
+        ? preview.items.map((item) => ({
+            total: Number(item.total ?? 0),
+            quantity: Number(item.quantity ?? 1),
+            pricingBaseRegion: item.pricingBaseRegion === "europe" ? "europe" : "default",
+            brandName: item.brandName ?? null,
+            weightKg: item.weightKg == null ? null : Number(item.weightKg),
+            length: item.length == null ? null : Number(item.length),
+            width: item.width == null ? null : Number(item.width),
+            height: item.height == null ? null : Number(item.height),
+            shippingToUaUsd: item.shippingToUaUsd == null ? null : Number(item.shippingToUaUsd),
+          }))
+        : undefined,
       shippingAddress: {
         line1: String(shippingAddress.line1 ?? "Preview line 1").trim() || "Preview line 1",
         line2: String(shippingAddress.line2 ?? "").trim() || undefined,
