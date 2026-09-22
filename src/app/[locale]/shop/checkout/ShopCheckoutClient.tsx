@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, ChevronDown, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import type { SupportedLocale } from "@/lib/seo";
@@ -8,6 +10,9 @@ import { trackBeginCheckout } from "@/lib/analytics";
 import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { ShopCountryCombobox } from "@/components/shop/ShopCountryCombobox";
+import { ShopProductImage } from "@/components/shop/ShopProductImage";
+import ShopCheckoutShell from "./ShopCheckoutShell";
+import styles from "./ShopCheckout.module.css";
 
 type CartItem = {
   id: string;
@@ -18,6 +23,7 @@ type CartItem = {
   title?: { ua: string; en: string };
   price?: { eur: number; usd: number; uah: number };
   image?: string;
+  fallbackImage?: string | null;
 };
 type AccountProfile = {
   email: string;
@@ -45,6 +51,27 @@ type CheckoutQuote = {
   taxableShippingCost?: number;
   taxAmount: number;
   total: number;
+  landedCost: {
+    ruleId: string;
+    ruleName: string;
+    country: string;
+    currency: string;
+    mode: "DDP" | "DAP" | "QUOTE";
+    guaranteed: boolean;
+    importerOfRecord: string | null;
+    customsValue: number;
+    freightAmount: number;
+    dutyAmount: number;
+    insuranceAmount: number;
+    brokerageAmount: number;
+    handlingAmount: number;
+    riskReserveAmount: number;
+    importVatBase: number;
+    importVatAmount: number;
+    includedAmount: number;
+    dueAtDeliveryAmount: number;
+    requiresQuote: boolean;
+  } | null;
   itemCount: number;
   shippingZone: { id: string; name: string } | null;
   taxRegion: { id: string; name: string; rate?: number } | null;
@@ -70,7 +97,7 @@ type CheckoutQuote = {
 };
 
 type PaymentOptions = {
-  methods: Array<"FOP" | "WHITEBIT" | "WHITEPAY_FIAT">;
+  methods: Array<"FOP" | "WHITEBIT" | "WHITEPAY_FIAT" | "MONOBANK">;
   fopDetails: {
     companyName: string | null;
     iban: string | null;
@@ -105,7 +132,50 @@ function vatSummaryLabel(quote: CheckoutQuote | null) {
   return rate ? `VAT (${rate})` : "VAT";
 }
 
-export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale }) {
+const previewItems: CartItem[] = [
+  {
+    id: "checkout-design-preview",
+    slug: "girodisc-design-preview",
+    quantity: 1,
+    title: { ua: "Girodisc · Передні гальмівні диски", en: "Girodisc · Front brake rotors" },
+    variantTitle: "1 комплект / 1 set",
+    price: { uah: 48000, eur: 1000, usd: 1100 },
+    image: "/images/shop/girodisc/line-rotors.jpg",
+  },
+];
+
+const imageFormatPreviewItems: CartItem[] = [
+  ["jpg", "/images/shop/girodisc/line-rotors.jpg"],
+  ["jpeg", "/images/shop/products/rotobox-carbon-wheelset.jpeg"],
+  ["png", "/images/hero-auto.png"],
+  ["webp", "/images/hero-stock-performance-v2.webp"],
+  ["avif", "/images/shop/products/sc-project-race-system-v4.avif"],
+  ["svg", "/images/placeholder-product.svg"],
+  ["remote 404 fallback", "https://ducatiomaha.com/media/catalog/product/9/6/96482441ba.jpg"],
+  ["remote 403 fallback", "https://amsducati.com/media/catalog/product/9/6/96482291ba.jpg"],
+].map(([format, image], index) => ({
+  id: `checkout-image-${format}`,
+  slug: `checkout-image-${format}`,
+  quantity: 1,
+  title: {
+    ua: `${format.toUpperCase()} · тест формату`,
+    en: `${format.toUpperCase()} · format test`,
+  },
+  variantTitle: "Локальна перевірка / Local QA",
+  price: { uah: (index + 1) * 1000, eur: (index + 1) * 20, usd: (index + 1) * 25 },
+  image,
+  fallbackImage: "/images/placeholders/product-fallback.svg",
+}));
+
+export default function ShopCheckoutClient({
+  locale,
+  preview = false,
+  imagePreview = false,
+}: {
+  locale: SupportedLocale;
+  preview?: boolean;
+  imagePreview?: boolean;
+}) {
   const router = useRouter();
   const isUa = locale === "ua";
   const {
@@ -135,9 +205,12 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     postcode: "",
     country: selectedShopCountry || "Ukraine",
     currency: selectedShopCurrency || (isUa ? "UAH" : "EUR"),
-    paymentMethod: "FOP" as "FOP" | "WHITEBIT" | "WHITEPAY_FIAT",
+    paymentMethod: "FOP" as "FOP" | "WHITEBIT" | "WHITEPAY_FIAT" | "MONOBANK",
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [previewMessage, setPreviewMessage] = useState("");
+  const previewCartItems = imagePreview ? imageFormatPreviewItems : previewItems;
 
   useEffect(() => {
     setForm((current) => {
@@ -150,12 +223,17 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         ...current,
         country: nextCountry,
         currency: nextCurrency,
+        paymentMethod:
+          current.paymentMethod === "MONOBANK" && nextCurrency !== "UAH"
+            ? "FOP"
+            : current.paymentMethod,
       };
     });
   }, [selectedShopCountry, selectedShopCurrency]);
 
   const checkoutTrackedRef = useRef(false);
   const quoteRequestRef = useRef(0);
+  const submittingRef = useRef(false);
   const quoteItemsByKey = new Map(
     (quote?.items ?? []).map((item) => [quoteLineKey(item.productSlug, item.variantId), item])
   );
@@ -163,10 +241,23 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
   const showRegionalAdjustment =
     Boolean(quote?.regionalPricingRule) || hasMoneyAmount(quote?.regionalAdjustmentAmount);
   const showVatLine =
-    hasMoneyAmount(quote?.taxAmount) ||
-    (quote?.showTaxesIncludedNotice === true && hasMoneyAmount(quote?.taxableSubtotal));
+    !quote?.landedCost &&
+    (hasMoneyAmount(quote?.taxAmount) ||
+      (quote?.showTaxesIncludedNotice === true && hasMoneyAmount(quote?.taxableSubtotal)));
 
   useEffect(() => {
+    if (preview) {
+      setCart({ items: previewCartItems });
+      setPaymentOptions({ methods: ["FOP", "WHITEBIT", "MONOBANK"], fopDetails: null });
+      setForm((current) => ({
+        ...current,
+        paymentMethod: current.currency === "UAH" ? "MONOBANK" : "FOP",
+      }));
+      setIsAuthenticated(false);
+      setLoading(false);
+      setAccountLoaded(true);
+      return;
+    }
     Promise.all([
       fetch("/api/shop/cart").then((r) => r.json()),
       fetch("/api/shop/account")
@@ -217,11 +308,44 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
         setLoading(false);
         setAccountLoaded(true);
       });
-  }, [isUa]);
+  }, [isUa, preview, previewCartItems]);
 
   useEffect(() => {
     if (!cart?.items?.length) {
       setQuote(null);
+      return;
+    }
+
+    if (preview) {
+      const currency = form.currency as ShopCurrencyCode;
+      const total = previewCartItems.reduce(
+        (sum, item) => sum + getPrice(item.price!, currency) * item.quantity,
+        0
+      );
+      setQuote({
+        currency,
+        pricingAudience: "b2c",
+        subtotal: total,
+        regionalAdjustmentAmount: 0,
+        shippingCost: 0,
+        taxAmount: 0,
+        total,
+        landedCost: null,
+        itemCount: previewCartItems.length,
+        shippingZone: null,
+        taxRegion: null,
+        regionalPricingRule: null,
+        showTaxesIncludedNotice: false,
+        requiresQuote: false,
+        items: previewCartItems.map((item) => ({
+          productSlug: item.slug,
+          quantity: item.quantity,
+          unitPrice: getPrice(item.price!, currency),
+          total: getPrice(item.price!, currency) * item.quantity,
+        })),
+      });
+      setQuoteLoading(false);
+      setQuoteError("");
       return;
     }
 
@@ -277,45 +401,84 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
     form.line2,
     form.postcode,
     form.region,
+    preview,
+    previewCartItems,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (preview) {
+      setPreviewMessage(
+        isUa
+          ? "Це лише перегляд дизайну. Замовлення та платіж не створено."
+          : "This is a design preview. No order or payment was created."
+      );
+      return;
+    }
+    if (submittingRef.current || quoteLoading || !quote || quoteError) return;
+    submittingRef.current = true;
     setError("");
     setSubmitting(true);
     try {
+      const payload = {
+        items: (cart?.items ?? []).map((i) => ({
+          slug: i.slug,
+          quantity: i.quantity,
+          variantId: i.variantId,
+        })),
+        contact: {
+          email: form.email.trim(),
+          name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+          firstName: form.firstName.trim() || undefined,
+          lastName: form.lastName.trim() || undefined,
+          phone: form.phone.trim() || undefined,
+        },
+        shipping: {
+          line1: form.line1.trim(),
+          line2: form.line2.trim() || undefined,
+          city: form.city.trim(),
+          region: form.region.trim() || undefined,
+          postcode: form.postcode.trim() || undefined,
+          country: form.country.trim(),
+        },
+        currency: form.currency,
+        locale,
+        paymentMethod: form.paymentMethod,
+        ...(form.paymentMethod === "MONOBANK"
+          ? { expectedAmount: Math.round((quote.total + Number.EPSILON) * 100) }
+          : {}),
+      };
+      let checkoutKey: string | undefined;
+      if (form.paymentMethod === "MONOBANK") {
+        const digest = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(JSON.stringify(payload))
+        );
+        const fingerprint = Array.from(new Uint8Array(digest), (b) =>
+          b.toString(16).padStart(2, "0")
+        ).join("");
+        const storageKey = `onecompany-mono-checkout:${fingerprint}`;
+        checkoutKey = sessionStorage.getItem(storageKey) || crypto.randomUUID();
+        sessionStorage.setItem(storageKey, checkoutKey);
+      }
       const res = await fetch("/api/shop/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: (cart?.items ?? []).map((i) => ({
-            slug: i.slug,
-            quantity: i.quantity,
-            variantId: i.variantId,
-          })),
-          contact: {
-            email: form.email.trim(),
-            name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
-            firstName: form.firstName.trim() || undefined,
-            lastName: form.lastName.trim() || undefined,
-            phone: form.phone.trim() || undefined,
-          },
-          shipping: {
-            line1: form.line1.trim(),
-            line2: form.line2.trim() || undefined,
-            city: form.city.trim(),
-            region: form.region.trim() || undefined,
-            postcode: form.postcode.trim() || undefined,
-            country: form.country.trim(),
-          },
-          currency: form.currency,
-          locale,
-          paymentMethod: form.paymentMethod,
-        }),
+        body: JSON.stringify({ ...payload, ...(checkoutKey ? { checkoutKey } : {}) }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || (isUa ? "Помилка оформлення" : "Checkout failed"));
+        setError(
+          data.error === "MONOBANK_QUOTE_CHANGED"
+            ? isUa
+              ? "Сума змінилася. Оновіть сторінку, щоб перевірити підсумок перед оплатою."
+              : "The total changed. Refresh the page to review it before paying."
+            : form.paymentMethod === "MONOBANK"
+              ? isUa
+                ? "Не вдалося підготувати оплату. Спробуйте ще раз."
+                : "Could not prepare payment. Please try again."
+              : data.error || (isUa ? "Помилка оформлення" : "Checkout failed")
+        );
         return;
       }
       if (data.redirectUrl) {
@@ -325,442 +488,626 @@ export default function ShopCheckoutClient({ locale }: { locale: SupportedLocale
       router.push(
         `/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`
       );
+    } catch {
+      setError(
+        isUa ? "Не вдалося з'єднатися. Спробуйте ще раз." : "Connection failed. Please try again."
+      );
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background px-4 py-24 text-center text-foreground/75 dark:text-foreground/60">
-        {isUa ? "Завантаження…" : "Loading…"}
-      </div>
+      <ShopCheckoutShell locale={locale} preview={preview}>
+        <div className={styles.loadingState} role="status">
+          {isUa ? "Завантажуємо замовлення…" : "Loading your order…"}
+        </div>
+      </ShopCheckoutShell>
     );
   }
 
   if (!cart?.items?.length) {
     return (
-      <div className="min-h-screen bg-background px-4 py-24">
-        <div className="mx-auto max-w-lg text-center">
-          <p className="text-foreground/75 dark:text-foreground/60">
-            {error || (isUa ? "Кошик порожній." : "Your cart is empty.")}
+      <ShopCheckoutShell locale={locale} preview={preview}>
+        <div className={styles.emptyState}>
+          <Package size={30} aria-hidden="true" className="mx-auto" />
+          <h1>{isUa ? "Ваш кошик порожній" : "Your cart is empty"}</h1>
+          <p>
+            {error ||
+              (isUa
+                ? "Додайте товари, щоб перейти до оформлення."
+                : "Add an item to begin checkout.")}
           </p>
-          <Link href={`/${locale}/shop`} className="mt-4 inline-block text-foreground underline">
-            {isUa ? "До магазину" : "Back to shop"}
+          <Link href={"/" + locale + "/shop"} className={styles.submit}>
+            {isUa ? "До магазину" : "Back to shop"} <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>
-      </div>
+      </ShopCheckoutShell>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
-      <div className="mx-auto max-w-3xl px-4 pb-20 pt-28 sm:px-6">
-        <Link
-          href={`/${locale}/shop/cart`}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-foreground/70 dark:text-foreground/55 transition hover:text-foreground"
-        >
-          ← {isUa ? "Кошик" : "Cart"}
-        </Link>
-        <header>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-foreground/65 dark:text-foreground/45">
-            One Company Shop
+  const monoAvailable = paymentOptions?.methods.includes("MONOBANK");
+  const totalText = quote ? formatShopMoney(locale, quote.total, quoteCurrency) : "—";
+  const paymentIsOnline = form.paymentMethod !== "FOP";
+  const submitDisabled =
+    submitting ||
+    quoteLoading ||
+    !quote ||
+    Boolean(quoteError) ||
+    quote.requiresQuote === true ||
+    (form.paymentMethod === "MONOBANK" && quote.currency !== "UAH");
+  const otherPaymentOptions = (
+    <div className={styles.paymentList}>
+      <label className={styles.paymentOption}>
+        <div className={styles.paymentTop}>
+          <input
+            type="radio"
+            name="paymentMethod"
+            value="FOP"
+            checked={form.paymentMethod === "FOP"}
+            onChange={() => setForm((current) => ({ ...current, paymentMethod: "FOP" }))}
+          />
+          <span className={styles.paymentName}>
+            {isUa ? "Переказ за реквізитами" : "Bank transfer"}
+          </span>
+          <span className={styles.provider}>IBAN</span>
+        </div>
+        {form.paymentMethod === "FOP" && (
+          <p className={styles.paymentDetail}>
+            {isUa
+              ? "Реквізити для оплати отримаєте після оформлення."
+              : "Payment details will be available after placing your order."}
           </p>
-          <h1 className="mt-3 text-3xl font-light tracking-tight sm:text-5xl">
-            {isUa ? "Оформлення замовлення" : "Checkout"}
-          </h1>
-          <p className="mt-2 text-sm text-foreground/70 dark:text-foreground/55">
-            {isUa ? "Контактні дані та адреса доставки" : "Contact details and shipping address"}
-          </p>
-        </header>
-
-        {isAuthenticated === false ? (
-          <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 px-5 py-3 text-sm text-foreground/90 dark:text-foreground/75 flex flex-wrap items-center justify-between gap-3">
-            <span>{isUa ? "Уже маєте акаунт?" : "Already have an account?"}</span>
-            <Link
-              href={`/${locale}/shop/account/login?next=${encodeURIComponent(`/${locale}/shop/checkout`)}`}
-              className="text-[11px] uppercase tracking-[0.22em] text-primary hover:text-foreground transition"
-            >
-              {isUa ? "Увійти →" : "Sign in →"}
-            </Link>
+        )}
+      </label>
+      {paymentOptions?.methods.includes("WHITEBIT") && (
+        <label className={styles.paymentOption}>
+          <div className={styles.paymentTop}>
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="WHITEBIT"
+              checked={form.paymentMethod === "WHITEBIT"}
+              onChange={() => setForm((current) => ({ ...current, paymentMethod: "WHITEBIT" }))}
+            />
+            <span className={styles.paymentName}>{isUa ? "Криптовалюта" : "Cryptocurrency"}</span>
+            <span className={styles.provider}>Whitepay</span>
           </div>
-        ) : null}
+          {form.paymentMethod === "WHITEBIT" && (
+            <p className={styles.paymentDetail}>USDT, BTC, ETH</p>
+          )}
+        </label>
+      )}
+    </div>
+  );
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 space-y-10 rounded-3xl border border-foreground/10 bg-card/70 dark:bg-black/40 p-8 shadow-2xl backdrop-blur-xl"
-        >
+  return (
+    <ShopCheckoutShell locale={locale} preview={preview}>
+      <div className={styles.grid}>
+        <form className={styles.formColumn} onSubmit={handleSubmit}>
+          <div className={styles.heading}>
+            <h1>{isUa ? "Оформлення" : "Checkout"}</h1>
+          </div>
+
+          <section className={styles.section} aria-labelledby="checkout-contact">
+            <div className={styles.sectionHead}>
+              <h2 id="checkout-contact">{isUa ? "Контакти" : "Contact"}</h2>
+              {isAuthenticated === false && (
+                <Link
+                  href={
+                    "/" +
+                    locale +
+                    "/shop/account/login?next=" +
+                    encodeURIComponent("/" + locale + "/shop/checkout")
+                  }
+                >
+                  {isUa ? "Увійти" : "Sign in"}
+                </Link>
+              )}
+            </div>
+            <div className={styles.fields}>
+              <label className={styles.field}>
+                <span>Email</span>
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, email: event.target.value }))
+                  }
+                />
+              </label>
+              <div className={styles.fieldPair}>
+                <label className={styles.field}>
+                  <span>{isUa ? "Ім’я" : "First name"}</span>
+                  <input
+                    name="firstName"
+                    autoComplete="given-name"
+                    required
+                    value={form.firstName}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, firstName: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>{isUa ? "Прізвище" : "Last name"}</span>
+                  <input
+                    name="lastName"
+                    autoComplete="family-name"
+                    value={form.lastName}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, lastName: event.target.value }))
+                    }
+                  />
+                </label>
+              </div>
+              <label className={styles.field}>
+                <span>{isUa ? "Номер телефону" : "Phone number"}</span>
+                <input
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+380"
+                  value={form.phone}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, phone: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className={styles.section} aria-labelledby="checkout-delivery">
+            <div className={styles.sectionHead}>
+              <h2 id="checkout-delivery">{isUa ? "Доставка" : "Delivery"}</h2>
+            </div>
+            <div className={styles.fields}>
+              <div className={styles.fieldPair}>
+                <div className={styles.country}>
+                  <span className={styles.countryLabel}>{isUa ? "Країна" : "Country"}</span>
+                  <ShopCountryCombobox
+                    locale={locale}
+                    value={form.country}
+                    buttonClassName={styles.countryButton}
+                    ariaLabel={isUa ? "Країна" : "Country"}
+                    onChange={(country) => {
+                      setForm((current) => ({ ...current, country }));
+                      setSelectedShopCountry(country);
+                    }}
+                  />
+                </div>
+                <label className={styles.field}>
+                  <span>{isUa ? "Місто" : "City"}</span>
+                  <input
+                    name="city"
+                    autoComplete="address-level2"
+                    required
+                    value={form.city}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, city: event.target.value }))
+                    }
+                  />
+                </label>
+              </div>
+              <label className={styles.field}>
+                <span>{isUa ? "Адреса або відділення" : "Address or collection point"}</span>
+                <input
+                  name="line1"
+                  autoComplete="address-line1"
+                  required
+                  placeholder={
+                    isUa
+                      ? "Вулиця, будинок або номер відділення"
+                      : "Street, building or collection point"
+                  }
+                  value={form.line1}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, line1: event.target.value }))
+                  }
+                />
+              </label>
+              <details className={styles.optional}>
+                <summary>
+                  <ChevronDown size={14} aria-hidden="true" />
+                  {isUa ? "Квартира, область, індекс" : "Apartment, region, postal code"}
+                </summary>
+                <div className={styles.fields}>
+                  <label className={styles.field}>
+                    <span>{isUa ? "Квартира / офіс" : "Apartment / suite"}</span>
+                    <input
+                      name="line2"
+                      autoComplete="address-line2"
+                      value={form.line2}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, line2: event.target.value }))
+                      }
+                    />
+                  </label>
+                  <div className={styles.fieldPair}>
+                    <label className={styles.field}>
+                      <span>{isUa ? "Область / регіон" : "State / region"}</span>
+                      <input
+                        name="region"
+                        autoComplete="address-level1"
+                        value={form.region}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, region: event.target.value }))
+                        }
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>{isUa ? "Поштовий індекс" : "Postal code"}</span>
+                      <input
+                        name="postcode"
+                        autoComplete="postal-code"
+                        value={form.postcode}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, postcode: event.target.value }))
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <section className={styles.section} aria-labelledby="checkout-payment">
+            <div className={styles.sectionHead}>
+              <h2 id="checkout-payment">{isUa ? "Оплата" : "Payment"}</h2>
+              {monoAvailable && <span className={styles.provider}>plata by mono</span>}
+            </div>
+            {monoAvailable ? (
+              <>
+                <div className={styles.paymentList}>
+                  <label className={styles.paymentOption}>
+                    <div className={styles.paymentTop}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="MONOBANK"
+                        checked={form.paymentMethod === "MONOBANK"}
+                        onChange={() => {
+                          setForm((current) => ({
+                            ...current,
+                            paymentMethod: "MONOBANK",
+                            currency: "UAH",
+                          }));
+                          setSelectedShopCurrency("UAH");
+                        }}
+                      />
+                      <span className={styles.paymentName}>
+                        {isUa ? "Оплата карткою" : "Card payment"}
+                      </span>
+                      <span className={styles.cardLogos}>
+                        <Image src="/images/payments/visa.svg" alt="Visa" width={30} height={20} />
+                        <Image
+                          src="/images/payments/mastercard.svg"
+                          alt="Mastercard"
+                          width={30}
+                          height={20}
+                        />
+                      </span>
+                    </div>
+                    <p className={styles.paymentDetail}>
+                      {isUa
+                        ? "Visa та Mastercard українських і закордонних банків."
+                        : "Visa and Mastercard from Ukrainian and international banks."}
+                    </p>
+                    <div className={styles.walletNames}>
+                      <span>Apple Pay</span>
+                      <span>Google Pay</span>
+                    </div>
+                    {form.paymentMethod === "MONOBANK" && (
+                      <p className={styles.paymentDetail}>
+                        {isUa
+                          ? "Оплата у гривні на захищеній сторінці mono."
+                          : "Pay in UAH on mono’s secure payment page."}
+                      </p>
+                    )}
+                  </label>
+                </div>
+                <div className={styles.otherPayments}>
+                  <p className={styles.otherPaymentsTitle}>
+                    {isUa ? "Інші способи оплати" : "Other payment methods"}
+                  </p>
+                  {otherPaymentOptions}
+                </div>
+              </>
+            ) : (
+              otherPaymentOptions
+            )}
+          </section>
+
+          {quote?.requiresQuote && (
+            <div className={styles.quoteNotice} role="status">
+              <strong>{isUa ? "Потрібне підтвердження вартості" : "A quote is required"}</strong>
+              {isUa
+                ? "Менеджер має підтвердити доставку та фінальну суму перед оплатою."
+                : "A manager needs to confirm shipping and the final total before payment."}
+            </div>
+          )}
           {error && (
-            <p className="rounded-xl bg-red-950/30 p-4 border border-red-900/50 text-red-500 text-sm">
+            <p className={styles.error} role="alert">
               {error}
             </p>
           )}
-
-          <div>
-            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span>
-              {isUa ? "Контакти" : "Contact"}
-            </h2>
-            <div className="space-y-4">
-              <input
-                type="email"
-                required
-                placeholder={isUa ? "Email" : "Email"}
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input
-                  type="text"
-                  required
-                  autoComplete="given-name"
-                  placeholder={isUa ? "Ім’я" : "First name"}
-                  value={form.firstName}
-                  onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-                <input
-                  type="text"
-                  required
-                  autoComplete="family-name"
-                  placeholder={isUa ? "Прізвище" : "Last name"}
-                  value={form.lastName}
-                  onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-              </div>
-              <input
-                type="tel"
-                placeholder={isUa ? "Телефон" : "Phone"}
-                value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-            </div>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span>
-              {isUa ? "Адреса доставки" : "Shipping address"}
-            </h2>
-            <div className="space-y-4">
-              <input
-                type="text"
-                required
-                placeholder={isUa ? "Адреса (вулиця, будинок)" : "Address (street, number)"}
-                value={form.line1}
-                onChange={(e) => setForm((f) => ({ ...f, line1: e.target.value }))}
-                className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-              <input
-                type="text"
-                placeholder={isUa ? "Квартира, офіс (не обов’язково)" : "Apt, office (optional)"}
-                value={form.line2}
-                onChange={(e) => setForm((f) => ({ ...f, line2: e.target.value }))}
-                className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input
-                  type="text"
-                  required
-                  placeholder={isUa ? "Місто" : "City"}
-                  value={form.city}
-                  onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-                <input
-                  type="text"
-                  placeholder={isUa ? "Область" : "Region"}
-                  value={form.region}
-                  onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input
-                  type="text"
-                  placeholder={isUa ? "Індекс" : "Postcode"}
-                  value={form.postcode}
-                  onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
-                  className="w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground placeholder:text-foreground/55 dark:placeholder:text-foreground/30 backdrop-blur-md transition-all focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-                />
-                <ShopCountryCombobox
-                  locale={locale}
-                  value={form.country}
-                  ariaLabel={isUa ? "Країна" : "Country"}
-                  onChange={(nextCountry) => {
-                    setForm((f) => ({ ...f, country: nextCountry }));
-                    setSelectedShopCountry(nextCountry);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span>
-              {isUa ? "Валюта розрахунку" : "Billing Currency"}
-            </label>
-            <select
-              value={form.currency}
-              onChange={(e) => {
-                const nextCurrency = e.target.value as ShopCurrencyCode;
-                setForm((f) => ({ ...f, currency: nextCurrency }));
-                setSelectedShopCurrency(nextCurrency);
-              }}
-              className="mt-2 w-full rounded-2xl border border-foreground/10 bg-card/70 dark:bg-black/40 px-5 py-4 text-foreground backdrop-blur-md transition-all hover:bg-card/85 dark:hover:bg-black/60 focus:border-primary/50 focus:bg-card/85 dark:focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
-            >
-              <option value="EUR">EUR (€)</option>
-              <option value="USD">USD ($)</option>
-              <option value="UAH">UAH (₴)</option>
-            </select>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/50"></span>
-              {isUa ? "Спосіб оплати" : "Payment method"}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-foreground/10 bg-card/40 dark:bg-black/30 p-5 transition-all hover:bg-foreground/5 hover:border-foreground/20 has-checked:border-primary/50 has-checked:bg-primary/5 has-checked:shadow-[0_0_20px_rgba(213,0,28,0.15)] dark:has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
-                <div className="flex items-center gap-4 relative z-10">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="FOP"
-                    checked={form.paymentMethod === "FOP"}
-                    onChange={() => setForm((f) => ({ ...f, paymentMethod: "FOP" }))}
-                    className="h-4 w-4 border-foreground/30 bg-foreground/5 text-primary focus:ring-primary/50 accent-primary"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                      {isUa ? "Оплата на ФОП" : "Bank Transfer"}
-                    </span>
-                    <span className="text-[11px] text-foreground/60 dark:text-foreground/40">
-                      {isUa ? "За реквізитами (IBAN)" : "Direct invoice payment"}
-                    </span>
-                  </div>
-                </div>
-              </label>
-              {paymentOptions?.methods.includes("WHITEBIT") && (
-                <label className="flex cursor-pointer flex-col justify-center gap-1 rounded-2xl border border-foreground/10 bg-card/40 dark:bg-black/30 p-5 transition-all hover:bg-foreground/5 hover:border-foreground/20 has-checked:border-primary/50 has-checked:bg-primary/5 has-checked:shadow-[0_0_20px_rgba(213,0,28,0.15)] dark:has-checked:shadow-[0_0_20px_rgba(194,157,89,0.15)] relative overflow-hidden group">
-                  <div className="flex items-center gap-4 relative z-10">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="WHITEBIT"
-                      checked={form.paymentMethod === "WHITEBIT"}
-                      onChange={() => setForm((f) => ({ ...f, paymentMethod: "WHITEBIT" }))}
-                      className="h-4 w-4 border-foreground/30 bg-foreground/5 text-primary focus:ring-primary/50 accent-primary"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                        WhiteBIT Crypto
-                      </span>
-                      <span className="text-[11px] text-foreground/60 dark:text-foreground/40">
-                        {isUa ? "USDT, BTC, ETH" : "Crypto checkout"}
-                      </span>
-                    </div>
-                  </div>
-                </label>
-              )}
-            </div>
-
-            <p className="mt-4 text-[11px] text-foreground/55 dark:text-foreground/30 leading-relaxed max-w-lg">
-              {isUa
-                ? "Вибір способу оплати формує тип інвойсу в кінці. Зверніть увагу: замовлення не буде відправлено без підтвердження оплати або зв'язку з менеджером (Payment Security)."
-                : "Payment choice determines the final invoice type. No items are shipped without payment clearance (Payment Security)."}
+          {quoteError && (
+            <p className={styles.error} role="alert">
+              {quoteError}
             </p>
-          </div>
-
-          <div className="rounded-3xl border border-foreground/10 bg-card/70 dark:bg-black/40 p-6 backdrop-blur-md">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.25em] text-primary">
-                  {isUa ? "Підсумок замовлення" : "Order summary"}
-                </h2>
-                <p className="mt-2 text-[11px] text-foreground/60 dark:text-foreground/40">
-                  {quote?.shippingZone
-                    ? `${isUa ? "Доставка" : "Shipping"}: ${quote.shippingZone.name}`
-                    : isUa
-                      ? "Розрахунок за поточними правилами"
-                      : "Calculated from current shop rules"}
-                </p>
-              </div>
-              {quoteLoading ? (
-                <span className="text-[11px] uppercase tracking-wider text-foreground/65 dark:text-foreground/45">
-                  {isUa ? "Оновлення…" : "Updating…"}
-                </span>
-              ) : null}
-            </div>
-
-            <ul className="mt-6 space-y-3 text-sm text-foreground dark:text-foreground/80">
-              {(cart.items ?? []).map((item) => {
-                const quoteLine = quoteItemsByKey.get(quoteLineKey(item.slug, item.variantId));
-                const fallbackTotal = item.price
-                  ? getPrice(item.price, quoteCurrency) * item.quantity
-                  : 0;
-
-                return (
-                  <li key={item.id} className="flex items-center justify-between gap-4 font-light">
-                    <span className="truncate">
-                      {(isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug} ×{" "}
-                      {quoteLine?.quantity ?? item.quantity}
-                      {item.variantTitle ? (
-                        <span className="block text-[11px] text-primary/70 uppercase tracking-widest mt-1">
-                          {item.variantTitle}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </span>
-                    <span className="text-foreground/70 dark:text-foreground/55 tabular-nums">
-                      {quoteLine || item.price
-                        ? formatShopMoney(locale, quoteLine?.total ?? fallbackTotal, quoteCurrency)
-                        : "—"}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {quoteError ? <p className="mt-4 text-sm text-red-400">{quoteError}</p> : null}
-
-            <div className="mt-6 space-y-3 border-t border-foreground/10 pt-6 text-[13px] text-foreground/85 dark:text-foreground/70">
-              <div className="flex items-center justify-between font-light">
-                <span>{isUa ? "Підсумок товарів" : "Subtotal"}</span>
-                <span className="tabular-nums">
-                  {formatShopMoney(locale, quote?.subtotal ?? 0, quoteCurrency)}
-                </span>
-              </div>
-              {showRegionalAdjustment ? (
-                <div className="flex items-center justify-between font-light">
-                  <span>{isUa ? "Корекція ціни" : "Price adjustment"}</span>
-                  <span className="tabular-nums">
-                    {formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, quoteCurrency)}
-                  </span>
-                </div>
-              ) : null}
-              <div className="flex items-center justify-between font-light">
-                <span>{isUa ? "Доставка" : "Shipping"}</span>
-                <span className="tabular-nums">
-                  {quote?.shippingIncludedInPrice
-                    ? isUa
-                      ? "Включена у ціну"
-                      : "Included in price"
-                    : quote?.shippingCost === 0
-                      ? isUa
-                        ? "За тарифами перевізника"
-                        : "Calculated by carrier"
-                      : formatShopMoney(locale, quote?.shippingCost ?? 0, quoteCurrency)}
-                </span>
-              </div>
-              {showVatLine ? (
-                <div className="flex items-center justify-between font-light">
-                  <span>{vatSummaryLabel(quote)}</span>
-                  <span className="tabular-nums">
-                    {hasMoneyAmount(quote?.taxAmount)
-                      ? formatShopMoney(locale, quote?.taxAmount ?? 0, quoteCurrency)
-                      : quote?.showTaxesIncludedNotice
-                        ? isUa
-                          ? "VAT включено"
-                          : "VAT included"
-                        : formatShopMoney(locale, quote?.taxAmount ?? 0, quoteCurrency)}
-                  </span>
-                </div>
-              ) : null}
-              <div className="flex items-center justify-between border-t border-foreground/10 pt-4 text-lg font-light text-foreground">
-                <span className="text-[#c29d59] uppercase tracking-widest text-[11px] font-medium">
-                  {isUa ? "Разом" : "Total"}
-                </span>
-                <span className="tabular-nums">
-                  {formatShopMoney(locale, quote?.total ?? 0, quoteCurrency)}
-                </span>
-              </div>
-            </div>
-
-            <p className="mt-4 text-[11px] uppercase tracking-wider text-primary/60 dark:text-primary/50">
-              {quote?.pricingAudience === "b2b"
-                ? isUa
-                  ? "Застосовано B2B ціни"
-                  : "B2B pricing applied"
-                : isUa
-                  ? "Застосовано B2C ціни"
-                  : "B2C pricing applied"}
+          )}
+          {previewMessage && (
+            <p className={styles.quoteNotice} role="status">
+              {previewMessage}
             </p>
+          )}
 
-            {quote?.regionalPricingRule ? (
-              <p className="mt-1 text-[11px] uppercase tracking-wider text-primary/60 dark:text-primary/50">
-                {isUa ? "Корекція" : "Adjustment"}: {quote.regionalPricingRule.name}
-              </p>
-            ) : null}
-
-            {form.email || form.firstName || form.line1 ? (
-              <div className="mt-6 border-t border-foreground/10 pt-5 space-y-1.5 text-[12px] text-foreground/70 dark:text-foreground/55">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-foreground/55 dark:text-foreground/35 mb-2">
-                  {isUa ? "Замовлення оформлюється на" : "Order will be sent to"}
-                </p>
-                {form.firstName || form.lastName ? (
-                  <p className="text-foreground dark:text-foreground/80">
-                    {`${form.firstName} ${form.lastName}`.trim()}
-                  </p>
-                ) : null}
-                {form.email ? <p>{form.email}</p> : null}
-                {form.phone ? <p>{form.phone}</p> : null}
-                {form.line1 ? (
-                  <p>
-                    {form.line1}
-                    {form.line2 ? `, ${form.line2}` : ""}
-                    {form.city ? `, ${form.city}` : ""}
-                    {form.country ? `, ${form.country}` : ""}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          {quote?.requiresQuote ? (
-            <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-950/20 p-4 text-amber-100">
-              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-300">
-                {isUa ? "Потрібен ручний прорахунок" : "Manual quote required"}
-              </div>
-              <p className="mt-2 text-[13px] leading-5 text-amber-100/85">
-                {isUa
-                  ? `У кошику є товари брендів${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(", ")})` : ""}, для яких доставка прораховується вручну. Менеджер зв'яжеться з вами для уточнення вартості.`
-                  : `Your cart contains items from brands${quote.brandsRequiringQuote?.length ? ` (${quote.brandsRequiringQuote.join(", ")})` : ""} that require manual quoting. A manager will reach out to confirm shipping.`}
-              </p>
-            </div>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={submitting || quote?.requiresQuote === true}
-            className="w-full rounded-full border border-primary bg-primary py-4 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_18px_40px_-18px_rgba(213,0,28,0.45)] dark:hover:shadow-[0_18px_40px_-18px_rgba(194,157,89,0.65)] disabled:opacity-50 disabled:cursor-not-allowed"
-            title={
-              quote?.requiresQuote
-                ? isUa
-                  ? "Спочатку залиш заявку нижче"
-                  : "Submit a quote request first"
-                : undefined
-            }
-          >
+          <button type="submit" disabled={submitDisabled} className={styles.submit}>
             {submitting
               ? isUa
-                ? "Відправка…"
-                : "Submitting…"
-              : quote?.requiresQuote
+                ? "Оформлюємо…"
+                : "Placing order…"
+              : quoteLoading
                 ? isUa
-                  ? "Запит на прорахунок (скоро)"
-                  : "Quote request (coming soon)"
-                : isUa
-                  ? "Підтвердити замовлення"
-                  : "Place order"}
+                  ? "Оновлюємо суму…"
+                  : "Updating total…"
+                : quote?.requiresQuote
+                  ? isUa
+                    ? "Очікуємо прорахунок"
+                    : "Awaiting a quote"
+                  : paymentIsOnline
+                    ? (isUa ? "Перейти до оплати · " : "Continue to payment · ") + totalText
+                    : isUa
+                      ? "Оформити замовлення"
+                      : "Place order"}
+            {!submitting && <ArrowRight size={16} aria-hidden="true" />}
           </button>
+          <p className={styles.terms}>
+            {isUa
+              ? "Оформлюючи замовлення, ви погоджуєтеся з "
+              : "By placing your order, you agree to our "}
+            <Link href={"/" + locale + "/terms"}>
+              {isUa ? "умовами використання" : "terms of service"}
+            </Link>
+            {isUa ? " та " : " and "}
+            <Link href={"/" + locale + "/privacy"}>
+              {isUa ? "політикою конфіденційності" : "privacy policy"}
+            </Link>
+            .
+          </p>
         </form>
+
+        <aside
+          className={styles.summaryColumn}
+          aria-label={isUa ? "Ваше замовлення" : "Your order"}
+        >
+          <div className={styles.summaryInner}>
+            <button
+              type="button"
+              className={styles.mobileSummary}
+              aria-expanded={summaryOpen}
+              aria-controls="checkout-summary"
+              onClick={() => setSummaryOpen((current) => !current)}
+            >
+              <span>
+                <ChevronDown size={15} aria-hidden="true" />
+                {isUa ? "Ваше замовлення" : "Order summary"}
+              </span>
+              <span>{totalText}</span>
+            </button>
+            <div
+              id="checkout-summary"
+              className={styles.summaryContent}
+              data-open={summaryOpen}
+              aria-busy={quoteLoading}
+            >
+              <div className={styles.summaryHead}>
+                <h2>{isUa ? "Ваше замовлення" : "Your order"}</h2>
+                <select
+                  aria-label={isUa ? "Валюта розрахунку" : "Billing currency"}
+                  className={styles.currencySelect}
+                  value={form.currency}
+                  onChange={(event) => {
+                    const currency = event.target.value as ShopCurrencyCode;
+                    setForm((current) => ({
+                      ...current,
+                      currency,
+                      paymentMethod:
+                        current.paymentMethod === "MONOBANK" && currency !== "UAH"
+                          ? "FOP"
+                          : current.paymentMethod,
+                    }));
+                    setSelectedShopCurrency(currency);
+                  }}
+                >
+                  <option value="UAH">UAH</option>
+                  <option value="EUR">EUR</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+              <ul className={styles.items}>
+                {cart.items.map((item) => {
+                  const line = quoteItemsByKey.get(quoteLineKey(item.slug, item.variantId));
+                  const amount =
+                    line?.total ??
+                    (item.price ? getPrice(item.price, quoteCurrency) * item.quantity : null);
+                  const title =
+                    (isUa ? item.title?.ua : item.title?.en) || item.title?.en || item.slug;
+                  return (
+                    <li key={item.id} className={styles.item}>
+                      <div className={styles.thumbnail}>
+                        {item.image ? (
+                          <ShopProductImage
+                            src={item.image}
+                            fallbackSrc={item.fallbackImage}
+                            alt={title}
+                            fill
+                            sizes="66px"
+                          />
+                        ) : (
+                          <Package size={22} aria-hidden="true" />
+                        )}
+                        <span
+                          className={styles.quantity}
+                          aria-label={
+                            (isUa ? "Кількість: " : "Quantity: ") +
+                            (line?.quantity ?? item.quantity)
+                          }
+                        >
+                          {line?.quantity ?? item.quantity}
+                        </span>
+                      </div>
+                      <div>
+                        <div className={styles.itemTitle}>{title}</div>
+                        {item.variantTitle && (
+                          <div className={styles.itemVariant}>
+                            {preview ? (isUa ? "1 комплект" : "1 set") : item.variantTitle}
+                          </div>
+                        )}
+                      </div>
+                      <span className={styles.itemAmount}>
+                        {amount === null ? "—" : formatShopMoney(locale, amount, quoteCurrency)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className={styles.totals}>
+                <div className={styles.totalRow}>
+                  <span>{isUa ? "Товари" : "Subtotal"}</span>
+                  <span>
+                    {quote ? formatShopMoney(locale, quote.subtotal, quoteCurrency) : "—"}
+                  </span>
+                </div>
+                {showRegionalAdjustment && (
+                  <div className={styles.totalRow}>
+                    <span>{isUa ? "Корекція ціни" : "Price adjustment"}</span>
+                    <span>
+                      {formatShopMoney(locale, quote?.regionalAdjustmentAmount ?? 0, quoteCurrency)}
+                    </span>
+                  </div>
+                )}
+                <div className={styles.totalRow}>
+                  <span>{isUa ? "Доставка" : "Shipping"}</span>
+                  <span className={styles.totalRowMuted}>
+                    {!quote
+                      ? "—"
+                      : quote.shippingIncludedInPrice
+                        ? isUa
+                          ? "Включена у ціну"
+                          : "Included in price"
+                        : quote.shippingCost === 0
+                          ? isUa
+                            ? "За тарифами перевізника"
+                            : "Calculated by carrier"
+                          : formatShopMoney(locale, quote.shippingCost, quoteCurrency)}
+                  </span>
+                </div>
+                {showVatLine && (
+                  <div className={styles.totalRow}>
+                    <span>{vatSummaryLabel(quote)}</span>
+                    <span>
+                      {hasMoneyAmount(quote?.taxAmount)
+                        ? formatShopMoney(locale, quote?.taxAmount ?? 0, quoteCurrency)
+                        : quote?.showTaxesIncludedNotice
+                          ? isUa
+                            ? "Включено"
+                            : "Included"
+                          : formatShopMoney(locale, 0, quoteCurrency)}
+                    </span>
+                  </div>
+                )}
+                {quote?.landedCost && (
+                  <div className={styles.totalRow}>
+                    <span>
+                      {quote.landedCost.mode === "DDP"
+                        ? isUa
+                          ? "Імпортні витрати · DDP"
+                          : "Import charges · DDP"
+                        : isUa
+                          ? "Імпорт при доставці"
+                          : "Import due on delivery"}
+                    </span>
+                    <span>
+                      {quote.landedCost.mode === "QUOTE"
+                        ? isUa
+                          ? "Після підтвердження"
+                          : "After confirmation"
+                        : formatShopMoney(
+                            locale,
+                            quote.landedCost.mode === "DDP"
+                              ? quote.landedCost.includedAmount
+                              : quote.landedCost.dueAtDeliveryAmount,
+                            quoteCurrency
+                          )}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className={styles.grandTotal}>
+                <span>{isUa ? "Разом" : "Total"}</span>
+                <span className={styles.totalAmount}>{totalText}</span>
+              </div>
+              {quoteLoading && (
+                <p className={styles.summaryNote} role="status">
+                  {isUa ? "Оновлюємо розрахунок…" : "Updating your total…"}
+                </p>
+              )}
+              {quote?.pricingAudience === "b2b" && (
+                <p className={styles.summaryNote}>
+                  {isUa ? "Застосовано ваші B2B ціни" : "Your B2B pricing is applied"}
+                </p>
+              )}
+              {quote?.regionalPricingRule && (
+                <p className={styles.summaryNote}>{quote.regionalPricingRule.name}</p>
+              )}
+              {quote?.landedCost && (
+                <details className={styles.landedCost}>
+                  <summary>{isUa ? "Деталі імпортних витрат" : "Import cost details"}</summary>
+                  <p>
+                    {quote.landedCost.mode === "DDP"
+                      ? isUa
+                        ? "Включено у підсумок за поточним розрахунком маршруту."
+                        : "Included in the total using the current route estimate."
+                      : isUa
+                        ? "Орієнтовні мито, VAT та митні збори сплачуються при імпорті."
+                        : "Estimated duty, VAT and customs charges are due at import."}
+                  </p>
+                  <div className={styles.totalRow}>
+                    <span>{isUa ? "Мито" : "Duty"}</span>
+                    <span>
+                      {formatShopMoney(locale, quote.landedCost.dutyAmount, quoteCurrency)}
+                    </span>
+                  </div>
+                  <div className={styles.totalRow}>
+                    <span>Import VAT</span>
+                    <span>
+                      {formatShopMoney(locale, quote.landedCost.importVatAmount, quoteCurrency)}
+                    </span>
+                  </div>
+                  <div className={styles.totalRow}>
+                    <span>{isUa ? "Митне оформлення" : "Brokerage + handling"}</span>
+                    <span>
+                      {formatShopMoney(
+                        locale,
+                        quote.landedCost.brokerageAmount + quote.landedCost.handlingAmount,
+                        quoteCurrency
+                      )}
+                    </span>
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
+    </ShopCheckoutShell>
   );
 }

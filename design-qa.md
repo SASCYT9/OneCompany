@@ -79,3 +79,47 @@
 ## Final result
 
 passed
+
+## Checkout redesign — 2026-09-22
+
+Scope: the user rejected generated mocks and requested a working local Shopify-inspired checkout, with light and dark themes. This is an adaptation of the layout, not a pixel-exact clone or a Shopify migration. The catalog QA above is preserved.
+
+- Source visual: `../One Company 2/outputs/checkout-design/shopify-checkout-reference.png` (official Shopify article, 1999 × 1411). OneCompany branding and real product assets remain the source for logo/product imagery.
+- Browser implementation: `http://127.0.0.1:3046/ua/shop/checkout?preview=1`.
+- Evidence: `.tmp/checkout-design-qa/light-desktop-final.png`, `dark-desktop.png`, `light-mobile.png`, `light-mobile-expanded.png`, `dark-mobile.png`, and `dark-en-desktop.png`.
+- Viewports: default in-app desktop (924px-wide full-page captures); mobile override 390 × 844 CSS px, 375px content excluding scrollbar. Mobile document width was 375px and viewport width 390px, with no horizontal overflow. Temporary viewport override was reset.
+- State: local DB-less design preview, synthetic order amount, actual existing Girodisc photograph; no checkout/payment requests on submission. Preview is gated by development-only local-storefront mode and the explicit query parameter.
+- Full-view comparison: source and implementation opened together. Preserved form/receipt split, compact section headings, simple fields, product thumbnail and clear total. Deliberate differences: OneCompany typography/branding, local address fields, reduced optional content, no upsells, and existing mono-hosted payment flow. Direct wallet buttons from the mock were not represented as working integrations.
+- Focused review: inspected payment labels, theme switch, mobile summary, field labels, logo contrast and total. Existing Visa/Mastercard assets and product photo render correctly; no generated product imagery was introduced.
+- Typography: scoped Arial/Helvetica, 14px body, 16px mobile inputs, compact headings; no decorative tracking. Color tokens independently cover both themes. Spacing uses a shared grid, small radii and quiet dividers. Copy clearly distinguishes card payment from the processing provider.
+- Interactions verified: theme switch, UA/EN links, required fields, preview submit notice, currency switch and mono returning to UAH, mobile summary expansion. Browser console warning/error log was empty.
+- Corrections: added an accessible label to the mobile icon-only cart link; retained the original login `next` parameter; removed duplicated currency from the total. Fresh browser state/capture confirms the corrections.
+- Checks: TypeScript and scoped ESLint passed; 14 checkout/pricing tests passed. No production deployment or live payment verification was performed.
+
+final result: passed
+
+## Checkout image formats — 2026-09-22
+
+- Local QA route: `http://127.0.0.1:3046/ua/shop/checkout?preview=images`; the route is limited to local storefront mode and cannot create an order or payment.
+- Rendered formats: JPG, JPEG, PNG, WebP, AVIF and SVG. Every source decoded with non-zero natural dimensions in the checkout thumbnail component.
+- Failure handling: representative external 404 and 403 image sources both switched to the local product placeholder instead of leaving a blank or broken thumbnail.
+- Catalog snapshot audit: 49,015 image references across PNG, JPG, WebP, JPEG and SVG; no missing local references after protocol-relative remote URLs were excluded. AVIF is supported and was verified with a repository asset, although it is not used by the current catalog snapshot.
+- Checkout now uses the shared `ShopProductImage` normalization and fallback path already used by the cart, including protocol-relative URL normalization, stale Shopify media handling and Blob/remote image configuration.
+- Browser console warnings/errors: none after all image sources settled. TypeScript, scoped ESLint and the checkout/media unit tests passed.
+
+final result: passed
+
+## Checkout contact-page alignment — 2026-09-22
+
+- Source visual truth: live local `/ua/contact`, captured as `.tmp/checkout-design-qa/contact-reference-light.png`.
+- Implementation evidence: `.tmp/checkout-design-qa/contact-match-light-desktop.png`, `contact-match-dark-desktop.png`, `contact-match-light-mobile.png`.
+- Combined comparison: `.tmp/checkout-design-qa/contact-vs-checkout.png`.
+- Shared system verified visually and in computed styles: Unbounded font, warm stone light background, obsidian dark background, black/white ink, uppercase tracked micro-labels, transparent bottom-border inputs, rounded translucent panels, pill primary CTA and red light-theme accent.
+- Intentional checkout adaptations: compact two-column receipt layout, sticky summary, Visa/Mastercard provider information and required delivery inputs. The contact hero and marketing information are not reproduced in checkout.
+- Mobile evidence: 390 × 844 CSS viewport, document content width 375px excluding scrollbar, no horizontal overflow. Summary remains collapsible.
+- Interaction evidence: theme switch, UA/EN, optional address disclosure, currency behavior, payment method disclosure and checkout-to-login navigation. Login route received the sanitized `next=/ua/shop/checkout` return target.
+- Data contract evidence: route test now verifies persistence of email, full customer name, phone, line1, line2, city, region, postcode, country, currency and payment method. Existing account API returns email/name/phone/default address; authenticated checkout saves the completed delivery address as the account default.
+- Browser console warnings/errors: none on checkout. Login form rendered; credentials were not submitted in the DB-less preview.
+- Validation: TypeScript passed, scoped ESLint passed, checkout/cart/pricing tests passed (17 tests, including every visible contact/delivery field).
+
+final result: passed

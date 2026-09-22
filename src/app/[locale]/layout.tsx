@@ -16,6 +16,7 @@ import { resolveImageAssetReference, resolveVideoAssetReference } from "@/lib/ru
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { MobileBottomNavigation } from "@/components/layout/MobileBottomNavigation";
 import { BrandedIntro } from "@/components/ui/BrandedIntro";
+import { StorefrontChrome } from "@/components/layout/StorefrontChrome";
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "ua" }];
@@ -94,14 +95,16 @@ export default async function LocaleLayout({ children, params }: Props) {
               serverEnabled={videoConfig.heroEnabled ?? true}
             />
           ) : null}
-          <Header />
+          <StorefrontChrome><Header /></StorefrontChrome>
           <main id="main-content" className="grow relative z-10">
             {children}
           </main>
-          <ScrollToTop />
-          <Footer currentYear={currentYear} companyRequisites={companyRequisites} />
+          <StorefrontChrome>
+            <ScrollToTop />
+            <Footer currentYear={currentYear} companyRequisites={companyRequisites} />
+          </StorefrontChrome>
           <CookieBanner locale={locale} />
-          <MobileBottomNavigation locale={locale} />
+          <StorefrontChrome><MobileBottomNavigation locale={locale} /></StorefrontChrome>
         </div>
       </ShopCurrencyProvider>
     </NextIntlClientProvider>
