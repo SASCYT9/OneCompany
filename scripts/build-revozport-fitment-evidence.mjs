@@ -9,7 +9,7 @@ function argument(name, fallback) {
 
 const previewPath = resolve(argument("preview", ".tmp/revozport-catalog-preview.json"));
 const manifestPath = resolve(argument("manifest", "public/catalog-fallback/manifest.json"));
-const outputPath = resolve(argument("output", "data/revozport-fitment-evidence.json"));
+const outputPath = resolve(argument("output", "data/revozport-fitment-evidence.jsonl"));
 const outputRelative = relative(resolve("data"), outputPath);
 if (!outputRelative || outputRelative.startsWith("..") || isAbsolute(outputRelative)) {
   throw new Error("--output must be inside data/");
@@ -84,7 +84,8 @@ const officialCatalogFetches = [...new Set(
   records.map((record) => record.fitment.source.sourceUpdatedAt).filter(Boolean)
 )];
 if (officialCatalogFetches.length > 1) throw new Error("Fitment rows span multiple official-catalog revisions");
-const payload = {
+const evidenceManifest = {
+  recordType: "manifest",
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
   catalogManifestVersion: manifest.version,
@@ -93,7 +94,7 @@ const payload = {
   genericShardSha256: createHash("sha256").update(shardText).digest("hex"),
   fitmentPreviewSha256: createHash("sha256").update(previewText).digest("hex"),
   officialCatalogFetchedAt: officialCatalogFetches[0] ?? null,
-  records,
+  recordCount: records.length,
   summary: {
     catalogProducts: published.length,
     mappedProducts: records.length,
@@ -115,10 +116,11 @@ const payload = {
     ),
   },
 };
-payload.fingerprint = createHash("sha256")
+evidenceManifest.fingerprint = createHash("sha256")
   .update(records.map((record) => `${record.productId}|${record.sku}|${record.sourceRevision}|${record.payloadHash}`).join("\n"))
   .digest("hex");
 
 await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-console.log(JSON.stringify({ output: outputPath, ...payload.summary, fingerprint: payload.fingerprint }, null, 2));
+const contents = [JSON.stringify(evidenceManifest), ...records.map((record) => JSON.stringify(record))].join("\n");
+await writeFile(outputPath, `${contents}\n`, "utf8");
+console.log(JSON.stringify({ output: outputPath, ...evidenceManifest.summary, fingerprint: evidenceManifest.fingerprint }, null, 2));

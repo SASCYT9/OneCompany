@@ -25,13 +25,19 @@ export async function loadSupplementalCatalogDrafts(source: ShopCatalogSupplemen
   if (products.length !== descriptor.count) throw new Error("Generic shard count mismatch");
   const brand = SHOP_CATALOG_SUPPLEMENTAL_SOURCES[source].brand.toLowerCase();
   if (source === "revozport") {
-    const evidencePath = resolve("data", "revozport-fitment-evidence.json");
-    const evidence = JSON.parse(await readFile(evidencePath, "utf8")) as {
+    const evidencePath = resolve("data", "revozport-fitment-evidence.jsonl");
+    const evidenceLines = (await readFile(evidencePath, "utf8")).trim().split(/\r?\n/u);
+    if (!evidenceLines.length || !evidenceLines[0]) throw new Error("Revozport fitment evidence is empty");
+    const evidence = JSON.parse(evidenceLines[0]) as {
+      recordType: string;
       schemaVersion: number;
       genericShardSha256: string;
       fingerprint: string;
+      recordCount: number;
       officialCatalogFetchedAt?: string | null;
-      records: Array<{
+    };
+    if (evidence.recordType !== "manifest") throw new Error("Revozport evidence manifest is missing");
+    const evidenceRecords = evidenceLines.slice(1).map((line) => JSON.parse(line)) as Array<{
         productId: string;
         sku: string;
         sourceRecordKey: string;
@@ -40,18 +46,18 @@ export async function loadSupplementalCatalogDrafts(source: ShopCatalogSupplemen
         fitment: unknown;
         fitmentAudit: unknown;
       }>;
-    };
     if (evidence.schemaVersion !== 1) throw new Error("Unsupported Revozport fitment evidence schema");
+    if (evidenceRecords.length !== evidence.recordCount) throw new Error("Revozport evidence row count mismatch");
     const shardSha256 = createHash("sha256").update(raw).digest("hex");
     if (evidence.genericShardSha256 !== shardSha256) {
       throw new Error("Revozport fitment evidence targets a different generic catalog shard");
     }
     const evidenceFingerprint = createHash("sha256")
-      .update(evidence.records.map((record) => `${record.productId}|${record.sku}|${record.sourceRevision}|${record.payloadHash}`).join("\n"))
+      .update(evidenceRecords.map((record) => `${record.productId}|${record.sku}|${record.sourceRevision}|${record.payloadHash}`).join("\n"))
       .digest("hex");
     if (evidence.fingerprint !== evidenceFingerprint) throw new Error("Revozport fitment evidence fingerprint mismatch");
-    const bySku = new Map<string, (typeof evidence.records)[number]>();
-    for (const record of evidence.records) {
+    const bySku = new Map<string, (typeof evidenceRecords)[number]>();
+    for (const record of evidenceRecords) {
       const key = record.sku.trim().toUpperCase();
       if (!key || bySku.has(key)) throw new Error(`Duplicate Revozport fitment evidence SKU: ${key}`);
       bySku.set(key, record);
