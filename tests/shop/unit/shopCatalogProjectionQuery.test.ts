@@ -118,7 +118,7 @@ test("selected terminal OPF constrains visible vehicle facet candidates", async 
   assert.doesNotMatch(query.sql, /ShopCatalogProjectionFacetCount/);
 });
 
-test("vehicle filters stay correlated inside one clause regardless of review status", async () => {
+test("vehicle ORM fallback requires verified vehicle-specific clauses", async () => {
   const { buildShopCatalogProjectionWhere } = await queryModule;
   const where = buildShopCatalogProjectionWhere({
     locale: "ua",
@@ -133,7 +133,7 @@ test("vehicle filters stay correlated inside one clause regardless of review sta
   });
   const serialized = JSON.stringify(where);
   assert.match(serialized, /catalogProjectionPolicies/);
-  assert.doesNotMatch(serialized, /\"verification\"/);
+  assert.match(serialized, /\"verification\":\"VERIFIED\"/);
   assert.match(serialized, /\"dimension\":\"MAKE\"/);
   assert.match(serialized, /\"dimension\":\"ENGINE\"/);
   assert.match(serialized, /\"categoryKey\"/);
@@ -143,6 +143,17 @@ test("vehicle filters stay correlated inside one clause regardless of review sta
       ? where.product.catalogProjectionPolicies
       : null;
   assert.ok(clause);
+});
+
+test("raw SQL results and cascading facets exclude inferred and review vehicle clauses", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql, buildShopCatalogProjectionVehicleQuerySql } =
+    await queryModule;
+  const input = { locale: "ua" as const, make: "BMW", model: "M5", generation: "G90" };
+  const results = buildShopCatalogProjectionVehicleQuerySql(input);
+  assert.ok(results);
+  assert.match(results.sql, /clause\.\"verification\" = 'VERIFIED'/);
+  const facets = buildShopCatalogProjectionFacetQuerySql(input);
+  assert.match(facets.sql, /clause\.\"verification\" = 'VERIFIED'/);
 });
 
 test("keyset cursor uses stable rank and product identity", async () => {

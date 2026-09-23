@@ -27,6 +27,23 @@ every source/make/scope, then verify the rendered filter flow before activation.
 
 Last updated: 2026-09-23
 
+### Local R04 progress — verified fitment parity
+
+The current local change makes exact vehicle-constrained results and vehicle
+facets require a `VERIFIED` clause in both SQL and ORM paths. The legacy
+vehicle-ID bridge and canonical resolver now likewise accept only verified
+vehicle applications/clauses; the ORM fallback preserves explicitly verified
+universal clauses. Vehicle suggestions were already sourced from verified
+constraints. This aligns exact results, facets, selectors, and vehicle
+suggestions so review/inferred clauses are not silently treated as confirmed.
+
+Validation on the current working branch: 30 focused unit tests passed,
+TypeScript passed, and the canonical resolver integration passed on a disposable
+PostgreSQL database after all 47 migrations. This change can remove products
+whose only compatibility evidence is still review/inferred from exact vehicle
+results. Source review/backfill and a visible partial-coverage UI contract remain
+open; this is not the all-makes acceptance gate or a production rollout claim.
+
 ## Final bounded release review — 2026-09-08
 
 At `f8d678c5`, nine read-only localhost:3200 API requests succeeded (HTTP 200):

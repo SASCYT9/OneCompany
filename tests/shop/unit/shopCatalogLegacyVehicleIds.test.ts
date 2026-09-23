@@ -37,10 +37,13 @@ test("coalesces concurrent vehicle resolutions and reuses the bounded result", a
   assert.equal(mock.state.projectionCalls, 1);
   assert.equal(mock.state.catalogCalls, 1);
   assert.equal(mock.state.applicationArgs[0].where.AND.length, 2);
+  assert.equal(mock.state.applicationArgs[0].where.verificationStatus, "VERIFIED");
   // Evidence is narrowed to the selected year, model, and chassis before the
   // legacy bridge returns IDs. This keeps unrelated clauses out of the hot
   // path and makes the cache key safe for each vehicle selection.
   assert.equal(mock.state.projectionArgs[0].where.AND.length, 3);
+  assert.equal(mock.state.projectionArgs[0].where.policy.mode, "VEHICLE_SPECIFIC");
+  assert.equal(mock.state.projectionArgs[0].where.verification, "VERIFIED");
   assert.deepEqual(await resolveLegacyVehicleProductIds(input), first);
   assert.equal(mock.state.applicationCalls, 1);
   assert.equal(mock.state.projectionCalls, 1);

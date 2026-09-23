@@ -301,7 +301,7 @@ async function getCachedVehicleEvidence(
       where: {
         isActive: true,
         isUniversal: false,
-        verificationStatus: { not: "BLOCKED" },
+        verificationStatus: "VERIFIED",
         make: { in: makeAliases, mode: "insensitive" },
         ...(year
           ? {
@@ -321,7 +321,8 @@ async function getCachedVehicleEvidence(
     }),
     prisma.shopCatalogProjectionClause.findMany({
       where: {
-        policy: { mode: { not: "UNIVERSAL" } },
+        policy: { mode: "VEHICLE_SPECIFIC" },
+        verification: "VERIFIED",
         product: { isPublished: true, status: "ACTIVE" },
         constraints: {
           some: {

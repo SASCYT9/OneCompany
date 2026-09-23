@@ -34,7 +34,7 @@ test(
     process.env.SHOP_LOCAL_CATALOG_SNAPSHOT = "0";
     const client = new PrismaClient({ datasources: { db: { url } } });
     const run = `fuel-${Date.now()}`;
-    const ids = [`${run}-m5`, `${run}-m3`];
+    const ids = [`${run}-m5`, `${run}-m3`, `${run}-review-app`, `${run}-review-policy`];
     try {
       for (const [index, id] of ids.entries()) {
         await client.shopProduct.create({
@@ -98,6 +98,106 @@ test(
           opfGpf: "without",
           verificationStatus: "VERIFIED",
         },
+      });
+      const reviewKnowledge = await client.shopProductKnowledge.findUniqueOrThrow({
+        where: { productId: ids[2] },
+      });
+      await client.shopVehicleApplication.create({
+        data: {
+          applicationKey: `${run}-m5-review`,
+          knowledgeId: reviewKnowledge.id,
+          productId: ids[2],
+          make: "BMW",
+          model: "M5",
+          chassisCode: "G90",
+          yearFrom: 2024,
+          yearTo: 2026,
+          engine: "S68",
+          fuel: "petrol",
+          opfGpf: "with",
+          verificationStatus: "NEEDS_REVIEW",
+        },
+      });
+      const reviewTarget = `product:${ids[3]}`;
+      await client.shopCatalogProjectionPolicy.create({
+        data: {
+          targetKey: reviewTarget,
+          productId: ids[3],
+          sourceVersion: BigInt(1),
+          requiredDimensions: [],
+          dimensionDefaults: {},
+          clauseCount: 1,
+        },
+      });
+      const reviewClause = {
+        targetKey: reviewTarget,
+        productId: ids[3],
+        sourceVersion: BigInt(1),
+        clauseKey: "reviewed-fitment",
+      };
+      await client.shopCatalogProjectionClause.create({
+        data: { ...reviewClause, verification: "NEEDS_REVIEW" },
+      });
+      await client.shopCatalogProjectionConstraint.createMany({
+        data: [
+          {
+            ...reviewClause,
+            dimension: "SCOPE",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "auto",
+          },
+          {
+            ...reviewClause,
+            dimension: "MAKE",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "BMW",
+          },
+          {
+            ...reviewClause,
+            dimension: "MODEL",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "M5",
+          },
+          {
+            ...reviewClause,
+            dimension: "GENERATION",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "G90",
+          },
+          {
+            ...reviewClause,
+            dimension: "YEAR",
+            state: "EXACT",
+            valueKind: "year_range",
+            yearFrom: 2024,
+            yearTo: 2026,
+          },
+          {
+            ...reviewClause,
+            dimension: "ENGINE",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "S68",
+          },
+          {
+            ...reviewClause,
+            dimension: "FUEL",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "petrol",
+          },
+          {
+            ...reviewClause,
+            dimension: "OPF_GPF",
+            state: "EXACT",
+            valueKind: "text",
+            textValue: "with",
+          },
+        ],
       });
       const { resolveCanonicalVehicleProductIds } =
         await import("../../../src/lib/shopStockCanonicalVehicleIds.server");

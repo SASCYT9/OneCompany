@@ -633,6 +633,7 @@ function selectedVehicleCondition(
      AND clause."sourceVersion" = policy."sourceVersion"
     WHERE policy."productId" = projection."productId"
       AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+      AND clause."verification" = 'VERIFIED'
       AND ${Prisma.join(constraints, " AND ")}
     OFFSET 0
   )`;
@@ -771,6 +772,7 @@ function vehicleFacetBranch(
         AND candidate_row."state" = 'EXACT'
        WHERE policy."productId" = projection."productId"
          AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
+         AND clause."verification" = 'VERIFIED'
          ${prefix.length ? Prisma.sql`AND ${Prisma.join(prefix, " AND ")}` : Prisma.empty}
        OFFSET 0
      ) candidate
@@ -1186,7 +1188,10 @@ export function buildShopCatalogProjectionWhere(
                 },
                 clauses: {
                   some: {
-                    AND: constraints.map((constraint) => ({ constraints: { some: constraint } })),
+                    verification: "VERIFIED",
+                    AND: constraints.map((constraint) => ({
+                      constraints: { some: constraint },
+                    })),
                   },
                 },
               },

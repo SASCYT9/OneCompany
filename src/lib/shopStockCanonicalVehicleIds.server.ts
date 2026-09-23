@@ -207,7 +207,7 @@ export async function resolveCanonicalVehicleProductIds(input: {
         where: {
           isActive: true,
           isUniversal: false,
-          verificationStatus: { not: "BLOCKED" },
+          verificationStatus: "VERIFIED",
           ...(input.scope ? { scope: input.scope } : {}),
           ...(input.make
             ? { make: { in: vehicleMakeAliases(input.make), mode: "insensitive" } }
@@ -235,7 +235,8 @@ export async function resolveCanonicalVehicleProductIds(input: {
     const readPolicyRows = async () =>
       await prisma.shopCatalogProjectionClause.findMany({
         where: {
-          policy: { mode: { not: "UNIVERSAL" } },
+          policy: { mode: "VEHICLE_SPECIFIC" },
+          verification: "VERIFIED",
           product: { isPublished: true, status: "ACTIVE" },
           AND: canonicalClauseConstraints.map((constraint) => ({
             constraints: { some: constraint },
