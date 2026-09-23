@@ -256,11 +256,11 @@ const warehouseProductCopyBySku: Record<string, WarehouseProductCopy> = {
   "BN-G82MF-CBE + TIP70114S*4 + CAB-BTB*2": {
     title: {
       ua: "Клапанна вихлопна система Fi EXHAUST для BMW M3 / M4 G8x",
-      en: "Fi EXHAUST valvetronic exhaust for BMW M3 / M4 G8x",
+      en: "Fi EXHAUST valve-controlled exhaust for BMW M3 / M4 G8x",
     },
     description: {
       ua: "Клапанна вихлопна система Fi EXHAUST для BMW M3 G80 та M4 G82 із керованим звучанням, точною посадкою і комплектом карбонових насадок.",
-      en: "A Fi EXHAUST valvetronic system for the BMW M3 G80 and M4 G82, combining controllable sound, precise fitment and a set of carbon exhaust tips.",
+      en: "A Fi EXHAUST valve-controlled system for the BMW M3 G80 and M4 G82, combining controllable sound, precise fitment and a set of carbon exhaust tips.",
     },
   },
 };

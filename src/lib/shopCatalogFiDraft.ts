@@ -81,11 +81,23 @@ function titleEn(product: FiSourceProduct, applications: readonly FiFitment[]) {
   const source = product.title
     .replace(/^Fi\s*EXHAUST\s*/iu, "")
     .replace(/\s+для\s+.+$/iu, "")
+    .replace(/\bValvetronic\b/giu, "Valve-Controlled")
     .trim();
   const kind = /downpipe/iu.test(product.product_type || product.title)
     ? "Downpipe"
-    : source || "Valvetronic Exhaust System";
+    : source || "Valve-Controlled Exhaust System";
   return `Fi EXHAUST ${kind} for ${vehicle}`.replace(/\s+/gu, " ").trim();
+}
+
+function titleUa(product: FiSourceProduct) {
+  return product.title
+    .replace(
+      /Fi\s*EXHAUST\s+Valvetronic\s+Exhaust\s+System/giu,
+      "Fi EXHAUST: вихлопна система з клапанним керуванням"
+    )
+    .replace(/Fi\s*EXHAUST\s+Valvetronic/giu, "Fi EXHAUST із клапанним керуванням")
+    .replace(/\bValvetronic\b/giu, "клапанним керуванням")
+    .trim();
 }
 
 function extractKitContents(html: string) {
@@ -104,6 +116,7 @@ function extractKitContents(html: string) {
 
 function kitContentsEn(html: string) {
   return extractKitContents(html)
+    .replace(/\bValvetronic\s+muffler\b/giu, "valve-controlled muffler")
     .replace(/залежно від обраної версії/giu, "depending on the selected version")
     .replace(/залежно від версії/giu, "depending on the version")
     .replace(
@@ -138,7 +151,7 @@ function bodyEn(product: FiSourceProduct, applications: readonly FiFitment[]) {
   const kit = escapeHtml(kitContentsEn(product.body_html));
   const isDownpipe = /downpipe/iu.test(product.product_type || product.title);
   return [
-    `<p>The <strong>Fi EXHAUST</strong> ${isDownpipe ? "downpipe" : "valvetronic exhaust system"} for <strong>${vehicle}</strong> is a premium, vehicle-specific performance upgrade. It is engineered for precise fitment and improved exhaust flow.</p>`,
+    `<p>The <strong>Fi EXHAUST</strong> ${isDownpipe ? "downpipe" : "valve-controlled exhaust system"} for <strong>${vehicle}</strong> is a premium, vehicle-specific performance upgrade. It is engineered for precise fitment and improved exhaust flow.</p>`,
     "<p><strong>Key features:</strong></p>",
     `<ul><li>Vehicle-specific configuration for ${vehicle}</li><li>High-quality performance exhaust construction</li>${isDownpipe ? "" : "<li>Valve-controlled sound with quiet and sport modes</li>"}</ul>`,
     kit ? `<p><strong>Kit contents:</strong></p><p>${kit}</p>` : "",
@@ -200,7 +213,16 @@ export function buildFiCanonicalDraft(product: FiSourceProduct, fitment: FiFitme
   const issues: string[] = [];
   const variant = product.variants[0];
   const videos = extractSupportedExternalVideos(product.body_html);
-  const cleanUa = stripIframes(product.body_html);
+  const cleanUa = stripIframes(product.body_html)
+    .replace(
+      /Fi\s*EXHAUST\s+Valvetronic\s+Exhaust\s+System/giu,
+      "Fi EXHAUST: вихлопна система з клапанним керуванням"
+    )
+    .replace(/Fi\s*EXHAUST\s+Valvetronic/giu, "Fi EXHAUST із клапанним керуванням")
+    .replace(/технологія\s+valvetronic/giu, "керування клапанами")
+    .replace(/Valvetronic\s+Muffler/giu, "глушник із клапанним керуванням")
+    .replace(/valvetronic\s+глушник(?:ом|а|і)?/giu, "глушник із клапанним керуванням")
+    .replace(/\bValvetronic\b/giu, "клапанним керуванням");
   const englishTitle = titleEn(product, fitment.applications);
   const englishBody = bodyEn(product, fitment.applications);
   if (!fitment.applications.length) issues.push("fitment_missing");
@@ -262,7 +284,7 @@ export function buildFiCanonicalDraft(product: FiSourceProduct, fitment: FiFitme
       scope: "auto" as const,
       brand: "Fi EXHAUST" as const,
       vendor: "Fi EXHAUST" as const,
-      titleUa: product.title,
+      titleUa: titleUa(product),
       titleEn: englishTitle,
       bodyHtmlUa: cleanUa,
       bodyHtmlEn: englishBody,
