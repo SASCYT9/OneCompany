@@ -41,8 +41,17 @@ Validation on the current working branch: 30 focused unit tests passed,
 TypeScript passed, and the canonical resolver integration passed on a disposable
 PostgreSQL database after all 47 migrations. This change can remove products
 whose only compatibility evidence is still review/inferred from exact vehicle
-results. Source review/backfill and a visible partial-coverage UI contract remain
-open; this is not the all-makes acceptance gate or a production rollout claim.
+results. Source review/backfill and rendered browser verification of the partial
+coverage notice remain open; this is not the all-makes acceptance gate.
+
+### Partial selector status in the customer UI — local
+
+`StockCatalogClient` now reads the selector API's `coverage`/`complete` metadata
+for makes, models, chassis and details, and shows a localized status notice when
+any current cascade response is partial. This makes incomplete source coverage
+visible beside the car picker; it does not supply missing options or replace the
+all-source backfill. The helper suite passes 5/5 and TypeScript passes. Rendered
+browser verification is pending the deployment for the current commit.
 
 ## Final bounded release review — 2026-09-08
 

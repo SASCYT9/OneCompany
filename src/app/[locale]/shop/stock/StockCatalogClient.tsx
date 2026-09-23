@@ -49,6 +49,7 @@ import {
 } from "@/lib/shopVehicleTaxonomy";
 import {
   hasFitmentResponseType,
+  hasPartialFitmentCoverage,
   isCurrentFitmentRequest,
   isStringArray,
   parseShopStockJsonResponse,
@@ -1134,6 +1135,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [modelsError, setModelsError] = useState(false);
   const [submodelsError, setSubmodelsError] = useState(false);
   const [makesError, setMakesError] = useState(false);
+  const [partialFitmentLevels, setPartialFitmentLevels] = useState({
+    makes: false,
+    models: false,
+    chassis: false,
+    details: false,
+  });
   const makesRequestKeyRef = useRef("");
   const modelsRequestKeyRef = useRef("");
   const chassisRequestKeyRef = useRef("");
@@ -1168,6 +1175,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       setChassisCodes([]);
       setFitmentYears([]);
       setFitmentEngines([]);
+      setPartialFitmentLevels({ makes: false, models: false, chassis: false, details: false });
       setRequestedYear(null);
       setEngineFilter("");
       setFuelFilter("");
@@ -1523,6 +1531,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   // Vehicle choices are brand-independent; the selected brand still filters products.
   useEffect(() => {
     const requestKey = vehicleMode;
+    setPartialFitmentLevels({ makes: false, models: false, chassis: false, details: false });
     makesRequestKeyRef.current = requestKey;
     const generation = ++makesGenerationRef.current;
     const controller = new AbortController();
@@ -1547,6 +1556,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           throw new Error("invalid fitment makes response");
         }
         const nextMakes = fitmentRes.data;
+        setPartialFitmentLevels((current) => ({
+          ...current,
+          makes: hasPartialFitmentCoverage(fitmentRes),
+        }));
         setMakes(nextMakes);
         setMakesError(false);
       })
@@ -1564,6 +1577,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
   // Cascading: Make → Models
   useEffect(() => {
+    setPartialFitmentLevels((current) => ({
+      ...current,
+      models: false,
+      chassis: false,
+      details: false,
+    }));
     if (!make) {
       setModels([]);
       setModel("");
@@ -1585,12 +1604,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const requestKey = `${vehicleMode}|${normalizeVehicleMakeName(make)}`;
     modelsRequestKeyRef.current = requestKey;
     const generation = ++modelsGenerationRef.current;
-    fetch(
-      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}`,
-      {
-        signal: controller.signal,
-      }
-    )
+    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}`, {
+      signal: controller.signal,
+    })
       .then((r) => {
         return parseShopStockJsonResponse(r);
       })
@@ -1605,6 +1621,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           throw new Error("invalid fitment models response");
         }
         const nextModels = res.data;
+        setPartialFitmentLevels((current) => ({
+          ...current,
+          models: hasPartialFitmentCoverage(res),
+        }));
         setModels(nextModels);
         setModel((currentModel) => {
           const requestedModel = currentModel;
@@ -1632,6 +1652,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
   // Cascading: Model → Chassis
   useEffect(() => {
+    setPartialFitmentLevels((current) => ({ ...current, chassis: false, details: false }));
     if (!make || !model) {
       setChassisCodes([]);
       setChassis("");
@@ -1673,6 +1694,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           throw new Error("invalid fitment chassis response");
         }
         const rawChassisCodes = res.data;
+        setPartialFitmentLevels((current) => ({
+          ...current,
+          chassis: hasPartialFitmentCoverage(res),
+        }));
         const nextChassisCodes = canonicalizeVehicleChassisCodes(rawChassisCodes, make, model);
         setChassisCodes(nextChassisCodes);
         setChassis((currentChassis) => {
@@ -1698,6 +1723,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
   // Model/chassis → valid years and engines from the same correlated clauses.
   useEffect(() => {
+    setPartialFitmentLevels((current) => ({ ...current, details: false }));
     if (!make || !model) {
       setFitmentYears([]);
       setFitmentEngines([]);
@@ -1738,6 +1764,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         if (!details || !Array.isArray(details.years) || !isStringArray(details.engines)) {
           throw new Error("invalid fitment details response");
         }
+        setPartialFitmentLevels((current) => ({
+          ...current,
+          details: hasPartialFitmentCoverage(response),
+        }));
         const years =
           Array.isArray(details?.years) &&
           details.years.every((year: unknown) => Number.isInteger(year))
@@ -2510,6 +2540,23 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     );
   };
 
+  const hasPartialVehicleFitment = Object.values(partialFitmentLevels).some(Boolean);
+  const renderPartialFitmentNotice = () =>
+    hasPartialVehicleFitment ? (
+      <p
+        role="status"
+        aria-live="polite"
+        className="flex items-start gap-2 text-[10px] leading-relaxed text-amber-700 dark:text-amber-300"
+      >
+        <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <span>
+          {isUa
+            ? "Список сумісностей неповний: частина авто або товарів ще очікує перевірки. Зараз показуються лише підтверджені збіги."
+            : "Fitment coverage is incomplete: some vehicles or products still need review. Only confirmed matches are shown."}
+        </span>
+      </p>
+    ) : null;
+
   const hasVehicleModel = Boolean(model.trim());
   const hasYearOptions = hasVehicleModel && fitmentYears.length > 0;
   const hasEngineOptions = hasVehicleModel && fitmentEngines.length > 0;
@@ -2682,6 +2729,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
               })}
             </div>
             {renderVehicleFitmentFields()}
+            {renderPartialFitmentNotice()}
             {hasVehicleModel ? (
               <div className="border-t border-foreground/10 pt-3">
                 <p className="mb-2 text-[9px] font-medium uppercase tracking-[0.16em] text-foreground/50">
@@ -3769,6 +3817,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   {isUa ? "Застосувати" : "Apply"}
                 </button>
               </div>
+              {renderPartialFitmentNotice()}
               {hasVehicleModel ? (
                 <div className="grid gap-2 lg:grid-cols-3">
                   {renderStandardCompatibilityFields(true)}

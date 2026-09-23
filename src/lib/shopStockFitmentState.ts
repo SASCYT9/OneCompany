@@ -19,6 +19,14 @@ export function hasFitmentResponseType(
   return Boolean(value && typeof value === "object" && (value as { type?: unknown }).type === type);
 }
 
+export function hasPartialFitmentCoverage(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const meta = (value as { meta?: unknown }).meta;
+  if (!meta || typeof meta !== "object") return false;
+  const coverage = meta as { complete?: unknown; coverage?: unknown };
+  return coverage.complete === false || coverage.coverage === "partial";
+}
+
 /**
  * Keep a URL supplied value visible until the server returns a matching option.
  * Aliases can then be replaced with the canonical label without dropping a

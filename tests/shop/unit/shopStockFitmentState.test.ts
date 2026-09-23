@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   hasFitmentResponseType,
+  hasPartialFitmentCoverage,
   isCurrentFitmentRequest,
   isStringArray,
   parseShopStockJsonResponse,
@@ -28,6 +29,27 @@ test("fitment response arrays require string values", () => {
   assert.equal(isStringArray(["BMW", "Audi"]), true);
   assert.equal(isStringArray(["BMW", 5]), false);
   assert.equal(isStringArray(null), false);
+});
+
+test("partial fitment coverage is detected without treating missing metadata as complete evidence", () => {
+  assert.equal(
+    hasPartialFitmentCoverage({
+      type: "models",
+      data: ["M3"],
+      meta: { coverage: "partial", complete: false },
+    }),
+    true
+  );
+  assert.equal(
+    hasPartialFitmentCoverage({
+      type: "models",
+      data: ["M3"],
+      meta: { coverage: "complete", complete: true },
+    }),
+    false
+  );
+  assert.equal(hasPartialFitmentCoverage({ type: "models", data: ["M3"] }), false);
+  assert.equal(hasPartialFitmentCoverage(null), false);
 });
 
 test("stock response parsing rejects non-JSON and failed HTTP responses safely", async () => {
