@@ -4,7 +4,22 @@ export function isStringArray(value: unknown): value is string[] {
 
 export async function parseShopStockJsonResponse(response: Response): Promise<unknown> {
   const body = await response.text();
-  if (!response.ok) throw new Error("stock_request_failed");
+  if (!response.ok) {
+    let code: string | undefined;
+    try {
+      const payload = JSON.parse(body) as { code?: unknown };
+      if (typeof payload.code === "string") code = payload.code;
+    } catch {
+      // Preserve the stable request error when the server sends non-JSON text.
+    }
+    const error = new Error("stock_request_failed") as Error & {
+      status: number;
+      code?: string;
+    };
+    error.status = response.status;
+    if (code) error.code = code;
+    throw error;
+  }
   try {
     return JSON.parse(body) as unknown;
   } catch {
@@ -25,6 +40,14 @@ export function hasPartialFitmentCoverage(value: unknown): boolean {
   if (!meta || typeof meta !== "object") return false;
   const coverage = meta as { complete?: unknown; coverage?: unknown };
   return coverage.complete === false || coverage.coverage === "partial";
+}
+
+export function isSelectorNotReadyError(value: unknown): boolean {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    (value as { code?: unknown }).code === "SELECTOR_NOT_READY"
+  );
 }
 
 /**

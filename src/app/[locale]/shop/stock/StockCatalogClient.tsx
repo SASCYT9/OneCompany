@@ -51,6 +51,7 @@ import {
   hasFitmentResponseType,
   hasPartialFitmentCoverage,
   isCurrentFitmentRequest,
+  isSelectorNotReadyError,
   isStringArray,
   parseShopStockJsonResponse,
   resolveFitmentOption,
@@ -1569,6 +1570,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           generation === makesGenerationRef.current &&
           isCurrentFitmentRequest(requestKey, makesRequestKeyRef.current)
         ) {
+          if (isSelectorNotReadyError(error))
+            setPartialFitmentLevels((current) => ({ ...current, makes: true }));
           setMakesError(true);
         }
       });
@@ -1640,6 +1643,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           generation === modelsGenerationRef.current &&
           isCurrentFitmentRequest(requestKey, modelsRequestKeyRef.current)
         ) {
+          if (isSelectorNotReadyError(error))
+            setPartialFitmentLevels((current) => ({ ...current, models: true }));
           setModelsError(true);
         }
       })
@@ -1712,6 +1717,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           generation === chassisGenerationRef.current &&
           isCurrentFitmentRequest(requestKey, chassisRequestKeyRef.current)
         ) {
+          if (isSelectorNotReadyError(error))
+            setPartialFitmentLevels((current) => ({ ...current, chassis: true }));
           setSubmodelsError(true);
         }
       })
@@ -1783,6 +1790,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           generation === detailsGenerationRef.current &&
           isCurrentFitmentRequest(requestKey, detailsRequestKeyRef.current)
         ) {
+          if (isSelectorNotReadyError(error))
+            setPartialFitmentLevels((current) => ({ ...current, details: true }));
           setFitmentYears([]);
           setFitmentEngines([]);
         }

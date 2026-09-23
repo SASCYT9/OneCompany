@@ -5,6 +5,7 @@ import {
   hasFitmentResponseType,
   hasPartialFitmentCoverage,
   isCurrentFitmentRequest,
+  isSelectorNotReadyError,
   isStringArray,
   parseShopStockJsonResponse,
   resolveFitmentOption,
@@ -63,4 +64,21 @@ test("stock response parsing rejects non-JSON and failed HTTP responses safely",
   );
   assert.equal(hasFitmentResponseType({ type: "models", data: [] }, "models"), true);
   assert.equal(hasFitmentResponseType({ type: "chassis", data: [] }, "models"), false);
+});
+
+test("selector readiness errors preserve their machine-readable code", async () => {
+  let captured: unknown;
+  try {
+    await parseShopStockJsonResponse(
+      new Response(
+        JSON.stringify({ error: "selector unavailable", code: "SELECTOR_NOT_READY", data: [] }),
+        { status: 503, headers: { "content-type": "application/json" } }
+      )
+    );
+  } catch (error) {
+    captured = error;
+  }
+  assert.equal(isSelectorNotReadyError(captured), true);
+  assert.equal((captured as Error).message, "stock_request_failed");
+  assert.equal(isSelectorNotReadyError(new Error("unrelated")), false);
 });
