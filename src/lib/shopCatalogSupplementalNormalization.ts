@@ -1,9 +1,18 @@
 import { createHash } from "node:crypto";
 
 import { flattenShopCatalogRawPayload } from "./shopCatalogSourceCoverage";
-import { normalizeSupplierFitmentContract, supplierContractToNormalizedFitment } from "./shopImportFitment";
+import {
+  normalizeSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+} from "./shopImportFitment";
 import { supplierFitmentV2ToShopCatalogV2Policy } from "./shopImportFitmentV2";
 import type { ShopCatalogV2CompatibilityPolicy } from "./shopCatalogV2Compatibility";
+import {
+  buildKwPolicyEvidence,
+  type KwPolicyEvidenceEnvelope,
+} from "./shopCatalogKwPolicyEvidence";
+import type { KwProductNormalization } from "./shopCatalogKwNormalization";
+import type { ShopifySnapshotProduct } from "./shopifyCatalogSnapshot";
 
 export const SHOP_CATALOG_SUPPLEMENTAL_SOURCES = {
   bootmod3: {
@@ -103,6 +112,89 @@ export function normalizeSupplementalCatalogSnapshotProduct(
   const identity = product.sku?.trim() || product.slug.trim();
   if (!product.id.trim() || !identity)
     throw new TypeError("Supplemental product identity is incomplete");
+  if (source === "kw-suspensions") {
+    const envelope = product.fitment as {
+      schemaVersion?: unknown;
+      productId?: unknown;
+      sku?: unknown;
+      shopifyProductId?: unknown;
+      genericShardSha256?: unknown;
+      sourceSnapshotSha256?: unknown;
+      evidenceSourceRevision?: unknown;
+      sourceRevision?: unknown;
+      payloadHash?: unknown;
+      evidence?: KwPolicyEvidenceEnvelope["sourceRecord"]["rawPayload"];
+      policy?: KwPolicyEvidenceEnvelope["policy"];
+    } | null;
+    if (!envelope || envelope.schemaVersion !== 1) {
+      throw new TypeError(`KW fitment evidence is missing or unsupported for ${identity}`);
+    }
+    if (
+      envelope.productId !== product.id ||
+      String(envelope.sku ?? "")
+        .trim()
+        .toUpperCase() !== identity.toUpperCase() ||
+      typeof envelope.shopifyProductId !== "string" ||
+      !/^[a-f0-9]{64}$/iu.test(String(envelope.genericShardSha256 ?? "")) ||
+      !/^[a-f0-9]{64}$/iu.test(String(envelope.sourceSnapshotSha256 ?? ""))
+    ) {
+      throw new Error(`KW fitment evidence identity or snapshot mismatch for ${identity}`);
+    }
+    const expectedSourceRevision = `kw-fitment-evidence-v1:${envelope.genericShardSha256}:${envelope.sourceSnapshotSha256}:${envelope.evidenceSourceRevision}`;
+    if (envelope.sourceRevision !== expectedSourceRevision) {
+      throw new Error(`KW fitment source revision mismatch for ${identity}`);
+    }
+    const evidence = envelope.evidence;
+    if (!evidence?.product || !evidence.normalization) {
+      throw new TypeError(`KW normalized evidence is incomplete for ${identity}`);
+    }
+    const generated = buildKwPolicyEvidence({
+      product: evidence.product as ShopifySnapshotProduct,
+      normalization: evidence.normalization as KwProductNormalization,
+      productId: product.id,
+    });
+    if (
+      generated.sourceRecord.recordKey !== envelope.shopifyProductId ||
+      generated.sourceRecord.sourceRevision !== envelope.evidenceSourceRevision ||
+      generated.sourceRecord.payloadHash !== envelope.payloadHash ||
+      generated.evidenceHash !== envelope.payloadHash ||
+      JSON.stringify(generated.policy) !== JSON.stringify(envelope.policy)
+    ) {
+      throw new Error(`KW fitment evidence fingerprint mismatch for ${identity}`);
+    }
+    const normalization = evidence.normalization as KwProductNormalization;
+    const compatibilityPolicy = generated.policy;
+    return {
+      source,
+      scope,
+      productId: product.id,
+      variantId: null,
+      recordKey: `${product.id}:${identity}`,
+      mode: compatibilityPolicy.mode === "VEHICLE_SPECIFIC" ? "VEHICLE_SPECIFIC" : "NEEDS_REVIEW",
+      engineRelevant: normalization.issues.some((issue) => issue.startsWith("engine_")),
+      applications: normalization.applications.flatMap((application) =>
+        application.make
+          ? [
+              {
+                scope: "auto" as const,
+                make: application.make,
+                model: application.model,
+                generation: application.chassisCodes[0] ?? null,
+                yearFrom: application.yearFrom,
+                yearTo: application.yearTo,
+                engineCode: null,
+                fuel: null,
+              },
+            ]
+          : []
+      ),
+      verification: compatibilityPolicy.clauses.some((clause) => clause.verification === "VERIFIED")
+        ? "VERIFIED"
+        : "NEEDS_REVIEW",
+      compatibilityPolicy,
+      issues: normalization.issues,
+    };
+  }
   if (source === "revozport") {
     const parsed = normalizeSupplierFitmentContract(product.fitment);
     const contract = parsed.data;
@@ -132,28 +224,32 @@ export function normalizeSupplementalCatalogSnapshotProduct(
         const clause = contract.mode === "vehicle_specific" ? contract.policy.clauses[index] : null;
         const generation = clause?.constraints.find((item) => item.dimension === "generation");
         const years = clause?.constraints.find((item) => item.dimension === "year");
-        const yearRange = years?.state === "EXACT" && typeof years.values[0] === "object"
-          ? years.values[0]
-          : null;
-        return [{
-          scope,
-          make: application.make,
-          model: application.models[0],
-          generation: generation?.state === "EXACT" && typeof generation.values[0] === "string"
-            ? generation.values[0]
-            : application.chassisCodes[0] ?? null,
-          yearFrom: yearRange?.from ?? null,
-          yearTo: yearRange?.to ?? null,
-          engineCode: null,
-          fuel: application.fuel ?? null,
-          opfGpf: application.opfGpf ?? null,
-          transmission: application.transmission ?? null,
-        }];
+        const yearRange =
+          years?.state === "EXACT" && typeof years.values[0] === "object" ? years.values[0] : null;
+        return [
+          {
+            scope,
+            make: application.make,
+            model: application.models[0],
+            generation:
+              generation?.state === "EXACT" && typeof generation.values[0] === "string"
+                ? generation.values[0]
+                : (application.chassisCodes[0] ?? null),
+            yearFrom: yearRange?.from ?? null,
+            yearTo: yearRange?.to ?? null,
+            engineCode: null,
+            fuel: application.fuel ?? null,
+            opfGpf: application.opfGpf ?? null,
+            transmission: application.transmission ?? null,
+          },
+        ];
       });
       const auditRows = Array.isArray(product.fitmentAudit) ? product.fitmentAudit : [];
       const unresolvedRows = auditRows.filter((row) => {
         const resolution = String((row as Record<string, unknown>)?.resolution ?? "");
-        return !["official_sku_url_confirmed", "corrected_from_official_sku_and_page"].includes(resolution);
+        return !["official_sku_url_confirmed", "corrected_from_official_sku_and_page"].includes(
+          resolution
+        );
       }).length;
       const issues = [
         ...(parsed.errors ?? []).map((error) => `supplier_fitment:${error.code}:${error.path}`),
@@ -165,13 +261,19 @@ export function normalizeSupplementalCatalogSnapshotProduct(
         productId: product.id,
         variantId: null,
         recordKey: `${product.id}:${identity}`,
-        mode: compatibilityPolicy.mode === "VEHICLE_SPECIFIC" ? "VEHICLE_SPECIFIC" as const
-          : compatibilityPolicy.mode === "UNIVERSAL" ? "UNIVERSAL" as const : "NEEDS_REVIEW" as const,
+        mode:
+          compatibilityPolicy.mode === "VEHICLE_SPECIFIC"
+            ? ("VEHICLE_SPECIFIC" as const)
+            : compatibilityPolicy.mode === "UNIVERSAL"
+              ? ("UNIVERSAL" as const)
+              : ("NEEDS_REVIEW" as const),
         engineRelevant: false,
         applications,
-        verification: compatibilityPolicy.clauses.length > 0 &&
+        verification:
+          compatibilityPolicy.clauses.length > 0 &&
           compatibilityPolicy.clauses.every((clause) => clause.verification === "VERIFIED")
-          ? "VERIFIED" as const : "NEEDS_REVIEW" as const,
+            ? ("VERIFIED" as const)
+            : ("NEEDS_REVIEW" as const),
         compatibilityPolicy,
         issues,
       };

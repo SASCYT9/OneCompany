@@ -48,6 +48,7 @@ import {
   persistRevozportSourceRecordPageWithClient,
 } from "../src/lib/shopCatalogSupplementalBackfill.server";
 import { loadSupplementalCatalogDrafts } from "./catalog-v2-supplemental-source";
+import type { ShopCatalogSupplementalSource } from "../src/lib/shopCatalogSupplementalNormalization";
 
 type Snapshot = {
   id: string;
@@ -245,8 +246,10 @@ async function main() {
       await client.shopProductVariant.createMany({ data: page, skipDuplicates: true });
     for (const source of sources) {
       const drafts =
-        source.name === "revozport"
-          ? ((await loadSupplementalCatalogDrafts("revozport")) as Draft[])
+        source.name === "revozport" || source.name === "kw-suspensions"
+          ? ((await loadSupplementalCatalogDrafts(
+              source.name as ShopCatalogSupplementalSource
+            )) as Draft[])
           : source.products
               .map((product) => {
                 const builder = builders[source.name] as unknown as (input: {
@@ -318,11 +321,10 @@ async function main() {
     });
     const expectedCommerce = new Map(
       sources.flatMap((source) => {
-        // Revozport's immutable source payload includes its SKU-bound V2
-        // compatibility contract and row-level audit. Compare like-for-like
-        // with the exact enriched payload persisted by the backfill adapter.
+        // Supplemental records bind immutable source-fitment evidence to the
+        // catalog products; compare the exact enriched payload the writer stores.
         const expectedProducts =
-          source.name === "revozport"
+          source.name === "revozport" || source.name === "kw-suspensions"
             ? draftsBySource
                 .get(source.name)!
                 .map((draft) => draft.sourceRecord.rawPayload as Snapshot)

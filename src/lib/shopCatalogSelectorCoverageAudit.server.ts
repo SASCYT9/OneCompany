@@ -72,10 +72,9 @@ export async function auditShopCatalogSelectorCoverageWithClient(
             )
           )
             failure("canonical-owner", { policies: owned.length });
-          const expectedPolicies =
-            source === "revozport" && draft.normalization.compatibilityPolicy
-              ? [draft.normalization.compatibilityPolicy]
-              : [buildNormalizationCoveragePolicy(source, draft.normalization)];
+          const expectedPolicies = draft.normalization.compatibilityPolicy
+            ? [draft.normalization.compatibilityPolicy]
+            : [buildNormalizationCoveragePolicy(source, draft.normalization)];
           normalizedPolicies.push(...expectedPolicies);
           const canonical = canonicalPoliciesToProjectionV2(owned);
           canonicalPolicies.push(...canonical);

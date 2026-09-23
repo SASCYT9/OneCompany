@@ -44,7 +44,9 @@ const BLOCKING_NORMALIZATION_ISSUES = new Set([
   "category_unmapped",
 ]);
 
-export function kwNormalizationHasBlockingIssues(normalization: Pick<KwProductNormalization, "issues">) {
+export function kwNormalizationHasBlockingIssues(
+  normalization: Pick<KwProductNormalization, "issues">
+) {
   return normalization.issues.some((issue) => BLOCKING_NORMALIZATION_ISSUES.has(issue));
 }
 
@@ -52,7 +54,8 @@ function categoryKeyFor(product: ShopifySnapshotProduct) {
   const explicit = CATEGORY_KEYS[product.productType ?? ""];
   if (explicit) return explicit;
   const title = typeof product.title === "string" ? product.title : "";
-  if (/\bKW\s+HAS\b|комплект\s+пружин|height[ -]?adjustable\s+spring/iu.test(title)) return "springs-and-sport-suspension";
+  if (/\bKW\s+HAS\b|комплект\s+пружин|height[ -]?adjustable\s+spring/iu.test(title))
+    return "springs-and-sport-suspension";
   return "needs-review";
 }
 
@@ -65,12 +68,16 @@ function prefixedTags(product: ShopifySnapshotProduct, prefix: string) {
 }
 
 function metafieldStringArray(product: ShopifySnapshotProduct, namespace: string, key: string) {
-  const metafield = product.metafields.find((entry) => entry.namespace === namespace && entry.key === key);
+  const metafield = product.metafields.find(
+    (entry) => entry.namespace === namespace && entry.key === key
+  );
   if (typeof metafield?.value !== "string" || !metafield.value.trim()) return [];
   try {
     const parsed = JSON.parse(metafield.value) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
+    return parsed.filter(
+      (value): value is string => typeof value === "string" && Boolean(value.trim())
+    );
   } catch {
     return [];
   }
@@ -92,23 +99,41 @@ function sourceVehicles(product: ShopifySnapshotProduct) {
 
 function canonicalMake(raw: string) {
   const upper = raw.trim().toUpperCase();
-  return MAKE_LABELS[upper] ?? upper.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (letter) => letter.toUpperCase());
+  return (
+    MAKE_LABELS[upper] ??
+    upper.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (letter) => letter.toUpperCase())
+  );
 }
 
 function vehicleEvidenceKey(value: string) {
-  return value.toLowerCase().replace(/\b(?:0[1-9]|1[0-2])\/(?:19|20)\d{2}\s*-\s*(?:(?:0[1-9]|1[0-2])\/(?:19|20)\d{2})?\s*$/u, "")
+  return value
+    .toLowerCase()
+    .replace(
+      /\b(?:0[1-9]|1[0-2])\/(?:19|20)\d{2}\s*-\s*(?:(?:0[1-9]|1[0-2])\/(?:19|20)\d{2})?\s*$/u,
+      ""
+    )
     .replace(/[^\p{L}\p{N}]+/gu, "")
     .trim();
 }
 
 function parseVehicleTag(rawVehicleTag: string, make: string | null) {
-  const date = /\b(?:0[1-9]|1[0-2])\/((?:19|20)\d{2})\s*-\s*(?:(?:0[1-9]|1[0-2])\/((?:19|20)\d{2}))?\s*$/u.exec(rawVehicleTag);
+  const date =
+    /\b(?:0[1-9]|1[0-2])\/((?:19|20)\d{2})\s*-\s*(?:(?:0[1-9]|1[0-2])\/((?:19|20)\d{2}))?\s*$/u.exec(
+      rawVehicleTag
+    );
   const yearFrom = date?.[1] ? Number(date[1]) : null;
   const yearTo = date?.[2] ? Number(date[2]) : null;
   const label = (date ? rawVehicleTag.slice(0, date.index) : rawVehicleTag).trim();
   const chassisMatch = /\(([^)]+)\)/u.exec(label);
   const chassisCodes = chassisMatch
-    ? [...new Set(chassisMatch[1]!.split(/[\s,;/]+/u).map((value) => value.trim().toUpperCase()).filter(Boolean))]
+    ? [
+        ...new Set(
+          chassisMatch[1]!
+            .split(/[\s,;/]+/u)
+            .map((value) => value.trim().toUpperCase())
+            .filter(Boolean)
+        ),
+      ]
     : [];
   const rawModel = (chassisMatch ? label.slice(0, chassisMatch.index) : label).trim();
   let model = rawModel;
@@ -149,11 +174,18 @@ function curatedVehicleMakes(model: string, chassisCodes: readonly string[]) {
   return [];
 }
 
-function titleMakeEvidence(product: ShopifySnapshotProduct, rawMakes: readonly string[], rawVehicleTag: string) {
+function titleMakeEvidence(
+  product: ShopifySnapshotProduct,
+  rawMakes: readonly string[],
+  rawVehicleTag: string
+) {
   if (typeof product.title !== "string" || !product.title.trim()) return null;
   const dateIndex = rawVehicleTag.search(/\b(?:0[1-9]|1[0-2])\/(?:19|20)\d{2}/u);
   const label = (dateIndex >= 0 ? rawVehicleTag.slice(0, dateIndex) : rawVehicleTag).trim();
-  const model = label.replace(/\s*\([^)]*\).*$/u, "").trim().toUpperCase();
+  const model = label
+    .replace(/\s*\([^)]*\).*$/u, "")
+    .trim()
+    .toUpperCase();
   if (!model) return null;
   const title = product.title.toUpperCase();
   const matches = rawMakes.filter((make) => {
@@ -187,7 +219,9 @@ export function normalizeKwShopifyProduct(
   const issues: string[] = [];
   const rawMakes = [...new Set(sourceMakes(product).map(canonicalMake))];
   const vehicleTags = [...new Set(sourceVehicles(product))];
-  const engines = [...new Set(prefixedTags(product, "eng:").map((value) => value.replace(/\s+/gu, " ").trim()))];
+  const engines = [
+    ...new Set(prefixedTags(product, "eng:").map((value) => value.replace(/\s+/gu, " ").trim())),
+  ];
   const categoryKey = categoryKeyFor(product);
   if (categoryKey === "needs-review") issues.push("category_unmapped");
   if (!vehicleTags.length) issues.push("vehicle_tags_missing");
@@ -197,29 +231,49 @@ export function normalizeKwShopifyProduct(
     const withinProduct = [...candidates].filter((make) => rawMakes.includes(make));
     const evidenceMake = withinProduct.length === 1 ? withinProduct[0]! : null;
     const singleMake = rawMakes.length === 1 ? rawMakes[0]! : null;
-    const inferredMake = evidenceMake || singleMake ? null : titleMakeEvidence(product, rawMakes, rawVehicleTag);
+    const inferredMake =
+      evidenceMake || singleMake ? null : titleMakeEvidence(product, rawMakes, rawVehicleTag);
     const initialMake = evidenceMake ?? singleMake ?? inferredMake;
     const rawParsed = parseVehicleTag(rawVehicleTag, null);
-    const curatedMakes = initialMake ? [] : curatedVehicleMakes(rawParsed.model, rawParsed.chassisCodes).filter((make) => !rawMakes.length || rawMakes.includes(make));
+    const curatedMakes = initialMake
+      ? []
+      : curatedVehicleMakes(rawParsed.model, rawParsed.chassisCodes).filter(
+          (make) => !rawMakes.length || rawMakes.includes(make)
+        );
     const makes = initialMake ? [initialMake] : curatedMakes;
     if (!makes.length) issues.push("vehicle_make_correlation_ambiguous");
-    return { rawVehicleTag, makes, rawParsed, inferred: Boolean(inferredMake) || curatedMakes.length > 0 };
+    return {
+      rawVehicleTag,
+      makes,
+      rawParsed,
+      inferred: Boolean(inferredMake) || curatedMakes.length > 0,
+    };
   });
-  const applicationCount = resolvedVehicles.reduce((count, vehicle) => count + Math.max(vehicle.makes.length, 1), 0);
+  const applicationCount = resolvedVehicles.reduce(
+    (count, vehicle) => count + Math.max(vehicle.makes.length, 1),
+    0
+  );
   const correlateEngines = applicationCount === 1;
   if (!correlateEngines && engines.length) issues.push("engine_vehicle_correlation_ambiguous");
   if (correlateEngines && engines.length) issues.push("engine_taxonomy_unresolved");
   const applications = resolvedVehicles.flatMap(({ rawVehicleTag, makes, rawParsed, inferred }) => {
     const resolvedMakes: Array<string | null> = makes.length ? makes : [null];
-    return resolvedMakes.map((make) => ({
-      rawVehicleTag,
-      make,
-      ...parseVehicleTag(rawVehicleTag, make),
-      engines: correlateEngines ? engines : [],
-      verification: !make || engines.length > 0
-        ? "NEEDS_REVIEW" as const
-        : inferred ? "INFERRED" as const : "VERIFIED" as const,
-    }));
+    return resolvedMakes.map((make) => {
+      const parsed = parseVehicleTag(rawVehicleTag, make);
+      if (!parsed.model.trim()) issues.push("vehicle_model_missing");
+      return {
+        rawVehicleTag,
+        make,
+        ...parsed,
+        engines: correlateEngines ? engines : [],
+        verification:
+          !make || !parsed.model.trim()
+            ? ("NEEDS_REVIEW" as const)
+            : inferred
+              ? ("INFERRED" as const)
+              : ("VERIFIED" as const),
+      };
+    });
   });
 
   return {
@@ -240,19 +294,32 @@ export function buildKwCompatibilityPolicy(
   productId: string,
   normalization: KwProductNormalization
 ): ShopCatalogV2CompatibilityPolicy {
+  const engineEvidenceUncorrelated = normalization.issues.some((issue) =>
+    ["engine_vehicle_correlation_ambiguous", "engine_taxonomy_unresolved"].includes(issue)
+  );
   const clauses = normalization.applications.map((application, index) => {
     const constraints: ShopCatalogV2CompatibilityPolicy["clauses"][number]["constraints"] = [
       { dimension: "scope", state: "EXACT", values: ["auto"] },
-      ...(application.make ? [{ dimension: "make", state: "EXACT", values: [application.make] } as const] : [{ dimension: "make", state: "UNKNOWN" } as const]),
+      ...(application.make
+        ? [{ dimension: "make", state: "EXACT", values: [application.make] } as const]
+        : [{ dimension: "make", state: "UNKNOWN" } as const]),
       { dimension: "model", state: "EXACT", values: [application.model] },
-      ...(application.chassisCodes.length ? [
-        { dimension: "generation", state: "EXACT", values: application.chassisCodes },
-        { dimension: "chassis", state: "EXACT", values: application.chassisCodes },
-      ] as const : [{ dimension: "generation", state: "UNKNOWN" } as const]),
+      ...(application.chassisCodes.length
+        ? ([
+            { dimension: "generation", state: "EXACT", values: application.chassisCodes },
+            { dimension: "chassis", state: "EXACT", values: application.chassisCodes },
+          ] as const)
+        : [{ dimension: "generation", state: "UNKNOWN" } as const]),
       ...(application.yearFrom !== null || application.yearTo !== null
-        ? [{ dimension: "year", state: "EXACT", values: [{ from: application.yearFrom, to: application.yearTo }] } as const]
+        ? [
+            {
+              dimension: "year",
+              state: "EXACT",
+              values: [{ from: application.yearFrom, to: application.yearTo }],
+            } as const,
+          ]
         : [{ dimension: "year", state: "UNKNOWN" } as const]),
-      ...(application.engines.length
+      ...(application.engines.length && !engineEvidenceUncorrelated
         ? [{ dimension: "engine", state: "EXACT", values: application.engines } as const]
         : [{ dimension: "engine", state: "UNKNOWN" } as const]),
     ];
@@ -263,7 +330,8 @@ export function buildKwCompatibilityPolicy(
       sourceRef: `shopify:${normalization.externalProductId}:tag:${application.rawVehicleTag}`,
     };
   });
-  const needsReview = normalization.issues.length > 0 || clauses.some((clause) => clause.verification === "NEEDS_REVIEW");
+  const hasVerifiedApplication = clauses.some((clause) => clause.verification === "VERIFIED");
+  const needsReview = !hasVerifiedApplication;
   return {
     version: 2,
     mode: clauses.length && !needsReview ? "VEHICLE_SPECIFIC" : "NEEDS_REVIEW",
@@ -275,23 +343,36 @@ export function buildKwCompatibilityPolicy(
 }
 
 export function buildKwNormalizedFitment(normalization: KwProductNormalization): NormalizedFitment {
-  const applications = normalization.applications.flatMap((application) => application.make ? [{
-    vehicleType: "car" as const,
-    make: application.make,
-    models: [application.model],
-    chassisCodes: application.chassisCodes,
-    yearRanges: application.yearFrom === null ? [] : [{ from: application.yearFrom, to: application.yearTo }],
-    engines: application.engines,
-    fuel: null,
-    bodyStyles: [],
-    drivetrains: [],
-    markets: [],
-    transmission: null,
-    opfGpf: "unknown" as const,
-  }] : []);
+  const applications = normalization.applications.flatMap((application) =>
+    application.make
+      ? [
+          {
+            vehicleType: "car" as const,
+            make: application.make,
+            models: [application.model],
+            chassisCodes: application.chassisCodes,
+            yearRanges:
+              application.yearFrom === null
+                ? []
+                : [{ from: application.yearFrom, to: application.yearTo }],
+            engines: application.engines,
+            fuel: null,
+            bodyStyles: [],
+            drivetrains: [],
+            markets: [],
+            transmission: null,
+            opfGpf: "unknown" as const,
+          },
+        ]
+      : []
+  );
   const makes = [...new Set(applications.map((application) => application.make))];
-  const hasReview = normalization.issues.length > 0 || normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
-  const hasInference = normalization.applications.some((application) => application.verification === "INFERRED");
+  const hasReview =
+    normalization.issues.length > 0 ||
+    normalization.applications.some((application) => application.verification === "NEEDS_REVIEW");
+  const hasInference = normalization.applications.some(
+    (application) => application.verification === "INFERRED"
+  );
   return {
     version: 2,
     status: hasReview ? "needs_review" : hasInference ? "inferred" : "verified",
