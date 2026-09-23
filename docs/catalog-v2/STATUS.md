@@ -10,20 +10,30 @@ entries and 4,899 review policies. This proves the tested evidence-to-projection
 path only; it does not certify extraction completeness, production publication,
 selector endpoint completeness, or every customer search.
 
-Read-only production/API checks on 2026-09-23 found Mercedes-Benz / AMG G 63 /
-W465 with brand KW returns one item, and the visible catalog page shows that same
-KW springs item. Without a product-brand restriction, that vehicle query returns
-21 items. W463A with KW returns zero. Fitment API responses still report
-`coverage: partial` and `complete: false`; the selector UI does not surface that
-incomplete status. BMW M3 G80, M5 G90, Audi RS6 C8, and top-level model/chassis
-options were also spot-checked, but this is not an all-vehicle acceptance run.
+Read-only production checks on 2026-09-23 confirmed that Mercedes-Benz / AMG G 63 /
+W465 with brand KW returns one item, while the verified-only deployment currently
+returns zero BRABUS items for that filter. A full selector response matrix at
+commit `700a415e` queried all auto makes, models and chassis: 40 makes, 276
+models, 480 chassis options; all 40 model endpoints and all 276 chassis endpoints
+reported partial coverage, and 56 models returned no chassis options. The moto
+makes endpoint returned `503 SELECTOR_NOT_READY`. This measures API responses,
+not parity with source evidence. See
+[PRODUCTION_SELECTOR_AUDIT_2026-09-23.md](./PRODUCTION_SELECTOR_AUDIT_2026-09-23.md).
+
+The latest catalog UI now surfaces the partial-coverage status. An offline
+BRABUS snapshot audit found 19 W465 AMG G 63 rows, 15 with verified generation
+fitment and 4 held for missing engine identity; this has not been promoted to
+production. The filter source snapshot dry-run is at
+`artifacts/catalog-v2/brabus-w465-amg-g63-fitment-dryrun.json`.
 
 The main remaining data blocker is unresolved fitment evidence, not adapter
 parity: the local gate had 1,999 KW clauses, 214 FI clauses, 16 bootmod3 clauses,
 and 3 G-Sport clauses all in review; other sources also contain review clauses.
-No production data, migrations, flags, or deployments were changed by this audit.
-Next: R03/R04 must establish dimension-level selector completeness and parity for
-every source/make/scope, then verify the rendered filter flow before activation.
+Production code deployments `a984a0b1` and `700a415e` changed exact fitment
+filtering and disclosed partial selector coverage. No production data, migrations,
+or feature flags were changed. Next: promote reviewed source policies and
+projections, then prove source-to-selector/search/facet/suggestion parity for
+every source/make/scope before activation.
 
 Last updated: 2026-09-23
 
@@ -41,17 +51,17 @@ Validation on the current working branch: 30 focused unit tests passed,
 TypeScript passed, and the canonical resolver integration passed on a disposable
 PostgreSQL database after all 47 migrations. This change can remove products
 whose only compatibility evidence is still review/inferred from exact vehicle
-results. Source review/backfill and rendered browser verification of the partial
-coverage notice remain open; this is not the all-makes acceptance gate.
+results. Source review/backfill and the all-makes acceptance gate remain open.
 
-### Partial selector status in the customer UI — local
+### Partial selector status in the customer UI — deployed
 
 `StockCatalogClient` now reads the selector API's `coverage`/`complete` metadata
 for makes, models, chassis and details, and shows a localized status notice when
 any current cascade response is partial. This makes incomplete source coverage
 visible beside the car picker; it does not supply missing options or replace the
-all-source backfill. The helper suite passes 5/5 and TypeScript passes. Rendered
-browser verification is pending the deployment for the current commit.
+all-source backfill. The helper suite passes 5/5, TypeScript passes, and the
+production browser showed the status beside the selected Mercedes G 63/W465
+filters. The change is deployed at `700a415e`.
 
 ## Final bounded release review — 2026-09-08
 
