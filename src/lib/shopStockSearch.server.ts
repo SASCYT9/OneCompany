@@ -1285,6 +1285,15 @@ export async function searchShopStock(request: { url: string }) {
       }
       return { ...item, score, scoreReasons };
     });
+    if (queryVehiclePlan.qualifierTerms.length > 0) {
+      const qualifierTerms = queryVehiclePlan.qualifierTerms
+        .map(normalizeShopSearchText)
+        .filter(Boolean);
+      scoredItems = scoredItems.filter((item) => {
+        const searchable = normalizeShopSearchText(item.searchText);
+        return qualifierTerms.every((term) => searchable.includes(term));
+      });
+    }
 
     const sortByNameAsc = (
       left: (typeof scoredItems)[number],
