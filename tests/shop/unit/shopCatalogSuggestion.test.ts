@@ -103,6 +103,21 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
   assert.equal(getShopCatalogSuggestionTextQuery("BMW G8X"), "BMW G8X");
 });
 
+test("brand suggestions merge display aliases the same way as catalog facets", async () => {
+  const { normalizeShopCatalogBrandSuggestionRows } = await suggestionModule;
+  assert.deepEqual(
+    normalizeShopCatalogBrandSuggestionRows([
+      { valueKey: "mercedes-benz", valueLabel: "Mercedes-Benz", productCount: 1 },
+      { valueKey: "urban-automotive", valueLabel: "Urban Automotive", productCount: 1 },
+      { valueKey: "kw-suspensions", valueLabel: "KW Suspensions", productCount: 1 },
+    ]),
+    [
+      { type: "brand", id: "brand:urban automotive", label: "Urban Automotive", count: 2 },
+      { type: "brand", id: "brand:kw suspensions", label: "KW Suspensions", count: 1 },
+    ]
+  );
+});
+
 test("vehicle suggestions never cross-pair makes and models from different clauses", async () => {
   const { collectShopCatalogVehicleSuggestions } = await suggestionModule;
   const row = (
@@ -164,6 +179,7 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(service, /!vehicleSearchPlan\.canonical/);
   assert.match(service, /projection\."productId" IN/);
   assert.match(service, /projectionConditions\.push\(vehicleCondition\)/);
+  assert.match(service, /brand: getProductDisplayBrand\(product\.brandLabel/);
   assert.match(service, /normalizedProductQuery[\s\S]*Prisma\.sql`TRUE`/);
   assert.doesNotMatch(
     service,

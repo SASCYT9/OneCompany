@@ -22,6 +22,7 @@ import {
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
+import { getProductDisplayBrand } from "./shopProductDisplayBrand";
 import {
   compactShopCode,
   expandVehicleAliases,
@@ -192,6 +193,27 @@ export function collectShopCatalogVehicleSuggestions(
     .slice(0, SHOP_CATALOG_SUGGESTION_LIMITS.vehicles);
 }
 
+export function normalizeShopCatalogBrandSuggestionRows(
+  rows: ReadonlyArray<{ valueKey: string; valueLabel: string; productCount: number }>
+): Array<Extract<ShopCatalogSuggestion, { type: "brand" }>> {
+  const byDisplayBrand = new Map<string, { id: string; label: string; count: number }>();
+  for (const row of rows) {
+    const label = getProductDisplayBrand(row.valueLabel || row.valueKey);
+    if (!label) continue;
+    const key = normalizeShopSearchText(label);
+    const current = byDisplayBrand.get(key);
+    byDisplayBrand.set(key, {
+      id: `brand:${key}`,
+      label,
+      count: (current?.count ?? 0) + row.productCount,
+    });
+  }
+  return [...byDisplayBrand.values()]
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, "en"))
+    .slice(0, SHOP_CATALOG_SUGGESTION_LIMITS.brands)
+    .map((brand) => ({ type: "brand" as const, ...brand }));
+}
+
 export async function queryShopCatalogSuggestions(
   raw: ShopCatalogSuggestionInput
 ): Promise<readonly ShopCatalogSuggestion[]> {
@@ -286,7 +308,7 @@ export async function queryShopCatalogSuggestions(
                 ...vehicleConstraints,
               }
         ).then(({ facets }) =>
-          facets.brand.slice(0, SHOP_CATALOG_SUGGESTION_LIMITS.brands).map((brand) => ({
+          facets.brand.map((brand) => ({
             valueKey: brand.key,
             valueLabel: brand.label,
             productCount: brand.count,
@@ -304,7 +326,7 @@ export async function queryShopCatalogSuggestions(
             ],
           },
           orderBy: [{ productCount: "desc" }, { valueLabel: "asc" }],
-          take: SHOP_CATALOG_SUGGESTION_LIMITS.brands,
+          take: SHOP_CATALOG_SUGGESTION_LIMITS.brands * 3,
         }),
   ]);
 
@@ -329,12 +351,7 @@ export async function queryShopCatalogSuggestions(
       })
     : [];
 
-  const brandSuggestions: ShopCatalogSuggestion[] = brands.map((brand) => ({
-    type: "brand",
-    id: `brand:${brand.valueKey}`,
-    label: brand.valueLabel,
-    count: brand.productCount,
-  }));
+  const brandSuggestions = normalizeShopCatalogBrandSuggestionRows(brands);
   const vehicleSuggestions = collectShopCatalogVehicleSuggestions(
     constraintRows,
     input.normalizedQuery
@@ -343,13 +360,13 @@ export async function queryShopCatalogSuggestions(
     type: "product",
     id: product.productId,
     name: product.title,
-    brand: product.brandLabel,
+    brand: getProductDisplayBrand(product.brandLabel || product.brandKey),
     partNumber: product.normalizedSku ?? "",
     thumbnail: product.primaryMediaUrl,
     slug: product.slug,
     href: buildShopStorefrontProductPath(input.locale, {
       slug: product.slug,
-      brand: product.brandLabel || product.brandKey,
+      brand: getProductDisplayBrand(product.brandLabel || product.brandKey),
     }),
     category: product.categoryLabel,
   }));
