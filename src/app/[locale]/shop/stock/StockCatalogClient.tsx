@@ -1384,13 +1384,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     };
   }, [makePickerOpen]);
 
-  // Brand is a single standardized catalog dimension. Combining several
-  // brands here used to be silently reduced by the projection reader.
-  const activeFitmentBrand = selectedBrands[0]?.trim() ?? "";
-  const fitmentBrandParam = activeFitmentBrand
-    ? `&brand=${encodeURIComponent(activeFitmentBrand)}`
-    : "";
-
   const handleToggleBrand = (brandName: string) => {
     setSelectedBrands((current) => (current.includes(brandName) ? [] : [brandName]));
   };
@@ -1527,13 +1520,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     previousPriceCurrencyRef.current = currency;
   }, [currency, displayRates]);
 
-  // Fitment values do not depend on locale, country, or currency.
+  // Vehicle choices are brand-independent; the selected brand still filters products.
   useEffect(() => {
-    const requestKey = `${vehicleMode}|${activeFitmentBrand}`;
+    const requestKey = vehicleMode;
     makesRequestKeyRef.current = requestKey;
     const generation = ++makesGenerationRef.current;
     const controller = new AbortController();
-    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}${fitmentBrandParam}`, {
+    fetch(`/api/shop/stock/fitment?scope=${vehicleMode}`, {
       signal: controller.signal,
     })
       .then((response) => {
@@ -1567,7 +1560,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         }
       });
     return () => controller.abort();
-  }, [activeFitmentBrand, fitmentBrandParam, vehicleMode]);
+  }, [vehicleMode]);
 
   // Cascading: Make → Models
   useEffect(() => {
@@ -1589,11 +1582,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setModelsLoading(true);
     setModelsError(false);
     const controller = new AbortController();
-    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}`;
+    const requestKey = `${vehicleMode}|${normalizeVehicleMakeName(make)}`;
     modelsRequestKeyRef.current = requestKey;
     const generation = ++modelsGenerationRef.current;
     fetch(
-      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}${fitmentBrandParam}`,
+      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}`,
       {
         signal: controller.signal,
       }
@@ -1635,7 +1628,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       });
     setChassisCodes([]);
     return () => controller.abort();
-  }, [activeFitmentBrand, fitmentBrandParam, make, vehicleMode]);
+  }, [make, vehicleMode]);
 
   // Cascading: Model → Chassis
   useEffect(() => {
@@ -1659,11 +1652,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setFitmentEngines([]);
     setOpfGpfFilter(null);
     const controller = new AbortController();
-    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}`;
+    const requestKey = `${vehicleMode}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}`;
     chassisRequestKeyRef.current = requestKey;
     const generation = ++chassisGenerationRef.current;
     fetch(
-      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}${fitmentBrandParam}`,
+      `/api/shop/stock/fitment?scope=${vehicleMode}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`,
       { signal: controller.signal }
     )
       .then((r) => {
@@ -1701,7 +1694,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         if (!controller.signal.aborted) setSubmodelsLoading(false);
       });
     return () => controller.abort();
-  }, [activeFitmentBrand, fitmentBrandParam, make, model, vehicleMode]);
+  }, [make, model, vehicleMode]);
 
   // Model/chassis → valid years and engines from the same correlated clauses.
   useEffect(() => {
@@ -1714,7 +1707,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     }
     setDetailsLoading(true);
     const controller = new AbortController();
-    const requestKey = `${vehicleMode}|${activeFitmentBrand}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}|${requestedYear ?? ""}`;
+    const requestKey = `${vehicleMode}|${normalizeVehicleMakeName(make)}|${vehicleModelKey(canonicalVehicleModelLabel(make, model))}|${chassis.trim().toLocaleLowerCase()}|${requestedYear ?? ""}`;
     detailsRequestKeyRef.current = requestKey;
     const generation = ++detailsGenerationRef.current;
     const params = new URLSearchParams({
@@ -1725,7 +1718,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     });
     if (chassis) params.set("chassis", chassis);
     if (requestedYear) params.set("year", String(requestedYear));
-    if (activeFitmentBrand) params.set("brand", activeFitmentBrand);
     fetch(`/api/shop/stock/fitment?${params.toString()}`, { signal: controller.signal })
       .then((response) => {
         return parseShopStockJsonResponse(response);
@@ -1769,7 +1761,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         if (!controller.signal.aborted) setDetailsLoading(false);
       });
     return () => controller.abort();
-  }, [activeFitmentBrand, chassis, make, model, requestedYear, vehicleMode]);
+  }, [chassis, make, model, requestedYear, vehicleMode]);
 
   // Search handler
   const doSearch = useCallback(

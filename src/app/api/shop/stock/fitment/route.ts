@@ -9,6 +9,10 @@ import {
 import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
+  getVehicleSelectorChassisAliases,
+  getVehicleSelectorModelAliases,
+} from "@/lib/shopVehicleSearch";
+import {
   filterShopStockItemsByVehicleScope,
   isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
@@ -60,6 +64,31 @@ export async function GET(request: NextRequest) {
       scope: vehicleScope,
       details,
     });
+    if (
+      canonical?.type === "models" &&
+      isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
+    ) {
+      return cachedJson({
+        ...canonical,
+        data: canonicalizeVehicleModels(canonical.make, [
+          ...canonical.data,
+          ...getVehicleSelectorModelAliases(canonical.make),
+        ]),
+      });
+    }
+    if (
+      canonical?.type === "chassis" &&
+      isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
+    ) {
+      return cachedJson({
+        ...canonical,
+        data: canonicalizeVehicleChassisCodes(
+          [...canonical.data, ...getVehicleSelectorChassisAliases(canonical.make, canonical.model)],
+          canonical.make,
+          canonical.model
+        ),
+      });
+    }
     if (canonical) return cachedJson(canonical);
 
     // An enabled projection reader must never fall through to the legacy
@@ -172,7 +201,10 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const models = canonicalizeVehicleModels(make, Array.from(modelsSet));
+      const models = canonicalizeVehicleModels(make, [
+        ...modelsSet,
+        ...getVehicleSelectorModelAliases(make),
+      ]);
       return cachedJson({ type: "models", make, data: models });
     }
 
@@ -196,7 +228,11 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const chassis = canonicalizeVehicleChassisCodes(Array.from(chassisSet), make, model);
+      const chassis = canonicalizeVehicleChassisCodes(
+        [...chassisSet, ...getVehicleSelectorChassisAliases(make, model)],
+        make,
+        model
+      );
       return cachedJson({ type: "chassis", make, model, data: chassis });
     }
 

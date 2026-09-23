@@ -10,6 +10,11 @@ import {
   vehicleYearRangeContains,
   type VehicleYearRange,
 } from "./shopVehicleYears";
+import {
+  canonicalVehicleMakeLabel,
+  canonicalVehicleModelLabel,
+  vehicleModelKey,
+} from "./shopVehicleTaxonomy";
 
 export type ShopVehicleSearchIntent = "sku" | "vehicle" | "mixed" | "text";
 
@@ -279,6 +284,41 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     chassis: ["FK8", "FL5"],
   },
 ];
+
+function vehicleAliasGroupsForMake(make: string) {
+  const requestedMake = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  if (!requestedMake) return [];
+  return VEHICLE_ALIAS_GROUPS.filter((group) =>
+    group.makes?.some(
+      (candidate) =>
+        normalizeShopSearchText(canonicalVehicleMakeLabel(candidate)) === requestedMake
+    )
+  );
+}
+
+/**
+ * Model labels already understood by vehicle search should stay selectable even
+ * when the current product projection only contains a base-model label.
+ */
+export function getVehicleSelectorModelAliases(make: string) {
+  return uniq(vehicleAliasGroupsForMake(make).flatMap((group) => group.models ?? []));
+}
+
+/** Chassis aliases are kept correlated to their matching model alias groups. */
+export function getVehicleSelectorChassisAliases(make: string, model: string) {
+  const requestedModel = vehicleModelKey(canonicalVehicleModelLabel(make, model));
+  if (!requestedModel) return [];
+  return uniq(
+    vehicleAliasGroupsForMake(make)
+      .filter((group) =>
+        group.models?.some(
+          (candidate) =>
+            vehicleModelKey(canonicalVehicleModelLabel(make, candidate)) === requestedModel
+        )
+      )
+      .flatMap((group) => group.chassis ?? [])
+  );
+}
 
 function uniq(values: Array<string | null | undefined>) {
   const seen = new Set<string>();
