@@ -420,7 +420,7 @@ async function main() {
       error: error instanceof Error ? error.message : String(error),
     }));
     const report = {
-      version: 6,
+      version: 7,
       passed: selectorCoverage.passed && unsupportedSources.length === 0,
       manifestRecords,
       unsupportedSources,

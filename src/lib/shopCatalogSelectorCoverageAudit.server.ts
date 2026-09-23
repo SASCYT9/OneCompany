@@ -2,6 +2,7 @@ import "server-only";
 import type { PrismaClient } from "@prisma/client";
 import { readCoveragePoliciesWithClient } from "./shopCatalogCoveragePolicyReader.server";
 import { canonicalPoliciesToProjectionV2 } from "./shopCatalogCanonicalPolicyProjection";
+import { expandCanonicalPolicyTaxonomyAlternatives } from "./shopCatalogCanonicalPolicyHelpers";
 import { buildShopCatalogProjection } from "./shopCatalogProjection.server";
 import {
   buildNormalizationCoveragePolicy,
@@ -33,6 +34,7 @@ export async function auditShopCatalogSelectorCoverageWithClient(
       targets: drafts.length,
       canonicalPolicies: 0,
       normalizedClauses: 0,
+      expandedExpectedClauses: 0,
       canonicalClauses: 0,
       projectedClauses: 0,
       verifiedClauses: 0,
@@ -75,11 +77,18 @@ export async function auditShopCatalogSelectorCoverageWithClient(
           const expectedPolicies = draft.normalization.compatibilityPolicy
             ? [draft.normalization.compatibilityPolicy]
             : [buildNormalizationCoveragePolicy(source, draft.normalization)];
+          const expandedExpectedPolicies = expectedPolicies.map(
+            expandCanonicalPolicyTaxonomyAlternatives
+          );
           normalizedPolicies.push(...expectedPolicies);
           const canonical = canonicalPoliciesToProjectionV2(owned);
           canonicalPolicies.push(...canonical);
           report.canonicalPolicies += canonical.length;
           report.normalizedClauses += expectedPolicies.reduce(
+            (sum, policy) => sum + policy.clauses.length,
+            0
+          );
+          report.expandedExpectedClauses += expandedExpectedPolicies.reduce(
             (sum, policy) => sum + policy.clauses.length,
             0
           );
@@ -92,7 +101,7 @@ export async function auditShopCatalogSelectorCoverageWithClient(
               if (clause.verification === "VERIFIED") report.verifiedClauses++;
               else report.reviewClauses++;
             }
-          const normalizedParity = compareSelectorCoverage(expectedPolicies, canonical, {
+          const normalizedParity = compareSelectorCoverage(expandedExpectedPolicies, canonical, {
             caseInsensitiveTaxonomy: true,
           });
           report.missingSignatures += normalizedParity.missingCount;
@@ -140,6 +149,9 @@ export async function auditShopCatalogSelectorCoverageWithClient(
       ...report,
       dimensionCoverage: {
         normalized: summarizeSelectorDimensionCoverage(normalizedPolicies),
+        expandedExpected: summarizeSelectorDimensionCoverage(
+          normalizedPolicies.map(expandCanonicalPolicyTaxonomyAlternatives)
+        ),
         canonical: summarizeSelectorDimensionCoverage(canonicalPolicies),
       },
     });
