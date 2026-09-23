@@ -75,7 +75,10 @@ test("projection suggestions canonicalize brand and model spelling combinations"
 });
 
 test("structured vehicle suggestions reuse specific verified fitment constraints", async () => {
-  const { getShopCatalogSuggestionVehicleConstraints } = await suggestionModule;
+  const {
+    getShopCatalogSuggestionTextQuery,
+    getShopCatalogSuggestionVehicleConstraints,
+  } = await suggestionModule;
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("AMG G63 W465"), {
     make: "Mercedes-Benz",
     model: "G-Class",
@@ -95,6 +98,9 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     opfGpf: null,
   });
   assert.equal(getShopCatalogSuggestionVehicleConstraints("BMW G8X"), null);
+  assert.equal(getShopCatalogSuggestionTextQuery("AMG G63 W465"), "");
+  assert.equal(getShopCatalogSuggestionTextQuery("BMW M3 G80 Eventuri"), "eventuri");
+  assert.equal(getShopCatalogSuggestionTextQuery("BMW G8X"), "BMW G8X");
 });
 
 test("vehicle suggestions never cross-pair makes and models from different clauses", async () => {
@@ -153,7 +159,9 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(service, /productId: \{ in: products\.map/);
   assert.match(service, /clause: \{ verification: "VERIFIED" \}/);
   assert.match(service, /buildShopCatalogProjectionVehicleCondition/);
+  assert.match(service, /queryShopCatalogProjectionFacets/);
   assert.match(service, /projectionConditions\.push\(vehicleCondition\)/);
+  assert.match(service, /normalizedProductQuery[\s\S]*Prisma\.sql`TRUE`/);
   assert.doesNotMatch(
     service,
     /getShopProductsWithFitments|findMany\(\{\s*where:\s*\{\s*isPublished/

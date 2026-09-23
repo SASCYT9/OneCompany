@@ -8,7 +8,10 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
-import { buildShopCatalogProjectionVehicleCondition } from "./shopCatalogProjectionQuery.server";
+import {
+  buildShopCatalogProjectionVehicleCondition,
+  queryShopCatalogProjectionFacets,
+} from "./shopCatalogProjectionQuery.server";
 import { buildShopCatalogVehicleSearchPlan } from "./shopCatalogVehicleSearchPlan";
 import {
   canonicalizeShopSearchQuery,
@@ -18,7 +21,11 @@ import {
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
-import { compactShopCode } from "./shopVehicleSearch";
+import {
+  compactShopCode,
+  expandVehicleAliases,
+  getVehicleResidualSearchTokens,
+} from "./shopVehicleSearch";
 
 export const SHOP_CATALOG_SUGGESTION_LIMITS = Object.freeze({
   queryMin: 2,
@@ -64,6 +71,11 @@ export function getShopCatalogSuggestionVehicleConstraints(query: string) {
   const { make, model, generation, year, engine, fuel, opfGpf } = plan.constraints;
   if (!make || (!model && !generation)) return null;
   return { make, model, generation, year, engine, fuel, opfGpf };
+}
+
+export function getShopCatalogSuggestionTextQuery(query: string) {
+  if (!getShopCatalogSuggestionVehicleConstraints(query)) return query;
+  return getVehicleResidualSearchTokens(expandVehicleAliases(query)).join(" ");
 }
 
 export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestionInput) {
@@ -169,23 +181,31 @@ export async function queryShopCatalogSuggestions(
 ): Promise<readonly ShopCatalogSuggestion[]> {
   const input = normalizeShopCatalogSuggestionInput(raw);
   if (!input.query) return Object.freeze([]);
-  const searchPattern = `%${escapeLike(input.normalizedQuery)}%`;
   const prefixPattern = `${escapeLike(input.normalizedQuery)}%`;
+  const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
+  const productQuery = getShopCatalogSuggestionTextQuery(input.query);
+  const normalizedProductQuery = normalizeShopSearchText(
+    canonicalizeShopSearchQuery(productQuery)
+  );
+  const normalizedProductSku = compactShopCode(normalizedProductQuery);
+  const productSearchPattern = `%${escapeLike(normalizedProductQuery)}%`;
   // Match the same bounded token semantics as the stock search endpoint.
   // A contiguous phrase is too strict for reordered vehicle queries (for
   // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
   // products. Exact normalized SKUs remain a separate high-priority match.
-  const queryTokens = tokenizeShopSearchQuery(input.normalizedQuery);
+  const queryTokens = tokenizeShopSearchQuery(normalizedProductQuery);
   const tokenConditions = queryTokens.map((token) =>
     shopSearchTokenConditionSql(Prisma.sql`projection."searchText"`, token)
   );
   const lexicalCondition =
     tokenConditions.length > 0
       ? Prisma.sql`(
-          lower(coalesce(projection."normalizedSku", '')) = lower(${input.normalizedSku})
+          lower(coalesce(projection."normalizedSku", '')) = lower(${normalizedProductSku})
           OR (${Prisma.join(tokenConditions, " AND ")})
         )`
-      : Prisma.sql`projection."searchText" ILIKE ${searchPattern} ESCAPE '\\'`;
+      : normalizedProductQuery
+        ? Prisma.sql`projection."searchText" ILIKE ${productSearchPattern} ESCAPE '\\'`
+        : Prisma.sql`TRUE`;
   const projectionConditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
     Prisma.sql`projection."isPublished" = true`,
@@ -193,7 +213,6 @@ export async function queryShopCatalogSuggestions(
     lexicalCondition,
   ];
   if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
-  const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
   if (vehicleConstraints) {
     const vehicleCondition = buildShopCatalogProjectionVehicleCondition({
       locale: input.locale,
@@ -220,20 +239,33 @@ export async function queryShopCatalogSuggestions(
         projection."stableRank" ASC,
         projection."productId" ASC
       LIMIT ${SHOP_CATALOG_SUGGESTION_LIMITS.products}`),
-    prisma.shopCatalogProjectionFacetCount.findMany({
-      where: {
-        locale: input.locale,
-        dimension: "BRAND",
-        prefixKey: input.scope ? `scope:${input.scope}` : "",
-        productCount: { gt: 0 },
-        OR: [
-          { valueKey: { contains: input.normalizedQuery, mode: "insensitive" } },
-          { valueLabel: { contains: input.query, mode: "insensitive" } },
-        ],
-      },
-      orderBy: [{ productCount: "desc" }, { valueLabel: "asc" }],
-      take: SHOP_CATALOG_SUGGESTION_LIMITS.brands,
-    }),
+    vehicleConstraints
+      ? queryShopCatalogProjectionFacets({
+          locale: input.locale,
+          scope: input.scope,
+          text: normalizedProductQuery || null,
+          ...vehicleConstraints,
+        }).then(({ facets }) =>
+          facets.brand.slice(0, SHOP_CATALOG_SUGGESTION_LIMITS.brands).map((brand) => ({
+            valueKey: brand.key,
+            valueLabel: brand.label,
+            productCount: brand.count,
+          }))
+        )
+      : prisma.shopCatalogProjectionFacetCount.findMany({
+          where: {
+            locale: input.locale,
+            dimension: "BRAND",
+            prefixKey: input.scope ? `scope:${input.scope}` : "",
+            productCount: { gt: 0 },
+            OR: [
+              { valueKey: { contains: input.normalizedQuery, mode: "insensitive" } },
+              { valueLabel: { contains: input.query, mode: "insensitive" } },
+            ],
+          },
+          orderBy: [{ productCount: "desc" }, { valueLabel: "asc" }],
+          take: SHOP_CATALOG_SUGGESTION_LIMITS.brands,
+        }),
   ]);
 
   const constraintRows = products.length
