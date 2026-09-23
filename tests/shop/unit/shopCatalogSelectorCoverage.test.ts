@@ -115,6 +115,12 @@ test("dimension coverage separates known vehicle identity from unrelated unknown
       generations: ["G80"],
     },
   ]);
+
+  const modelOnly = structuredClone(source);
+  modelOnly.clauses[0].constraints = modelOnly.clauses[0].constraints.filter(
+    (constraint) => constraint.dimension !== "generation"
+  );
+  assert.deepEqual(summarizeSelectorDimensionCoverage([modelOnly]).scopes, { auto: 1 });
 });
 
 test("target, year range, duplicate clauses and dropped engine identity fail", () => {

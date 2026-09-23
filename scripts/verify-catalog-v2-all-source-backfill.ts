@@ -244,17 +244,20 @@ async function main() {
     for (const page of pages(variants, 500))
       await client.shopProductVariant.createMany({ data: page, skipDuplicates: true });
     for (const source of sources) {
-      const drafts = source.name === "revozport"
-        ? await loadSupplementalCatalogDrafts("revozport") as Draft[]
-        : source.products
-            .map((product) => {
-              const builder = builders[source.name] as unknown as (input: {
-                product: Snapshot;
-                sourceRevision: string;
-              }) => Draft;
-              return builder({ product, sourceRevision: source.revision });
-            })
-            .sort((left, right) => left.sourceRecord.recordKey.localeCompare(right.sourceRecord.recordKey));
+      const drafts =
+        source.name === "revozport"
+          ? ((await loadSupplementalCatalogDrafts("revozport")) as Draft[])
+          : source.products
+              .map((product) => {
+                const builder = builders[source.name] as unknown as (input: {
+                  product: Snapshot;
+                  sourceRevision: string;
+                }) => Draft;
+                return builder({ product, sourceRevision: source.revision });
+              })
+              .sort((left, right) =>
+                left.sourceRecord.recordKey.localeCompare(right.sourceRecord.recordKey)
+              );
       draftsBySource.set(source.name, drafts);
       let completed = 0;
       for (const page of pages(drafts, 50)) {
@@ -281,9 +284,11 @@ async function main() {
         .reduce((sum, draft) => sum + draft.issues.length, 0),
       expectedReview = [...draftsBySource.values()]
         .flat()
-      .filter((draft) => draft.normalization.compatibilityPolicy
-        ? draft.normalization.compatibilityPolicy.mode === "NEEDS_REVIEW"
-        : draft.normalization.verification === "NEEDS_REVIEW").length;
+        .filter((draft) =>
+          draft.normalization.compatibilityPolicy
+            ? draft.normalization.compatibilityPolicy.mode === "NEEDS_REVIEW"
+            : draft.normalization.verification === "NEEDS_REVIEW"
+        ).length;
     const counts = {
       sources: await client.shopCatalogSource.count({ where: { key: { startsWith: "gate-" } } }),
       records: await client.shopCatalogSourceRecord.count(),
@@ -316,9 +321,12 @@ async function main() {
         // Revozport's immutable source payload includes its SKU-bound V2
         // compatibility contract and row-level audit. Compare like-for-like
         // with the exact enriched payload persisted by the backfill adapter.
-        const expectedProducts = source.name === "revozport"
-          ? draftsBySource.get(source.name)!.map((draft) => draft.sourceRecord.rawPayload as Snapshot)
-          : source.products;
+        const expectedProducts =
+          source.name === "revozport"
+            ? draftsBySource
+                .get(source.name)!
+                .map((draft) => draft.sourceRecord.rawPayload as Snapshot)
+            : source.products;
         return expectedProducts.map((product) => {
           const entry = buildShopCatalogBaselineProductEntry(product);
           return [`gate-${source.name}:${entry.productId}`, entry] as const;
@@ -410,7 +418,7 @@ async function main() {
       error: error instanceof Error ? error.message : String(error),
     }));
     const report = {
-      version: 5,
+      version: 6,
       passed: selectorCoverage.passed && unsupportedSources.length === 0,
       manifestRecords,
       unsupportedSources,

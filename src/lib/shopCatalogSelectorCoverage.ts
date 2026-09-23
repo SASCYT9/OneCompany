@@ -118,6 +118,8 @@ export function summarizeSelectorDimensionCoverage(policies: readonly Policy[]) 
       const makes = exactStrings("make");
       const models = exactStrings("model");
       const generations = [...new Set([...exactStrings("generation"), ...exactStrings("chassis")])];
+      for (const scope of exactStrings("scope"))
+        scopeCoverage.set(scope, (scopeCoverage.get(scope) ?? 0) + 1);
       const hasCoreIdentity = models.length > 0 && generations.length > 0;
       if (!hasCoreIdentity) continue;
 
@@ -148,8 +150,6 @@ export function summarizeSelectorDimensionCoverage(policies: readonly Policy[]) 
         else if (verifiedIdentity) coverage.selectorEligibleCoreIdentityClauses += 1;
         makeCoverage.set(make, coverage);
       }
-      for (const scope of exactStrings("scope"))
-        scopeCoverage.set(scope, (scopeCoverage.get(scope) ?? 0) + 1);
     }
   }
 
