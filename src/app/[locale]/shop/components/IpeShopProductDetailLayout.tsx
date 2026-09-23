@@ -316,6 +316,11 @@ function variantMatches(variant: ShopProductVariantSummary, selected: string[]):
   return true;
 }
 
+function systemUsesDownpipeOption(system: string | undefined): boolean {
+  const normalized = system?.trim().toLowerCase();
+  return normalized === "full system" || normalized === "downpipes";
+}
+
 export function IpeShopProductDetailLayout({
   locale,
   resolvedLocale,
@@ -328,6 +333,16 @@ export function IpeShopProductDetailLayout({
   const isUa = resolvedLocale === "ua";
   const variants = product.variants ?? [];
   const optionAxes = useMemo(() => buildOptionAxes(variants), [variants]);
+  const hasConditionalDownpipeAxis =
+    optionAxes.some(
+      (axis) =>
+        axis.index === 1 &&
+        axis.values.some((value) => value.trim().toLowerCase() === "full system") &&
+        axis.values.some((value) => value.trim().toLowerCase() === "downpipes")
+    ) &&
+    optionAxes.some(
+      (axis) => axis.index === 2 && axis.values.some((value) => /downpipe/i.test(value))
+    );
 
   const initialVariant = useMemo(() => {
     // Editor-marked default wins. We rebuilt iPE variants from the official
@@ -344,7 +359,9 @@ export function IpeShopProductDetailLayout({
   }, [variants]);
 
   const [selected, setSelected] = useState<string[]>(() => {
-    return [0, 1, 2].map((i) => initialVariant?.optionValues?.[i] ?? "");
+    const initial = [0, 1, 2].map((i) => initialVariant?.optionValues?.[i] ?? "");
+    if (hasConditionalDownpipeAxis && !systemUsesDownpipeOption(initial[1])) initial[2] = "";
+    return initial;
   });
 
   const currentVariant = useMemo(() => {
@@ -357,6 +374,10 @@ export function IpeShopProductDetailLayout({
     setSelected((prev) => {
       const next = [...prev];
       next[axisIndex] = value;
+      const showDownpipeChoice =
+        !hasConditionalDownpipeAxis ||
+        systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
+      if (!showDownpipeChoice) next[2] = "";
       // If no variant matches this combo, lock other axes to a compatible
       // variant: pick the first variant that has the chosen value at this axis
       // and adopt its other option values.
@@ -364,9 +385,11 @@ export function IpeShopProductDetailLayout({
         variants.find((v) => variantMatches(v, next)) ??
         variants.find((v) => v.optionValues?.[axisIndex] === value);
       if (compatible) {
-        return [0, 1, 2].map((i) =>
-          i === axisIndex ? value : (compatible.optionValues?.[i] ?? next[i] ?? "")
-        );
+        return [0, 1, 2].map((i) => {
+          if (i === axisIndex) return value;
+          if (i === 2 && !showDownpipeChoice) return "";
+          return compatible.optionValues?.[i] ?? next[i] ?? "";
+        });
       }
       return next;
     });
@@ -852,6 +875,13 @@ export function IpeShopProductDetailLayout({
           {optionAxes.length > 0 ? (
             <div className="ipe-pdp__options">
               {optionAxes.map((axis) => {
+                if (
+                  hasConditionalDownpipeAxis &&
+                  axis.index === 2 &&
+                  !systemUsesDownpipeOption(selected[1])
+                ) {
+                  return null;
+                }
                 const axisLabel = localizeAxisName(axis.name, isUa);
                 const labelWithSuffix = axis.commonSuffix
                   ? `${axisLabel} (${axis.commonSuffix})`
