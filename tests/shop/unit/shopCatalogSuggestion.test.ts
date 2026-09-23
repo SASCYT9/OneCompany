@@ -98,7 +98,7 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     opfGpf: null,
   });
   assert.equal(getShopCatalogSuggestionVehicleConstraints("BMW G8X"), null);
-  assert.equal(getShopCatalogSuggestionTextQuery("AMG G63 W465"), "");
+  assert.equal(getShopCatalogSuggestionTextQuery("AMG G63 W465"), "G63 AMG");
   assert.equal(getShopCatalogSuggestionTextQuery("BMW M3 G80 Eventuri"), "eventuri");
   assert.equal(getShopCatalogSuggestionTextQuery("BMW G8X"), "BMW G8X");
 });
@@ -160,6 +160,8 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(service, /clause: \{ verification: "VERIFIED" \}/);
   assert.match(service, /buildShopCatalogProjectionVehicleCondition/);
   assert.match(service, /queryShopCatalogProjectionFacets/);
+  assert.match(service, /resolveCanonicalVehicleProductIds/);
+  assert.match(service, /projection\."productId" IN/);
   assert.match(service, /projectionConditions\.push\(vehicleCondition\)/);
   assert.match(service, /normalizedProductQuery[\s\S]*Prisma\.sql`TRUE`/);
   assert.doesNotMatch(

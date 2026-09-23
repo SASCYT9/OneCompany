@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import { resolveCanonicalVehicleProductIds } from "./shopStockCanonicalVehicleIds.server";
 import {
   buildShopCatalogProjectionVehicleCondition,
   queryShopCatalogProjectionFacets,
@@ -75,7 +76,22 @@ export function getShopCatalogSuggestionVehicleConstraints(query: string) {
 
 export function getShopCatalogSuggestionTextQuery(query: string) {
   if (!getShopCatalogSuggestionVehicleConstraints(query)) return query;
-  return getVehicleResidualSearchTokens(expandVehicleAliases(query)).join(" ");
+  const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: query }), {
+    readerMode: "projection",
+  });
+  const expansion = expandVehicleAliases(query);
+  const queryTokens = new Set(tokenizeShopSearchQuery(canonicalizeShopSearchQuery(query)));
+  const explicitSoftTerms = expansion.softTerms.filter((term) => {
+    const tokens = tokenizeShopSearchQuery(canonicalizeShopSearchQuery(term));
+    return tokens.length > 0 && tokens.every((token) => queryTokens.has(token));
+  });
+  return [
+    ...new Set([
+      ...getVehicleResidualSearchTokens(expansion),
+      ...plan.qualifierTerms,
+      ...explicitSoftTerms,
+    ]),
+  ].join(" ");
 }
 
 export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestionInput) {
@@ -183,6 +199,18 @@ export async function queryShopCatalogSuggestions(
   if (!input.query) return Object.freeze([]);
   const prefixPattern = `${escapeLike(input.normalizedQuery)}%`;
   const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
+  const vehicleProductIds = vehicleConstraints
+    ? await resolveCanonicalVehicleProductIds({
+        make: vehicleConstraints.make,
+        model: vehicleConstraints.model ?? "",
+        chassis: vehicleConstraints.generation ?? "",
+        year: vehicleConstraints.year,
+        engine: vehicleConstraints.engine,
+        fuel: vehicleConstraints.fuel,
+        opfGpf: vehicleConstraints.opfGpf,
+        scope: input.scope === "auto" || input.scope === "moto" ? input.scope : null,
+      })
+    : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);
   const normalizedProductQuery = normalizeShopSearchText(
     canonicalizeShopSearchQuery(productQuery)
@@ -214,11 +242,19 @@ export async function queryShopCatalogSuggestions(
   ];
   if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
   if (vehicleConstraints) {
-    const vehicleCondition = buildShopCatalogProjectionVehicleCondition({
-      locale: input.locale,
-      ...vehicleConstraints,
-    });
-    if (vehicleCondition) projectionConditions.push(vehicleCondition);
+    if (vehicleProductIds !== null) {
+      projectionConditions.push(
+        vehicleProductIds.length
+          ? Prisma.sql`projection."productId" IN (${Prisma.join(vehicleProductIds)})`
+          : Prisma.sql`FALSE`
+      );
+    } else {
+      const vehicleCondition = buildShopCatalogProjectionVehicleCondition({
+        locale: input.locale,
+        ...vehicleConstraints,
+      });
+      if (vehicleCondition) projectionConditions.push(vehicleCondition);
+    }
   }
 
   const [products, brands] = await Promise.all([
@@ -240,12 +276,21 @@ export async function queryShopCatalogSuggestions(
         projection."productId" ASC
       LIMIT ${SHOP_CATALOG_SUGGESTION_LIMITS.products}`),
     vehicleConstraints
-      ? queryShopCatalogProjectionFacets({
-          locale: input.locale,
-          scope: input.scope,
-          text: normalizedProductQuery || null,
-          ...vehicleConstraints,
-        }).then(({ facets }) =>
+      ? queryShopCatalogProjectionFacets(
+          vehicleProductIds !== null
+            ? {
+                locale: input.locale,
+                scope: input.scope,
+                productIds: vehicleProductIds,
+                text: normalizedProductQuery || null,
+              }
+            : {
+                locale: input.locale,
+                scope: input.scope,
+                text: normalizedProductQuery || null,
+                ...vehicleConstraints,
+              }
+        ).then(({ facets }) =>
           facets.brand.slice(0, SHOP_CATALOG_SUGGESTION_LIMITS.brands).map((brand) => ({
             valueKey: brand.key,
             valueLabel: brand.label,
