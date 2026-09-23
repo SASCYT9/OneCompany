@@ -9,6 +9,7 @@ import type {
   ShopCatalogV2CompatibilityPolicy,
 } from "./shopCatalogV2Compatibility";
 import { validateLosslessPolicyContract } from "./shopCatalogCanonicalPolicyContract";
+import { expandCanonicalPolicyTaxonomyAlternatives } from "./shopCatalogCanonicalPolicyHelpers";
 
 const dimensions: Record<
   ShopCatalogCompatibilityDimension,
@@ -170,32 +171,32 @@ function valueRows(
 ): Prisma.ShopCatalogCompatibilityValueUncheckedCreateInput[] {
   if (constraint.state !== "EXACT") return [];
   return constraint.values.map((value, ordinal) => {
+    const makeId = dimension === "MAKE" && constraint.values.length === 1 ? taxonomy.makeId : null;
+    const modelId = dimension === "MODEL" && constraint.values.length === 1 ? taxonomy.modelId : null;
+    const generationId = dimension === "GENERATION" && constraint.values.length === 1 ? taxonomy.generationId : null;
+    const powertrainId = dimension === "ENGINE" && typeof value === "object" && value !== null && "kind" in value
+      ? taxonomy.powertrainId
+      : null;
     const row: Prisma.ShopCatalogCompatibilityValueUncheckedCreateInput = {
       constraintId,
       dimension,
       state: "EXACT",
       ordinal,
-      textValue: typeof value === "string" ? value : null,
+      // Typed taxonomy dimensions store exactly one FK per value row; keeping
+      // both the FK and source text violates ShopCatalogCompatibilityValue's
+      // one-shape check constraint.
+      textValue: typeof value === "string" && !makeId && !modelId && !generationId ? value : null,
       numberValue: typeof value === "number" ? value : null,
       booleanValue: typeof value === "boolean" ? value : null,
       yearFrom: typeof value === "object" && value !== null && "from" in value ? value.from : null,
       yearTo: typeof value === "object" && value !== null && "to" in value ? value.to : null,
-      // A taxonomy relation is safe only when it identifies this single
-      // canonical value. For multi-value clauses retain each source value as
-      // text rather than attaching the first ID to every ordinal.
-      makeId: dimension === "MAKE" && constraint.values.length === 1 ? taxonomy.makeId : null,
-      modelId: dimension === "MODEL" && constraint.values.length === 1 ? taxonomy.modelId : null,
-      generationId:
-        dimension === "GENERATION" && constraint.values.length === 1 ? taxonomy.generationId : null,
-      powertrainId:
-        dimension === "ENGINE" && typeof value === "object" && value !== null && "kind" in value
-          ? taxonomy.powertrainId
-          : null,
+      // Taxonomy dimensions use their canonical FK instead of also carrying
+      // raw text; the SQL value-shape constraint permits exactly one identity.
+      makeId,
+      modelId,
+      generationId,
+      powertrainId,
     };
-    // Preserve unresolved canonical engine text even when a reviewed clause has no taxonomy node.
-    if (dimension === "ENGINE" && typeof value === "object" && value !== null && "kind" in value) {
-      row.textValue = value.code;
-    }
     return row;
   });
 }
@@ -217,10 +218,11 @@ export async function persistCanonicalPolicyInTransaction(input: {
   const errors = validateLosslessPolicyContract(input.policy);
   if (errors.length)
     throw new Error(`${input.label ?? "Canonical"} policy rejected: ${errors.join("; ")}`);
+  const policy = expandCanonicalPolicyTaxonomyAlternatives(input.policy);
 
-  const targetKey = input.policy.target.variantId
-    ? `variant:${input.policy.target.variantId}`
-    : `product:${input.policy.target.productId}`;
+  const targetKey = policy.target.variantId
+    ? `variant:${policy.target.variantId}`
+    : `product:${policy.target.productId}`;
   const active = await input.tx.shopCatalogCompatibilityPolicy.findFirst({
     where: { targetKey, isActive: true },
     select: { id: true, sourceRecordId: true },
@@ -239,25 +241,25 @@ export async function persistCanonicalPolicyInTransaction(input: {
     });
   }
 
-  const policyScope = exactScope(input.policy);
+  const policyScope = exactScope(policy);
   const rules = canonicalDimensions.map((dimension) => {
     const mapped = dimensions[dimension];
-    const defaultState = input.policy.dimensionDefaults?.[mapped] ?? "UNKNOWN";
+    const defaultState = policy.dimensionDefaults?.[mapped] ?? "UNKNOWN";
     return {
       dimension,
-      isRequired: input.policy.requiredDimensions.includes(mapped),
+      isRequired: policy.requiredDimensions.includes(mapped),
       defaultState,
     };
   });
   const persisted = await input.tx.shopCatalogCompatibilityPolicy.create({
     data: {
       targetKey,
-      productId: input.policy.target.productId,
-      variantId: input.policy.target.variantId ?? undefined,
-      parentProductId: input.policy.parentTarget?.productId,
-      parentVariantId: input.policy.parentTarget?.variantId ?? undefined,
-      mode: input.policy.mode,
-      schemaVersion: input.policy.version,
+      productId: policy.target.productId,
+      variantId: policy.target.variantId ?? undefined,
+      parentProductId: policy.parentTarget?.productId,
+      parentVariantId: policy.parentTarget?.variantId ?? undefined,
+      mode: policy.mode,
+      schemaVersion: policy.version,
       revision: (latest?.revision ?? 0) + 1,
       sourceRecordId: input.sourceRecordId,
       dimensionRules: { create: rules },
@@ -268,7 +270,7 @@ export async function persistCanonicalPolicyInTransaction(input: {
   const clauseRows: Prisma.ShopCatalogCompatibilityClauseUncheckedCreateInput[] = [];
   const constraintRows: Prisma.ShopCatalogCompatibilityConstraintUncheckedCreateInput[] = [];
   const valueRows: Prisma.ShopCatalogCompatibilityValueUncheckedCreateInput[] = [];
-  for (const [position, clause] of input.policy.clauses.entries()) {
+  for (const [position, clause] of policy.clauses.entries()) {
     const scopeConstraint = clause.constraints.find(
       (constraint) => constraint.dimension === "scope"
     );
@@ -296,6 +298,19 @@ export async function persistCanonicalPolicyInTransaction(input: {
           ? { code: engine.values[0].code, id: engine.values[0].powertrainId }
           : null,
     };
+    const makeValues = make?.state === "EXACT" ? make.values.filter((value): value is string => typeof value === "string") : [];
+    const modelValues = model?.state === "EXACT" ? model.values.filter((value): value is string => typeof value === "string") : [];
+    const generationValues = generation?.state === "EXACT" ? generation.values.filter((value): value is string => typeof value === "string") : [];
+    if (modelValues.length > 0 && makeValues.length !== 1) {
+      throw new Error(`${input.label ?? "Canonical"} MODEL identity requires exactly one MAKE in clause ${clause.id}`);
+    }
+    if (generationValues.length > 0 && (makeValues.length !== 1 || modelValues.length !== 1)) {
+      throw new Error(`${input.label ?? "Canonical"} GENERATION identity requires one MAKE and MODEL in clause ${clause.id}`);
+    }
+    const engineValues = engine?.state === "EXACT" ? engine.values : [];
+    if (engineValues.some((value) => typeof value === "object" && value !== null && "kind" in value) && makeValues.length !== 1) {
+      throw new Error(`${input.label ?? "Canonical"} canonical ENGINE identity requires one MAKE in clause ${clause.id}`);
+    }
     const taxonomy = await resolveTaxonomy(input.tx, context);
     const clauseId = randomUUID();
     clauseRows.push({

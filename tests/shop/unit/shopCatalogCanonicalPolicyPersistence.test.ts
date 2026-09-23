@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { buildFiCompatibilityPolicy } from "../../../src/lib/shopCatalogFiPolicyEvidence";
 import { validateLosslessPolicyContract } from "../../../src/lib/shopCatalogCanonicalPolicyContract";
+import { expandCanonicalPolicyTaxonomyAlternatives } from "../../../src/lib/shopCatalogCanonicalPolicyHelpers";
 import type { FiFitmentEntry } from "../../../src/lib/shopCatalogFiDraft";
 
 const fiFitment: FiFitmentEntry = {
@@ -58,6 +59,48 @@ test("incomplete FI evidence stays review-only and never creates an exact empty 
     false
   );
   assert.deepEqual(validateLosslessPolicyContract(policy), []);
+});
+
+test("canonical persistence expands taxonomy alternatives into clause-correlated identities", () => {
+  const policy = {
+    version: 2 as const,
+    mode: "VEHICLE_SPECIFIC" as const,
+    target: { productId: "multi-model-product" },
+    requiredDimensions: ["make", "model"] as const,
+    clauses: [{
+      id: "supplier-multi-model",
+      verification: "VERIFIED" as const,
+      constraints: [
+        { dimension: "scope" as const, state: "EXACT" as const, values: ["auto"] },
+        { dimension: "make" as const, state: "EXACT" as const, values: ["Audi", "BMW"] },
+        { dimension: "model" as const, state: "EXACT" as const, values: ["M5", "RS5"] },
+        { dimension: "generation" as const, state: "EXACT" as const, values: ["G90", "B9.5"] },
+        { dimension: "chassis" as const, state: "UNKNOWN" as const },
+        { dimension: "year" as const, state: "UNKNOWN" as const },
+        { dimension: "engine" as const, state: "UNKNOWN" as const },
+        { dimension: "fuel" as const, state: "UNKNOWN" as const },
+        { dimension: "bodyStyle" as const, state: "UNKNOWN" as const },
+        { dimension: "drivetrain" as const, state: "UNKNOWN" as const },
+        { dimension: "transmission" as const, state: "UNKNOWN" as const },
+        { dimension: "market" as const, state: "UNKNOWN" as const },
+        { dimension: "opfGpf" as const, state: "UNKNOWN" as const },
+      ],
+    }],
+  };
+  assert.deepEqual(validateLosslessPolicyContract(policy), []);
+  const expanded = expandCanonicalPolicyTaxonomyAlternatives(policy);
+  assert.equal(expanded.clauses.length, 8);
+  const identities = expanded.clauses.map((clause) => {
+    const value = (dimension: "make" | "model" | "generation") => {
+      const constraint = clause.constraints.find((item) => item.dimension === dimension);
+      assert.equal(constraint?.state, "EXACT");
+      if (constraint?.state !== "EXACT") return "";
+      assert.equal(constraint.values.length, 1);
+      return String(constraint.values[0]);
+    };
+    return `${value("make")}|${value("model")}|${value("generation")}`;
+  });
+  assert.equal(new Set(identities).size, 8);
 });
 
 test("KW and FI writers persist policy before their transaction can report inserted", () => {
