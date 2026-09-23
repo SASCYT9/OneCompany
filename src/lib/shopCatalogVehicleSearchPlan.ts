@@ -1,7 +1,10 @@
 /** Keep vehicle and powertrain/emissions constraints in one canonical clause. */
 import { canonicalizeShopSearchQuery, isShopVehicleSearchToken } from "@/lib/shopSearch";
 import { expandVehicleAliases, getVehicleResidualSearchTokens } from "@/lib/shopVehicleSearch";
-import { vehicleMakesMentionedInQuery } from "@/lib/shopVehicleTaxonomy";
+import {
+  resolveVehicleModelFilter,
+  vehicleMakesMentionedInQuery,
+} from "@/lib/shopVehicleTaxonomy";
 
 export function buildShopCatalogVehicleSearchPlan(
   params: URLSearchParams,
@@ -56,11 +59,14 @@ export function buildShopCatalogVehicleSearchPlan(
     hasSpecificQueryIdentity && queryChassis.length === 1 ? queryChassis[0].toUpperCase() : null;
   const inferredYear =
     hasSpecificQueryIdentity && queryExpansion?.years.length === 1 ? queryExpansion.years[0] : null;
+  const make = clean(params.get("make")) ?? inferredMake;
+  const requestedModel = clean(params.get("model")) ?? inferredModel;
+  const modelFilter = make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
   const yearText = params.get("year")?.trim() ?? "";
   const parsedYear = /^\d{4}$/.test(yearText) ? Number(yearText) : null;
   const constraints = {
-    make: clean(params.get("make")) ?? inferredMake,
-    model: clean(params.get("model")) ?? inferredModel,
+    make,
+    model: modelFilter?.model ?? requestedModel,
     generation: clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration,
     year:
       parsedYear != null && parsedYear >= 1886 && parsedYear <= 2200 ? parsedYear : inferredYear,
@@ -78,5 +84,10 @@ export function buildShopCatalogVehicleSearchPlan(
   const canonical =
     reader === "projection" ||
     Boolean(constraints.engine || constraints.fuel || constraints.opfGpf);
-  return { constraints, canonical, reader };
+  return {
+    constraints,
+    qualifierTerms: modelFilter?.qualifierTerms ?? [],
+    canonical,
+    reader,
+  };
 }

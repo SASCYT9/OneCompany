@@ -935,7 +935,7 @@ export async function searchShopStock(request: { url: string }) {
     const strictCatalogConstraints = parseStrictCatalogSearchConstraints(searchParams);
     // Keep the original code for exact SKU matching. Text/vehicle matching
     // canonicalizes independently, so brand aliases cannot rewrite an SKU.
-    const q = searchParams.get("q")?.trim() || "";
+    const rawQuery = searchParams.get("q")?.trim() || "";
     const category = searchParams.get("category")?.trim() || "";
     const rawProductType = searchParams.get("productType")?.trim() || "";
     const productType = rawProductType.length <= 120 ? rawProductType : "";
@@ -982,6 +982,7 @@ export async function searchShopStock(request: { url: string }) {
     const queryVehiclePlan = buildShopCatalogVehicleSearchPlan(searchParams, {
       readerMode: "legacy",
     });
+    const q = [rawQuery, ...queryVehiclePlan.qualifierTerms].filter(Boolean).join(" ");
     const resolvedVehicleMake = queryVehiclePlan.constraints.make ?? "";
     const resolvedVehicleModel = queryVehiclePlan.constraints.model ?? "";
     const resolvedVehicleChassis = queryVehiclePlan.constraints.generation ?? "";

@@ -136,7 +136,12 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     // Keep the premium projection aligned with the legacy search route: common
     // Cyrillic make names ("бмв", "мерседес", etc.) are canonicalized before
     // the indexed text query is built.
-    text: clean(canonicalizeShopSearchQuery(params.get("q") ?? ""), SHOP_SEARCH_QUERY_MAX_LENGTH),
+    text: clean(
+      canonicalizeShopSearchQuery(
+        [params.get("q") ?? "", ...vehiclePlan.qualifierTerms].filter(Boolean).join(" ")
+      ),
+      SHOP_SEARCH_QUERY_MAX_LENGTH
+    ),
     // The established UI uses `auto` as its default tab, while many canonical
     // automotive products intentionally have no explicit scope key. Vehicle
     // constraints already keep auto searches precise. Moto is an actual

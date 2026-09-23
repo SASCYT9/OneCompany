@@ -283,13 +283,55 @@ function knownCanonicalVehicleModelLabels(make: string, value: string) {
 export function vehicleModelAliases(make: string, value: string) {
   const canonicals = knownCanonicalVehicleModelLabels(make, value);
   const labels = canonicals.length ? canonicals : [value.trim()];
+  const resolution = resolveVehicleModelFilter(make, value);
+  const baseModelAliases =
+    vehicleModelKey(resolution.model) !== vehicleModelKey(canonicalVehicleModelLabel(make, value))
+      ? [resolution.model, ...(modelAliasGroups(make)[resolution.model] ?? [])]
+      : [];
   return [
     ...new Set([
       value.trim(),
       value.trim().replace(/\s+/g, "-"),
       ...labels.flatMap((label) => modelAliasGroups(make)[label] ?? [label]),
+      ...baseModelAliases,
     ]),
   ];
+}
+
+export type VehicleModelFilterResolution = {
+  model: string;
+  qualifierTerms: string[];
+};
+
+const VEHICLE_MODEL_FILTER_VARIANTS = [
+  {
+    make: "Mercedes-Benz",
+    aliases: ["AMG G 63", "AMG G63", "G63", "G63 AMG"],
+    model: "G-Class",
+    qualifierTerms: ["G63"],
+  },
+] as const;
+
+/**
+ * Resolve a selectable vehicle trim to the canonical model family while
+ * retaining searchable qualifier terms that distinguish that trim.
+ */
+export function resolveVehicleModelFilter(
+  make: string,
+  value: string
+): VehicleModelFilterResolution {
+  const canonicalMake = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  const requestedKeys = new Set(
+    [value, canonicalVehicleModelLabel(make, value)].map(vehicleModelKey).filter(Boolean)
+  );
+  const variant = VEHICLE_MODEL_FILTER_VARIANTS.find(
+    (candidate) =>
+      normalizeShopSearchText(canonicalVehicleMakeLabel(candidate.make)) === canonicalMake &&
+      candidate.aliases.some((alias) => requestedKeys.has(vehicleModelKey(alias)))
+  );
+  return variant
+    ? { model: variant.model, qualifierTerms: [...variant.qualifierTerms] }
+    : { model: canonicalVehicleModelLabel(make, value), qualifierTerms: [] };
 }
 
 const CANONICAL_MODEL_LABELS: Readonly<Record<string, string>> = {

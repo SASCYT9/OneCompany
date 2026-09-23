@@ -4,6 +4,7 @@ import {
   isShopAiExactMatchEligible,
 } from "@/lib/shopAiStrictValidation";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
+import { resolveVehicleModelFilter } from "@/lib/shopVehicleTaxonomy";
 import {
   parseShopStockVehicleScope,
   type ShopStockVehicleScope,
@@ -91,7 +92,8 @@ export function parseStrictCatalogSearchConstraints(
   const opfGpf = rawOpfGpf === "with" || rawOpfGpf === "without" ? rawOpfGpf : null;
   const category = cleanStrictCatalogText(searchParams.get("category"), 120);
   const make = cleanStrictCatalogText(searchParams.get("make"), 80);
-  const model = cleanStrictCatalogText(searchParams.get("model"), 100);
+  const rawModel = cleanStrictCatalogText(searchParams.get("model"), 100);
+  const model = make && rawModel ? resolveVehicleModelFilter(make, rawModel).model : rawModel;
   const chassis = cleanStrictCatalogText(searchParams.get("chassis"), 60);
   const invalid =
     enabled &&
@@ -102,7 +104,7 @@ export function parseStrictCatalogSearchConstraints(
       (rawOpfGpf !== null && rawOpfGpf.trim() !== "" && !opfGpf) ||
       (searchParams.has("category") && searchParams.get("category")?.trim() !== "" && !category) ||
       (searchParams.has("make") && searchParams.get("make")?.trim() !== "" && !make) ||
-      (searchParams.has("model") && searchParams.get("model")?.trim() !== "" && !model) ||
+      (searchParams.has("model") && searchParams.get("model")?.trim() !== "" && !rawModel) ||
       (searchParams.has("chassis") && searchParams.get("chassis")?.trim() !== "" && !chassis));
   const hasKnowledgeConstraints = Boolean(
     category ||
