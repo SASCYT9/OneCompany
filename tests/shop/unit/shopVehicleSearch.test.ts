@@ -11,7 +11,28 @@ import {
   scoreVehicleSearchItem,
   shouldEnrichVehicleSearchFromCatalog,
 } from "../../../src/lib/shopVehicleSearch";
-import { extractVehicleYearRanges } from "../../../src/lib/shopVehicleYears";
+import {
+  extractVehicleYearRanges,
+  listKnownVehicleFitmentYears,
+} from "../../../src/lib/shopVehicleYears";
+
+test("year facets omit unknown bounds and do not invent future years", () => {
+  assert.deepEqual(
+    listKnownVehicleFitmentYears(
+      [
+        { from: null, to: null },
+        { from: null, to: 2020 },
+        { from: 2022, to: null },
+      ],
+      2026
+    ),
+    [2026, 2025, 2024, 2023, 2022]
+  );
+  assert.deepEqual(
+    listKnownVehicleFitmentYears([{ from: 2022, to: 2028 }], 2026),
+    [2028, 2027, 2026, 2025, 2024, 2023, 2022]
+  );
+});
 
 test("catalog enrichment skips ordinary product and SKU queries", () => {
   assert.equal(

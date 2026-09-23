@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { isVehicleMakeCompatibleWithScope } from "@/lib/shopStockVehicleScope";
+import { listKnownVehicleFitmentYears } from "@/lib/shopVehicleYears";
 import { readShopCatalogSelectorArtifactReadiness } from "@/lib/shopCatalogSelectorArtifact.server";
 import { SHOP_CATALOG_PROJECTION_SCHEMA_VERSION } from "@/lib/shopCatalogProjection.server";
 import {
@@ -206,20 +207,15 @@ export async function getCanonicalFitmentOptions(input: {
         where: { dimension: "YEAR", state: "EXACT", clause: detailClauseWhere },
       }),
     ]);
-    const maxYear = new Date().getFullYear() + 2;
-    const years = new Set<number>();
-    for (const range of ranges) {
-      const from = Math.max(1886, range.yearFrom ?? 1886);
-      const to = Math.min(maxYear, range.yearTo ?? maxYear);
-      for (let year = from; year <= to; year += 1) years.add(year);
-    }
     return {
       type: "details" as const,
       make: input.make,
       model: input.model,
       chassis: input.chassis,
       data: {
-        years: [...years].sort((left, right) => right - left),
+        years: listKnownVehicleFitmentYears(
+          ranges.map((range) => ({ from: range.yearFrom, to: range.yearTo }))
+        ),
         engines,
       },
     };
@@ -444,21 +440,17 @@ export async function getBoundedPublishedFitmentOptions(
       LIMIT ${BOUNDED_SELECTOR_VALUE_LIMIT}
     `);
     if (ranges.length >= BOUNDED_SELECTOR_VALUE_LIMIT) return null;
-    const years = new Set<number>();
-    const maxYear = new Date().getFullYear() + 2;
-    for (const range of ranges)
-      for (
-        let year = Math.max(1886, range.yearFrom ?? 1886);
-        year <= Math.min(maxYear, range.yearTo ?? maxYear);
-        year += 1
-      )
-        years.add(year);
     return {
       type: "details" as const,
       make,
       model: input.model,
       chassis: input.chassis,
-      data: { years: [...years].sort((a, b) => b - a), engines },
+      data: {
+        years: listKnownVehicleFitmentYears(
+          ranges.map((range) => ({ from: range.yearFrom, to: range.yearTo }))
+        ),
+        engines,
+      },
       meta,
     };
   }

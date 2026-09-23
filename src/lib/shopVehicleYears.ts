@@ -80,6 +80,25 @@ export function vehicleYearRangeContains(range: VehicleYearRange, year: number) 
   return year >= range.from && (range.to === null || year <= range.to);
 }
 
+/** List only years justified by a known lower fitment boundary. */
+export function listKnownVehicleFitmentYears(
+  ranges: readonly { from: number | null; to: number | null }[],
+  currentYear = new Date().getFullYear(),
+  minimumYear = 1886
+) {
+  const years = new Set<number>();
+  for (const range of ranges) {
+    if (!Number.isInteger(range.from) || range.from === null) continue;
+    if (range.from < minimumYear || range.from > 2200) continue;
+    if (range.to !== null && (!Number.isInteger(range.to) || range.to < range.from || range.to > 2200))
+      continue;
+
+    const end = range.to ?? Math.max(currentYear, range.from);
+    for (let year = range.from; year <= end; year += 1) years.add(year);
+  }
+  return [...years].sort((left, right) => right - left);
+}
+
 export function formatVehicleYearRange(range: VehicleYearRange) {
   if (range.to === null) return `${range.from}+`;
   if (range.to === range.from) return String(range.from);
