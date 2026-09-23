@@ -1,5 +1,32 @@
 # Catalog V2 — live execution status
 
+## Current filter/source audit — 2026-09-23
+
+The commit-bound disposable PostgreSQL all-source gate passed at `0c8c98fa`:
+19 logical sources, 17,548 manifest products, all 17,548 lossless commerce
+snapshots, complete replay, and zero missing/extra normalized-to-canonical-to-
+projection clauses across all 19 adapters. The gate recorded 779,830 provenance
+entries and 4,899 review policies. This proves the tested evidence-to-projection
+path only; it does not certify extraction completeness, production publication,
+selector endpoint completeness, or every customer search.
+
+Read-only production/API checks on 2026-09-23 found Mercedes-Benz / AMG G 63 /
+W465 with brand KW returns one item, and the visible catalog page shows that same
+KW springs item. Without a product-brand restriction, that vehicle query returns
+21 items. W463A with KW returns zero. Fitment API responses still report
+`coverage: partial` and `complete: false`; the selector UI does not surface that
+incomplete status. BMW M3 G80, M5 G90, Audi RS6 C8, and top-level model/chassis
+options were also spot-checked, but this is not an all-vehicle acceptance run.
+
+The main remaining data blocker is unresolved fitment evidence, not adapter
+parity: the local gate had 1,999 KW clauses, 214 FI clauses, 16 bootmod3 clauses,
+and 3 G-Sport clauses all in review; other sources also contain review clauses.
+No production data, migrations, flags, or deployments were changed by this audit.
+Next: R03/R04 must establish dimension-level selector completeness and parity for
+every source/make/scope, then verify the rendered filter flow before activation.
+
+Last updated: 2026-09-23
+
 ## Final bounded release review — 2026-09-08
 
 At `f8d678c5`, nine read-only localhost:3200 API requests succeeded (HTTP 200):
@@ -927,7 +954,7 @@ The new acceptance matrix was executed on a clean local SSR preview at commit `4
 ## Immutable source evidence verification (2026-09-07)
 
 - Commit `3524ca81` makes source coverage activation evidence cryptographically self-checking: the persisted SHA-256 is compared with the immutable raw payload, `sourceRevision` is required, and both fields participate in the coverage fingerprint. Missing, malformed, or mismatched evidence fails closed; blob-only payloads report hash availability as unknown rather than inventing a mismatch.
-- Source coverage tests pass locally. The all-source gate remains blocked by the known unverified KW/FI inventory (1,999 KW and 223 FI records); no production backfill, migration, or activation was performed.
+- Historical 2026-09-07 note: the then-current all-source gate remained blocked by unverified KW/FI inventory. The updated 2026-09-23 gate now covers 19 sources; review-only fitment evidence remains a separate selector-completeness blocker.
 
 The full clean-commit storefront acceptance matrix was regenerated at `7d0bdb11`: build, UA/EN runtime, UA/EN browser gates at 390×844 and 1440×1000, and all fitment/suggestion HTTP contracts passed. Runtime and browser measurements remained within every gate; fitment returned the expected bounded `SELECTOR_NOT_READY` response while the selector artifact is unpublished. The artifact is `artifacts/catalog-v2-storefront/catalog-v2-storefront-acceptance.json` (ignored, reproducible).
 
