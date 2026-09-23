@@ -312,15 +312,18 @@ async function main() {
       select: { recordKey: true, rawPayload: true, source: { select: { key: true } } },
     });
     const expectedCommerce = new Map(
-      sources.flatMap((source) =>
-        source.products.map(
-          (product) =>
-            [
-              `gate-${source.name}:${buildShopCatalogBaselineProductEntry(product).productId}`,
-              buildShopCatalogBaselineProductEntry(product),
-            ] as const
-        )
-      )
+      sources.flatMap((source) => {
+        // Revozport's immutable source payload includes its SKU-bound V2
+        // compatibility contract and row-level audit. Compare like-for-like
+        // with the exact enriched payload persisted by the backfill adapter.
+        const expectedProducts = source.name === "revozport"
+          ? draftsBySource.get(source.name)!.map((draft) => draft.sourceRecord.rawPayload as Snapshot)
+          : source.products;
+        return expectedProducts.map((product) => {
+          const entry = buildShopCatalogBaselineProductEntry(product);
+          return [`gate-${source.name}:${entry.productId}`, entry] as const;
+        });
+      })
     );
     const persistedCommerce = new Map(
       persistedRecords.map((record) => {
