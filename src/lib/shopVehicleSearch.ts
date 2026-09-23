@@ -64,6 +64,7 @@ type VehicleAliasGroup = {
 
 const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
   {
+    id: "audi-rs5-b9",
     aliases: ["Audi RS5 B9", "RS5 B9"],
     makes: ["Audi"],
     models: ["RS5"],
