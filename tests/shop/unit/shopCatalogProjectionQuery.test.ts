@@ -43,6 +43,20 @@ test("all selectable production models keep supplier aliases in both SQL search 
   }
 });
 
+test("product suggestions can reuse the verified clause vehicle predicate", async () => {
+  const { buildShopCatalogProjectionVehicleCondition } = await queryModule;
+  const condition = buildShopCatalogProjectionVehicleCondition({
+    locale: "ua",
+    make: "Mercedes-Benz",
+    model: "G-Class",
+    generation: "W465",
+  });
+  assert.ok(condition);
+  assert.match(condition.sql, /clause\."verification" = 'VERIFIED'/);
+  assert.ok(condition.values.includes("mercedes-benz"));
+  assert.ok(condition.values.includes("W465"));
+});
+
 test("ORM and cascading facets use the same aliases as catalog results", async () => {
   const { buildShopCatalogProjectionWhere, buildShopCatalogProjectionFacetQuerySql } =
     await queryModule;

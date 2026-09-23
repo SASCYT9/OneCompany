@@ -211,6 +211,7 @@ const VEHICLE_ALIAS_GROUPS: VehicleAliasGroup[] = [
     models: ["G-Class", "G63", "G-Wagon"],
     chassis: ["W463", "W463A", "W465"],
     platforms: ["G-Wagon"],
+    softTerms: ["AMG"],
     canonicalModels: ["G-Class"],
   },
   {

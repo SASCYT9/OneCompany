@@ -639,6 +639,15 @@ function selectedVehicleCondition(
   )`;
 }
 
+/** Reuse the exact verified-clause predicate for product suggestions. */
+export function buildShopCatalogProjectionVehicleCondition(
+  raw: Omit<ShopCatalogProjectionQueryInput, "locale"> & { locale?: "ua" | "en" }
+) {
+  return selectedVehicleCondition(
+    normalizeShopCatalogProjectionQuery({ ...raw, locale: raw.locale ?? "ua" })
+  );
+}
+
 function projectionBrandConditionSql(brand: string): Prisma.Sql {
   if (isUrbanProductBrand(brand)) {
     return Prisma.sql`(

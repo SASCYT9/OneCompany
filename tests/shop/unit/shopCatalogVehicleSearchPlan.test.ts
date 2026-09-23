@@ -80,6 +80,35 @@ test("typed vehicle search queries reuse structured constraints before catalog l
   assert.equal(broad.constraints.generation, null);
 });
 
+test("Mercedes G63 generation queries infer one canonical make and preserve explicit model identity", () => {
+  for (const q of ["AMG G63 W465", "G63 W465", "Mercedes AMG G63 W465"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q }), {
+      readerMode: "projection",
+    });
+    assert.deepEqual(plan.constraints, {
+      make: "Mercedes-Benz",
+      model: "G-Class",
+      generation: "W465",
+      year: null,
+      engine: null,
+      fuel: null,
+      opfGpf: null,
+    });
+    assert.deepEqual(plan.qualifierTerms, ["G63"]);
+  }
+});
+
+test("mixed vehicle and product queries keep exact vehicle identity plus text search", () => {
+  const plan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams("q=BMW%20M3%20G80%20Eventuri"),
+    { readerMode: "projection" }
+  );
+  assert.deepEqual(
+    [plan.constraints.make, plan.constraints.model, plan.constraints.generation],
+    ["BMW", "M3", "G80"]
+  );
+});
+
 test("invalid OPF selections fail closed before the legacy bridge can run", () => {
   for (const opfGpf of ["unknown", "with;without", "any"]) {
     assert.throws(

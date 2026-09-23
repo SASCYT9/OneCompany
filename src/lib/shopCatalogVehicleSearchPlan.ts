@@ -1,7 +1,8 @@
 /** Keep vehicle and powertrain/emissions constraints in one canonical clause. */
 import { canonicalizeShopSearchQuery, isShopVehicleSearchToken } from "@/lib/shopSearch";
-import { expandVehicleAliases, getVehicleResidualSearchTokens } from "@/lib/shopVehicleSearch";
+import { expandVehicleAliases } from "@/lib/shopVehicleSearch";
 import {
+  canonicalVehicleMakeLabel,
   resolveVehicleModelFilter,
   vehicleModelKey,
   vehicleMakesMentionedInQuery,
@@ -27,7 +28,12 @@ export function buildShopCatalogVehicleSearchPlan(
   };
   const query = canonicalizeShopSearchQuery(params.get("q") ?? "");
   const queryExpansion = query ? expandVehicleAliases(query) : null;
-  const queryMakes = query ? vehicleMakesMentionedInQuery(query) : [];
+  const queryMakes = query
+    ? [...new Set([
+        ...vehicleMakesMentionedInQuery(query),
+        ...(queryExpansion?.makes ?? []),
+      ].map(canonicalVehicleMakeLabel))]
+    : [];
   const isChassisToken = (token: string) =>
     /^(?:[efg]\d{2,3}[a-z]?|[wcl]\d{3}[a-z]?|r\d{2,3}[a-z]?|mk\d(?:\.\d)?|mqb|[89]\d{2}(?:\.\d)?|718)$/i.test(
       token
@@ -39,23 +45,28 @@ export function buildShopCatalogVehicleSearchPlan(
           (token) => isShopVehicleSearchToken(token) && isChassisToken(token)
         )
     : [];
+  const queryWithBoundaries = ` ${query} `;
+  const explicitlyMentionedModels = (queryExpansion?.models ?? []).filter((candidate) => {
+    const normalizedModel = canonicalizeShopSearchQuery(candidate);
+    return normalizedModel.length > 0 && queryWithBoundaries.includes(` ${normalizedModel} `);
+  });
   // Search-box vehicle queries do not populate selector URL params. Infer a
   // constraint only when the alias dictionary gives one unambiguous make plus
-  // one model or chassis; broad families such as `G8X` must stay lexical.
+  // one model or chassis; additional product words remain text search terms.
   const hasSpecificQueryIdentity = Boolean(
     queryExpansion &&
-    getVehicleResidualSearchTokens(queryExpansion).filter(
-      (token) =>
-        !queryMakes.some((make) => canonicalizeShopSearchQuery(make).split(" ").includes(token))
-    ).length === 0 &&
     queryMakes.length === 1 &&
-    (queryExpansion.models.length === 1 || queryChassis.length === 1)
+    (explicitlyMentionedModels.length === 1 ||
+      queryExpansion.models.length === 1 ||
+      queryChassis.length === 1)
   );
   const inferredMake = hasSpecificQueryIdentity ? (queryMakes[0] ?? null) : null;
   const inferredModel =
-    hasSpecificQueryIdentity && queryExpansion?.models.length === 1
-      ? queryExpansion.models[0]
-      : null;
+    hasSpecificQueryIdentity && explicitlyMentionedModels.length === 1
+      ? explicitlyMentionedModels[0]
+      : hasSpecificQueryIdentity && queryExpansion?.models.length === 1
+        ? queryExpansion.models[0]
+        : null;
   const inferredGeneration =
     hasSpecificQueryIdentity && queryChassis.length === 1 ? queryChassis[0].toUpperCase() : null;
   const inferredYear =

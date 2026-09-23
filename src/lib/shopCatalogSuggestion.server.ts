@@ -8,6 +8,8 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import { buildShopCatalogProjectionVehicleCondition } from "./shopCatalogProjectionQuery.server";
+import { buildShopCatalogVehicleSearchPlan } from "./shopCatalogVehicleSearchPlan";
 import {
   canonicalizeShopSearchQuery,
   matchesShopSearchQuery,
@@ -54,6 +56,15 @@ export type ShopCatalogSuggestionInput = {
   query: string;
   scope?: string | null;
 };
+
+export function getShopCatalogSuggestionVehicleConstraints(query: string) {
+  const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: query }), {
+    readerMode: "projection",
+  });
+  const { make, model, generation, year, engine, fuel, opfGpf } = plan.constraints;
+  if (!make || (!model && !generation)) return null;
+  return { make, model, generation, year, engine, fuel, opfGpf };
+}
 
 export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestionInput) {
   const query = input.query.trim();
@@ -182,6 +193,14 @@ export async function queryShopCatalogSuggestions(
     lexicalCondition,
   ];
   if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
+  if (vehicleConstraints) {
+    const vehicleCondition = buildShopCatalogProjectionVehicleCondition({
+      locale: input.locale,
+      ...vehicleConstraints,
+    });
+    if (vehicleCondition) projectionConditions.push(vehicleCondition);
+  }
 
   const [products, brands] = await Promise.all([
     prisma.$queryRaw<SuggestionProductRow[]>(Prisma.sql`
