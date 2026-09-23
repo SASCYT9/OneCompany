@@ -1,4 +1,4 @@
-import { canonicalVehicleModelLabel } from "./shopVehicleTaxonomy";
+import { canonicalVehicleModelLabel, vehicleModelKey } from "./shopVehicleTaxonomy";
 import type { ShopCatalogV2CompatibilityPolicy } from "./shopCatalogV2Compatibility";
 import type { NormalizedFitment } from "./shopFitmentQuality";
 import type { ShopifySnapshotProduct } from "./shopifyCatalogSnapshot";
@@ -114,6 +114,16 @@ function parseVehicleTag(rawVehicleTag: string, make: string | null) {
   let model = rawModel;
   if (make === "BMW" && /^[1-8]$/u.test(model)) model = `${model} Series`;
   else if (make) model = canonicalVehicleModelLabel(make, model);
+  // KW lists the newer G-Class as "(W463) 463A". Preserve that exact
+  // generation identity; dropping the suffix made W463A products unfilterable.
+  if (
+    make === "Mercedes-Benz" &&
+    vehicleModelKey(model) === vehicleModelKey("G-Class") &&
+    chassisCodes.includes("W463") &&
+    /\b463A\b/u.test(label)
+  ) {
+    chassisCodes.push("W463A");
+  }
   return { model, chassisCodes, yearFrom, yearTo };
 }
 

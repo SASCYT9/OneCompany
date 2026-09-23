@@ -79,6 +79,9 @@ export function vehicleModelKey(value: string) {
 const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<
   Record<string, Readonly<Record<string, readonly string[]>>>
 > = {
+  audi: {
+    RS5: ["RS5", "RS5 TFSI quattro"],
+  },
   bentley: {
     "Continental GT": ["Continental GT", "Continental Gt Urban"],
     "Flying Spur": ["Flying Spur", "Continental Flying Spur"],
@@ -309,6 +312,12 @@ const VEHICLE_MODEL_FILTER_VARIANTS = [
     aliases: ["AMG G 63", "AMG G63", "G63", "G63 AMG"],
     model: "G-Class",
     qualifierTerms: ["G63"],
+  },
+  {
+    make: "Audi",
+    aliases: ["RS5", "RS5 TFSI quattro"],
+    model: "A5",
+    qualifierTerms: ["RS5"],
   },
 ] as const;
 

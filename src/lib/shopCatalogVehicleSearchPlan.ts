@@ -3,6 +3,7 @@ import { canonicalizeShopSearchQuery, isShopVehicleSearchToken } from "@/lib/sho
 import { expandVehicleAliases, getVehicleResidualSearchTokens } from "@/lib/shopVehicleSearch";
 import {
   resolveVehicleModelFilter,
+  vehicleModelKey,
   vehicleMakesMentionedInQuery,
 } from "@/lib/shopVehicleTaxonomy";
 
@@ -62,12 +63,21 @@ export function buildShopCatalogVehicleSearchPlan(
   const make = clean(params.get("make")) ?? inferredMake;
   const requestedModel = clean(params.get("model")) ?? inferredModel;
   const modelFilter = make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
+  const requestedGeneration = clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
+  // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53.
+  // Keep the RS5 qualifier and translate only that explicitly selected pair.
+  const generation =
+    make?.toLowerCase().replace(/[^a-z]/g, "") === "audi" &&
+    requestedModel && vehicleModelKey(requestedModel) === "rs5" &&
+    requestedGeneration?.toUpperCase() === "B9"
+      ? "B8"
+      : requestedGeneration;
   const yearText = params.get("year")?.trim() ?? "";
   const parsedYear = /^\d{4}$/.test(yearText) ? Number(yearText) : null;
   const constraints = {
     make,
     model: modelFilter?.model ?? requestedModel,
-    generation: clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration,
+    generation,
     year:
       parsedYear != null && parsedYear >= 1886 && parsedYear <= 2200 ? parsedYear : inferredYear,
     // Do not infer an engine from a model/platform alias (for example M3 G80
