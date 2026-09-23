@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from decimal import Decimal, ROUND_HALF_UP
+import hashlib
 import html
 import json
 import re
@@ -195,6 +196,194 @@ def year_bounds(*values: Any) -> tuple[int | None, int | None]:
     return (min(years), max(years)) if years else (None, None)
 
 
+def year_ranges_from_row(value: Any, product_name: str) -> list[tuple[int | None, int | None]]:
+    years = sorted({int(item) for item in re.findall(r"\b(?:18|19|20|21)\d{2}\b", text(value))})
+    if not years:
+        bounds = year_bounds(product_name)
+        return [bounds] if bounds != (None, None) else [(None, None)]
+    ranges: list[tuple[int | None, int | None]] = []
+    start = previous = years[0]
+    for current in years[1:]:
+        if current != previous + 1:
+            ranges.append((start, previous))
+            start = current
+        previous = current
+    ranges.append((start, previous))
+    return ranges
+
+
+OTHER_SHEET_MAKES = {
+    "Audi": (r"\bAudi\b",),
+    "BMW": (r"\bBMW\b",),
+    "Chevrolet": (r"\bChevrolet\b|\bCorvette\b",),
+    "Mercedes-Benz": (r"\bMercedes(?:-Benz)?\b|\bAMG\b",),
+    "Porsche": (r"\bPorsche\b",),
+    "Tesla": (r"\bTesla\b",),
+    "Xiaomi": (r"\bXiaomi\b|\bSU7\b",),
+}
+
+
+def resolve_make(sheet: str, product_name: str, official_url: str) -> str:
+    make = SHEET_MAKES.get(text(sheet).upper())
+    if make:
+        return make
+    evidence = f"{product_name} {official_url}"
+    matches = [candidate for candidate, patterns in OTHER_SHEET_MAKES.items()
+               if any(re.search(pattern, evidence, flags=re.IGNORECASE) for pattern in patterns)]
+    return matches[0] if len(matches) == 1 else ""
+
+
+MODEL_PATTERNS: dict[str, list[tuple[str, str]]] = {
+    "Audi": [
+        ("RSQ8", r"\bRS\s*Q\s*8\b"),
+        ("RS3", r"\bRS\s*3\b"), ("RS4", r"\bRS\s*4\b"),
+        ("RS5", r"\bRS\s*5\b"), ("RS6", r"\bRS\s*6\b"),
+        ("RS7", r"\bRS\s*7\b"), ("RSQ3", r"\bRS\s*Q\s*3\b"),
+        ("SQ8", r"\bSQ\s*8\b"), ("SQ7", r"\bSQ\s*7\b"),
+        ("Q8", r"\bQ\s*8\b"), ("Q7", r"\bQ\s*7\b"),
+        ("Q5", r"\bQ\s*5\b"), ("Q3", r"\bQ\s*3\b"),
+        ("A7", r"\bA\s*7\b"), ("A6", r"\bA\s*6\b"),
+        ("A5", r"\bA\s*5\b"), ("A4", r"\bA\s*4\b"),
+        ("RS3", r"\bRS\s*3\b"),
+    ],
+    "BMW": [
+        ("X3 M", r"\bX\s*3\s*M\b"), ("X4 M", r"\bX\s*4\s*M\b"),
+        ("X5 M", r"\bX\s*5\s*M\b"), ("X6 M", r"\bX\s*6\s*M\b"),
+        ("M2", r"\bM\s*2\b"), ("M3", r"\bM\s*3\b"),
+        ("M4", r"\bM\s*4\b"), ("M5", r"\bM\s*5\b"),
+        ("M8", r"\bM\s*8\b"), ("X3", r"\bX\s*3\b"),
+        ("X4", r"\bX\s*4\b"), ("X5", r"\bX\s*5\b"),
+        ("X6", r"\bX\s*6\b"), ("8 Series", r"\b8\s*Series\b"),
+    ],
+    "Chevrolet": [("Corvette", r"\bCorvette\b")],
+    "Porsche": [("911", r"\b911(?:\s+(?:GT\s*3|Turbo|Carrera))?\b"), ("718", r"\b718\b")],
+    "Tesla": [("Model X", r"\bModel\s+X\b"), ("Model Y", r"\bModel\s+Y\b"),
+              ("Model S", r"\bModel\s+S\b"), ("Model 3", r"\bModel\s+3\b")],
+    "Xiaomi": [("SU7 Ultra", r"\bSU\s*7\s+Ultra\b"), ("SU7", r"\bSU\s*7\b")],
+    "Mercedes-Benz": [("G-Class", r"\bG\s*[- ]?Class\b"), ("AMG G 63", r"\bG\s*63\b")],
+}
+
+
+CHASSIS_PATTERNS: dict[str, str] = {
+    "Audi": r"\b(?:B\s*\d(?:\.\d)?|C\s*[5-9]|8\s*Y|4\s*M|F\s*Y|F\s*3)\b",
+    "BMW": r"\b(?:[EFG]\s*\d{2,3}[A-Z]?)\b",
+    "Chevrolet": r"\bC\s*[6-8]\b",
+    "Porsche": r"\b(?:991(?:\.\d)?|992(?:\.\d)?|718)\b",
+    "Mercedes-Benz": r"\b(?:W\s*\d{3}[A-Z]?|V\s*\d{2,3})\b",
+}
+
+
+def _fitment_text(value: str, is_url: bool = False) -> str:
+    normalized = text(value).replace("\u00a0", " ")
+    normalized = re.sub(r"\bB(\d+)-(\d+)\b", r"B\1.\2", normalized, flags=re.IGNORECASE)
+    if is_url:
+        normalized = urlsplit(normalized).path
+    normalized = re.sub(r"\b([EFG]\d{2,3})(?=[A-Z])", r"\1 ", normalized, flags=re.IGNORECASE)
+    return re.sub(r"[-_/]+", " ", normalized).upper()
+
+
+def extract_revozport_chassis_codes(make: str, value: str, is_url: bool = False) -> list[str]:
+    normalized = _fitment_text(value, is_url)
+    pattern = CHASSIS_PATTERNS.get(make)
+    if not pattern:
+        return []
+    return list(dict.fromkeys(
+        re.sub(r"\s+", "", match.group(0)).upper()
+        for match in re.finditer(pattern, normalized, flags=re.IGNORECASE)
+    ))
+
+
+def extract_revozport_signatures(make: str, value: str, is_url: bool = False) -> list[tuple[str, str | None, str | None]]:
+    normalized = _fitment_text(value, is_url)
+    phase = "PRE-LCI" if re.search(r"\bPRE\s*LCI\b", normalized) else "LCI" if re.search(r"\bLCI\b", normalized) else None
+    model_matches: list[tuple[int, int, str]] = []
+    for model, pattern in MODEL_PATTERNS.get(make, []):
+        for match in re.finditer(pattern, normalized, flags=re.IGNORECASE):
+            model_matches.append((match.start(), match.end(), model))
+    model_matches.sort(key=lambda item: (item[0], -(item[1] - item[0])))
+    filtered_models: list[tuple[int, int, str]] = []
+    for item in model_matches:
+        if any(item[0] < existing[1] and existing[0] < item[1] for existing in filtered_models):
+            continue
+        filtered_models.append(item)
+    models = filtered_models
+    if not models:
+        return []
+
+    chassis_pattern = CHASSIS_PATTERNS.get(make)
+    chassis_matches: list[tuple[int, int, str]] = []
+    if chassis_pattern:
+        for match in re.finditer(chassis_pattern, normalized, flags=re.IGNORECASE):
+            code = re.sub(r"\s+", "", match.group(0)).upper()
+            if code not in {"718"}:
+                chassis_matches.append((match.start(), match.end(), code))
+    chassis_matches = list(dict.fromkeys(chassis_matches))
+
+    if not chassis_matches:
+        return list(dict.fromkeys((model, None, phase) for _, _, model in models))
+    if len(models) == 1 or len(chassis_matches) == 1:
+        return list(dict.fromkeys((model, code, phase) for _, _, model in models for _, _, code in chassis_matches))
+    if len(models) == len(chassis_matches):
+        return list(dict.fromkeys((models[index][2], chassis_matches[index][2], phase) for index in range(len(models))))
+
+    # Supplier strings such as "G80 G81 M3 G82 G83 M4" group chassis codes
+    # immediately before each model. Accept only when every code is assigned.
+    assigned: list[tuple[str, str, str | None]] = []
+    consumed: set[int] = set()
+    for model_index, (_, model_end, model) in enumerate(models):
+        previous_end = models[model_index - 1][1] if model_index else 0
+        preceding = [(index, code) for index, (start, end, code) in enumerate(chassis_matches)
+                     if previous_end <= start < model_end and index not in consumed]
+        following_end = models[model_index + 1][0] if model_index + 1 < len(models) else len(normalized)
+        following = [(index, code) for index, (start, end, code) in enumerate(chassis_matches)
+                     if model_end <= start < following_end and index not in consumed]
+        chosen = preceding or following
+        for index, code in chosen:
+            consumed.add(index)
+            assigned.append((model, code, phase))
+    if len(consumed) != len(chassis_matches):
+        return []
+    return list(dict.fromkeys(assigned))
+
+
+def _intersect_signatures(left: list[tuple[str, str | None, str | None]], right: list[tuple[str, str | None, str | None]]):
+    result: list[tuple[str, str | None, str | None]] = []
+    for left_model, left_chassis, left_phase in left:
+        for right_model, right_chassis, right_phase in right:
+            if left_model != right_model:
+                continue
+            if left_chassis and right_chassis and left_chassis != right_chassis:
+                continue
+            if left_phase and right_phase and left_phase != right_phase:
+                continue
+            result.append((left_model, left_chassis or right_chassis, left_phase or right_phase))
+    return list(dict.fromkeys(result))
+
+
+def normalize_revozport_sku(value: Any) -> str:
+    normalized = text(value).upper()
+    normalized = re.sub(r"-KB(?:-\d+)?$", "", normalized)
+    return re.sub(r"-1$", "", normalized)
+
+
+def revozport_official_match(sku: str, official_url: str, official_products: list[dict[str, Any]]):
+    normalized_sku = normalize_revozport_sku(sku)
+    candidates: dict[str, dict[str, Any]] = {}
+    for product in official_products:
+        if any(normalize_revozport_sku(variant.get("sku")) == normalized_sku for variant in product.get("variants", [])):
+            candidates[str(product.get("handle") or "")] = product
+    try:
+        source_handle = urlsplit(official_url).path.rstrip("/").split("/")[-1]
+    except (TypeError, ValueError):
+        source_handle = ""
+    linked = candidates.get(source_handle)
+    if linked:
+        return {"status": "sku_and_url_match", "sourceHandle": source_handle, "product": linked}
+    if len(candidates) == 1:
+        return {"status": "unique_sku_url_mismatch", "sourceHandle": source_handle, "product": next(iter(candidates.values()))}
+    return {"status": "ambiguous_or_missing_sku", "sourceHandle": source_handle, "product": None}
+
+
 def slugify(value: str) -> str:
     normalized = value.lower().replace("&", " and ")
     normalized = re.sub(r"[^a-z0-9]+", "-", normalized)
@@ -223,8 +412,9 @@ def read_sheet_rows(path: Path, header_row: int) -> list[tuple[str, dict[str, An
         for sheet in workbook.worksheets:
             iterator = sheet.iter_rows(min_row=header_row, values_only=True)
             headers = [text(value) for value in next(iterator)]
-            for raw_row in iterator:
+            for source_row_number, raw_row in enumerate(iterator, start=header_row + 1):
                 record = {header: raw_row[index] if index < len(raw_row) else None for index, header in enumerate(headers)}
+                record["__sourceRowNumber"] = source_row_number
                 sku = text(record.get("Product Code") or record.get("PRODUCT NO."))
                 if SKU_RE.fullmatch(sku):
                     rows.append((sheet.title, record))
@@ -262,60 +452,184 @@ def unique_strings(values: list[str]) -> list[str]:
     return result
 
 
-def make_fitment(sheet: str, detail_rows: list[dict[str, Any]], ain_rows: list[dict[str, Any]], url: str) -> dict[str, Any]:
+def make_fitment(
+    sheet: str,
+    detail_rows: list[dict[str, Any]],
+    ain_rows: list[dict[str, Any]],
+    url: str,
+    sku: str,
+    official_products: list[dict[str, Any]],
+    official_fetched_at: str | None,
+    source_revision: str,
+):
+    audit_rows: list[dict[str, Any]] = []
     applications: list[dict[str, Any]] = []
-    for row in detail_rows:
-        make = SHEET_MAKES.get(sheet, "")
-        product_name = choose_first([row], "PRODUCT NAME")
-        model = choose_first([row], "GENERATION / MODEL")
-        if not model and product_name:
-            match = re.search(rf"\bfor\s+{re.escape(make)}\s+(.+?)(?=\s+(?:18|19|20|21)\d{{2}}(?:[-–]\d{{2,4}})?\b|$)", product_name, flags=re.IGNORECASE)
-            model = match.group(1).strip() if match else product_name
-        if not make or not model:
-            continue
-        year_from, year_to = year_bounds(row.get("YEAR"), product_name)
-        applications.append(
-            {
-                "vehicleType": "car",
+    clauses_by_identity: dict[tuple[str, str, str | None, str | None], dict[str, Any]] = {}
+    corrected_rows = unresolved_rows = 0
+    source_rows = detail_rows or ain_rows
+
+    for ordinal, row in enumerate(source_rows, 1):
+        product_name = choose_first([row], "PRODUCT NAME", "Product Name")
+        row_url = choose_first([row], "WEB LINK", "Website Link") or url
+        make = resolve_make(sheet, product_name, row_url)
+        raw_model = choose_first([row], "GENERATION / MODEL")
+        source_signatures = extract_revozport_signatures(make, raw_model)
+        official_match = revozport_official_match(sku, row_url, official_products)
+        official_product = official_match["product"]
+        official_title = text(official_product.get("title")) if official_product else ""
+        official_handle = text(official_product.get("handle")) if official_product else ""
+        official_title_signatures = extract_revozport_signatures(make, official_title)
+        official_handle_signatures = extract_revozport_signatures(make, official_handle, is_url=True)
+        official_handle_codes = extract_revozport_chassis_codes(make, official_handle, is_url=True)
+        official_title_codes = extract_revozport_chassis_codes(make, official_title)
+        if official_handle_signatures:
+            resolved_signatures = _intersect_signatures(official_title_signatures, official_handle_signatures)
+        elif not official_handle_codes or set(official_handle_codes).intersection(official_title_codes):
+            # Some official handles are generic (for example /products/c7-hood).
+            # Exact SKU + URL match still anchors the official page, while its
+            # title supplies the vehicle identity.
+            resolved_signatures = official_title_signatures
+        else:
+            resolved_signatures = []
+        title_signatures = extract_revozport_signatures(make, product_name)
+        url_signatures = extract_revozport_signatures(make, row_url, is_url=True)
+
+        raw_identity_agrees = bool(
+            source_signatures and resolved_signatures and
+            _intersect_signatures(source_signatures, resolved_signatures)
+        )
+        source_title_agrees = bool(
+            title_signatures and resolved_signatures and
+            _intersect_signatures(title_signatures, resolved_signatures)
+        )
+        source_url_agrees = bool(
+            url_signatures and resolved_signatures and
+            _intersect_signatures(url_signatures, resolved_signatures)
+        )
+        has_source_conflict = (
+            (bool(source_signatures) and not raw_identity_agrees) or
+            (bool(title_signatures) and not source_title_agrees) or
+            (bool(url_signatures) and not source_url_agrees)
+        )
+        if official_product and resolved_signatures:
+            if official_match["status"] == "unique_sku_url_mismatch":
+                resolution = "official_sku_match_source_url_conflict"
+                corrected_rows += 1
+            elif has_source_conflict:
+                resolution = "corrected_from_official_sku_and_page"
+                corrected_rows += 1
+            else:
+                resolution = "official_sku_url_confirmed"
+        else:
+            resolution = official_match["status"] if not official_product else "official_page_identity_conflict"
+            resolved_signatures = []
+            unresolved_rows += 1
+
+        row_applications: list[dict[str, Any]] = []
+        for model, chassis_code, _phase in resolved_signatures:
+            generation_name = f"{chassis_code} {_phase}".strip() if chassis_code else (f"{model} {_phase}".strip() if _phase else None)
+            application = {
                 "make": make,
                 "model": model,
-                "chassisCode": None,
-                "yearFrom": year_from,
-                "yearTo": year_to,
-                "engine": None,
-                "fuel": None,
-                "bodyStyle": None,
-                "drivetrain": None,
-                "transmission": None,
-                "market": None,
-                "opfGpf": "unknown",
+                "chassisCode": chassis_code,
+                "generation": generation_name,
             }
-        )
+            row_applications.append(application)
+            applications.append(application)
 
-    deduped: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for application in applications:
-        key = json.dumps(application, sort_keys=True)
-        if key not in seen:
-            deduped.append(application)
-            seen.add(key)
+            identity = (make, model, generation_name, chassis_code)
+            verification = "VERIFIED" if official_match["status"] == "sku_and_url_match" else "NEEDS_REVIEW"
+            clause = clauses_by_identity.get(identity)
+            raw_path = f"inventory.{sheet}.row.{row.get('__sourceRowNumber', ordinal)}"
+            source_ref = f"https://revozport.com/products/{official_handle}" if official_handle else row_url
+            evidence_refs = [value for value in (row_url, source_ref, f"sku:{sku}") if value]
+            if clause is None:
+                clause = {
+                    "id": f"revozport-{len(clauses_by_identity) + 1}",
+                    "verification": verification,
+                    "provenance": {
+                        "sourceRef": source_ref or "https://revozport.com/",
+                        "sourceRecordKey": sku,
+                        "rawPaths": [],
+                        "evidenceRefs": [],
+                    },
+                    "constraints": [
+                        {"dimension": "scope", "state": "EXACT", "values": ["auto"]},
+                        {"dimension": "make", "state": "EXACT", "values": [make]},
+                        {"dimension": "model", "state": "EXACT", "values": [model]},
+                        {"dimension": "generation", "state": "EXACT", "values": [generation_name]}
+                        if generation_name else {"dimension": "generation", "state": "UNKNOWN"},
+                        {"dimension": "chassis", "state": "EXACT", "values": [chassis_code]}
+                        if chassis_code else {"dimension": "chassis", "state": "UNKNOWN"},
+                        # Workbook year values are not correlated reliably to
+                        # model variants (the same SKU row can span pre-LCI and LCI).
+                        {"dimension": "year", "state": "UNKNOWN"},
+                        {"dimension": "engine", "state": "UNKNOWN"},
+                        {"dimension": "fuel", "state": "UNKNOWN"},
+                        {"dimension": "bodyStyle", "state": "UNKNOWN"},
+                        {"dimension": "drivetrain", "state": "UNKNOWN"},
+                        {"dimension": "transmission", "state": "UNKNOWN"},
+                        {"dimension": "market", "state": "UNKNOWN"},
+                        {"dimension": "opfGpf", "state": "UNKNOWN"},
+                    ],
+                }
+                clauses_by_identity[identity] = clause
+            elif verification == "VERIFIED":
+                clause["verification"] = "VERIFIED"
+            clause["provenance"]["rawPaths"].append(f"{raw_path}.GENERATION / MODEL")
+            clause["provenance"]["rawPaths"].append(f"{raw_path}.PRODUCT NAME")
+            clause["provenance"]["rawPaths"].append(f"{raw_path}.YEAR")
+            clause["provenance"]["evidenceRefs"].extend(evidence_refs)
 
-    mode = "vehicle_specific" if deduped else "needs_review"
-    note = (
-        "Compatibility merged from the Revozport inventory/pricing workbook. "
-        "Review model/year clauses before publication."
-    )
-    if not deduped:
-        note = "The source row has no machine-readable make/model/year clause; review before publication."
-    return {
-        "version": 1,
+        audit_rows.append({
+            "row": ordinal,
+            "make": make or None,
+            "rawGenerationModel": raw_model or None,
+            "productName": product_name or None,
+            "officialUrl": row_url or None,
+            "officialMatchStatus": official_match["status"],
+            "officialHandle": official_handle or None,
+            "officialTitle": official_title or None,
+            "sourceYear": text(row.get("YEAR")) or None,
+            "resolution": resolution,
+            "applications": row_applications,
+        })
+
+    clauses = list(clauses_by_identity.values())
+    mode = "vehicle_specific" if clauses else "needs_review"
+    note = "Fitment uses an exact Revozport SKU and official-page identity. Year, engine and configuration remain UNKNOWN until separately verified."
+    if corrected_rows:
+        note += f" Corrected or quarantined {corrected_rows} conflicting source row(s); raw claims and official page evidence are preserved in revozport_source.fitment_audit."
+    if unresolved_rows:
+        note += f" {unresolved_rows} row(s) remain unresolved and are excluded from vehicle-specific clauses."
+    if not clauses:
+        note = "No exact-SKU official product match with a supported vehicle identity; review before filtering."
+    payload_hash = hashlib.sha256(
+        json.dumps({"sku": sku, "audit": audit_rows, "clauses": clauses}, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()
+    contract = {
+        "version": 2,
         "mode": mode,
         "scope": "auto",
-        "applications": deduped,
+        "policy": {"requiredDimensions": ["make", "model"], "clauses": clauses},
         "parentSku": None,
-        "source": {"supplier": "Revozport", "sourceRef": url or "https://revozport.com/", "sourceUpdatedAt": None},
+        "source": {
+            "supplier": "Revozport",
+            "sourceRef": url or "https://revozport.com/",
+            "sourceUpdatedAt": official_fetched_at,
+            "sourceKey": "revozport-inventory-pricing",
+            "sourceRecordKey": sku,
+            "sourceRevision": source_revision,
+            "payloadHash": payload_hash,
+            "mapperVersion": "revozport-fitment-v2.1",
+        },
         "note": note,
     }
+    deduped_applications = list({
+        (item["make"], item["model"], item["chassisCode"], item["generation"]): item
+        for item in applications
+    }.values())
+    return contract, audit_rows, corrected_rows, unresolved_rows, deduped_applications
 
 
 def meta(namespace: str, key: str, value: Any, value_type: str = "single_line_text_field") -> dict[str, str]:
@@ -394,9 +708,27 @@ def load_image_cache() -> dict[str, str | None]:
         return {}
 
 
-def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool) -> dict[str, Any]:
+def build_preview(
+    pricing_path: Path,
+    inventory_path: Path,
+    include_images: bool,
+    official_catalog_path: Path | None = None,
+) -> dict[str, Any]:
     ain_rows = read_sheet_rows(pricing_path, 6)
     inventory_rows = read_sheet_rows(inventory_path, 3)
+    official_products: list[dict[str, Any]] = []
+    official_fetched_at: str | None = None
+    if official_catalog_path and official_catalog_path.exists():
+        official_catalog = json.loads(official_catalog_path.read_text(encoding="utf-8"))
+        official_products = official_catalog.get("products", [])
+        official_fetched_at = text(official_catalog.get("fetchedAt")) or None
+    revision_parts = [
+        hashlib.sha256(pricing_path.read_bytes()).hexdigest(),
+        hashlib.sha256(inventory_path.read_bytes()).hexdigest(),
+    ]
+    if official_catalog_path and official_catalog_path.exists():
+        revision_parts.append(hashlib.sha256(official_catalog_path.read_bytes()).hexdigest())
+    source_revision = hashlib.sha256("\n".join(revision_parts).encode("utf-8")).hexdigest()
     ain_by_sku: dict[str, list[dict[str, Any]]] = defaultdict(list)
     detail_by_sku: dict[str, list[dict[str, Any]]] = defaultdict(list)
     detail_sheet_by_sku: dict[str, str] = {}
@@ -440,21 +772,34 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
         url = choose_first(detail, "WEB LINK") or choose_first(ain, "Website Link")
         material = choose_first(detail, "MATERIAL") or choose_first(ain, "Material")
         product_type = choose_first(detail, "PRODUCT TYPE") or "Carbon aero"
-        model_labels = unique_strings(
-            [choose_first([row], "GENERATION / MODEL") for row in detail]
+        make = resolve_make(sheet, name, url)
+        fitment, fitment_audit, corrected_fitment_rows, unresolved_fitment_rows, fitment_applications = make_fitment(
+            sheet, detail, ain, url, sku, official_products, official_fetched_at, source_revision
         )
-        if not model_labels:
-            for source_row in detail or ain:
-                source_name = choose_first([source_row], "PRODUCT NAME", "Product Name")
-                make_name = SHEET_MAKES.get(sheet, "")
-                match = re.search(
-                    rf"\bfor\s+{re.escape(make_name)}\s+(.+?)(?=\s+(?:18|19|20|21)\d{{2}}(?:[-–]\d{{2,4}})?\b|$)",
-                    source_name,
-                    flags=re.IGNORECASE,
-                ) if make_name else None
-                if match:
-                    model_labels.append(match.group(1).strip())
-            model_labels = unique_strings(model_labels)
+        counts["fitment_rows_corrected_from_title_and_url"] += corrected_fitment_rows
+        counts["fitment_rows_unresolved"] += unresolved_fitment_rows
+        counts["fitment_applications"] += len(fitment_applications)
+        counts["fitment_verified_clauses"] += sum(
+            1 for clause in fitment["policy"]["clauses"] if clause["verification"] == "VERIFIED"
+        )
+        counts["fitment_review_clauses"] += sum(
+            1 for clause in fitment["policy"]["clauses"] if clause["verification"] == "NEEDS_REVIEW"
+        )
+        if not fitment["policy"]["clauses"]:
+            counts["products_without_machine_readable_fitment"] += 1
+        model_labels = unique_strings(
+            [
+                " ".join(
+                    value
+                    for value in (application["model"], application["generation"])
+                    if value
+                )
+                for application in fitment_applications
+            ]
+        )
+        make_labels = unique_strings([application["make"] for application in fitment_applications])
+        if not make_labels and make:
+            make_labels = [make]
 
         msrp = choose_number(detail, "MSRP")
         if msrp is None:
@@ -501,8 +846,6 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             image = cache.get(url) if url else None
 
         title_ua = localized_title(name)
-        make = SHEET_MAKES.get(sheet, "")
-        fitment = make_fitment(sheet, detail, ain, url)
         inventory_values = [
             number(row.get(column)) or 0
             for row in rows
@@ -573,6 +916,7 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
         )
         metafields = [
             meta("onecompany", "supplier_fitment", json.dumps(fitment, ensure_ascii=False), "json"),
+            meta("revozport_source", "fitment_audit", json.dumps(fitment_audit, ensure_ascii=False), "json"),
             meta("revozport_source", "official_url", url or "https://revozport.com/", "url"),
             meta("revozport_source", "source_workbooks", "AIN_SKU_EXPORT_MX_9.14.xlsx; revozport_inventory_pricing_9.14.xlsx"),
             meta("revozport_source", "source_row_count", len(rows), "number_integer"),
@@ -604,7 +948,7 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
             "vendor": "Revozport",
             "productType": product_type,
             "productCategory": product_type,
-            "tags": unique_strings(["Revozport", make, product_type, *model_labels]),
+            "tags": unique_strings(["Revozport", *make_labels, product_type, *model_labels]),
             "collectionIds": [],
             "status": status,
             "titleUa": title_ua,
@@ -733,6 +1077,7 @@ def build_preview(pricing_path: Path, inventory_path: Path, include_images: bool
         "schemaVersion": 1,
         "generatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "sourceFiles": [str(pricing_path), str(inventory_path)],
+        "sourceRevision": source_revision,
         "counts": dict(counts),
         "imageFailures": image_failures,
         "products": products,
@@ -745,13 +1090,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pricing", type=Path, default=DEFAULT_PRICING)
     parser.add_argument("--inventory", type=Path, default=DEFAULT_INVENTORY)
+    parser.add_argument(
+        "--official-catalog",
+        type=Path,
+        default=OUTPUT_DIR / "revozport-official-audit" / "products.json",
+        help="Fresh read-only products.json snapshot from audit-revozport-official.mjs; exact SKU fitment is review-only without it.",
+    )
     parser.add_argument("--no-images", action="store_true")
     args = parser.parse_args()
     if not args.pricing.exists():
         raise SystemExit(f"Pricing workbook not found: {args.pricing}")
     if not args.inventory.exists():
         raise SystemExit(f"Inventory workbook not found: {args.inventory}")
-    result = build_preview(args.pricing, args.inventory, include_images=not args.no_images)
+    result = build_preview(
+        args.pricing,
+        args.inventory,
+        include_images=not args.no_images,
+        official_catalog_path=args.official_catalog,
+    )
     print(json.dumps({"output": str(OUTPUT_FILE), "counts": result["counts"], "imageFailures": len(result["imageFailures"])}, ensure_ascii=False, indent=2))
 
 

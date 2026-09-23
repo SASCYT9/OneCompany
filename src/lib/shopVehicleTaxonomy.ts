@@ -524,7 +524,10 @@ export function canonicalizeVehicleChassisCodes(
   const allowed = canonicalMake === "BMW" ? BMW_CHASSIS_BY_MODEL[canonicalModel] : null;
   const filtered = allowed
     ? normalized
-        .filter((value) => allowed.includes(value === "F87N" ? "F87" : value))
+        .filter((value) => {
+          const base = value.match(/^([EFG]\d{2,3})\s+(?:PRE-LCI|LCI)$/u)?.[1] ?? value;
+          return allowed.includes(base === "F87N" ? "F87" : base);
+        })
         .map((value) => (value === "F87N" ? "F87" : value))
     : normalized;
   return [...new Set(filtered)].sort((left, right) =>

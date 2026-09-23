@@ -20,6 +20,7 @@ const sources = [
   "ohlins",
   "racechip",
   "remus",
+  "revozport",
   "urban",
 ];
 
@@ -49,7 +50,7 @@ function draft(overrides: Partial<CoverageNormalization> = {}): CoverageNormaliz
   };
 }
 
-test("all fourteen sources have explicit accepted coverage descriptors", () => {
+test("all core sources have explicit accepted coverage descriptors", () => {
   for (const source of sources) {
     const policy = buildNormalizationCoveragePolicy(
       source,

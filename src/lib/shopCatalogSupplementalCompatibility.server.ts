@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 import type { SupplementalCatalogNormalization } from "./shopCatalogSupplementalNormalization";
 import { persistVehicleCompatibilityInTransaction } from "./shopCatalogVehicleCompatibilityPersistence.server";
+import { persistCanonicalPolicyInTransaction } from "./shopCatalogCanonicalPolicyPersistence.server";
 
 export function persistSupplementalCompatibilityInTransaction(input: {
   tx: Prisma.TransactionClient;
@@ -12,6 +13,20 @@ export function persistSupplementalCompatibilityInTransaction(input: {
   payloadHash: string;
   normalization: SupplementalCatalogNormalization;
 }) {
+  if (input.normalization.compatibilityPolicy) {
+    if (input.normalization.compatibilityPolicy.target.productId !== input.normalization.productId ||
+      input.normalization.compatibilityPolicy.target.variantId != null) {
+      throw new Error(`${input.normalization.source} compatibility target does not match its product record`);
+    }
+    return persistCanonicalPolicyInTransaction({
+      tx: input.tx,
+      sourceId: input.sourceId,
+      sourceRecordId: input.sourceRecordId,
+      evidenceHash: input.payloadHash,
+      policy: input.normalization.compatibilityPolicy,
+      label: input.normalization.source,
+    });
+  }
   return persistVehicleCompatibilityInTransaction({
     tx: input.tx,
     sourceId: input.sourceId,

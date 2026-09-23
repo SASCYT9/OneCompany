@@ -34,6 +34,7 @@ const sourceOwnership = {
   ilmberger: { adapter: "Ilmberger", command: "ilmberger" },
   ipe: { adapter: "Ipe", command: "ipe" },
   "kw-suspensions": { adapter: "Supplemental", command: "supplemental" },
+  revozport: { adapter: "Supplemental", command: "supplemental" },
   ohlins: { adapter: "Ohlins", command: "ohlins" },
   racechip: { adapter: "RaceChip", command: "racechip" },
   remus: { adapter: "Remus", command: "remus" },
@@ -46,6 +47,7 @@ const genericBrandSources = new Map<string, keyof typeof sourceOwnership>([
   ["fi exhaust", "fi-exhaust"],
   ["g-sport by gesi", "g-sport"],
   ["kw suspensions", "kw-suspensions"],
+  ["revozport", "revozport"],
   ["remus", "remus"],
 ]);
 

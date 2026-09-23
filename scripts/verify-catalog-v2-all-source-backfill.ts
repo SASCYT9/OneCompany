@@ -38,13 +38,16 @@ import {
   buildFiExhaustSupplementalSourceRecordDraft,
   buildGSportSourceRecordDraft,
   buildKwSuspensionsSupplementalSourceRecordDraft,
+  buildSupplementalCatalogSourceRecordDraft,
 } from "../src/lib/shopCatalogSupplementalNormalization";
 import {
   persistBootmod3SourceRecordPageWithClient,
   persistFiExhaustSupplementalSourceRecordPageWithClient,
   persistGSportSourceRecordPageWithClient,
   persistKwSuspensionsSupplementalSourceRecordPageWithClient,
+  persistRevozportSourceRecordPageWithClient,
 } from "../src/lib/shopCatalogSupplementalBackfill.server";
+import { loadSupplementalCatalogDrafts } from "./catalog-v2-supplemental-source";
 
 type Snapshot = {
   id: string;
@@ -94,6 +97,7 @@ const builders = {
   ilmberger: buildIlmbergerSourceRecordDraft,
   ipe: buildIpeSourceRecordDraft,
   "kw-suspensions": buildKwSuspensionsSupplementalSourceRecordDraft,
+  revozport: buildSupplementalCatalogSourceRecordDraft,
   ohlins: buildOhlinsSourceRecordDraft,
   racechip: buildRaceChipSourceRecordDraft,
   remus: buildRemusSourceRecordDraft,
@@ -114,6 +118,7 @@ const persisters = {
   ilmberger: persistIlmbergerSourceRecordPageWithClient,
   ipe: persistIpeSourceRecordPageWithClient,
   "kw-suspensions": persistKwSuspensionsSupplementalSourceRecordPageWithClient,
+  revozport: persistRevozportSourceRecordPageWithClient,
   ohlins: persistOhlinsSourceRecordPageWithClient,
   racechip: persistRaceChipSourceRecordPageWithClient,
   remus: persistRemusSourceRecordPageWithClient,
@@ -171,6 +176,7 @@ async function load() {
           ["fi exhaust", "fi-exhaust"],
           ["g-sport by gesi", "g-sport"],
           ["kw suspensions", "kw-suspensions"],
+          ["revozport", "revozport"],
           ["remus", "remus"],
         ]),
         partitions = new Map<keyof typeof builders, Snapshot[]>(),
@@ -238,15 +244,17 @@ async function main() {
     for (const page of pages(variants, 500))
       await client.shopProductVariant.createMany({ data: page, skipDuplicates: true });
     for (const source of sources) {
-      const builder = builders[source.name] as unknown as (input: {
-          product: Snapshot;
-          sourceRevision: string;
-        }) => Draft,
-        drafts = source.products
-          .map((product) => builder({ product, sourceRevision: source.revision }))
-          .sort((left, right) =>
-            left.sourceRecord.recordKey.localeCompare(right.sourceRecord.recordKey)
-          );
+      const drafts = source.name === "revozport"
+        ? await loadSupplementalCatalogDrafts("revozport") as Draft[]
+        : source.products
+            .map((product) => {
+              const builder = builders[source.name] as unknown as (input: {
+                product: Snapshot;
+                sourceRevision: string;
+              }) => Draft;
+              return builder({ product, sourceRevision: source.revision });
+            })
+            .sort((left, right) => left.sourceRecord.recordKey.localeCompare(right.sourceRecord.recordKey));
       draftsBySource.set(source.name, drafts);
       let completed = 0;
       for (const page of pages(drafts, 50)) {
@@ -273,7 +281,9 @@ async function main() {
         .reduce((sum, draft) => sum + draft.issues.length, 0),
       expectedReview = [...draftsBySource.values()]
         .flat()
-        .filter((draft) => draft.normalization.verification === "NEEDS_REVIEW").length;
+      .filter((draft) => draft.normalization.compatibilityPolicy
+        ? draft.normalization.compatibilityPolicy.mode === "NEEDS_REVIEW"
+        : draft.normalization.verification === "NEEDS_REVIEW").length;
     const counts = {
       sources: await client.shopCatalogSource.count({ where: { key: { startsWith: "gate-" } } }),
       records: await client.shopCatalogSourceRecord.count(),

@@ -5,6 +5,7 @@ import {
   persistFiExhaustSupplementalSourceRecordPageWithClient,
   persistGSportSourceRecordPageWithClient,
   persistKwSuspensionsSupplementalSourceRecordPageWithClient,
+  persistRevozportSourceRecordPageWithClient,
 } from "../src/lib/shopCatalogSupplementalBackfill.server";
 import {
   SHOP_CATALOG_SUPPLEMENTAL_SOURCES,
@@ -21,6 +22,7 @@ const persisters = {
   "fi-exhaust": persistFiExhaustSupplementalSourceRecordPageWithClient,
   "g-sport": persistGSportSourceRecordPageWithClient,
   "kw-suspensions": persistKwSuspensionsSupplementalSourceRecordPageWithClient,
+  revozport: persistRevozportSourceRecordPageWithClient,
 } as const;
 
 function option(name: string) {
@@ -93,7 +95,7 @@ async function main() {
     totalRecords: allDrafts.length,
     after,
     selected: drafts.length,
-    needsReview: drafts.length,
+    needsReview: drafts.filter((draft) => draft.normalization.verification !== "VERIFIED").length,
     provenanceEntries: drafts.reduce((sum, draft) => sum + draft.provenance.length, 0),
     issueEntries: drafts.reduce((sum, draft) => sum + draft.issues.length, 0),
     nextRecordKey: drafts.at(-1)?.sourceRecord.recordKey ?? null,

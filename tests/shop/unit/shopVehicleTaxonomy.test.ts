@@ -144,4 +144,8 @@ test("BMW chassis options stay inside the selected official model", () => {
     canonicalizeVehicleChassisCodes(["F87N", "F90", "G87", "G90"], "BMW", "M2"),
     ["F87", "G87"]
   );
+  assert.deepEqual(
+    canonicalizeVehicleChassisCodes(["F96", "F96 LCI", "F96 PRE-LCI"], "BMW", "X6 M"),
+    ["F96", "F96 LCI", "F96 PRE-LCI"]
+  );
 });

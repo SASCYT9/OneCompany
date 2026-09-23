@@ -7,13 +7,16 @@ import {
   buildNormalizationCoveragePolicy,
   type CoverageNormalization,
 } from "./shopCatalogNormalizationCoverage";
+import type { ShopCatalogV2CompatibilityPolicy } from "./shopCatalogV2Compatibility";
 import {
   compareSelectorCoverage,
   selectorPoliciesFromProjection,
 } from "./shopCatalogSelectorCoverage";
 
 type CoverageDraft = {
-  normalization: CoverageNormalization;
+  normalization: CoverageNormalization & {
+    compatibilityPolicy?: ShopCatalogV2CompatibilityPolicy | null;
+  };
   sourceRecord: { recordKey: string };
 };
 
@@ -66,10 +69,12 @@ export async function auditShopCatalogSelectorCoverageWithClient(
             )
           )
             failure("canonical-owner", { policies: owned.length });
-          const expected = buildNormalizationCoveragePolicy(source, draft.normalization);
+          const expectedPolicies = source === "revozport" && draft.normalization.compatibilityPolicy
+            ? [draft.normalization.compatibilityPolicy]
+            : [buildNormalizationCoveragePolicy(source, draft.normalization)];
           const canonical = canonicalPoliciesToProjectionV2(owned);
           report.canonicalPolicies += canonical.length;
-          report.normalizedClauses += expected.clauses.length;
+          report.normalizedClauses += expectedPolicies.reduce((sum, policy) => sum + policy.clauses.length, 0);
           report.canonicalClauses += canonical.reduce(
             (sum, policy) => sum + policy.clauses.length,
             0
@@ -79,7 +84,7 @@ export async function auditShopCatalogSelectorCoverageWithClient(
               if (clause.verification === "VERIFIED") report.verifiedClauses++;
               else report.reviewClauses++;
             }
-          const normalizedParity = compareSelectorCoverage([expected], canonical, {
+          const normalizedParity = compareSelectorCoverage(expectedPolicies, canonical, {
             caseInsensitiveTaxonomy: true,
           });
           report.missingSignatures += normalizedParity.missingCount;

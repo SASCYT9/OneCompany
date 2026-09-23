@@ -58,6 +58,7 @@ const SOURCES = new Set([
   "ohlins",
   "racechip",
   "remus",
+  "revozport",
   "urban",
 ]);
 

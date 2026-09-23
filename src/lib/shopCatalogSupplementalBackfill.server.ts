@@ -47,3 +47,4 @@ export const persistFiExhaustSupplementalSourceRecordPageWithClient = persister(
 export const persistGSportSourceRecordPageWithClient = persister("g-sport");
 export const persistKwSuspensionsSupplementalSourceRecordPageWithClient =
   persister("kw-suspensions");
+export const persistRevozportSourceRecordPageWithClient = persister("revozport");
