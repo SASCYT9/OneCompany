@@ -160,7 +160,8 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(service, /clause: \{ verification: "VERIFIED" \}/);
   assert.match(service, /buildShopCatalogProjectionVehicleCondition/);
   assert.match(service, /queryShopCatalogProjectionFacets/);
-  assert.match(service, /resolveCanonicalVehicleProductIds/);
+  assert.match(service, /resolveLegacyVehicleProductIds/);
+  assert.match(service, /!vehicleSearchPlan\.canonical/);
   assert.match(service, /projection\."productId" IN/);
   assert.match(service, /projectionConditions\.push\(vehicleCondition\)/);
   assert.match(service, /normalizedProductQuery[\s\S]*Prisma\.sql`TRUE`/);

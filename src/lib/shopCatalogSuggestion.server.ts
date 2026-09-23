@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
-import { resolveCanonicalVehicleProductIds } from "./shopStockCanonicalVehicleIds.server";
+import { resolveLegacyVehicleProductIds } from "./shopCatalogLegacyVehicleIds.server";
 import {
   buildShopCatalogProjectionVehicleCondition,
   queryShopCatalogProjectionFacets,
@@ -198,18 +198,13 @@ export async function queryShopCatalogSuggestions(
   const input = normalizeShopCatalogSuggestionInput(raw);
   if (!input.query) return Object.freeze([]);
   const prefixPattern = `${escapeLike(input.normalizedQuery)}%`;
+  const vehicleSearchPlan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams({ q: input.query }),
+    { readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE }
+  );
   const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
-  const vehicleProductIds = vehicleConstraints
-    ? await resolveCanonicalVehicleProductIds({
-        make: vehicleConstraints.make,
-        model: vehicleConstraints.model ?? "",
-        chassis: vehicleConstraints.generation ?? "",
-        year: vehicleConstraints.year,
-        engine: vehicleConstraints.engine,
-        fuel: vehicleConstraints.fuel,
-        opfGpf: vehicleConstraints.opfGpf,
-        scope: input.scope === "auto" || input.scope === "moto" ? input.scope : null,
-      })
+  const vehicleProductIds = vehicleConstraints && !vehicleSearchPlan.canonical
+    ? await resolveLegacyVehicleProductIds(vehicleSearchPlan.constraints)
     : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);
   const normalizedProductQuery = normalizeShopSearchText(
