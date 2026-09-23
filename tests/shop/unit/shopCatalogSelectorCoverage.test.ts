@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   compareSelectorCoverage,
   selectorPoliciesFromProjection,
+  summarizeSelectorDimensionCoverage,
 } from "../../../src/lib/shopCatalogSelectorCoverage";
 import type { ShopCatalogV2CompatibilityPolicy as Policy } from "../../../src/lib/shopCatalogV2Compatibility";
 import type { ShopCatalogProjectionBuild as Build } from "../../../src/lib/shopCatalogProjection.server";
@@ -78,6 +79,42 @@ test("unknown, any, non-applicable and review are distinct evidence", () => {
   const actual = structuredClone(expected);
   actual.clauses[1].verification = "VERIFIED";
   assert.equal(compareSelectorCoverage([expected], [actual]).passed, false);
+});
+
+test("dimension coverage separates known vehicle identity from unrelated unknown fields", () => {
+  const source = policy();
+  source.dimensionDefaults = { engine: "UNKNOWN", fuel: "UNKNOWN" };
+  source.clauses = [
+    {
+      id: "m3",
+      verification: "VERIFIED",
+      constraints: [
+        { dimension: "scope", state: "EXACT", values: ["auto"] },
+        { dimension: "make", state: "EXACT", values: ["BMW"] },
+        { dimension: "model", state: "EXACT", values: ["M3"] },
+        { dimension: "generation", state: "EXACT", values: ["G80"] },
+      ],
+    },
+  ];
+  const report = summarizeSelectorDimensionCoverage([source]);
+  assert.equal(report.dimensions.make.verifiedExactClauses, 1);
+  assert.equal(report.dimensions.model.verifiedExactClauses, 1);
+  assert.equal(report.dimensions.generation.verifiedExactClauses, 1);
+  assert.equal(report.dimensions.engine.unknownClauses, 1);
+  assert.equal(report.dimensions.fuel.unknownClauses, 1);
+  assert.deepEqual(report.byMake, [
+    {
+      make: "BMW",
+      clauses: 1,
+      verifiedCoreIdentityClauses: 1,
+      reviewOrInferredCoreIdentityClauses: 0,
+      selectorEligibleCoreIdentityClauses: 0,
+      blockedByUnknownDimensionClauses: 1,
+      blockedByPolicyModeClauses: 0,
+      models: ["M3"],
+      generations: ["G80"],
+    },
+  ]);
 });
 
 test("target, year range, duplicate clauses and dropped engine identity fail", () => {

@@ -6,7 +6,183 @@ import type {
   ShopCatalogV2CompatibilityPolicy as Policy,
   ShopCatalogV2CompatibilityValue as Value,
   ShopCatalogV2CompatibilityConstraint as Constraint,
+  ShopCatalogV2CompatibilityDimension as Dimension,
 } from "./shopCatalogV2Compatibility";
+import { SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS } from "./shopCatalogV2Compatibility";
+
+type SelectorDimensionStateCounts = {
+  exactClauses: number;
+  verifiedExactClauses: number;
+  inferredExactClauses: number;
+  reviewExactClauses: number;
+  anyClauses: number;
+  notApplicableClauses: number;
+  unknownClauses: number;
+  missingClauses: number;
+};
+
+type SelectorMakeCoverage = {
+  make: string;
+  clauses: number;
+  verifiedCoreIdentityClauses: number;
+  reviewOrInferredCoreIdentityClauses: number;
+  selectorEligibleCoreIdentityClauses: number;
+  blockedByUnknownDimensionClauses: number;
+  blockedByPolicyModeClauses: number;
+  models: string[];
+  generations: string[];
+};
+
+/** Summarizes which exact selector facts survive policy-level blockers. */
+export function summarizeSelectorDimensionCoverage(policies: readonly Policy[]) {
+  const dimensions = Object.fromEntries(
+    SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS.map((dimension) => [
+      dimension,
+      {
+        exactClauses: 0,
+        verifiedExactClauses: 0,
+        inferredExactClauses: 0,
+        reviewExactClauses: 0,
+        anyClauses: 0,
+        notApplicableClauses: 0,
+        unknownClauses: 0,
+        missingClauses: 0,
+      } satisfies SelectorDimensionStateCounts,
+    ])
+  ) as Record<Dimension, SelectorDimensionStateCounts>;
+  const coreDimensions = new Set<Dimension>(["scope", "make", "model", "generation", "chassis"]);
+  const makeCoverage = new Map<
+    string,
+    {
+      clauses: number;
+      verifiedCoreIdentityClauses: number;
+      reviewOrInferredCoreIdentityClauses: number;
+      selectorEligibleCoreIdentityClauses: number;
+      blockedByUnknownDimensionClauses: number;
+      blockedByPolicyModeClauses: number;
+      models: Set<string>;
+      generations: Set<string>;
+    }
+  >();
+  const scopeCoverage = new Map<string, number>();
+  let clauses = 0;
+  let verifiedClauses = 0;
+  let inferredClauses = 0;
+  let reviewClauses = 0;
+  let policiesWithUnknownDefaults = 0;
+
+  for (const policy of policies) {
+    const defaults = policy.dimensionDefaults ?? {};
+    const hasUnknownDefault = Object.values(defaults).some((state) => state === "UNKNOWN");
+    if (hasUnknownDefault) policiesWithUnknownDefaults += 1;
+
+    for (const clause of policy.clauses) {
+      clauses += 1;
+      if (clause.verification === "VERIFIED") verifiedClauses += 1;
+      else if (clause.verification === "INFERRED") inferredClauses += 1;
+      else reviewClauses += 1;
+
+      const constraintsByDimension = new Map<Dimension, Constraint[]>();
+      for (const constraint of clause.constraints) {
+        const values = constraintsByDimension.get(constraint.dimension) ?? [];
+        values.push(constraint);
+        constraintsByDimension.set(constraint.dimension, values);
+      }
+
+      for (const dimension of SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS) {
+        const constraints = constraintsByDimension.get(dimension) ?? [];
+        const states = new Set(constraints.map((constraint) => constraint.state));
+        if (!states.size && defaults[dimension]) states.add(defaults[dimension]!);
+        const counts = dimensions[dimension];
+        if (!states.size) counts.missingClauses += 1;
+        if (states.has("EXACT")) {
+          counts.exactClauses += 1;
+          if (clause.verification === "VERIFIED") counts.verifiedExactClauses += 1;
+          else if (clause.verification === "INFERRED") counts.inferredExactClauses += 1;
+          else counts.reviewExactClauses += 1;
+        }
+        if (states.has("ANY")) counts.anyClauses += 1;
+        if (states.has("NOT_APPLICABLE")) counts.notApplicableClauses += 1;
+        if (states.has("UNKNOWN")) counts.unknownClauses += 1;
+      }
+
+      const exactStrings = (dimension: Dimension) => [
+        ...new Set(
+          (constraintsByDimension.get(dimension) ?? [])
+            .filter((constraint) => constraint.state === "EXACT")
+            .flatMap((constraint) => constraint.values)
+            .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+            .map((value) => value.trim())
+        ),
+      ];
+      const makes = exactStrings("make");
+      const models = exactStrings("model");
+      const generations = [...new Set([...exactStrings("generation"), ...exactStrings("chassis")])];
+      const hasCoreIdentity = models.length > 0 && generations.length > 0;
+      if (!hasCoreIdentity) continue;
+
+      const hasUnknownDimension =
+        hasUnknownDefault ||
+        clause.constraints.some((constraint) => constraint.state === "UNKNOWN");
+      const selectorMode = policy.mode === "VEHICLE_SPECIFIC" || policy.mode === "UNIVERSAL";
+      const verifiedIdentity = clause.verification === "VERIFIED";
+      for (const make of makes) {
+        const coverage = makeCoverage.get(make) ?? {
+          clauses: 0,
+          verifiedCoreIdentityClauses: 0,
+          reviewOrInferredCoreIdentityClauses: 0,
+          selectorEligibleCoreIdentityClauses: 0,
+          blockedByUnknownDimensionClauses: 0,
+          blockedByPolicyModeClauses: 0,
+          models: new Set<string>(),
+          generations: new Set<string>(),
+        };
+        coverage.clauses += 1;
+        for (const model of models) coverage.models.add(model);
+        for (const generation of generations) coverage.generations.add(generation);
+        if (verifiedIdentity) coverage.verifiedCoreIdentityClauses += 1;
+        else coverage.reviewOrInferredCoreIdentityClauses += 1;
+        if (verifiedIdentity && !selectorMode) coverage.blockedByPolicyModeClauses += 1;
+        else if (verifiedIdentity && hasUnknownDimension)
+          coverage.blockedByUnknownDimensionClauses += 1;
+        else if (verifiedIdentity) coverage.selectorEligibleCoreIdentityClauses += 1;
+        makeCoverage.set(make, coverage);
+      }
+      for (const scope of exactStrings("scope"))
+        scopeCoverage.set(scope, (scopeCoverage.get(scope) ?? 0) + 1);
+    }
+  }
+
+  const byMake: SelectorMakeCoverage[] = [...makeCoverage.entries()]
+    .map(([make, coverage]) => ({
+      make,
+      clauses: coverage.clauses,
+      verifiedCoreIdentityClauses: coverage.verifiedCoreIdentityClauses,
+      reviewOrInferredCoreIdentityClauses: coverage.reviewOrInferredCoreIdentityClauses,
+      selectorEligibleCoreIdentityClauses: coverage.selectorEligibleCoreIdentityClauses,
+      blockedByUnknownDimensionClauses: coverage.blockedByUnknownDimensionClauses,
+      blockedByPolicyModeClauses: coverage.blockedByPolicyModeClauses,
+      models: [...coverage.models].sort((left, right) => left.localeCompare(right, "en")),
+      generations: [...coverage.generations].sort((left, right) =>
+        left.localeCompare(right, "en", { numeric: true })
+      ),
+    }))
+    .sort((left, right) => left.make.localeCompare(right.make, "en"));
+
+  return {
+    policies: policies.length,
+    clauses,
+    verifiedClauses,
+    inferredClauses,
+    reviewClauses,
+    policiesWithUnknownDefaults,
+    dimensions,
+    scopes: Object.fromEntries(
+      [...scopeCoverage].sort(([left], [right]) => left.localeCompare(right, "en"))
+    ),
+    byMake,
+  };
+}
 
 /** Offline evidence only. Compare whole clauses, never independent dimension sets. */
 export function compareSelectorCoverage(

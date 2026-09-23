@@ -11,6 +11,7 @@ import type { ShopCatalogV2CompatibilityPolicy } from "./shopCatalogV2Compatibil
 import {
   compareSelectorCoverage,
   selectorPoliciesFromProjection,
+  summarizeSelectorDimensionCoverage,
 } from "./shopCatalogSelectorCoverage";
 
 type CoverageDraft = {
@@ -45,6 +46,8 @@ export async function auditShopCatalogSelectorCoverageWithClient(
       normalization.variantId
         ? `variant:${normalization.variantId}`
         : `product:${normalization.productId}`;
+    const normalizedPolicies: ShopCatalogV2CompatibilityPolicy[] = [];
+    const canonicalPolicies: ShopCatalogV2CompatibilityPolicy[] = [];
     for (let start = 0; start < drafts.length; start += 50) {
       const page = drafts.slice(start, start + 50);
       const rows = await readCoveragePoliciesWithClient(
@@ -69,12 +72,18 @@ export async function auditShopCatalogSelectorCoverageWithClient(
             )
           )
             failure("canonical-owner", { policies: owned.length });
-          const expectedPolicies = source === "revozport" && draft.normalization.compatibilityPolicy
-            ? [draft.normalization.compatibilityPolicy]
-            : [buildNormalizationCoveragePolicy(source, draft.normalization)];
+          const expectedPolicies =
+            source === "revozport" && draft.normalization.compatibilityPolicy
+              ? [draft.normalization.compatibilityPolicy]
+              : [buildNormalizationCoveragePolicy(source, draft.normalization)];
+          normalizedPolicies.push(...expectedPolicies);
           const canonical = canonicalPoliciesToProjectionV2(owned);
+          canonicalPolicies.push(...canonical);
           report.canonicalPolicies += canonical.length;
-          report.normalizedClauses += expectedPolicies.reduce((sum, policy) => sum + policy.clauses.length, 0);
+          report.normalizedClauses += expectedPolicies.reduce(
+            (sum, policy) => sum + policy.clauses.length,
+            0
+          );
           report.canonicalClauses += canonical.reduce(
             (sum, policy) => sum + policy.clauses.length,
             0
@@ -128,7 +137,13 @@ export async function auditShopCatalogSelectorCoverageWithClient(
         if (failed) report.failedTargets++;
       }
     }
-    reports.push(report);
+    reports.push({
+      ...report,
+      dimensionCoverage: {
+        normalized: summarizeSelectorDimensionCoverage(normalizedPolicies),
+        canonical: summarizeSelectorDimensionCoverage(canonicalPolicies),
+      },
+    });
     process.stdout.write(
       `[selector-coverage] ${source}: ${report.targets} targets, ${report.failedTargets} failed\n`
     );
