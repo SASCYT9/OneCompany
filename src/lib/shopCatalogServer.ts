@@ -9,6 +9,11 @@ import path from "path";
 import { readShopStorefrontDisplay } from "@/lib/shopStorefrontDisplay";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
+import {
+  hasShopProductAdminMediaOverride,
+  SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+  SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+} from "@/lib/shopProductAdminMedia";
 
 import { cache } from "react";
 import {
@@ -1065,7 +1070,7 @@ const SHOP_PRODUCT_IMAGE_OVERRIDES: Record<string, { image: string; gallery?: st
   },
   "URB-BUN-25358207-V1": {
     image:
-      "/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp",
+      "/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-10-2560.webp",
     gallery: [
       "/images/shop/urban/carousel/models/gwagonWidetrack2024/webp/urban-automotive-g-wagon-g63-w465-widetrack-1-2560.webp",
       "/images/shop/urban/products/urus-se/G-Wagon_Widetrack_2024.webp",
@@ -1226,6 +1231,16 @@ function isImageComingSoonAsset(value: string | null | undefined) {
   return /(?:^|[/_-])image-coming-soon(?:[/_.-]|$)/i.test(String(value ?? ""));
 }
 
+const SHOP_PRODUCT_PLACEHOLDER_IMAGES = new Set([
+  SHOP_PRODUCT_FALLBACK_IMAGE,
+  ...Object.values(BRAND_FALLBACK_IMAGES),
+]);
+
+function isUsableShopProductImage(value: string | null | undefined) {
+  const src = String(value ?? "").trim();
+  return Boolean(src && !SHOP_PRODUCT_PLACEHOLDER_IMAGES.has(src) && !isImageComingSoonAsset(src));
+}
+
 /**
  * Strip the `_<uuid>` suffix from Shopify CDN URLs that no longer resolve
  * (Shopify reuploads as the clean name; original UUID variant returns 404).
@@ -1241,6 +1256,18 @@ function normalizeShopifyImageUrl(url: string | null | undefined): string {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
+  // Admin media ownership protects reviewed uploads from legacy product and
+  // brand overrides while still normalizing old Shopify CDN image URLs.
+  const normalizedImage = normalizeShopifyImageUrl(product.image);
+  const normalizedGallery = product.gallery?.map(normalizeShopifyImageUrl);
+  if (product.adminMediaOverride) {
+    const manualGallery = uniqueStrings((normalizedGallery ?? []).filter(isUsableShopProductImage));
+    const image = isUsableShopProductImage(normalizedImage)
+      ? normalizedImage
+      : (manualGallery[0] ?? SHOP_PRODUCT_FALLBACK_IMAGE);
+    return { ...product, image, gallery: normalizedGallery ?? product.gallery };
+  }
+
   const verifiedUrbanMedia =
     getUrbanVerifiedProductMedia(product.sku) ?? getUrbanVerifiedProductMedia(product.slug);
   if (verifiedUrbanMedia) {
@@ -1256,11 +1283,6 @@ function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
     (isImageComingSoonAsset(product.image) ||
       Boolean(product.gallery?.some(isImageComingSoonAsset)));
 
-  // Always normalise stale Shopify-CDN UUIDs, even when there's no SKU-level
-  // override — otherwise Urban products inherit dead CDN URLs that 404 in
-  // the browser and render as empty placeholder cards.
-  const normalizedImage = normalizeShopifyImageUrl(product.image);
-  const normalizedGallery = product.gallery?.map(normalizeShopifyImageUrl);
   const galleryDiffers =
     normalizedGallery &&
     product.gallery &&
@@ -1406,6 +1428,14 @@ export function resolveFeedManagedCatalogImage(
 }
 
 function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
+  if (product.adminMediaOverride) {
+    return {
+      ...product,
+      image: normalizeShopifyImageUrl(product.image),
+      gallery: product.gallery?.map(normalizeShopifyImageUrl),
+    };
+  }
+
   if (!isFeedManagedCatalogProduct(product)) {
     return product;
   }
@@ -1538,11 +1568,9 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const resolvedGallery = uniqueStrings(
     gallerySource.map((url) => resolveCatalogAssetUrl(url, catalogFallbackImage))
   );
-  const productGallery = resolvedGallery.length
-    ? resolvedGallery
-    : resolvedPrimaryImage
-      ? [resolvedPrimaryImage]
-      : [];
+  const productGallery = uniqueStrings(
+    resolvedPrimaryImage ? [resolvedPrimaryImage, ...resolvedGallery] : resolvedGallery
+  );
 
   // iPE-only: surface the per-image material tag stored at import time so
   // the iPE PDP can filter gallery shots to the active variant's material.
@@ -1554,12 +1582,18 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const galleryMaterialsRaw = galleryMaterialsMeta?.value
     ? galleryMaterialsMeta.value.split(",").map((token) => token.trim())
     : null;
-  const galleryMaterials =
-    galleryMaterialsRaw && galleryMaterialsRaw.length === productGallery.length
-      ? (galleryMaterialsRaw.map((token) =>
-          token === "ti" || token === "ss" ? token : null
-        ) as Array<"ti" | "ss" | null>)
-      : undefined;
+  const galleryMaterialsBySource =
+    galleryMaterialsRaw && galleryMaterialsRaw.length === resolvedGallery.length
+      ? new Map(
+          resolvedGallery.map((src, index) => {
+            const token = galleryMaterialsRaw[index];
+            return [src, token === "ti" || token === "ss" ? token : null] as const;
+          })
+        )
+      : null;
+  const galleryMaterials = galleryMaterialsBySource
+    ? productGallery.map((src) => galleryMaterialsBySource.get(src) ?? null)
+    : undefined;
   const unsafeGpDescription = [
     row.shortDescUa,
     row.shortDescEn,
@@ -1786,6 +1820,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       readShopStorefrontDisplay(row.metafields)
     ),
     storefrontDisplay: readShopStorefrontDisplay(row.metafields),
+    adminMediaOverride: hasShopProductAdminMediaOverride(row.metafields),
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
     price: {
       eur: num(row.priceEur ?? primaryVariant?.priceEur),
@@ -2613,6 +2648,13 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
           compareAtUsdB2b: true,
           compareAtUahB2b: true,
           image: true,
+          metafields: {
+            where: {
+              namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+              key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+            },
+            select: { namespace: true, key: true, value: true },
+          },
         },
       });
       const products = rows
@@ -3370,7 +3412,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
 export function projectShopProductForListGrid(product: ShopProduct): ShopProduct {
   const empty = { ua: "", en: "" };
   const emptyMoney: ShopMoneySet = { eur: 0, usd: 0, uah: 0 };
-  const firstImage = product.gallery?.[0] ?? product.image ?? "";
+  const firstImage = product.image || product.gallery?.[0] || "";
   // Default variant only — list cards never expand variant lists.
   const defaultVariant = product.variants?.find((v) => v.isDefault) ?? product.variants?.[0];
   const slimVariant = defaultVariant
@@ -3409,6 +3451,7 @@ export function projectShopProductForListGrid(product: ShopProduct): ShopProduct
     compareAt: product.compareAt,
     b2bCompareAt: product.b2bCompareAt,
     image: product.image,
+    adminMediaOverride: product.adminMediaOverride,
     gallery: firstImage ? [firstImage] : undefined,
     variants: slimVariant ? [slimVariant] : undefined,
     highlights: [],
@@ -3469,6 +3512,7 @@ export function projectShopProductForVehicleCatalog(product: ShopProduct): ShopP
     compareAt: product.compareAt,
     b2bCompareAt: product.b2bCompareAt,
     image: product.image,
+    adminMediaOverride: product.adminMediaOverride,
     // gallery omitted — list view only renders product.image
     highlights: [],
   };

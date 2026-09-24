@@ -28,6 +28,10 @@ import {
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductMutation } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import {
+  SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+  SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+} from "@/lib/shopProductAdminMedia";
 import { randomUUID } from "node:crypto";
 import {
   isShopStorefrontDisplayMetafield,
@@ -183,9 +187,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         id: true,
         slug: true,
         catalogVersion: true,
+        image: true,
+        gallery: true,
         media: {
+          orderBy: [{ position: "asc" }, { createdAt: "asc" }],
           select: {
             id: true,
+            src: true,
+            altText: true,
+            mediaType: true,
+            position: true,
           },
         },
         variants: {
@@ -212,6 +223,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!currentProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+    const normalizedMediaUrls = (value: unknown) =>
+      Array.isArray(value) ? value.map((item) => String(item ?? "").trim()).filter(Boolean) : [];
+    const previousGallery = normalizedMediaUrls(currentProduct.gallery);
+    const nextGallery = normalizedMediaUrls(data.gallery);
+    const mediaRowsChanged =
+      currentProduct.media.length !== data.media.length ||
+      currentProduct.media.some((item, index) => {
+        const incoming = data.media[index];
+        return (
+          !incoming ||
+          item.src !== String(incoming.src ?? "").trim() ||
+          (item.altText ?? "") !== String(incoming.altText ?? "") ||
+          item.mediaType !== (incoming.mediaType ?? "IMAGE")
+        );
+      });
+    const adminMediaChanged =
+      String(currentProduct.image ?? "").trim() !== String(data.image ?? "").trim() ||
+      JSON.stringify(previousGallery) !== JSON.stringify(nextGallery) ||
+      mediaRowsChanged;
     if (data.categoryId) {
       const category = await prisma.shopCategory.findUnique({
         where: { id: data.categoryId },
@@ -453,12 +483,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
               OR: [
                 { namespace: NORMALIZED_FITMENT_NAMESPACE, key: NORMALIZED_FITMENT_KEY },
                 { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+                {
+                  namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+                  key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+                },
               ],
             },
           },
         });
         const editableMetafields = data.metafields.filter(
-          (item) => !isNormalizedFitmentMetafield(item) && !isShopStorefrontDisplayMetafield(item)
+          (item) =>
+            !isNormalizedFitmentMetafield(item) &&
+            !isShopStorefrontDisplayMetafield(item) &&
+            !(
+              item.namespace === SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE &&
+              item.key === SHOP_PRODUCT_ADMIN_MEDIA_KEY
+            )
         );
         if (editableMetafields.length) {
           await tx.shopProductMetafield.createMany({
@@ -484,6 +524,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             where: { productId_namespace_key: identity },
             create: { ...identity, value: storefrontDisplay.value, valueType: "json" },
             update: { value: storefrontDisplay.value, valueType: "json" },
+          });
+        }
+        if (adminMediaChanged) {
+          const identity = {
+            productId: id,
+            namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+            key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+          };
+          await tx.shopProductMetafield.upsert({
+            where: { productId_namespace_key: identity },
+            create: { ...identity, value: "true" },
+            update: { value: "true" },
           });
         }
         if (hasNormalizedFitment) {

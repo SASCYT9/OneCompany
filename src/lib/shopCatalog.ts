@@ -118,6 +118,8 @@ export interface ShopProduct {
   airShippingToUaUsd?: number | null;
   image: string;
   gallery?: string[];
+  /** True after an admin explicitly edits the product's image or gallery. */
+  adminMediaOverride?: boolean;
   externalVideos?: ShopProductExternalVideo[];
   /**
    * Per-image material tag aligned with `gallery` order. Only set on iPE

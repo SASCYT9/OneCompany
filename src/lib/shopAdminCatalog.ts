@@ -24,6 +24,10 @@ import {
 import { extractProductFitment } from "@/lib/crossShopFitment";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import {
+  SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+  SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+} from "@/lib/shopProductAdminMedia";
+import {
   isSupplierFitmentMetafield,
   normalizeSupplierFitmentContract,
   parseSupplierFitmentContract,
@@ -120,7 +124,7 @@ export const adminProductInclude = {
 /**
  * Lighter include for brand-scoped grid / list-view fetches. Drops:
  *   - `options` (PDP variant picker)
- *   - general `metafields` (only the storefront display control is needed here)
+ *   - general `metafields` (only storefront display and admin media ownership are needed here)
  *   - `bundle` (bundle composition; PDP-only)
  *
  * Keeps the same shape as `adminProductInclude` with bounded storefront metadata so a row
@@ -131,7 +135,12 @@ export const adminProductInclude = {
  */
 export const brandGridProductInclude = {
   metafields: {
-    where: { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+    where: {
+      OR: [
+        { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+        { namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE, key: SHOP_PRODUCT_ADMIN_MEDIA_KEY },
+      ],
+    },
   },
   category: true,
   media: { orderBy: { position: "asc" } },
