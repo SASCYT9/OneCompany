@@ -6,6 +6,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { load } from "cheerio";
 import { calculateBurgerVariantPrice } from "../src/lib/burgerRepricing";
 
 type SourceVariant = {
@@ -161,9 +162,9 @@ const brandRules: Array<[string, RegExp]> = [
 ];
 
 function stripHtml(html: string) {
-  return String(html ?? "").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&")
+  const $ = load(String(html ?? ""));
+  $("script, style, noscript").remove();
+  return $.root().text().replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"').replace(/&#39;|&#x27;/gi, "'").replace(/\s+/g, " ").trim();
 }
 function cleanSku(value: string | null | undefined, variantId: number) {

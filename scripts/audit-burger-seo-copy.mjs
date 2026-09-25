@@ -2,6 +2,7 @@
 // Run after supplier snapshot: node scripts/audit-burger-seo-copy.mjs YYYY-MM-DD
 import fs from 'node:fs';
 import path from 'node:path';
+import { load } from 'cheerio';
 
 const date = process.argv[2];
 if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? '')) {
@@ -23,10 +24,9 @@ const local = JSON.parse(fs.readFileSync(localBackup, 'utf8'));
 const localBySlug = new Map(local.map((product) => [product.slug, product]));
 
 function plain(html) {
-  return String(html ?? '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
+  const $ = load(String(html ?? ''));
+  $('script, style, noscript').remove();
+  return $.root().text()
     .replace(/&(?:nbsp|amp|quot|#39);/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

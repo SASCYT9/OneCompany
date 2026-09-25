@@ -39,6 +39,7 @@ import {
   validateSupplierFitmentParentReference,
 } from "@/lib/shopImportFitment";
 import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { revalidateShopStorefrontProducts } from "@/lib/shopStorefrontRevalidation";
 
 export const adminImportTemplateSelect = {
   id: true,
@@ -1066,6 +1067,7 @@ export async function runShopCsvImport(
   let updated = 0;
   let skipped = 0;
   const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
+  const productsToRevalidate: Array<{ slug: string; brand?: string | null; vendor?: string | null; tags?: string[] | null }> = [];
   const commitErrors: ImportRowErrorInput[] = [...validationErrors];
 
   for (const { data, rowIndex, relationMask } of productsToUpsert) {
@@ -1107,11 +1109,13 @@ export async function runShopCsvImport(
             scalarMask,
           })
         );
+        productsToRevalidate.push({ slug: data.slug, brand: data.brand, vendor: data.vendor, tags: data.tags });
         updated += 1;
         continue;
       }
 
       catalogMutations.push(await catalogWriter.create({ prisma, session, data }));
+      productsToRevalidate.push({ slug: data.slug, brand: data.brand, vendor: data.vendor, tags: data.tags });
       created += 1;
     } catch (error) {
       commitErrors.push({
@@ -1171,6 +1175,8 @@ export async function runShopCsvImport(
       conflictMode,
     },
   });
+
+  revalidateShopStorefrontProducts(productsToRevalidate);
 
   return {
     created,
