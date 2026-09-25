@@ -56,6 +56,19 @@ export function useDeferredCatalogProducts<T>(initialProducts: T[], indexKey: Ca
       started.current = true;
       void loadIndex();
     };
+    const params = new URLSearchParams(window.location.search);
+    const hasDirectCatalogFilter = ["brand", "model", "type", "chassis", "engine"]
+      .some((key) => params.has(key));
+    // A route transition may provide a new paginated SSR slice (for example,
+    // after the Burger vehicle picker updates ?brand=&model=). Once the user
+    // has opted into the full client catalog, restore that index after each
+    // slice change instead of leaving the filter stuck on the first page.
+    // Deep links and refreshed filtered URLs also need the full dataset before
+    // applying facets; otherwise a valid filter can look empty on the SSR page slice.
+    if (started.current || hasDirectCatalogFilter) {
+      started.current = true;
+      void loadIndex();
+    }
     const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart", "scroll"];
     events.forEach((event) =>
       window.addEventListener(event, enable, { once: true, passive: true })

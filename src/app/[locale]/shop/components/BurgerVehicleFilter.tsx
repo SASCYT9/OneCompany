@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, type ReactNode } from "react";
+import { useState, useMemo, useEffect, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, X, ChevronDown, ShoppingCart } from "lucide-react";
@@ -115,11 +115,6 @@ export default function BurgerVehicleFilter({
   const [sortOrder, setSortOrder] = useState<"default" | "price_desc" | "price_asc">("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Cascade-reset refs (used by the effects further down to skip dependent-
-  // filter resets when the change came from URL/picker, not user click).
-  const prevBrandRef = useRef("all");
-  const prevModelRef = useRef("all");
-
   // Sync filter state from the URL on mount + whenever a programmatic
   // navigation lands (BurgerHeroPicker calls router.push, browser
   // back/forward fires popstate). Patching pushState/replaceState catches
@@ -127,17 +122,23 @@ export default function BurgerVehicleFilter({
   // useSearchParams (which would bail the page out of static rendering).
   useEffect(() => {
     if (typeof window === "undefined") return;
+    let syncFrame: number | null = null;
     function syncFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const nextBrand = params.get("brand") || "all";
       const nextModel = params.get("model") || "all";
-      prevBrandRef.current = nextBrand;
-      prevModelRef.current = nextModel;
       setActiveBrand(nextBrand);
       setActiveType(params.get("type") || "all");
       setActiveModel(nextModel);
       setActiveChassis(params.get("chassis") || "all");
       setActiveEngine(params.get("engine") || "all");
+    }
+    function scheduleSyncFromUrl() {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
+      syncFrame = window.requestAnimationFrame(() => {
+        syncFrame = null;
+        syncFromUrl();
+      });
     }
     setMounted(true);
     syncFromUrl();
@@ -146,17 +147,18 @@ export default function BurgerVehicleFilter({
     const origReplaceState = window.history.replaceState;
     window.history.pushState = function (...args) {
       origPushState.apply(window.history, args as Parameters<typeof origPushState>);
-      syncFromUrl();
+      scheduleSyncFromUrl();
     };
     window.history.replaceState = function (...args) {
       origReplaceState.apply(window.history, args as Parameters<typeof origReplaceState>);
-      syncFromUrl();
+      scheduleSyncFromUrl();
     };
-    window.addEventListener("popstate", syncFromUrl);
+    window.addEventListener("popstate", scheduleSyncFromUrl);
     return () => {
+      if (syncFrame !== null) window.cancelAnimationFrame(syncFrame);
       window.history.pushState = origPushState;
       window.history.replaceState = origReplaceState;
-      window.removeEventListener("popstate", syncFromUrl);
+      window.removeEventListener("popstate", scheduleSyncFromUrl);
     };
   }, []);
 
@@ -293,29 +295,6 @@ export default function BurgerVehicleFilter({
     [products, activeBrand, activeModel]
   );
 
-  // Reset narrower filters when brand actually changes (skip initial mount so
-  // ?brand=BMW&model=M5&chassis=F90 from URL is preserved). prevBrandRef is
-  // declared in the URL-sync effect above and kept in sync there to prevent
-  // a coordinated URL update from self-destructing the model/chassis it set.
-  useEffect(() => {
-    if (prevBrandRef.current !== activeBrand) {
-      prevBrandRef.current = activeBrand;
-      setActiveType("all");
-      setActiveModel("all");
-      setActiveChassis("all");
-      setActiveEngine("all");
-    }
-  }, [activeBrand]);
-
-  // Same for model: reset chassis/engine only when model actually changes.
-  useEffect(() => {
-    if (prevModelRef.current !== activeModel) {
-      prevModelRef.current = activeModel;
-      setActiveChassis("all");
-      setActiveEngine("all");
-    }
-  }, [activeModel]);
-
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [activeBrand, activeType, activeModel, activeChassis, activeEngine, searchQuery, sortOrder]);
@@ -363,10 +342,23 @@ export default function BurgerVehicleFilter({
       }
     }
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.trim().toLocaleLowerCase();
       list = list.filter((p) => {
-        const title = localizeShopProductTitle(locale, p).toLowerCase();
-        return title.includes(q) || p.sku?.toLowerCase().includes(q);
+        const searchText = [
+          p.slug,
+          p.title?.ua,
+          p.title?.en,
+          localizeShopProductTitle(locale, p),
+          p.brand,
+          p.vendor,
+          p.sku,
+          ...(p.variants ?? []).flatMap((variant) => [
+            variant.sku,
+            variant.title,
+            ...(variant.optionValues ?? []),
+          ]),
+        ].filter(Boolean).join(" ").toLocaleLowerCase();
+        return searchText.includes(q);
       });
     }
 
@@ -651,7 +643,7 @@ export default function BurgerVehicleFilter({
                             src={
                               product.image ||
                               product.gallery?.[0] ||
-                              "/images/placeholders/product-fallback.jpg"
+                              "/images/placeholders/product-fallback.svg"
                             }
                             alt={productTitle}
                             fill

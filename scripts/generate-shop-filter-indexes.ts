@@ -81,6 +81,16 @@ function projectProduct(product: ShopProduct, key: IndexKey): ShopProduct {
 
   const defaultVariant =
     product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0];
+  const variants = key === "burger"
+    ? product.variants?.map((variant) => ({
+        id: variant.id,
+        title: variant.title,
+        sku: variant.sku,
+        position: variant.position,
+        optionValues: variant.optionValues,
+        isDefault: variant.isDefault,
+      }))
+    : defaultVariant ? [defaultVariant] : undefined;
   const firstImage = product.gallery?.[0] ?? product.image ?? "";
   return {
     slug: product.slug,
@@ -103,7 +113,7 @@ function projectProduct(product: ShopProduct, key: IndexKey): ShopProduct {
     compareAt: product.compareAt,
     image: product.image,
     gallery: firstImage ? [firstImage] : undefined,
-    variants: defaultVariant ? [defaultVariant] : undefined,
+    variants,
     highlights: [],
   };
 }

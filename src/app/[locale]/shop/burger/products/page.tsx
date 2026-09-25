@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import BurgerVehicleFilter from "../../components/BurgerVehicleFilter";
 import BurgerHeroPicker from "../../components/BurgerHeroPicker";
-import { getBurgerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
+import { getBurgerProductsServer, projectShopProductForBurgerListGrid } from "@/lib/shopCatalogServer";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
@@ -43,7 +43,7 @@ export async function renderBurgerProductsCatalogPage({ params }: Props, request
     getPublicShopSettingsRuntime(),
     getBurgerProductsServer(),
   ]);
-  const allBurgerProducts = burgerRows.map(projectShopProductForListGrid);
+  const allBurgerProducts = burgerRows.map(projectShopProductForBurgerListGrid);
   const {
     pageProducts: burgerProducts,
     currentPage,

@@ -27,6 +27,32 @@
   outline-offset: 4px;
 }
 
+.aiOpinion {
+  container-type: inline-size;
+}
+
+.aiOpinion > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.aiOpinion > div > div:last-child {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aiOpinion a {
+  min-width: 0;
+}
+
+@container (max-width: 380px) {
+  .aiOpinion > div > div:last-child {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (min-width: 1024px) {
   .content {
     padding: 48px 48px 80px;

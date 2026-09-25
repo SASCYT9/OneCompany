@@ -178,6 +178,22 @@ async function getAllCatalogFallbackProducts(): Promise<ShopProduct[]> {
   return shards.flat();
 }
 
+let localFallbackManifestSignature = "";
+function refreshLocalCatalogAfterFallbackManifestChange() {
+  if (process.env.NODE_ENV !== "development" || !LOCAL_CATALOG_SNAPSHOT_ENABLED) return;
+  try {
+    const stat = fs.statSync(path.join(CATALOG_FALLBACK_DIR, "manifest.json"));
+    const signature = `${stat.size}:${stat.mtimeMs}`;
+    if (signature === localFallbackManifestSignature) return;
+    localFallbackManifestSignature = signature;
+    catalogFallbackManifestPromise = null;
+    catalogFallbackStorePromises.clear();
+    invalidateShopCatalogMemoryCaches();
+  } catch {
+    // Keep normal runtime behavior when the local fallback manifest is absent.
+  }
+}
+
 async function getLocalCatalogSnapshotProducts(): Promise<ShopProduct[]> {
   if (!LOCAL_CATALOG_SNAPSHOT_ENABLED) return [];
 
@@ -1355,7 +1371,11 @@ function isUrbanCatalogProduct(product: Pick<ShopProduct, "brand" | "vendor" | "
 function shouldExposeCatalogProduct(
   product: Pick<ShopProduct, "brand" | "vendor" | "tags" | "slug">
 ) {
-  return !isUrbanCatalogProduct(product) || hasUrbanGpPortalSource(product);
+  const tags = product.tags ?? [];
+  const catalogHidden = tags.some((tag) =>
+    String(tag).trim().toLowerCase() === "catalog:hidden"
+  );
+  return !catalogHidden && (!isUrbanCatalogProduct(product) || hasUrbanGpPortalSource(product));
 }
 
 function resolveFeedManagedBrandKey(brand: string | null | undefined, vendor?: string | null) {
@@ -2048,6 +2068,7 @@ function createCatalogLoader(recommendationsOnly: boolean) {
   let cacheGeneration = -1;
   let globalProductsPromise: { generation: number; promise: Promise<ShopProduct[]> } | null = null;
   return async function loadCatalog(): Promise<ShopProduct[]> {
+    refreshLocalCatalogAfterFallbackManifestChange();
     const now = Date.now();
     const generation = shopCatalogMemoryCacheGeneration;
     // Memory cache: lifted from 45s to 5 min. Original 45s was tuned for build-
@@ -2334,6 +2355,7 @@ export async function getShopProductsByBrandServer(
       : brandOrOptions;
 
   const { cacheKey, where, predicate } = options;
+  refreshLocalCatalogAfterFallbackManifestChange();
   const now = Date.now();
   const generation = shopCatalogMemoryCacheGeneration;
 
@@ -3367,25 +3389,27 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
  * Returned object preserves `ShopProduct` shape so existing consumers keep
  * type-checking; trimmed fields are emitted as empty/minimal values.
  */
-export function projectShopProductForListGrid(product: ShopProduct): ShopProduct {
+function projectShopProductForListGridInternal(
+  product: ShopProduct,
+  options: { includeAllVariantSearchFields?: boolean }
+): ShopProduct {
   const empty = { ua: "", en: "" };
   const emptyMoney: ShopMoneySet = { eur: 0, usd: 0, uah: 0 };
   const firstImage = product.gallery?.[0] ?? product.image ?? "";
   // Default variant only — list cards never expand variant lists.
   const defaultVariant = product.variants?.find((v) => v.isDefault) ?? product.variants?.[0];
-  const slimVariant = defaultVariant
-    ? {
-        id: defaultVariant.id,
-        title: defaultVariant.title,
-        sku: defaultVariant.sku,
-        isDefault: defaultVariant.isDefault,
-        price: defaultVariant.price,
-        europePrice: defaultVariant.europePrice,
-        b2bPrice: defaultVariant.b2bPrice,
-        compareAt: defaultVariant.compareAt,
-        b2bCompareAt: defaultVariant.b2bCompareAt,
-      }
-    : undefined;
+  const variantsToProject = options.includeAllVariantSearchFields
+    ? product.variants ?? []
+    : defaultVariant ? [defaultVariant] : [];
+  const slimVariants = variantsToProject.map((variant) => ({
+    id: variant.id,
+    title: variant.title,
+    sku: variant.sku,
+    position: variant.position,
+    optionValues: variant.optionValues,
+    isDefault: variant.isDefault,
+    price: variant.price,
+  }));
   return {
     slug: product.slug,
     sku: product.sku,
@@ -3410,9 +3434,17 @@ export function projectShopProductForListGrid(product: ShopProduct): ShopProduct
     b2bCompareAt: product.b2bCompareAt,
     image: product.image,
     gallery: firstImage ? [firstImage] : undefined,
-    variants: slimVariant ? [slimVariant] : undefined,
+    variants: slimVariants.length ? slimVariants : undefined,
     highlights: [],
   };
+}
+
+export function projectShopProductForListGrid(product: ShopProduct): ShopProduct {
+  return projectShopProductForListGridInternal(product, {});
+}
+
+export function projectShopProductForBurgerListGrid(product: ShopProduct): ShopProduct {
+  return projectShopProductForListGridInternal(product, { includeAllVariantSearchFields: true });
 }
 
 /**
@@ -3722,6 +3754,7 @@ export class ShopCatalogUnavailableError extends Error {
 export const lookupShopProductBySlugServer = cache(async function lookupShopProductBySlugServer(
   slug: string
 ): Promise<ShopProductLookupResult> {
+  refreshLocalCatalogAfterFallbackManifestChange();
   try {
     if (isLocalStorefrontMode()) {
       // The local storefront is intentionally DB-less; use the verified
