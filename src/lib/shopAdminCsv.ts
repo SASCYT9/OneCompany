@@ -207,8 +207,11 @@ function isVariantRow(row: CsvRecord): boolean {
   return Boolean(
     nullableString(row["Variant SKU"]) ||
       nullableString(row["Variant Price"]) ||
+      nullableString(row["Variant Price USD"]) ||
+      nullableString(row["Variant Price EUR"]) ||
       nullableString(row["Variant Barcode"]) ||
       nullableString(row["Variant Inventory Qty"]) ||
+      nullableString(row["Variant Weight"]) ||
       nullableString(row["Variant Image"]) ||
       [1, 2, 3].some((position) => {
         const value = nullableString(row[`Option${position} Value`]);
@@ -311,17 +314,23 @@ function buildProductPayload(
       option3Value: optionValue(row, 3),
       option3LinkedTo: optionLinkedTo(row, 3),
       grams: intValue(row["Variant Grams"]),
+      weight: decimalValue(row["Variant Weight"]),
+      length: decimalValue(row["Variant Length"]),
+      width: decimalValue(row["Variant Width"]),
+      height: decimalValue(row["Variant Height"]),
+      isDimensionsEstimated: boolValue(row["Variant Dimensions Estimated"], false),
       inventoryTracker: nullableString(row["Variant Inventory Tracker"]),
       inventoryQty: intValue(row["Variant Inventory Qty"]) ?? 0,
       inventoryPolicy: inventoryPolicy(row["Variant Inventory Policy"]),
       fulfillmentService: nullableString(row["Variant Fulfillment Service"]),
       priceEur:
+        decimalValue(row["Variant Price EUR"]) ??
         decimalValue(row["price_eur (product.metafields.custom.price_eur)"]) ??
         decimalValue(row["custom_price_eur (product.metafields.custom.custom_price_eur)"]),
-      priceUsd: null,
+      priceUsd: decimalValue(row["Variant Price USD"]),
       priceUah: decimalValue(row["Variant Price"]),
-      compareAtEur: null,
-      compareAtUsd: null,
+      compareAtEur: decimalValue(row["Variant Compare At Price EUR"]),
+      compareAtUsd: decimalValue(row["Variant Compare At Price USD"]),
       compareAtUah: decimalValue(row["Variant Compare At Price"]),
       requiresShipping: boolValue(row["Variant Requires Shipping"], true),
       taxable: boolValue(row["Variant Taxable"], true),
@@ -395,11 +404,16 @@ function buildProductPayload(
     collectionEn:
       collectionEn ?? firstNullableValue(rows, "vehicle (product.metafields.custom.vehicle)"),
     priceEur: primaryVariant?.priceEur ?? null,
-    priceUsd: null,
+    priceUsd: primaryVariant?.priceUsd ?? null,
     priceUah: primaryVariant?.priceUah ?? null,
     compareAtEur: primaryVariant?.compareAtEur ?? null,
-    compareAtUsd: null,
+    compareAtUsd: primaryVariant?.compareAtUsd ?? null,
     compareAtUah: primaryVariant?.compareAtUah ?? null,
+    weight: primaryVariant?.weight ?? null,
+    length: primaryVariant?.length ?? null,
+    width: primaryVariant?.width ?? null,
+    height: primaryVariant?.height ?? null,
+    isDimensionsEstimated: primaryVariant?.isDimensionsEstimated ?? false,
     image: defaultImage ?? defaultVariantImage,
     seoTitleUa: firstNullableValue(rows, "SEO Title"),
     seoTitleEn:

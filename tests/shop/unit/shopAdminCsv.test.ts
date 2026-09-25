@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildProductsFromShopifyCsv } from "../../../src/lib/shopAdminCsv";
+import { buildAdminProductCsvScalarMask } from "../../../src/lib/shopAdminImports";
 
 const SOURCE_CSV = [
   [
@@ -122,4 +123,98 @@ test("CSV builder preserves zero prices and missing vehicle fields for downstrea
   assert.equal(product?.priceUah, 0);
   assert.equal(product?.vendor, "Eventuri");
   assert.equal(product?.collectionUa, null);
+});
+
+test("CSV builder imports explicit USD, EUR, and UAH variant prices", () => {
+  const csv = [
+    [
+      "Handle",
+      "Title",
+      "Title (EN)",
+      "Published",
+      "Status",
+      "Option1 Name",
+      "Option1 Value",
+      "Variant SKU",
+      "Variant Grams",
+      "Variant Weight",
+      "Variant Length",
+      "Variant Width",
+      "Variant Height",
+      "Variant Dimensions Estimated",
+      "Variant Price USD",
+      "Variant Price EUR",
+      "Variant Price",
+      "Variant Compare At Price USD",
+      "Variant Compare At Price EUR",
+      "Variant Compare At Price",
+    ].join(","),
+    [
+      "burger-example",
+      "Комплектація",
+      "Configuration",
+      "true",
+      "active",
+      "System",
+      "JB4",
+      "BURGER-V-123",
+      "5830",
+      "5.83",
+      "70",
+      "45",
+      "35",
+      "true",
+      "410",
+      "355.85",
+      "18860",
+      "",
+      "",
+      "",
+    ].join(","),
+  ].join("\n");
+  const product = buildProductsFromShopifyCsv(csv).products[0];
+
+  assert.equal(product?.priceUsd, 410);
+  assert.equal(product?.priceEur, 355.85);
+  assert.equal(product?.priceUah, 18860);
+  assert.equal(product?.variants[0]?.priceUsd, 410);
+  assert.equal(product?.variants[0]?.priceEur, 355.85);
+  assert.equal(product?.variants[0]?.priceUah, 18860);
+  assert.equal(product?.weight, 5.83);
+  assert.equal(product?.length, 70);
+  assert.equal(product?.variants[0]?.weight, 5.83);
+  assert.equal(product?.variants[0]?.height, 35);
+  assert.equal(product?.variants[0]?.isDimensionsEstimated, true);
+  assert.equal(product?.variants[0]?.compareAtUsd, null);
+  assert.equal(product?.variants[0]?.compareAtEur, null);
+  assert.equal(product?.variants[0]?.compareAtUah, null);
+});
+
+test("CSV update masks include explicit multi-currency prices and package dimensions", () => {
+  const mask = buildAdminProductCsvScalarMask([
+    "Handle",
+    "Variant Price USD",
+    "Variant Price EUR",
+    "Variant Price",
+    "Variant Compare At Price USD",
+    "Variant Compare At Price EUR",
+    "Variant Compare At Price",
+    "Variant Weight",
+    "Variant Length",
+    "Variant Width",
+    "Variant Height",
+    "Variant Dimensions Estimated",
+  ]);
+
+  assert.equal(mask.product.priceUsd, true);
+  assert.equal(mask.product.priceEur, true);
+  assert.equal(mask.product.priceUah, true);
+  assert.equal(mask.product.compareAtUsd, true);
+  assert.equal(mask.product.compareAtEur, true);
+  assert.equal(mask.product.compareAtUah, true);
+  assert.equal(mask.variants?.weight, true);
+  assert.equal(mask.variants?.length, true);
+  assert.equal(mask.variants?.width, true);
+  assert.equal(mask.variants?.height, true);
+  assert.equal(mask.variants?.isDimensionsEstimated, true);
 });

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
 import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
 import { SHOP_REMOTE_IMAGE_HOSTS } from "./src/lib/shopImageHosts";
@@ -224,6 +225,11 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
+  // This Windows checkout shares node_modules with a sibling checkout.
+  // Turbopack needs a root containing both for the database-free local preview.
+  turbopack: !isProd && !isVercel && process.env.SHOP_LOCAL_CATALOG_SNAPSHOT === "1"
+    ? { root: path.resolve(process.cwd(), "..") }
+    : undefined,
 
   // Для Docker standalone output
   output: isVercel ? undefined : "standalone",

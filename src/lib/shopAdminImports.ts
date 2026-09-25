@@ -39,6 +39,7 @@ import {
   validateSupplierFitmentParentReference,
 } from "@/lib/shopImportFitment";
 import type { ShopCatalogCoordinatedMutationResult } from "@/lib/shopCatalogMutationCoordinator.server";
+import { revalidateShopStorefrontProducts } from "@/lib/shopStorefrontRevalidation";
 
 export const adminImportTemplateSelect = {
   id: true,
@@ -541,6 +542,7 @@ export function buildAdminProductCsvScalarMask(
     "collection_en"
   );
   const priceEur = has(
+    "Variant Price EUR",
     "price_eur (product.metafields.custom.price_eur)",
     "custom_price_eur (product.metafields.custom.custom_price_eur)"
   );
@@ -570,8 +572,16 @@ export function buildAdminProductCsvScalarMask(
       collectionUa: has("vehicle (product.metafields.custom.vehicle)"),
       collectionEn,
       priceEur,
+      priceUsd: has("Variant Price USD"),
       priceUah: has("Variant Price"),
+      compareAtEur: has("Variant Compare At Price EUR"),
+      compareAtUsd: has("Variant Compare At Price USD"),
       compareAtUah: has("Variant Compare At Price"),
+      weight: has("Variant Weight"),
+      length: has("Variant Length"),
+      width: has("Variant Width"),
+      height: has("Variant Height"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated"),
       image,
       gallery: has("Image Src"),
       seoTitleUa: has("SEO Title"),
@@ -610,8 +620,16 @@ export function buildAdminProductCsvScalarMask(
       inventoryPolicy: has("Variant Inventory Policy"),
       fulfillmentService: has("Variant Fulfillment Service"),
       priceEur,
+      priceUsd: has("Variant Price USD"),
       priceUah: has("Variant Price"),
+      compareAtEur: has("Variant Compare At Price EUR"),
+      compareAtUsd: has("Variant Compare At Price USD"),
       compareAtUah: has("Variant Compare At Price"),
+      weight: has("Variant Weight"),
+      length: has("Variant Length"),
+      width: has("Variant Width"),
+      height: has("Variant Height"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated"),
       requiresShipping: has("Variant Requires Shipping"),
       taxable: has("Variant Taxable"),
       barcode: has("Variant Barcode"),
@@ -1049,6 +1067,7 @@ export async function runShopCsvImport(
   let updated = 0;
   let skipped = 0;
   const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
+  const productsToRevalidate: Array<{ slug: string; brand?: string | null; vendor?: string | null; tags?: string[] | null }> = [];
   const commitErrors: ImportRowErrorInput[] = [...validationErrors];
 
   for (const { data, rowIndex, relationMask } of productsToUpsert) {
@@ -1090,11 +1109,13 @@ export async function runShopCsvImport(
             scalarMask,
           })
         );
+        productsToRevalidate.push({ slug: data.slug, brand: data.brand, vendor: data.vendor, tags: data.tags });
         updated += 1;
         continue;
       }
 
       catalogMutations.push(await catalogWriter.create({ prisma, session, data }));
+      productsToRevalidate.push({ slug: data.slug, brand: data.brand, vendor: data.vendor, tags: data.tags });
       created += 1;
     } catch (error) {
       commitErrors.push({
@@ -1154,6 +1175,8 @@ export async function runShopCsvImport(
       conflictMode,
     },
   });
+
+  revalidateShopStorefrontProducts(productsToRevalidate);
 
   return {
     created,

@@ -1394,20 +1394,41 @@ export function buildAdminProductImportUpdateData(
       }
 
       const skuIdentity = importIdentity(item.sku);
+      const optionIdentity = importVariantOptionIdentity(item);
+      const unusedVariants = current.variants.filter((candidate) => !usedIds.has(candidate.id));
       if (!existing && skuIdentity) {
-        existing = requireSingleImportMatch(
-          "variant SKU",
-          item.sku ?? skuIdentity,
-          current.variants.filter((candidate) => importIdentity(candidate.sku) === skuIdentity)
+        const skuMatches = unusedVariants.filter(
+          (candidate) => importIdentity(candidate.sku) === skuIdentity
         );
+        if (skuMatches.length === 1) {
+          existing = skuMatches[0];
+        } else if (skuMatches.length > 1) {
+          const optionMatches = optionIdentity
+            ? skuMatches.filter((candidate) => importVariantOptionIdentity(candidate) === optionIdentity)
+            : [];
+          if (optionMatches.length === 1) {
+            existing = optionMatches[0];
+          } else {
+            const positionMatches = data.variants.length === current.variants.length
+              ? skuMatches.filter((candidate) => candidate.position === item.position)
+              : [];
+            existing = requireSingleImportMatch(
+              "variant SKU and position",
+              `${item.sku ?? skuIdentity} @ ${item.position ?? "?"}`,
+              positionMatches
+            );
+            if (!existing) {
+              throw new Error(`Ambiguous variant SKU in import update: ${item.sku ?? skuIdentity}`);
+            }
+          }
+        }
       }
 
-      const optionIdentity = importVariantOptionIdentity(item);
       if (!existing && optionIdentity) {
         existing = requireSingleImportMatch(
           "variant options",
           optionIdentity,
-          current.variants.filter(
+          unusedVariants.filter(
             (candidate) => importVariantOptionIdentity(candidate) === optionIdentity
           )
         );
