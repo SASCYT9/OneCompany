@@ -22,7 +22,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Invoke Atomic price sync
@@ -35,6 +35,6 @@ jobs:
             url="${url}?dryRun=1"
           fi
           curl --fail-with-body --show-error --silent \
-            --retry 3 --retry-all-errors --max-time 600 \
+            --retry 4 --retry-all-errors --max-time 600 \
             --header "Authorization: Bearer ${CRON_SECRET}" \
             "$url"
