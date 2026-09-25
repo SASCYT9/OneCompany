@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import Papa from "papaparse";
 import { htmlToPlainText, sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { matchesBearerSecret, resolveSecret } from "@/lib/requestSecrets";
+import { determineProductScope } from "@/lib/akrapovicFilterUtils";
+import { calculateAtomicPricing, parseAtomicPriceUah } from "@/lib/atomicFeedPricing";
 import {
   publishShopCatalogImportCreation,
   publishShopCatalogImportUpdate,
@@ -23,22 +25,15 @@ const atomicCronSession = {
 export const maxDuration = 300; // 5 minutes max duration for Vercel
 export const dynamic = "force-dynamic";
 
-function parseAtomicPrice(row: Record<string, unknown>): number | undefined {
-  const candidates = [row.price_uah, row.price, row.retail, row.rrp];
-
-  for (const candidate of candidates) {
-    if (candidate === null || candidate === undefined) continue;
-
-    const normalized = String(candidate).trim().replace(",", ".");
-    if (!normalized) continue;
-
-    const parsed = Number.parseFloat(normalized);
-    if (!Number.isNaN(parsed)) {
-      return Math.round(parsed);
-    }
-  }
-
-  return undefined;
+function toAtomicPriceFields(pricing: NonNullable<ReturnType<typeof calculateAtomicPricing>>) {
+  return {
+    priceEur: pricing.priceEur,
+    priceUsd: null,
+    priceUah: pricing.priceUah,
+    compareAtEur: pricing.compareAtEur,
+    compareAtUsd: null,
+    compareAtUah: pricing.compareAtUah,
+  };
 }
 
 export async function GET(request: Request) {
@@ -54,7 +49,10 @@ export async function GET(request: Request) {
 
     console.log("Fetching Atomic Feed...");
     const feedUrl = "https://feed.atomic-shop.ua/feed_tts.csv";
-    const response = await fetch(feedUrl);
+    const response = await fetch(feedUrl, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(60_000),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch atomic feed: ${response.statusText}`);
@@ -103,7 +101,7 @@ export async function GET(request: Request) {
       const categoryName = row.category || null;
       const imgLink = row.img_link || null;
 
-      const priceUah = parseAtomicPrice(row);
+      const rawPriceUah = parseAtomicPriceUah(row);
 
       // Find variant by SKU/MPN
       const variants = await prisma.shopProductVariant.findMany({
@@ -119,7 +117,7 @@ export async function GET(request: Request) {
         select: {
           id: true,
           productId: true,
-          product: { select: { catalogVersion: true } },
+          product: { select: { catalogVersion: true, scope: true } },
         },
       });
 
@@ -131,19 +129,27 @@ export async function GET(request: Request) {
           byProduct.set(variant.productId, group);
         }
         for (const [productId, group] of byProduct) {
+          const pricing =
+            rawPriceUah === undefined
+              ? null
+              : calculateAtomicPricing(
+                  rawPriceUah,
+                  group[0]!.product.scope === "moto" ? "moto" : "other"
+                );
+          const priceFields = pricing ? toAtomicPriceFields(pricing) : null;
           catalog.push(
             await publishShopCatalogImportUpdate({
               productId,
               expectedCatalogVersion: group[0]!.product.catalogVersion,
               updateData: {
                 stock: stockVal > 0 ? "inStock" : "outOfStock",
-                ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                ...(priceFields ?? {}),
                 variants: {
                   update: group.map((variant) => ({
                     where: { id: variant.id },
                     data: {
                       inventoryQty: isNaN(stockVal) ? 0 : stockVal,
-                      ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                      ...(priceFields ?? {}),
                     },
                   })),
                 },
@@ -157,6 +163,12 @@ export async function GET(request: Request) {
       } else {
         // Product not found, create new one
         const slug = generateSlug(brand, mpn);
+        const scope = determineProductScope(brand, mpn, String(title));
+        const pricing =
+          rawPriceUah === undefined
+            ? null
+            : calculateAtomicPricing(rawPriceUah, scope === "moto" ? "moto" : "other");
+        const priceFields = pricing ? toAtomicPriceFields(pricing) : null;
 
         // Ensure slug uniqueness (basic check)
         const existingSlug = await prisma.shopProduct.findUnique({ where: { slug } });
@@ -167,7 +179,7 @@ export async function GET(request: Request) {
             slug: finalSlug,
             sku: mpn,
             brand,
-            scope: "auto",
+            scope,
             isPublished: true,
             status: "ACTIVE",
             stock: stockVal > 0 ? "inStock" : "outOfStock",
@@ -185,7 +197,7 @@ export async function GET(request: Request) {
             categoryEn: categoryName,
             productCategory: categoryName,
             image: imgLink,
-            ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+            ...(priceFields ?? {}),
             variants: {
               create: [
                 {
@@ -196,7 +208,7 @@ export async function GET(request: Request) {
                   requiresShipping: true,
                   image: imgLink,
                   isDefault: true,
-                  ...(priceUah !== undefined && !isNaN(priceUah) && { priceUah }),
+                  ...(priceFields ?? {}),
                 },
               ],
             },

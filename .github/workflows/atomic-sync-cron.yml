@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: monthly-atomic-feed-sync
+  group: atomic-feed-sync
   cancel-in-progress: false
 
 jobs:
