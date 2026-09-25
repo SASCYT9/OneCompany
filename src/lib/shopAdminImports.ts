@@ -541,6 +541,7 @@ export function buildAdminProductCsvScalarMask(
     "collection_en"
   );
   const priceEur = has(
+    "Variant Price EUR",
     "price_eur (product.metafields.custom.price_eur)",
     "custom_price_eur (product.metafields.custom.custom_price_eur)"
   );
@@ -570,8 +571,16 @@ export function buildAdminProductCsvScalarMask(
       collectionUa: has("vehicle (product.metafields.custom.vehicle)"),
       collectionEn,
       priceEur,
+      priceUsd: has("Variant Price USD"),
       priceUah: has("Variant Price"),
+      compareAtEur: has("Variant Compare At Price EUR"),
+      compareAtUsd: has("Variant Compare At Price USD"),
       compareAtUah: has("Variant Compare At Price"),
+      weight: has("Variant Weight"),
+      length: has("Variant Length"),
+      width: has("Variant Width"),
+      height: has("Variant Height"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated"),
       image,
       gallery: has("Image Src"),
       seoTitleUa: has("SEO Title"),
@@ -610,8 +619,16 @@ export function buildAdminProductCsvScalarMask(
       inventoryPolicy: has("Variant Inventory Policy"),
       fulfillmentService: has("Variant Fulfillment Service"),
       priceEur,
+      priceUsd: has("Variant Price USD"),
       priceUah: has("Variant Price"),
+      compareAtEur: has("Variant Compare At Price EUR"),
+      compareAtUsd: has("Variant Compare At Price USD"),
       compareAtUah: has("Variant Compare At Price"),
+      weight: has("Variant Weight"),
+      length: has("Variant Length"),
+      width: has("Variant Width"),
+      height: has("Variant Height"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated"),
       requiresShipping: has("Variant Requires Shipping"),
       taxable: has("Variant Taxable"),
       barcode: has("Variant Barcode"),

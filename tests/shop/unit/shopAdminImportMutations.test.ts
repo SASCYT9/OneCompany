@@ -205,3 +205,35 @@ test("import merge fails closed when a variant SKU cannot identify one existing 
     /Ambiguous variant SKU/i
   );
 });
+
+test("import merge uses option identity to retain products with duplicate supplier SKUs", () => {
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: "safe-product",
+    titleUa: "Безпечний товар",
+    titleEn: "Safe product",
+    options: [{ name: "Finish", position: 1, values: ["Gloss", "Matte"] }],
+    variants: [
+      { sku: "DUPLICATE", title: "Gloss", option1Value: "Gloss", position: 1 },
+      { sku: "DUPLICATE", title: "Matte", option1Value: "Matte", position: 2 },
+    ],
+  });
+  assert.deepEqual(errors, []);
+  const duplicateSkuProduct: AdminProductImportMergeRecord = {
+    ...currentProduct,
+    variants: currentProduct.variants.map((variant, index) => ({
+      ...variant,
+      sku: "DUPLICATE",
+      option1Value: index === 0 ? "Gloss" : "Matte",
+    })),
+  };
+
+  const update = buildAdminProductImportUpdateData(data, duplicateSkuProduct, {
+    ...omittedRelations,
+    variants: true,
+  }) as { variants: { update: Array<{ where: { id: string } }> } };
+
+  assert.deepEqual(update.variants.update.map((entry) => entry.where.id), [
+    "variant-1",
+    "variant-unmentioned",
+  ]);
+});
