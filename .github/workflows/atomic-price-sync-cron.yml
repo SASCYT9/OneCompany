@@ -1,0 +1,40 @@
+name: Weekly Atomic Price Sync
+
+on:
+  schedule:
+    # Every Monday at 05:00 UTC, after the monthly full-feed sync's 04:00 UTC slot.
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview price changes without applying them"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atomic-feed-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Invoke Atomic price sync
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          url="https://onecompany.global/api/admin/cron/atomic-price-sync"
+          if [ "$DRY_RUN" = "true" ]; then
+            url="${url}?dryRun=1"
+          fi
+          curl --fail-with-body --show-error --silent \
+            --retry 3 --retry-all-errors --max-time 600 \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "$url"

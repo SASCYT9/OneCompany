@@ -26,11 +26,12 @@ export async function publishShopCatalogImportUpdate(input: {
   updateData: Prisma.ShopProductUpdateInput;
   session: AdminSession;
   reason: string;
+  changeDomains?: readonly (typeof FULL_IMPORT_DOMAINS)[number][];
 }) {
   return coordinateShopCatalogProductMutation({
     productId: input.productId,
     expectedCatalogVersion: input.expectedCatalogVersion.toString(),
-    changeDomains: FULL_IMPORT_DOMAINS,
+    changeDomains: input.changeDomains ?? FULL_IMPORT_DOMAINS,
     async mutateAndSnapshot(tx, nextCatalogVersion) {
       await tx.shopProduct.update({ where: { id: input.productId }, data: input.updateData });
       return buildShopCatalogAdminSnapshot(tx, input.productId, nextCatalogVersion, {
