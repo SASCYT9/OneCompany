@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderGirodiscProductsCatalogPage({ params }: Props, requestedPage = 1) {
+async function renderGirodiscProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
@@ -136,6 +136,4 @@ export async function renderGirodiscProductsCatalogPage({ params }: Props, reque
   );
 }
 
-export default function GirodiscProductsCatalogPage(props: Props) {
-  return renderGirodiscProductsCatalogPage(props);
-}
+export default renderGirodiscProductsCatalogPage;

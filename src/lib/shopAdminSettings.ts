@@ -2,9 +2,10 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
 
-export const SHOP_CURRENCIES = ["EUR", "USD", "UAH"] as const;
-export type ShopCurrencyCode = (typeof SHOP_CURRENCIES)[number];
+export { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES };
+export type { ShopCurrencyCode };
 
 export const SHOP_SHIPPING_MODES = ["calculated", "included"] as const;
 export type ShopShippingMode = (typeof SHOP_SHIPPING_MODES)[number];
@@ -172,12 +173,6 @@ export type ShopSettingsPayload = {
   fopEdrpou: string | null;
   fopDetails: string | null;
   whiteBitEnabled: boolean;
-};
-
-export const DEFAULT_CURRENCY_RATES: Record<ShopCurrencyCode, number> = {
-  EUR: 1,
-  USD: 1.152174,
-  UAH: 53,
 };
 
 export const DEFAULT_SHIPPING_ZONES: ShopShippingZone[] = [

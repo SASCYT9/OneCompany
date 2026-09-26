@@ -90,14 +90,22 @@ export async function POST(request: NextRequest) {
   }
 
   const shippingAddress = normalizeShippingAddress(body.shipping);
-  const quote = await buildCheckoutQuote(prisma, {
-    items,
-    shippingAddress,
-    currency: body.currency,
-    customerGroup: session?.group ?? null,
-    customerId: session?.customerId ?? null,
-    customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
-  });
+  let quote: Awaited<ReturnType<typeof buildCheckoutQuote>>;
+  try {
+    quote = await buildCheckoutQuote(prisma, {
+      items,
+      shippingAddress,
+      currency: body.currency,
+      customerGroup: session?.group ?? null,
+      customerId: session?.customerId ?? null,
+      customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
+    });
+  } catch (error) {
+    if ((error as Error).message === "WHEELFORCE_SET_OF_FOUR_REQUIRED") {
+      return NextResponse.json({ error: "WheelForce wheels are sold in sets of four", code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+    }
+    throw error;
+  }
 
   const response = NextResponse.json({
     currency: quote.currency,

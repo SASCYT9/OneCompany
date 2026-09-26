@@ -19,6 +19,7 @@ import {
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 
 type Props = {
   locale: SupportedLocale;
@@ -306,7 +307,10 @@ function CrossShopCard({ match, locale }: { match: CrossShopMatch; locale: Suppo
           </ul>
         ) : null}
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-foreground/12 pt-3">
-          <ShopInlinePriceText locale={locale} price={product.price} />
+          <ShopInlinePriceText
+            locale={locale}
+            price={isWheelForceWheel(product) ? wheelForceSetMoney(product.price) : product.price}
+          />
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/80 dark:text-foreground/65 transition-colors group-hover:text-foreground">
             {isUa ? "Перейти" : "View"}
             <svg

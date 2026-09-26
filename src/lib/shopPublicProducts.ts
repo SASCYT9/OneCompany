@@ -4,12 +4,15 @@ import {
   resolveShopProductPricing,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
+import { isWheelForceWheel, wheelForceSetPricing } from "@/lib/wheelforceFamily";
 
 export function serializePublicShopProduct(
   product: ShopProduct,
   context: ShopViewerPricingContext
 ) {
   const pricing = resolveShopProductPricing(product, context);
+  const wheelSet = isWheelForceWheel(product);
+  const displayPricing = wheelSet ? wheelForceSetPricing(pricing) : pricing;
 
   return {
     id: product.id ?? null,
@@ -20,6 +23,7 @@ export function serializePublicShopProduct(
     vendor: product.vendor ?? null,
     productType: product.productType ?? null,
     tags: product.tags ?? [],
+    wheelForceSet: product.wheelForceSet ?? null,
     title: product.title,
     category: product.category,
     categoryNode: product.categoryNode ?? null,
@@ -54,9 +58,9 @@ export function serializePublicShopProduct(
       b2bVisible: pricing.b2bVisible,
       requestQuote: pricing.requestQuote,
       discountPercent: pricing.discountPercent,
-      effectivePrice: pricing.effectivePrice,
-      effectiveCompareAt: pricing.effectiveCompareAt,
-      bands: pricing.bands,
+      effectivePrice: displayPricing.effectivePrice,
+      effectiveCompareAt: displayPricing.effectiveCompareAt,
+      bands: displayPricing.bands,
     },
     variants:
       product.variants?.map((variant) => {
@@ -70,6 +74,7 @@ export function serializePublicShopProduct(
           brand: product.brand,
         });
 
+        const displayVariantPricing = wheelSet ? wheelForceSetPricing(variantPricing) : variantPricing;
         return {
           id: variant.id ?? null,
           title: variant.title ?? null,
@@ -86,9 +91,9 @@ export function serializePublicShopProduct(
             b2bVisible: variantPricing.b2bVisible,
             requestQuote: variantPricing.requestQuote,
             discountPercent: variantPricing.discountPercent,
-            effectivePrice: variantPricing.effectivePrice,
-            effectiveCompareAt: variantPricing.effectiveCompareAt,
-            bands: variantPricing.bands,
+            effectivePrice: displayVariantPricing.effectivePrice,
+            effectiveCompareAt: displayVariantPricing.effectiveCompareAt,
+            bands: displayVariantPricing.bands,
           },
         };
       }) ?? [],

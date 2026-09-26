@@ -8,6 +8,7 @@ import type {
 } from "@/lib/shopCatalogProjectionQuery.server";
 import type { ShopCatalogStorefrontQuery } from "@/lib/shopCatalogStorefrontQuery";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
+import { isExactWheelForceSkuSearch, isWheelForceWheelSet } from "@/lib/wheelforceFamily";
 import CatalogV2Filters from "./CatalogV2Filters";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
@@ -94,11 +95,22 @@ export default function CatalogV2Server({
         ) : (
           <div className="mt-10 grid grid-cols-1 gap-px bg-zinc-200 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 dark:bg-white/10">
             {result.items.map((item, index) => {
-              const href = buildShopStorefrontProductPath(locale, {
+              const baseHref = buildShopStorefrontProductPath(locale, {
                 slug: item.slug,
                 brand: item.brandLabel || item.brandKey,
               });
+              const href = item.brandKey.toLowerCase() === "wheelforce" && isExactWheelForceSkuSearch(query.text)
+                ? `${baseHref}?variantSku=${encodeURIComponent(query.text?.trim() ?? "")}`
+                : baseHref;
               const pricing = cardPrices[item.productId];
+              const isWheelSet =
+                (item.brandKey.toLowerCase() === "wheelforce" && item.slug.startsWith("wheelforce-set-")) ||
+                isWheelForceWheelSet({
+                  brand: item.brandLabel || item.brandKey,
+                  partNumber: item.normalizedSku,
+                  productType: item.productTypeKey,
+                  category: item.categoryLabel,
+                });
               return (
                 <Link
                   key={item.productId}
@@ -138,6 +150,11 @@ export default function CatalogV2Server({
                         initialViewerContext={pricingContext}
                         variant="minimal"
                       />
+                      {isWheelSet ? (
+                        <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-zinc-500">
+                          {locale === "ua" ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
                 </Link>

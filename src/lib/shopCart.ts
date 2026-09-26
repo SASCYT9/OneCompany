@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
   resolveShopPriceBands,
   resolveShopProductPricing,
@@ -376,6 +377,15 @@ export async function updateShopCartItemQuantity(
   if (!existing) {
     throw new Error("CART_ITEM_NOT_FOUND");
   }
+  if (input.quantity > 0) {
+    const product = await getShopProductBySlugServer(existing.productSlug);
+    if (
+      product && isWheelForceWheel(product) &&
+      (input.quantity < WHEELFORCE_WHEEL_SET_SIZE || input.quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0)
+    ) {
+      throw new Error("WHEELFORCE_SET_OF_FOUR_REQUIRED");
+    }
+  }
 
   const nextItems = cart.items.map((item) => ({
     slug: item.productSlug,
@@ -468,6 +478,7 @@ export async function serializeResolvedShopCart(
       id: item.id,
       slug: item.productSlug,
       quantity: item.quantity,
+      packSize: isWheelForceWheel(product) ? WHEELFORCE_WHEEL_SET_SIZE : 1,
       variantId: item.variantId,
       variantTitle: variant?.title ?? null,
       title: product.title,
@@ -493,6 +504,6 @@ export async function serializeResolvedShopCart(
     currency: cart.currency,
     locale: cart.locale,
     items,
-    totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
+    totalItems: items.reduce((sum, item) => sum + Math.ceil(item.quantity / (item.packSize ?? 1)), 0),
   };
 }

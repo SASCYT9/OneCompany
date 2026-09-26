@@ -2,6 +2,7 @@ import type { ShopMoneySet } from "@/lib/shopCatalog";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
+import { isWheelForceWheelSet } from "@/lib/wheelforceFamily";
 import {
   parseShopStorefrontDisplay,
   SHOP_STOREFRONT_DISPLAY_NAMESPACE,
@@ -190,6 +191,14 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
 
   return rows
     .map((row) => {
+      const wheelSet = isWheelForceWheelSet({
+        brand: resolveShopProductBrand(row),
+        sku: row.sku,
+      });
+      const preferredPrice = (productValue: unknown, variantValue: unknown) =>
+        wheelSet
+          ? variantValue ?? productValue
+          : productValue ?? variantValue;
       const variant = {
         id: row.variantId,
         sku: row.variantSku,
@@ -219,11 +228,11 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
                 showInCarousel: false,
               }),
         price: money(
-          row.priceEur ?? variant.priceEur,
-          row.priceUsd ?? variant.priceUsd,
-          row.priceUah ?? variant.priceUah
+          preferredPrice(row.priceEur, variant.priceEur),
+          preferredPrice(row.priceUsd, variant.priceUsd),
+          preferredPrice(row.priceUah, variant.priceUah)
         ),
-        europePrice: present(money(row.priceEurEurope ?? variant.priceEurEurope, 0, 0)),
+        europePrice: present(money(preferredPrice(row.priceEurEurope, variant.priceEurEurope), 0, 0)),
         b2bPrice: present(
           money(
             row.priceEurB2b ?? variant.priceEurB2b,

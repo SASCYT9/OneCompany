@@ -20,6 +20,7 @@ import {
   type Fitment,
 } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
+import { isExactWheelForceSkuSearch, isWheelForceWheel, wheelForceSetMoney, WHEELFORCE_FAMILY_CHILD_TAG } from "@/lib/wheelforceFamily";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -460,7 +461,30 @@ async function loadShopBrowseProductsWithFitments() {
     includeVariants: false,
     includeCollections: false,
   });
-  cachedBrowseProductsWithFitment = products.map((product) => indexProductWithFitment(product));
+  const wheelForceIds = products
+    .filter((product) => normalizeShopSearchText(product.brand) === "wheelforce")
+    .map((product) => product.id)
+    .filter((id): id is string => Boolean(id));
+  const fitmentOverrides = wheelForceIds.length
+    ? await prisma.shopProductMetafield.findMany({
+        where: {
+          productId: { in: wheelForceIds },
+          namespace: NORMALIZED_FITMENT_NAMESPACE,
+          key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+        },
+        select: { productId: true, key: true, value: true },
+      })
+    : [];
+  const overrides = new Map<string, { manual?: string; supplier?: string }>();
+  for (const item of fitmentOverrides) {
+    const current = overrides.get(item.productId) ?? {};
+    if (item.key === NORMALIZED_FITMENT_KEY) current.manual = item.value;
+    if (item.key === SUPPLIER_FITMENT_KEY) current.supplier = item.value;
+    overrides.set(item.productId, current);
+  }
+  cachedBrowseProductsWithFitment = products.map((product) =>
+    indexProductWithFitment(product, product.id ? overrides.get(product.id) : null)
+  );
   cachedBrowseTimestamp = now;
   return cachedBrowseProductsWithFitment;
 }
@@ -1151,8 +1175,11 @@ export async function searchShopStock(request: { url: string }) {
         getProductPricing(product).effectivePrice,
         settings.currencyRates
       );
-      priceSetCache.set(product, effectivePriceSet);
-      return effectivePriceSet;
+      const displayPriceSet = isWheelForceWheel(product)
+        ? wheelForceSetMoney(effectivePriceSet)
+        : effectivePriceSet;
+      priceSetCache.set(product, displayPriceSet);
+      return displayPriceSet;
     };
 
     const getProductPriceForSort = (product: any) => {
@@ -1525,6 +1552,11 @@ export async function searchShopStock(request: { url: string }) {
       );
     }
 
+    if (!isExactWheelForceSkuSearch(q)) {
+      scoredItems = scoredItems.filter((item) =>
+        !(item.product.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG)
+      );
+    }
     const totalItems = scoredItems.length;
     const totalPages = Math.ceil(totalItems / limit);
     const paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
@@ -1592,17 +1624,23 @@ export async function searchShopStock(request: { url: string }) {
         const usdRate = settings.currencyRates.USD || 1.152174;
         const uahRate = settings.currencyRates.UAH || 53.0;
 
-        const effectivePriceSet = expandShopPrices(pricing.effectivePrice, settings.currencyRates);
+        const effectivePriceSet = getProductPriceSet(product);
 
-        const expandedEffectiveCompareAtSet = pricing.effectiveCompareAt
+        const unitEffectiveCompareAtSet = pricing.effectiveCompareAt
           ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
+          : null;
+        const expandedEffectiveCompareAtSet = unitEffectiveCompareAtSet
+          ? isWheelForceWheel(product) ? wheelForceSetMoney(unitEffectiveCompareAtSet) : unitEffectiveCompareAtSet
           : null;
         const effectiveCompareAtSet = hasAnyShopMoney(expandedEffectiveCompareAtSet)
           ? expandedEffectiveCompareAtSet
           : null;
 
-        const expandedB2cPriceSet = pricing.bands?.b2c?.price
+        const unitB2cPriceSet = pricing.bands?.b2c?.price
           ? expandShopPrices(pricing.bands.b2c.price, settings.currencyRates)
+          : null;
+        const expandedB2cPriceSet = unitB2cPriceSet
+          ? isWheelForceWheel(product) ? wheelForceSetMoney(unitB2cPriceSet) : unitB2cPriceSet
           : null;
         const b2cCompareAtFallback = hasAnyShopMoney(expandedB2cPriceSet)
           ? expandedB2cPriceSet
@@ -1683,7 +1721,9 @@ export async function searchShopStock(request: { url: string }) {
           originalPriceSet: compareAtPriceSet,
           markupPct: pricing.discountPercent || 0,
           slug: product.slug,
-          href: buildShopStorefrontProductPathForProduct(locale, product),
+          href: isExactWheelForceSkuSearch(q) && product.brand.toLowerCase() === "wheelforce"
+            ? `${buildShopStorefrontProductPathForProduct(locale, product)}?variantSku=${encodeURIComponent(q.trim())}`
+            : buildShopStorefrontProductPathForProduct(locale, product),
           variantId: strictCatalogMatch?.variantId || defaultVariant?.id || null,
           turn14Id: "", // empty so frontend knows it's a shop product
           source: "local" as const,

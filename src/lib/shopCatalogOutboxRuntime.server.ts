@@ -81,6 +81,7 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
 export async function runShopCatalogOutboxRuntime(input: {
   workerId: string;
   limit?: number;
+  outboxIds?: readonly string[];
 }): Promise<ShopCatalogOutboxRuntimeResult> {
   const jobs = await claimShopCatalogOutbox(input);
   const results: ShopCatalogOutboxProcessResult[] = [];

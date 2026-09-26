@@ -30,7 +30,7 @@ import { useCatalogOverlay } from "@/components/shop/useCatalogOverlay";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { DEFAULT_CURRENCY_RATES } from "@/lib/shopAdminSettings";
+import { DEFAULT_CURRENCY_RATES } from "@/lib/shopCurrencyDefaults";
 import {
   convertShopCurrencyAmount,
   convertShopMoney,
@@ -41,6 +41,7 @@ import {
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
+import { isWheelForceWheel, isWheelForceWheelSet, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import { getVehicleMakeLogoPath, normalizeVehicleMakeName } from "@/lib/vehicleMakeLogos";
 import {
   canonicalVehicleModelLabel,
@@ -328,7 +329,9 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("adro")) return "/images/shop/adro/adro-logo-white.svg";
   if (b.includes("brabus")) return "/logos/brabus.svg";
   if (b.includes("racechip")) return "/logos/racechip.png";
-  if (b.includes("revozport")) return "/brands/revozport-logo.png";
+  if (b.includes("revozport")) return "/logos/revozport-official-white.png";
+  if (b.includes("wheelforce")) return "/logos/wheelforce.svg";
+  if (b === "mst" || b.includes("mst performance")) return "/logos/mst-performance.png";
   if (b.includes("do88")) return "/logos/do88.png";
   if (b.includes("csf")) return "/images/shop/csf/csf-logo.svg";
   if (b.includes("ohlins")) return "/logos/ohlins.svg";
@@ -342,7 +345,7 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("vf engineering") || b.includes("vf-engineering"))
     return "/logos/vf-engineering.png";
   if (b.includes("vorsteiner")) return "/logos/vorsteiner.png";
-  if (b.includes("eventuri")) return "/brands/eventuri-logo.svg";
+  if (b.includes("eventuri")) return "/logos/eventuri-official.svg";
   if (b.includes("remus")) return "/logos/remus-dark.png";
   if (b.includes("fi exhaust") || b.includes("fi-exhaust")) return "/logos/fi-exhaust.svg";
   if (b.includes("bootmod3")) return "/logos/bootmod3.webp";
@@ -359,6 +362,8 @@ const getBrandLightLogoPath = (brandName: string, fallback: string): string => {
   if (b.includes("ipe exhaust") || b === "ipe" || b.includes("innotech performance"))
     return "/images/shop/ipe/ipe-logo.png";
   if (b.includes("remus")) return "/logos/remus.png";
+  if (b.includes("revozport")) return "/logos/revozport-official-black.png";
+  if (b.includes("eventuri")) return "/brands/eventuri-logo-email.png";
   return fallback;
 };
 
@@ -375,9 +380,9 @@ const LOGO_CONTRAST_LIFT_BRANDS = [
   "vorsteiner",
 ];
 
-const LOGO_INVERT_BRANDS = ["brabus", "revozport"];
+const LOGO_INVERT_BRANDS = ["brabus", "wheelforce"];
 
-const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban", "eventuri"];
+const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban"];
 
 const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "burger"];
 
@@ -462,7 +467,7 @@ function BrandLogoTile({
   const hasThemeSpecificLogo = lightThemeLogoPath !== logoPath;
   const sizeClass =
     size === "xs"
-      ? "h-5 w-11"
+      ? "h-6 w-[72px]"
       : size === "lg"
         ? "h-9 w-28"
         : size === "md"
@@ -470,7 +475,7 @@ function BrandLogoTile({
           : "h-6 w-[76px]";
   const imageSizeClass =
     size === "xs"
-      ? "max-h-4 max-w-10"
+      ? "max-h-5 max-w-[72px]"
       : size === "lg"
         ? "max-h-8 max-w-28"
         : size === "md"
@@ -485,7 +490,7 @@ function BrandLogoTile({
         : needsContrastLift
           ? "[filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.2))_brightness(0.98)_contrast(1.12)] dark:[filter:drop-shadow(0_0_1px_rgba(255,255,255,0.72))_drop-shadow(0_0_7px_rgba(255,255,255,0.16))_drop-shadow(0_1px_2px_rgba(0,0,0,0.7))_brightness(1.08)_contrast(1.18)]"
           : "[filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.2))] dark:[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.62))]";
-  const imageScaleClass = needsWideBoost ? "scale-[1.1]" : "scale-100";
+  const imageScaleClass = needsWideBoost && size !== "xs" ? "scale-[1.1]" : "scale-100";
 
   if (failed) {
     return (
@@ -502,7 +507,7 @@ function BrandLogoTile({
 
   return (
     <span
-      className={`relative flex shrink-0 items-center justify-start overflow-visible ${sizeClass} ${className}`}
+      className={`relative flex shrink-0 items-center ${size === "xs" ? "justify-center" : "justify-start"} overflow-visible ${sizeClass} ${className}`}
       title={brandName}
     >
       <Image
@@ -622,6 +627,17 @@ function StockCardCartControl({
         className="flex h-10 w-full items-center justify-center rounded-[7px] border border-foreground/20 bg-foreground/[0.035] px-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground transition hover:border-foreground/45 hover:bg-foreground/[0.07]"
       >
         {isUa ? "Перевірити сумісність" : "Verify fitment"}
+      </Link>
+    );
+  }
+
+  if (item.brand.trim().toLowerCase() === "wheelforce") {
+    return (
+      <Link
+        href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+        className="flex h-10 w-full items-center justify-center rounded-[7px] border border-foreground bg-foreground px-3 text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-background shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition hover:-translate-y-px hover:brightness-110"
+      >
+        {isUa ? "Обрати розмір і аксесуари" : "Choose size and accessories"}
       </Link>
     );
   }
@@ -795,7 +811,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   };
 
   // Search state
-  const initialPage = useRef(parseStockPage(searchParams.get("page"))).current;
+  const initialPage = useRef(parseStockPage(
+    typeof window === "undefined"
+      ? searchParams.get("page")
+      : new URLSearchParams(window.location.search).get("page")
+  )).current;
   const initialBrands = parseShopStockParamList(searchParams, "brand");
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
@@ -834,7 +854,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [page, setPage] = useState(initialPage);
-  const paginationScrollTargetRef = useRef<number | null>(null);
   const [totalPages, setTotalPages] = useState(initialResponse?.meta?.totalPages || 1);
   const [correctedQuery, setCorrectedQuery] = useState<string | null>(
     initialResponse?.meta?.correctedQuery ?? null
@@ -1875,9 +1894,24 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   // Auto-search for filters and queries
   const searchTextKey = JSON.stringify([query, engineFilter, minPriceFilter, maxPriceFilter]);
   const previousSearchTextRef = useRef(searchTextKey);
+  const autoSearchFilterKey = JSON.stringify([
+    selectedBrands, make, model, chassis, requestedYear, engineFilter, fuelFilter,
+    opfGpfFilter, productKindFilter, strictMatch, query, stockFilter, sortOrder,
+    localCategory, productTypeFilter, minPriceFilter, maxPriceFilter, vehicleMode,
+  ]);
+  const autoSearchContextKey = JSON.stringify([currency, country, audienceKey, locale]);
+  const previousAutoSearchFilterKeyRef = useRef(autoSearchFilterKey);
+  const previousAutoSearchContextKeyRef = useRef(autoSearchContextKey);
   useEffect(() => {
     const isInitialSearch = initialSearchRef.current;
-    const searchPage = isInitialSearch ? initialPage : 1;
+    const filtersChanged = previousAutoSearchFilterKeyRef.current !== autoSearchFilterKey;
+    const contextChanged = previousAutoSearchContextKeyRef.current !== autoSearchContextKey;
+    // Pagination updates the URL and useSearchParams. Only a real filter change
+    // should start another search; otherwise page 2 immediately resets to 1.
+    if (!isInitialSearch && !filtersChanged && !contextChanged) return;
+    previousAutoSearchFilterKeyRef.current = autoSearchFilterKey;
+    previousAutoSearchContextKeyRef.current = autoSearchContextKey;
+    const searchPage = isInitialSearch ? initialPage : filtersChanged ? 1 : page;
     const delay = resolveShopStockSearchDelay({
       isInitialSearch,
       isScopeSearchImmediate: scopeSearchImmediateRef.current,
@@ -1916,22 +1950,14 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     doSearch,
     initialPage,
     searchTextKey,
+    autoSearchFilterKey,
+    autoSearchContextKey,
+    page,
   ]);
 
   useEffect(() => {
     syncUrlState(page, viewMode);
   }, [page, syncUrlState, viewMode]);
-
-  useEffect(() => {
-    const targetPage = paginationScrollTargetRef.current;
-    if (loading || targetPage === null) return;
-    paginationScrollTargetRef.current = null;
-    if (error || page !== targetPage) return;
-    document.getElementById("catalog-results")?.scrollIntoView({
-      block: "start",
-      behavior: shouldReduceMotion ? "instant" : "smooth",
-    });
-  }, [page, loading, error, shouldReduceMotion]);
 
   function handleSearch(e?: React.FormEvent) {
     e?.preventDefault();
@@ -3016,6 +3042,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
+        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
+        const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
         const availability =
           item.availability === undefined
             ? getShopConfirmedAvailability(item.partNumber, item.slug)
@@ -3123,9 +3151,16 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     >
                       {priceLabel}
                     </div>
-                    <div className="mt-1 text-[10px] font-light uppercase tracking-[0.1em] text-foreground/45">
-                      {isUa ? "за одиницю" : "per unit"}
-                    </div>
+                    {isWheelSet ? (
+                      <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
+                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                      </div>
+                    ) : null}
+                    {!isWheelSet ? (
+                      <div className="mt-1 text-[10px] font-light uppercase tracking-[0.1em] text-foreground/45">
+                        {isUa ? "за одиницю" : "per unit"}
+                      </div>
+                    ) : null}
                   </div>
                   <ShopAvailabilityBadge
                     availability={availability}
@@ -3145,6 +3180,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     >
                       {priceLabel}
                     </div>
+                    {isWheelSet ? (
+                      <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
+                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                      </div>
+                    ) : null}
                   </div>
                   <ShopAvailabilityBadge
                     availability={availability}
@@ -4336,6 +4376,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           const logoPath = getBrandLogoPath(item.brand);
                           const compareAtLabel = formatItemCompareAt(item);
                           const priceLabel = formatItemPrice(item);
+                          const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
+                          const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                           return (
                             <div
@@ -4453,6 +4495,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     >
                                       {priceLabel}
                                     </span>
+                                    {isWheelSet ? <span className="ml-2 text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</span> : null}
                                   </div>
                                 ) : (
                                   <div
@@ -4462,6 +4505,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
+                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
                               </div>
 
                               {/* Add to Cart button */}
@@ -4472,6 +4516,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     className="flex h-9 w-full items-center justify-center border border-amber-500/30 bg-amber-500/[0.06] px-3 text-center text-[9px] font-semibold uppercase tracking-[0.1em] text-foreground transition hover:border-amber-500/55"
                                   >
                                     {isUa ? "Перевірити сумісність" : "Verify fitment"}
+                                  </Link>
+                                ) : isWheelSet ? (
+                                  <Link
+                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    className="flex h-9 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
+                                  >
+                                    {isUa ? "Обрати комплект" : "Choose set"}
                                   </Link>
                                 ) : (
                                   <AddToCartButton
@@ -4497,6 +4548,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         const logoPath = getBrandLogoPath(item.brand);
                         const compareAtLabel = formatItemCompareAt(item);
                         const priceLabel = formatItemPrice(item);
+                        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
+                        const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                         return (
                           <div
@@ -4616,6 +4669,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
+                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
                               </div>
 
                               <div className="w-32">
@@ -4625,6 +4679,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     className="flex min-h-8 w-full items-center justify-center border border-amber-500/30 bg-amber-500/[0.06] px-2 text-center text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-amber-500/55"
                                   >
                                     {isUa ? "Перевірити" : "Verify fitment"}
+                                  </Link>
+                                ) : isWheelSet ? (
+                                  <Link
+                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    className="flex min-h-8 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
+                                  >
+                                    {isUa ? "Обрати комплект" : "Choose set"}
                                   </Link>
                                 ) : (
                                   <AddToCartButton
@@ -4649,61 +4710,31 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
-                    <Link
+                    <a
                       href={buildStockPaginationHref(locale, searchParams, page - 1)}
-                      prefetch={false}
                       aria-disabled={page <= 1}
                       tabIndex={page <= 1 ? -1 : undefined}
                       onClick={(event) => {
-                        if (page <= 1) {
-                          event.preventDefault();
-                          return;
-                        }
-                        if (
-                          event.button !== 0 ||
-                          event.metaKey ||
-                          event.ctrlKey ||
-                          event.shiftKey ||
-                          event.altKey
-                        )
-                          return;
-                        event.preventDefault();
-                        paginationScrollTargetRef.current = page - 1;
-                        void doSearch(page - 1);
+                        if (page <= 1) event.preventDefault();
                       }}
                       className="rounded-none border border-foreground/10 px-4 py-2 text-[10px] uppercase tracking-widest text-foreground/60 transition-colors hover:bg-foreground/5 aria-disabled:cursor-not-allowed aria-disabled:opacity-20 dark:text-foreground/40"
                     >
                       ← {isUa ? "Назад" : "Prev"}
-                    </Link>
+                    </a>
                     <span className="text-[10px] text-foreground/55 dark:text-foreground/30 uppercase tracking-widest px-4">
                       {page} / {totalPages}
                     </span>
-                    <Link
+                    <a
                       href={buildStockPaginationHref(locale, searchParams, page + 1)}
-                      prefetch={false}
                       aria-disabled={page >= totalPages}
                       tabIndex={page >= totalPages ? -1 : undefined}
                       onClick={(event) => {
-                        if (page >= totalPages) {
-                          event.preventDefault();
-                          return;
-                        }
-                        if (
-                          event.button !== 0 ||
-                          event.metaKey ||
-                          event.ctrlKey ||
-                          event.shiftKey ||
-                          event.altKey
-                        )
-                          return;
-                        event.preventDefault();
-                        paginationScrollTargetRef.current = page + 1;
-                        void doSearch(page + 1);
+                        if (page >= totalPages) event.preventDefault();
                       }}
                       className="rounded-none border border-foreground/10 px-4 py-2 text-[10px] uppercase tracking-widest text-foreground/60 transition-colors hover:bg-foreground/5 aria-disabled:cursor-not-allowed aria-disabled:opacity-20 dark:text-foreground/40"
                     >
                       {isUa ? "Далі" : "Next"} →
-                    </Link>
+                    </a>
                   </div>
                 )}
               </>

@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderIpeCollectionsPage,
-} from "@/app/[locale]/shop/ipe/collections/page";
+import renderIpeCollectionsPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/ipe/collections/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

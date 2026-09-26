@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderRaceChipProductsCatalogPage({ params }: Props, requestedPage = 1) {
+async function renderRaceChipProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
@@ -153,6 +153,4 @@ export async function renderRaceChipProductsCatalogPage({ params }: Props, reque
   );
 }
 
-export default function RaceChipProductsCatalogPage(props: Props) {
-  return renderRaceChipProductsCatalogPage(props);
-}
+export default renderRaceChipProductsCatalogPage;

@@ -23,6 +23,7 @@ type Props = {
   quantity?: number;
   /** Product name for analytics (view_product / add_to_cart). */
   productName?: string;
+  additionalItems?: Array<{ slug: string; variantId?: string | null; quantity?: number }>;
 };
 
 export function AddToCartButton({
@@ -37,6 +38,7 @@ export function AddToCartButton({
   labelAdded,
   quantity = 1,
   productName,
+  additionalItems = [],
 }: Props) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -44,10 +46,11 @@ export function AddToCartButton({
   const isUa = locale === "ua";
   const defaultLabel = isUa ? "Додати в кошик" : "Add to cart";
   const defaultAdded = isUa ? "Додано" : "Added";
+  const additionalItemsKey = JSON.stringify(additionalItems);
 
   useEffect(() => {
     setAdded(false);
-  }, [quantity, slug, turn14Id, variantId]);
+  }, [additionalItemsKey, quantity, slug, turn14Id, variantId]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,6 +62,19 @@ export function AddToCartButton({
       const payload: any = { quantity: normalizedQuantity, variantId };
       if (slug) payload.slug = slug;
       if (turn14Id) payload.turn14Id = turn14Id;
+      if (additionalItems.length) {
+        payload.items = [
+          ...(slug ? [{ slug, quantity: normalizedQuantity, variantId }] : []),
+          ...additionalItems.map((item) => ({
+            slug: item.slug,
+            variantId: item.variantId ?? null,
+            quantity: Math.max(
+              1,
+              Math.min(99, Math.floor(Number(item.quantity ?? normalizedQuantity) || normalizedQuantity))
+            ),
+          })),
+        ];
+      }
 
       const response = await fetch("/api/shop/cart/items", {
         method: "POST",

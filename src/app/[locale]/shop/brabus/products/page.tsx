@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderBrabusProductsCatalogPage({ params }: Props, requestedPage = 1) {
+async function renderBrabusProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
@@ -128,6 +128,4 @@ export async function renderBrabusProductsCatalogPage({ params }: Props, request
   );
 }
 
-export default function BrabusProductsCatalogPage(props: Props) {
-  return renderBrabusProductsCatalogPage(props);
-}
+export default renderBrabusProductsCatalogPage;

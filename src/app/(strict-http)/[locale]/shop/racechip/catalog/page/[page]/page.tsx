@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderRaceChipProductsCatalogPage,
-} from "@/app/[locale]/shop/racechip/catalog/page";
+import renderRaceChipProductsCatalogPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/racechip/catalog/page";
 
 type Props = {
   params: Promise<{ locale: string; page: string }>;

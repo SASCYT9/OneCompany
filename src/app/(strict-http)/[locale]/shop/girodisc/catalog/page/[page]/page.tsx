@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderGirodiscProductsCatalogPage,
-} from "@/app/[locale]/shop/girodisc/catalog/page";
+import renderGirodiscProductsCatalogPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/girodisc/catalog/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { NextRequest } from "next/server";
 import { RequestCookies } from "next/dist/server/web/spec-extension/cookies";
 import { RequestCookiesAdapter } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import { createPatchAdminUserRoute } from "../../../src/app/api/admin/users/[id]/route";
+import { createPatchAdminUserRoute } from "../../../src/app/api/admin/users/[id]/handler";
 import { verifyPassword } from "../../../src/lib/hashPassword";
 
 type PatchDependencies = NonNullable<Parameters<typeof createPatchAdminUserRoute>[0]>;

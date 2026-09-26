@@ -155,23 +155,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const quote = await buildCheckoutQuote(prisma, {
-    items,
-    shippingAddress: {
-      line1,
-      line2: typeof shipping.line2 === "string" ? shipping.line2.trim() : undefined,
-      city,
-      region: typeof shipping.region === "string" ? shipping.region.trim() : undefined,
-      postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
-      country,
-    },
-    currency: CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
-      ? (body.currency ?? "EUR")
-      : "EUR",
-    customerGroup: session?.group ?? null,
-    customerId: session?.customerId ?? null,
-    customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
-  });
+  let quote: Awaited<ReturnType<typeof buildCheckoutQuote>>;
+  try {
+    quote = await buildCheckoutQuote(prisma, {
+      items,
+      shippingAddress: {
+        line1,
+        line2: typeof shipping.line2 === "string" ? shipping.line2.trim() : undefined,
+        city,
+        region: typeof shipping.region === "string" ? shipping.region.trim() : undefined,
+        postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
+        country,
+      },
+      currency: CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+        ? (body.currency ?? "EUR")
+        : "EUR",
+      customerGroup: session?.group ?? null,
+      customerId: session?.customerId ?? null,
+      customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
+    });
+  } catch (error) {
+    if ((error as Error).message === "WHEELFORCE_SET_OF_FOUR_REQUIRED") {
+      return NextResponse.json({ error: "WheelForce wheels are sold in sets of four", code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+    }
+    throw error;
+  }
 
   if (quote.items.length === 0) {
     return NextResponse.json({ error: "No valid items in cart" }, { status: 400 });

@@ -226,6 +226,13 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "bundles",
       },
       {
+        href: "/admin/shop/wheelforce-wheelsets",
+        label: "Набори дисків WheelForce",
+        description: "Комплекти дисків 2+2 за сумісністю з автомобілем, без шин.",
+        icon: "bundles",
+        requiredPermissions: [ADMIN_PERMISSIONS.SHOP_PRODUCTS_WRITE],
+      },
+      {
         href: "/admin/shop/catalogs",
         label: "Презентаційні каталоги",
         description: "Збірка красивих PDF-презентацій з вибраних товарів та цін.",

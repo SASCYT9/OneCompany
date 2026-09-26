@@ -283,6 +283,28 @@ function knownCanonicalVehicleModelLabels(make: string, value: string) {
   return labels;
 }
 
+function manufacturerModelAliases(make: string, value: string) {
+  const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  const modelKey = vehicleModelKey(value);
+  const aliases: string[] = [];
+  if (makeKey === "bmw") {
+    const germanSeries = modelKey.match(/^([1-8])erreihe$/);
+    const englishSeries = modelKey.match(/^([1-8])series$/);
+    if (germanSeries) {
+      aliases.push(germanSeries[1] + " Series", germanSeries[1] + "-Series");
+    } else if (englishSeries) {
+      aliases.push(englishSeries[1] + "er Reihe", englishSeries[1] + "er-Reihe");
+    }
+  }
+  if (makeKey === "mercedes" || makeKey === "mercedes benz") {
+    const germanClass = modelKey.match(/^([a-z]{1,3})klasse$/);
+    const englishClass = modelKey.match(/^([a-z]{1,3})class$/);
+    if (germanClass) aliases.push(germanClass[1].toUpperCase() + "-Class");
+    else if (englishClass) aliases.push(englishClass[1].toUpperCase() + "-Klasse");
+  }
+  return aliases;
+}
+
 export function vehicleModelAliases(make: string, value: string) {
   const canonicals = knownCanonicalVehicleModelLabels(make, value);
   const labels = canonicals.length ? canonicals : [value.trim()];
@@ -291,10 +313,13 @@ export function vehicleModelAliases(make: string, value: string) {
     vehicleModelKey(resolution.model) !== vehicleModelKey(canonicalVehicleModelLabel(make, value))
       ? [resolution.model, ...(modelAliasGroups(make)[resolution.model] ?? [])]
       : [];
+  const canonicalLabel = canonicalVehicleModelLabel(make, value);
   return [
     ...new Set([
       value.trim(),
       value.trim().replace(/\s+/g, "-"),
+      ...(canonicalLabel ? [canonicalLabel, canonicalLabel.replace(/\s+/g, "-")] : []),
+      ...manufacturerModelAliases(make, value),
       ...labels.flatMap((label) => modelAliasGroups(make)[label] ?? [label]),
       ...baseModelAliases,
     ]),
@@ -388,11 +413,17 @@ export function canonicalVehicleModelLabel(make: string, value: string) {
   const knownLabel = CANONICAL_MODEL_LABELS[`${makeKey}:${key}`];
   if (knownLabel) return knownLabel;
   if (makeKey === "bmw") {
+    const germanSeries = key.match(/^([1-8])erreihe$/);
+    if (germanSeries) return germanSeries[1] + " Series";
     const series = key.match(/^([1-8])series$/);
     if (series) return `${series[1]} Series`;
     if (key === "xm") return "XM";
     if (key === "xseries") return "X Series";
     if (key === "zseries") return "Z Series";
+  }
+  if (makeKey === "mercedes" || makeKey === "mercedes benz") {
+    const germanClass = key.match(/^([a-z]{1,3})klasse$/);
+    if (germanClass) return germanClass[1].toUpperCase() + "-Class";
   }
   if (makeKey === "audi") {
     const rsQ = key.match(/^rsq(\d)$/);

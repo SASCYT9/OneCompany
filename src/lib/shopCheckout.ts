@@ -18,6 +18,7 @@ import {
   type ShopPriceAudience,
 } from "@/lib/shopPricingAudience";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
+import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
   addRevozportUkraineShippingToPriceSet,
   calculateRevozportShippingUsd,
@@ -989,6 +990,9 @@ export async function buildCheckoutQuote(
     const quantity = Math.max(1, Math.floor(Number(rawItem.quantity) || 1));
     const product = await getShopProductBySlugServer(rawItem.slug);
     if (!product) continue;
+    if (isWheelForceWheel(product) && quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0) {
+      throw new Error("WHEELFORCE_SET_OF_FOUR_REQUIRED");
+    }
 
     const variant = rawItem.variantId
       ? product.variants?.find((entry) => entry.id === rawItem.variantId)

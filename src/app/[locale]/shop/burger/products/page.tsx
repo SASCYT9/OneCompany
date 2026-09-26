@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderBurgerProductsCatalogPage({ params }: Props, requestedPage = 1) {
+async function renderBurgerProductsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
@@ -126,6 +126,4 @@ export async function renderBurgerProductsCatalogPage({ params }: Props, request
   );
 }
 
-export default function BurgerProductsCatalogPage(props: Props) {
-  return renderBurgerProductsCatalogPage(props);
-}
+export default renderBurgerProductsCatalogPage;

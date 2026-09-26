@@ -6,7 +6,6 @@ import { ChevronRight, FileEdit, Mail, Plus, RefreshCcw, Trash2, Zap } from "luc
 import {
   AdminEmptyState,
   AdminInlineAlert,
-  AdminInspectorCard,
   AdminMetricCard,
   AdminMetricGrid,
   AdminPage,
@@ -795,14 +794,5 @@ function TemplateEditor({
         </div>
       </div>
     </div>
-  );
-}
-
-// Small inline component for collapsed inspector fallback (keep linter quiet)
-export function _Marker() {
-  return (
-    <AdminInspectorCard title="" description="">
-      <div />
-    </AdminInspectorCard>
   );
 }
