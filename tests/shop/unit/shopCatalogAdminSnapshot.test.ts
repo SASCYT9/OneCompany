@@ -79,19 +79,31 @@ test("admin snapshot maps every normalized application dimension into one correl
 });
 
 test("admin snapshot fails closed when fitment is absent and preserves universal policy", async () => {
-  const { compatibilityPolicyFromNormalizedFitment } = await snapshotModule;
+  const [{ compatibilityPolicyFromNormalizedFitment }, { validateShopCatalogV2CompatibilityPolicy }] =
+    await Promise.all([
+      snapshotModule,
+      import("../../../src/lib/shopCatalogV2Compatibility"),
+    ]);
   assert.equal(compatibilityPolicyFromNormalizedFitment("missing", null).mode, "NEEDS_REVIEW");
-  assert.equal(
-    compatibilityPolicyFromNormalizedFitment("universal", {
-      ...fitment(),
-      status: "universal",
-      vehicleType: "universal",
-      make: null,
-      models: [],
-      chassisCodes: [],
-      yearRanges: [],
-      applications: [],
-    }).mode,
-    "UNIVERSAL"
-  );
+  const universalFitment = {
+    ...fitment(),
+    status: "universal" as const,
+    vehicleType: "universal" as const,
+    make: null,
+    models: [],
+    chassisCodes: [],
+    yearRanges: [],
+    applications: [],
+  };
+  const autoPolicy = compatibilityPolicyFromNormalizedFitment("universal-auto", universalFitment);
+  assert.equal(autoPolicy.mode, "UNIVERSAL");
+  assert.equal(autoPolicy.clauses.length, 1);
+  assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(autoPolicy), []);
+  const motoPolicy = compatibilityPolicyFromNormalizedFitment("universal-moto", universalFitment, "moto");
+  assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(motoPolicy), []);
+  assert.deepEqual(motoPolicy.clauses[0]?.constraints[0], {
+    dimension: "scope",
+    state: "EXACT",
+    values: ["moto"],
+  });
 });

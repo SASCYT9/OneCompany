@@ -15,6 +15,7 @@ import type {
   ShopCatalogV2CompatibilityConstraint,
   ShopCatalogV2CompatibilityPolicy,
 } from "./shopCatalogV2Compatibility";
+import { SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS } from "./shopCatalogV2Compatibility";
 import {
   canonicalPoliciesToProjectionV2,
   type CanonicalPolicyProjectionInput,
@@ -65,15 +66,28 @@ function applicationClause(
 
 export function compatibilityPolicyFromNormalizedFitment(
   productId: string,
-  fitment: NormalizedFitment | null
+  fitment: NormalizedFitment | null,
+  scope: "auto" | "moto" = "auto"
 ): ShopCatalogV2CompatibilityPolicy {
   if (fitment?.status === "universal") {
+    const constraints = SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS.map((dimension) =>
+      dimension === "scope"
+        ? exact("scope", [scope])!
+        : ({ dimension, state: "ANY" } as ShopCatalogV2CompatibilityConstraint)
+    );
     return {
       version: 2,
       mode: "UNIVERSAL",
       target: { productId },
       requiredDimensions: [],
-      clauses: [],
+      clauses: [
+        {
+          id: "normalized-fitment-universal",
+          constraints,
+          verification: "VERIFIED",
+          sourceRef: `metafield:${NORMALIZED_FITMENT_NAMESPACE}.${NORMALIZED_FITMENT_KEY}`,
+        },
+      ],
     };
   }
   const verification =
@@ -255,7 +269,13 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     })),
     compatibilityPolicies: record.catalogPolicies?.length
       ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
-      : [compatibilityPolicyFromNormalizedFitment(record.id, normalizedFitment)],
+      : [
+          compatibilityPolicyFromNormalizedFitment(
+            record.id,
+            normalizedFitment,
+            record.scope === "moto" ? "moto" : "auto"
+          ),
+        ],
   };
 }
 
