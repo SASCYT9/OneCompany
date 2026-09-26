@@ -10,7 +10,6 @@ import { getBrandLogo } from "@/lib/brandLogos";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   getShopProductBySlugServer,
-  getShopProductImageOverrideForSku,
   getShopProductsServer,
   getShopProductsByBrandServer,
   getUrbanProductsServer,
@@ -444,9 +443,16 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // live context via useShopViewerContext in client layouts (Brabus/Burger
   // already wired). The default inline layout renders anon prices on detail
   // pages for B2B users; correct B2B pricing always applies in cart/checkout.
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
-    priceCountry: isUa ? "Ukraine" : null,
-  });
+  const viewerContext = buildShopViewerPricingContext(
+    settingsRuntime,
+    null,
+    false,
+    null,
+    undefined,
+    {
+      priceCountry: isUa ? "Ukraine" : null,
+    }
+  );
   const pricing = resolveShopProductPricing(product, viewerContext);
   const defaultVariant =
     product.variants?.find((item) => item.isDefault) ?? product.variants?.[0] ?? null;
@@ -692,6 +698,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
             productType: product.productType,
             tags: product.tags ?? [],
             bundle: product.bundle,
+            adminMediaOverride: product.adminMediaOverride,
             image: product.image,
             gallery,
           },
@@ -759,7 +766,12 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     resolvedGallery[0] ?? (product.image ? product.image.replace(/^["']|["']$/g, "").trim() : "");
   const resolvedImageStr =
     isUrbanMode && urbanModelHandles.length > 0
-      ? resolveUrbanProductImage(rawImageStr, urbanModelHandles, product.slug)
+      ? resolveUrbanProductImage(
+          rawImageStr,
+          urbanModelHandles,
+          product.slug,
+          product.adminMediaOverride
+        )
       : rawImageStr.startsWith("//")
         ? `https:${rawImageStr}`
         : rawImageStr;

@@ -849,7 +849,7 @@ export function BurgerShopProductDetailLayout({
                         productName={title}
                         variant="default"
                         label={isUa ? "Додати в кошик" : "Add to Cart"}
-                        className="burger-btn burger-btn--primary w-full justify-center"
+                        className="burger-btn burger-btn--primary min-h-11 w-full justify-center sm:min-h-0"
                       />
                     )}
                   </div>

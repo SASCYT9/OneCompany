@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
 import { resolveShopCountry } from "@/lib/shopCountries";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 

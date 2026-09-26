@@ -9,9 +9,12 @@ import {
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
   deleteLocalShopCartItem,
+  resolveLocalShopCart,
   serializeLocalShopCart,
   updateLocalShopCartItem,
 } from "@/lib/shopLocalCart";
@@ -69,6 +72,18 @@ export async function PATCH(
   try {
     const { session, settings, context } = await loadPricingContext();
     if (isLocalStorefrontMode()) {
+      if (quantity > 0) {
+        const current = resolveLocalShopCart({
+          token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+          currency: body.currency ?? settings.defaultCurrency,
+          locale: body.locale ?? session?.preferredLocale ?? "en",
+        }).cart;
+        const currentItem = current.items.find((item) => item.id === itemId);
+        const product = currentItem ? await getShopProductBySlugServer(currentItem.slug) : null;
+        if (product && isWheelForceWheel(product) && (quantity < WHEELFORCE_WHEEL_SET_SIZE || quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0)) {
+          return NextResponse.json({ error: "WheelForce wheels are sold in sets of four", code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+        }
+      }
       const { cart, token } = updateLocalShopCartItem({
         token: request.cookies.get(SHOP_CART_COOKIE)?.value,
         currency: body.currency ?? settings.defaultCurrency,
@@ -96,6 +111,9 @@ export async function PATCH(
   } catch (error) {
     if ((error as Error).message === "CART_ITEM_NOT_FOUND") {
       return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+    }
+    if ((error as Error).message === "WHEELFORCE_SET_OF_FOUR_REQUIRED") {
+      return NextResponse.json({ error: "WheelForce wheels are sold in sets of four", code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
     }
     console.error("Shop cart item patch", error);
     return NextResponse.json({ error: "Failed to update cart item" }, { status: 500 });

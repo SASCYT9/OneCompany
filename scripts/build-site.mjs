@@ -35,4 +35,4 @@ const nextCli = path.resolve("node_modules", "next", "dist", "bin", "next");
 run(tsxCli, ["scripts/check-catalog-v2-release-activation.ts", "--production-build"]);
 run(tsxCli, ["scripts/prebuild-shop-snapshot.ts"]);
 run(tsxCli, ["scripts/generate-shop-filter-indexes.ts"]);
-run(nextCli, ["build"]);
+run(nextCli, ["build", "--webpack"]);

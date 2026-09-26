@@ -30,8 +30,33 @@ export type ShopProductOptionSummary = {
   values: string[];
 };
 
+export type ShopProductAccessoryOption = {
+  sku: string;
+  slug: string;
+  title: LocalizedText;
+  image: string | null;
+  price: ShopMoneySet;
+  europePrice?: ShopMoneySet;
+  variantSkus?: string[];
+  quantity?: number;
+};
+
+export type ShopWheelForceSetComponent = {
+  sku: string;
+  title: string;
+  sizeSpec: string;
+  quantity: 2;
+};
+
+export type ShopWheelForceSetSummary = {
+  front: ShopWheelForceSetComponent;
+  rear: ShopWheelForceSetComponent;
+  vehicleLabels?: string[];
+};
+
 export type ShopProductVariantSummary = {
   id?: string;
+  purchaseSlug?: string;
   title?: string | null;
   sku?: string | null;
   position?: number;
@@ -118,6 +143,8 @@ export interface ShopProduct {
   airShippingToUaUsd?: number | null;
   image: string;
   gallery?: string[];
+  /** True after an admin explicitly edits the product's image or gallery. */
+  adminMediaOverride?: boolean;
   externalVideos?: ShopProductExternalVideo[];
   /**
    * Per-image material tag aligned with `gallery` order. Only set on iPE
@@ -129,6 +156,12 @@ export interface ShopProduct {
   galleryMaterials?: Array<"ti" | "ss" | null>;
   highlights: LocalizedText[];
   options?: ShopProductOptionSummary[];
+  accessoryOptions?: ShopProductAccessoryOption[];
+  wheelForceSet?: ShopWheelForceSetSummary;
+  wheelForceFamily?: {
+    parentSlug: string;
+    members: Array<{ sku: string; slug: string; sizeSpec: string }>;
+  };
   variants?: ShopProductVariantSummary[];
   categoryNode?: {
     id: string;

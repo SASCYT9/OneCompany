@@ -93,6 +93,11 @@ export function buildShopCatalogEffectivePriceSql(
   const canConvert = eurRate != null && usdRate != null && uahRate != null;
   const audienceIsB2B = context.audience === "b2b";
   const useEuropeBase = context.useEuropeBase;
+  const wheelSetMultiplier = Prisma.sql`CASE
+    WHEN lower(trim(COALESCE(canonical_product."brand", ''))) = 'wheelforce'
+      AND (canonical_product."tags" @> ARRAY['wheels']::text[]
+        OR lower(trim(COALESCE(canonical_product."productType", ''))) IN ('wheel', 'wheels'))
+    THEN 4::numeric ELSE 1::numeric END`;
 
   // Guest/B2C requests do not need any of the B2B discount JSON or band
   // resolution below. Keep their price predicate to one product row plus the
@@ -152,7 +157,7 @@ export function buildShopCatalogEffectivePriceSql(
             END`;
 
     return Prisma.sql`(
-      SELECT NULLIF(${requestedAmount}, 0)
+      SELECT NULLIF((${requestedAmount}) * (${wheelSetMultiplier}), 0)
       FROM "ShopProduct" canonical_product
       LEFT JOIN LATERAL (
         SELECT
@@ -261,7 +266,7 @@ export function buildShopCatalogEffectivePriceSql(
           ELSE base."uah"
         END ELSE base."uah" END AS "uah"
     ) effective
-    CROSS JOIN LATERAL (SELECT ${requestedAmount} AS "amount") requested
+    CROSS JOIN LATERAL (SELECT (${requestedAmount}) * (${wheelSetMultiplier}) AS "amount") requested
     WHERE canonical_product."id" = projection."productId"
       AND canonical_product."isPublished" = true
       AND canonical_product."status" = 'ACTIVE'

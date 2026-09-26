@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderAdroCollectionsPage({ params }: Props, requestedPage = 1) {
+async function renderAdroCollectionsPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
@@ -138,6 +138,4 @@ export async function renderAdroCollectionsPage({ params }: Props, requestedPage
   );
 }
 
-export default function AdroCollectionsPage(props: Props) {
-  return renderAdroCollectionsPage(props);
-}
+export default renderAdroCollectionsPage;

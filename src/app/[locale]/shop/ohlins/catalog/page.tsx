@@ -41,7 +41,7 @@ function isOhlinsProduct(product: { brand?: string | null; vendor?: string | nul
   return brand === "ohlins" || brand === "öhlins" || vendor === "ohlins";
 }
 
-export async function renderOhlinsCatalogPage({ params }: Props, requestedPage = 1) {
+async function renderOhlinsCatalogPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
 
@@ -154,6 +154,4 @@ export async function renderOhlinsCatalogPage({ params }: Props, requestedPage =
   );
 }
 
-export default function OhlinsCatalogPage(props: Props) {
-  return renderOhlinsCatalogPage(props);
-}
+export default renderOhlinsCatalogPage;

@@ -10,6 +10,7 @@
  */
 
 import type { ShopProduct } from "./shopCatalog";
+import { hasShopProductAdminMediaOverride } from "./shopProductAdminMedia";
 
 /**
  * The related-products cards only need identity, title/category, image and
@@ -46,6 +47,7 @@ export type ShopRelatedProductRow = {
   compareAtUsdB2b: unknown;
   compareAtUahB2b: unknown;
   image: string | null;
+  metafields?: ReadonlyArray<{ namespace: string; key: string; value?: string | null }>;
 };
 
 function relatedMoney(row: ShopRelatedProductRow, prefix: string) {
@@ -99,6 +101,7 @@ export function projectShopRelatedProduct(row: ShopRelatedProductRow): ShopProdu
       uah: Number(row.compareAtUahB2b ?? 0) || 0,
     },
     image: row.image ?? "",
+    adminMediaOverride: hasShopProductAdminMediaOverride(row.metafields),
     highlights: [],
   };
 }

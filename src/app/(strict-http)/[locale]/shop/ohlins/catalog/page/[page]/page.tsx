@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderOhlinsCatalogPage,
-} from "@/app/[locale]/shop/ohlins/catalog/page";
+import renderOhlinsCatalogPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/ohlins/catalog/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

@@ -1505,13 +1505,19 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
   const setPrimaryImageFromMedia = (index: number) => {
     const item = form.media[index];
-    if (!item?.src.trim()) {
+    if (item?.mediaType !== "IMAGE" || !item.src.trim()) {
       return;
     }
-    setForm((current) => ({
-      ...current,
-      image: item.src.trim(),
-    }));
+    setForm((current) => {
+      const selected = current.media[index];
+      if (!selected || selected.mediaType !== "IMAGE" || !selected.src.trim()) return current;
+      const media = [selected, ...current.media.filter((_, itemIndex) => itemIndex !== index)];
+      return {
+        ...current,
+        image: selected.src.trim(),
+        media: normalizeMediaOrder(media),
+      };
+    });
     setSuccess("Primary image updated from media.");
   };
 
@@ -2000,25 +2006,30 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
               <AdminEditorSection
                 id="media"
                 title="Медіа"
-                description="Порядок зображень та відео у вітрині для цього товару."
+                description="Головне фото відображається в каталозі та на сторінці товару; інші фото йдуть далі в галереї."
               >
                 <ProductMediaUpload
                   busy={uploading}
                   onBusyChange={setUploading}
                   onUploaded={(url, mediaType) => {
-                    setForm((current) => ({
-                      ...current,
-                      image: current.image || (mediaType === "IMAGE" ? url : ""),
-                      media: [
-                        ...current.media,
-                        {
-                          src: url,
-                          altText: "",
-                          position: String(current.media.length + 1),
-                          mediaType,
-                        },
-                      ],
-                    }));
+                    setForm((current) => {
+                      const uploaded: MediaFormItem = {
+                        src: url,
+                        altText: "",
+                        position: String(current.media.length + 1),
+                        mediaType,
+                      };
+                      const becomesPrimary = mediaType === "IMAGE" && !current.image.trim();
+                      return {
+                        ...current,
+                        image: becomesPrimary ? url : current.image,
+                        media: normalizeMediaOrder(
+                          becomesPrimary
+                            ? [uploaded, ...current.media]
+                            : [...current.media, uploaded]
+                        ),
+                      };
+                    });
                   }}
                 />
                 <div className="mb-4">
@@ -2076,7 +2087,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                             <button
                               type="button"
                               onClick={() => setPrimaryImageFromMedia(index)}
-                              disabled={!item.src.trim()}
+                              disabled={item.mediaType !== "IMAGE" || !item.src.trim()}
                               className="rounded-none border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5 disabled:opacity-40"
                             >
                               Зробити головним

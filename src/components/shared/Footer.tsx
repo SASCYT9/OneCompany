@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { Instagram, Youtube } from "lucide-react";
+import { Instagram, Linkedin, Youtube } from "lucide-react";
 import gsap from "gsap";
 import { Logo } from "@/components/ui/Logo";
 import GlobalPresence from "./GlobalPresence";
@@ -97,6 +97,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
       label: "X",
     },
     { icon: Youtube, href: "https://www.youtube.com/@OneCompanyGlobal", label: "YouTube" },
+    { icon: Linkedin, href: "https://www.linkedin.com/company/onecompany-global/", label: "LinkedIn" },
   ];
 
   const scopeRef = useRef<HTMLDivElement | null>(null);

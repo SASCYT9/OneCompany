@@ -3,6 +3,12 @@ import "server-only";
 import { extractProductFitment } from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
+import {
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+  SUPPLIER_FITMENT_KEY,
+} from "@/lib/shopImportFitment";
+import { resolveSearchFitments } from "@/lib/shopFitmentQuality";
 import { prisma } from "@/lib/prisma";
 import { Prisma, ShopCatalogCompatibilityDimension } from "@prisma/client";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
@@ -106,21 +112,15 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
       evidenceOnly: true,
       productIds,
     });
-    return products.map((product) => ({
-      id: product.id,
-      fitment: extractProductFitment(product),
-    }));
+    return indexFitmentProducts(products);
   }
   if (sharedCache.cachedProducts && Date.now() - sharedCache.cachedAt < CACHE_MS) {
     return sharedCache.cachedProducts;
   }
   if (sharedCache.fitmentPending) return sharedCache.fitmentPending;
   sharedCache.fitmentPending = getShopFitmentCatalogProducts({ evidenceOnly: true })
-    .then((products) => {
-      sharedCache.cachedProducts = products.map((product) => ({
-        id: product.id,
-        fitment: extractProductFitment(product),
-      }));
+    .then(async (products) => {
+      sharedCache.cachedProducts = await indexFitmentProducts(products);
       sharedCache.cachedAt = Date.now();
       return sharedCache.cachedProducts;
     })
@@ -128,6 +128,42 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
       sharedCache.fitmentPending = undefined;
     });
   return sharedCache.fitmentPending;
+}
+
+async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>) {
+  const productIds = products
+    .filter((product) => normalizeShopSearchText(product.brand) === "wheelforce")
+    .map((product) => product.id)
+    .filter((id): id is string => Boolean(id));
+  const metafields = productIds.length
+    ? await prisma.shopProductMetafield.findMany({
+        where: {
+          productId: { in: productIds },
+          namespace: "onecompany",
+          key: { in: ["normalized_fitment", SUPPLIER_FITMENT_KEY] },
+        },
+        select: { productId: true, key: true, value: true },
+      })
+    : [];
+  const byProduct = new Map<string, { normalized?: string; supplier?: string }>();
+  for (const item of metafields) {
+    const current = byProduct.get(item.productId) ?? {};
+    if (item.key === "normalized_fitment") current.normalized = item.value;
+    if (item.key === SUPPLIER_FITMENT_KEY) current.supplier = item.value;
+    byProduct.set(item.productId, current);
+  }
+  return products.map((product) => {
+    const automatic = extractProductFitment(product);
+    const persisted = byProduct.get(product.id ?? "");
+    const supplier = parseSupplierFitmentContract(persisted?.supplier);
+    const value =
+      persisted?.normalized ??
+      (supplier ? JSON.stringify(supplierContractToNormalizedFitment(supplier)) : null);
+    return {
+      id: product.id,
+      fitment: resolveSearchFitments(automatic, value)[0] ?? automatic,
+    };
+  });
 }
 
 type ProductTextField = "titleEn" | "titleUa" | "slug" | "collectionEn" | "collectionUa";

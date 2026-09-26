@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
   resolveShopPriceBands,
   resolveShopProductPricing,
@@ -184,6 +185,7 @@ export async function serializeLocalShopCart(
       id: item.id,
       slug: item.slug,
       quantity: item.quantity,
+      packSize: isWheelForceWheel(product) ? WHEELFORCE_WHEEL_SET_SIZE : 1,
       variantId: item.variantId,
       variantTitle: variant?.title ?? null,
       title: product.title,
@@ -209,6 +211,6 @@ export async function serializeLocalShopCart(
     currency: cart.currency,
     locale: cart.locale,
     items,
-    totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
+    totalItems: items.reduce((sum, item) => sum + Math.ceil(item.quantity / (item.packSize ?? 1)), 0),
   };
 }

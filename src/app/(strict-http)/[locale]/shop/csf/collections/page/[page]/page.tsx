@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderCSFCollectionsPage,
-} from "@/app/[locale]/shop/csf/collections/page";
+import renderCSFCollectionsPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/csf/collections/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderAdroCollectionsPage,
-} from "@/app/[locale]/shop/adro/collections/page";
+import renderAdroCollectionsPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/adro/collections/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

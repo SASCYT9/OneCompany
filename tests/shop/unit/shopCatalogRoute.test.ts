@@ -3,7 +3,7 @@ import test from "node:test";
 import nextConfig from "../../../next.config";
 
 import { generateMetadata } from "../../../src/app/[locale]/shop/catalog/metadata";
-import { generateMetadata as generateRewrittenCatalogMetadata } from "../../../src/app/[locale]/shop/stock/layout";
+import { generateMetadata as generateRewrittenCatalogMetadata } from "../../../src/app/[locale]/shop/stock/page";
 import {
   isIndexablePath,
   isNoindexPath,

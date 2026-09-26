@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export async function renderCSFCollectionsPage({ params }: Props, requestedPage = 1) {
+async function renderCSFCollectionsPage({ params }: Props, requestedPage = 1) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
   const isUa = resolvedLocale === "ua";
@@ -122,6 +122,4 @@ export async function renderCSFCollectionsPage({ params }: Props, requestedPage 
   );
 }
 
-export default function CSFCollectionsPage(props: Props) {
-  return renderCSFCollectionsPage(props);
-}
+export default renderCSFCollectionsPage;

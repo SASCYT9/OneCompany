@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
   buildNoIndexPageMetadata,
   buildPageMetadata,
@@ -39,6 +40,12 @@ import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { isRevozportBrand } from "@/lib/revozportShipping";
+import {
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  wheelForceSetMoney,
+  WHEELFORCE_FAMILY_CHILD_TAG,
+} from "@/lib/wheelforceFamily";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -47,7 +54,7 @@ export const revalidate = 86400;
 export async function generateStaticParams() {
   // Product URLs are present in the sitemap and use on-demand ISR. Keeping the
   // build list empty avoids a catalogue DB query and 200 eager PDP renders.
-  if (process.env.NEXT_PHASE === "phase-production-build") return [];
+  if (process.env.NEXT_PHASE === "phase-production-build" || isLocalStorefrontMode()) return [];
 
   try {
     const products = await prisma.shopProduct.findMany({
@@ -90,11 +97,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const canonicalPath = buildShopStorefrontProductPathForProduct(resolvedLocale, product);
+  const canonicalProduct = product.wheelForceFamily?.parentSlug
+    ? { ...product, slug: product.wheelForceFamily.parentSlug }
+    : product;
+  const canonicalPath = buildShopStorefrontProductPathForProduct(resolvedLocale, canonicalProduct);
   const canonicalSlug = canonicalPath.replace(`/${resolvedLocale}/`, "");
 
+  const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
+  const pageTitle = product.brand?.trim().toLowerCase() === "wheelforce"
+    ? `${localizedTitle} | One Company Shop`
+    : `${localizedTitle} | ${product.brand} | One Company Shop`;
   return buildPageMetadata(resolvedLocale, canonicalSlug, {
-    title: `${localizeShopProductTitle(resolvedLocale, product)} | ${product.brand} | One Company Shop`,
+    title: pageTitle,
     description: localizeShopDescription(resolvedLocale, product.shortDescription),
     image: product.image,
     type: "product",
@@ -195,7 +209,7 @@ export default async function ShopProductPage({ params }: Props) {
         </Link>
 
         <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="sticky top-32 min-w-0">
+          <div className="min-w-0 lg:sticky lg:top-32">
             <ShopProductGallery
               images={safeGallery}
               productTitle={productTitle}
@@ -205,7 +219,7 @@ export default async function ShopProductPage({ params }: Props) {
             />
           </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
+          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-3 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
             <ShopBrandLink
               brand={product.brand}
               locale={resolvedLocale}
@@ -280,7 +294,27 @@ async function RelatedProductsSection({
   // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
   // the Suspense subtree so it doesn't block the main PDP first byte.
   const brandPool = await getShopRelatedProductsByBrandServer(product.brand);
-  const relatedProducts = findRelatedProducts(product, brandPool, 3);
+  const relatedPool = product.brand.trim().toLowerCase() === "wheelforce"
+    ? brandPool.filter((item) =>
+        !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
+        item.slug !== product.wheelForceFamily?.parentSlug
+      )
+    : brandPool;
+  const isWheelForceBrand = product.brand.trim().toLowerCase() === "wheelforce";
+  const wheelSetRecommendations = isWheelForceBrand
+    ? findRelatedProducts(product, relatedPool.filter(isWheelForceWheelSet), 3)
+    : [];
+  const remainingRecommendationSlots = Math.max(0, 3 - wheelSetRecommendations.length);
+  const otherRecommendations = remainingRecommendationSlots
+    ? findRelatedProducts(
+        product,
+        isWheelForceBrand ? relatedPool.filter((item) => !isWheelForceWheelSet(item)) : relatedPool,
+        remainingRecommendationSlots
+      )
+    : [];
+  const relatedProducts = isWheelForceBrand
+    ? [...wheelSetRecommendations, ...otherRecommendations]
+    : otherRecommendations;
   if (!relatedProducts.length) return null;
   const isUa = locale === "ua";
   return (
@@ -289,6 +323,10 @@ async function RelatedProductsSection({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {relatedProducts.map((item) => {
           const image = normalizeImage(item.image);
+          const relatedPricing = resolveShopProductPricing(item, viewerContext);
+          const relatedPrice = isWheelForceWheel(item)
+            ? wheelForceSetMoney(relatedPricing.effectivePrice)
+            : relatedPricing.effectivePrice;
           return (
             <Link
               key={item.slug}
@@ -321,7 +359,7 @@ async function RelatedProductsSection({
                 <p className="text-sm text-foreground/80 dark:text-foreground/65">
                   <ShopInlinePriceText
                     locale={locale}
-                    price={resolveShopProductPricing(item, viewerContext).effectivePrice}
+                    price={relatedPrice}
                     requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
                   />
                 </p>

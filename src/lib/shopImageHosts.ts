@@ -32,6 +32,7 @@ export const SHOP_REMOTE_IMAGE_HOSTS = [
   "cdn.sanity.io",
   "houseofurban.co.uk",
   "ind-distribution.com",
+  "wheelforce.de",
   "ducatiomaha.com",
   "amsducati.com",
 ];

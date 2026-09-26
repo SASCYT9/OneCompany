@@ -15,6 +15,7 @@ import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopTex
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { siteConfig } from "@/lib/seo";
+import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 
 function escapeXml(text: string): string {
   return text
@@ -66,8 +67,11 @@ function buildItemXml(
   // feed currency via the same rate table the storefront uses.
   const variantPrice =
     product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
-  const expanded = expandShopPrices(product.price ?? variantPrice ?? null, rates);
-  const compareExpanded = expandShopPrices(product.compareAt ?? null, rates);
+  const wheelSet = isWheelForceWheel(product);
+  const unitExpanded = expandShopPrices(product.price ?? variantPrice ?? null, rates);
+  const unitCompareExpanded = expandShopPrices(product.compareAt ?? null, rates);
+  const expanded = wheelSet ? wheelForceSetMoney(unitExpanded) : unitExpanded;
+  const compareExpanded = wheelSet ? wheelForceSetMoney(unitCompareExpanded) : unitCompareExpanded;
   const currencyKey = currency.toLowerCase() as "usd" | "eur" | "uah";
   const priceValue = expanded[currencyKey];
   if (!priceValue || priceValue <= 0) {

@@ -13,7 +13,8 @@ import {
   resolveShopStorefrontSegment,
 } from "@/lib/shopStorefrontRouting";
 import { expandShopPrices, pickPrimaryCurrency } from "@/lib/shopPriceConversion";
-import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
+import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 
 function toSchemaId(value: string): string {
   const normalized = value
@@ -337,8 +338,11 @@ export function ShopProductStructuredData({
     product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
   const rawPrice = product.price ?? variantPrice;
   const ratesToUse = rates ?? DEFAULT_CURRENCY_RATES;
-  const expanded = expandShopPrices(rawPrice ?? null, ratesToUse);
-  const compareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
+  const unitExpanded = expandShopPrices(rawPrice ?? null, ratesToUse);
+  const unitCompareExpanded = expandShopPrices(product.compareAt ?? null, ratesToUse);
+  const wheelSet = isWheelForceWheel(product);
+  const expanded = wheelSet ? wheelForceSetMoney(unitExpanded) : unitExpanded;
+  const compareExpanded = wheelSet ? wheelForceSetMoney(unitCompareExpanded) : unitCompareExpanded;
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
     primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];

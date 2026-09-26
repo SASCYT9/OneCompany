@@ -321,7 +321,8 @@ function ProductCard({
   const productImage = resolveUrbanProductImage(
     entry.product.image,
     entry.modelHandles,
-    entry.product.slug
+    entry.product.slug,
+    entry.product.adminMediaOverride
   );
 
   const availability =

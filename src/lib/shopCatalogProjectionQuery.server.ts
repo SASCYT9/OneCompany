@@ -21,6 +21,7 @@ import {
 import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
+import { isExactWheelForceSkuSearch } from "./wheelforceFamily";
 
 export const SHOP_CATALOG_PROJECTION_QUERY_LIMITS = {
   defaultPageSize: 24,
@@ -66,6 +67,7 @@ export type ShopCatalogProjectionQueryItem = {
   brandLabel: string;
   categoryKey: string | null;
   categoryLabel: string | null;
+  productTypeKey: string | null;
   stableRank: string;
   normalizedSku: string | null;
   primaryMediaUrl: string | null;
@@ -581,7 +583,9 @@ function projectionFacetBaseConditions(
   const conditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
     Prisma.sql`projection."isPublished" = true`,
-    Prisma.sql`projection."statusKey" = 'ACTIVE'`,
+    isExactWheelForceSkuSearch(input.text)
+      ? Prisma.sql`projection."statusKey" IN ('ACTIVE', 'FAMILY_CHILD')`
+      : Prisma.sql`projection."statusKey" = 'ACTIVE'`,
   ];
   if (input.productIds) {
     conditions.push(
@@ -1009,6 +1013,7 @@ export function buildShopCatalogProjectionVehicleQuerySql(
       projection."brandLabel",
       projection."categoryKey",
       projection."categoryLabel",
+      projection."productTypeKey",
       projection."stableRank",
       projection."normalizedSku",
       projection."primaryMediaUrl",
@@ -1099,6 +1104,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
       projection."productId", projection."locale", projection."slug", projection."title",
       projection."cardCopy", projection."brandKey", projection."brandLabel",
       projection."categoryKey", projection."categoryLabel", projection."stableRank",
+      projection."productTypeKey",
       projection."normalizedSku", projection."primaryMediaUrl", projection."minPriceEur",
       projection."minPriceEurEurope", projection."minPriceUsd", projection."minPriceUah",
       projection."contentHash", projection."projectionVersion"
@@ -1180,7 +1186,7 @@ export function buildShopCatalogProjectionWhere(
   return {
     locale: input.locale,
     isPublished: true,
-    statusKey: "ACTIVE",
+    statusKey: isExactWheelForceSkuSearch(input.text) ? { in: ["ACTIVE", "FAMILY_CHILD"] } : "ACTIVE",
     ...(input.productIds ? { productId: { in: [...input.productIds] } } : {}),
     ...(input.scope ? { scopeKey: input.scope } : {}),
     ...(and.length ? { AND: and } : {}),
@@ -1230,6 +1236,7 @@ export async function queryShopCatalogProjection(
           brandLabel: string;
           categoryKey: string | null;
           categoryLabel: string | null;
+          productTypeKey: string | null;
           stableRank: Prisma.Decimal;
           normalizedSku: string | null;
           primaryMediaUrl: string | null;
@@ -1255,6 +1262,7 @@ export async function queryShopCatalogProjection(
           brandLabel: true,
           categoryKey: true,
           categoryLabel: true,
+          productTypeKey: true,
           stableRank: true,
           normalizedSku: true,
           primaryMediaUrl: true,

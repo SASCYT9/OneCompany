@@ -1,10 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 import { buildPagedListingMetadata, parseListingPage } from "@/lib/pagedListingMetadata";
-import {
-  generateMetadata as generateBaseMetadata,
-  renderBrabusProductsCatalogPage,
-} from "@/app/[locale]/shop/brabus/products/page";
+import renderBrabusProductsCatalogPage, { generateMetadata as generateBaseMetadata } from "@/app/[locale]/shop/brabus/products/page";
 type Props = {
   params: Promise<{ locale: string; page: string }>;
 };

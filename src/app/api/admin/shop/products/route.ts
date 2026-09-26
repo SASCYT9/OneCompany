@@ -18,6 +18,10 @@ import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidatio
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import { coordinateShopCatalogProductCreation } from "@/lib/shopCatalogMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import {
+  SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+  SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+} from "@/lib/shopProductAdminMedia";
 import { tokenizeShopSearchQuery } from "@/lib/shopSearch";
 import {
   NORMALIZED_FITMENT_KEY,
@@ -211,6 +215,20 @@ export async function POST(request: NextRequest) {
           data: buildAdminProductCreateData(data),
           select: { id: true },
         });
+        if (
+          String(data.image ?? "").trim() ||
+          data.media.some((item) => String(item.src ?? "").trim()) ||
+          (Array.isArray(data.gallery) && data.gallery.some((item) => String(item ?? "").trim()))
+        ) {
+          await tx.shopProductMetafield.create({
+            data: {
+              productId: createdProduct.id,
+              namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+              key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+              value: "true",
+            },
+          });
+        }
         if (normalizedFitmentValue) {
           await tx.shopProductMetafield.create({
             data: {

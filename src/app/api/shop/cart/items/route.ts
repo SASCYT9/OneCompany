@@ -22,8 +22,11 @@ import {
 
 import { importTurn14ItemToDb } from "@/lib/turn14Sync";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const WHEELFORCE_SET_ERROR = "WheelForce wheels are sold in sets of four";
 
 function setCartCookie(response: NextResponse, token: string) {
   response.cookies.set(SHOP_CART_COOKIE, token, {
@@ -145,7 +148,31 @@ export async function POST(request: NextRequest) {
               quantity: Number(body.quantity ?? 1),
               variantId: body.variantId ? String(body.variantId) : null,
             },
-          ].filter((item) => item.slug);
+        ].filter((item) => item.slug);
+
+    const requestedSlugs = [...new Set(itemsToAdd.map((item) => item.slug))];
+    const wheelForceWheelSlugs = new Set<string>();
+    if (isLocalStorefrontMode()) {
+      const products = await Promise.all(requestedSlugs.map((slug) => getShopProductBySlugServer(slug)));
+      for (const product of products) {
+        if (product && isWheelForceWheel(product)) wheelForceWheelSlugs.add(product.slug);
+      }
+    } else if (requestedSlugs.length) {
+      const products = await prisma.shopProduct.findMany({
+        where: { slug: { in: requestedSlugs } },
+        select: { slug: true, brand: true, tags: true, productType: true, sku: true },
+      });
+      for (const product of products) {
+        if (isWheelForceWheel(product)) wheelForceWheelSlugs.add(product.slug);
+      }
+    }
+    const invalidIncomingWheel = itemsToAdd.find((item) =>
+      wheelForceWheelSlugs.has(item.slug) &&
+      (!Number.isInteger(item.quantity) || item.quantity < WHEELFORCE_WHEEL_SET_SIZE || item.quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0)
+    );
+    if (invalidIncomingWheel) {
+      return NextResponse.json({ error: WHEELFORCE_SET_ERROR, code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+    }
 
     const [session, settingsRecord] = await Promise.all([
       getCurrentShopCustomerSession(),
@@ -175,13 +202,17 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
         variantId: item.variantId,
       }));
+      const mergedItems = mergeLocalShopCartItems(existingInputs, itemsToAdd);
+      if (mergedItems.some((item) => wheelForceWheelSlugs.has(item.slug) && item.quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0)) {
+        return NextResponse.json({ error: WHEELFORCE_SET_ERROR, code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+      }
       const { cart: refreshed, token } = replaceLocalShopCart(
         {
           token: cart.token,
           currency: body.currency ?? settings.defaultCurrency,
           locale: body.locale ?? session?.preferredLocale ?? "en",
         },
-        mergeLocalShopCartItems(existingInputs, itemsToAdd)
+        mergedItems
       );
       const payload = await serializeLocalShopCart(refreshed, context);
       const response = NextResponse.json(payload);
@@ -203,6 +234,9 @@ export async function POST(request: NextRequest) {
     }));
 
     const nextItems = mergeShopCartItemInputs(existingInputs, itemsToAdd);
+    if (nextItems.some((item) => wheelForceWheelSlugs.has(item.slug) && item.quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0)) {
+      return NextResponse.json({ error: WHEELFORCE_SET_ERROR, code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
+    }
 
     const { cart: refreshed, token: finalToken } = await replaceEntireShopCart(prisma, {
       cartToken: token,

@@ -198,7 +198,16 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
   // entire catalog across all storefront routes.
   "/*": ["public/catalog-fallback/**/*"],
   ...(isVercel
-    ? {}
+    ? {
+        "/api/media": MEDIA_ROUTE_TRACE_EXCLUDES,
+        "/api/media/[id]": MEDIA_ROUTE_TRACE_EXCLUDES,
+        "/api/admin/shop/media": MEDIA_ROUTE_TRACE_EXCLUDES,
+        "/api/admin/shop/media/[id]": MEDIA_ROUTE_TRACE_EXCLUDES,
+        // The upload route writes new files to Blob in production. Public
+        // video assets are served separately and must not be copied into its
+        // Function trace (the local video archive exceeds 250 MB).
+        "/api/admin/upload-video": [...VIDEO_UPLOAD_TRACE_EXCLUDES, "public/videos/**/*"],
+      }
     : {
         "api/media": MEDIA_ROUTE_TRACE_EXCLUDES,
         "api/media/[id]": MEDIA_ROUTE_TRACE_EXCLUDES,

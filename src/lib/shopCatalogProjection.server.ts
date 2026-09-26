@@ -17,6 +17,7 @@ import {
   type ShopCatalogV2YearRange,
 } from "./shopCatalogV2Compatibility";
 import { normalizeShopSearchText } from "./shopSearch";
+import { WHEELFORCE_FAMILY_CHILD_TAG } from "./wheelforceFamily";
 
 export const SHOP_CATALOG_PROJECTION_SCHEMA_VERSION = 1 as const;
 export const SHOP_CATALOG_PROJECTION_LOCALES = ["ua", "en"] as const;
@@ -767,7 +768,7 @@ export function buildShopCatalogProjection(
   const normalizedSku = compactSku(sku);
   if (sku && !normalizedSku) fail("sku must contain at least one ASCII letter or digit");
   const scopeKey = requiredText(source.scopeKey, "scopeKey");
-  const statusKey = requiredText(source.statusKey, "statusKey");
+  const baseStatusKey = requiredText(source.statusKey, "statusKey");
   const stockKey = requiredText(source.stockKey, "stockKey");
   if (!Number.isSafeInteger(source.stableRank)) fail("stableRank must be a safe integer");
   const brand = normalizedNamedFacet(source.brand, "brand");
@@ -777,6 +778,7 @@ export function buildShopCatalogProjection(
   const categoryGroupKey = optionalText(source.categoryGroupKey, "categoryGroupKey");
   const primaryMedia = normalizedPrimaryMedia(source.primaryMedia);
   const tags = uniqueSortedText(source.tags, "tags", undefined, null);
+  const statusKey = tags.includes(WHEELFORCE_FAMILY_CHILD_TAG) ? "FAMILY_CHILD" : baseStatusKey;
   const collectionKeys = uniqueSortedText(source.collectionKeys, "collectionKeys", undefined, null);
   const sharedSearchTerms = uniqueSortedText(
     source.sharedSearchTerms,

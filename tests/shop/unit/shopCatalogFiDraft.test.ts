@@ -44,7 +44,8 @@ test("Fi draft keeps exact commerce data, removes iframe from copy and preserves
   assert.equal(draft.product.priceUah, "100.00");
   assert.equal(draft.product.stock, "preOrder");
   assert.equal(draft.product.isPublished, false);
-  assert.equal(draft.product.titleEn, "Fi EXHAUST Valvetronic Exhaust System for BMW M5 G90");
+  assert.equal(draft.product.titleEn, "Fi EXHAUST Valve-Controlled Exhaust System for BMW M5 G90");
+  assert.equal(draft.product.titleUa, "Fi EXHAUST: вихлопна система з клапанним керуванням для BMW M5");
   assert.doesNotMatch(draft.product.bodyHtmlUa, /iframe/u);
   assert.doesNotMatch(draft.product.bodyHtmlEn, /[\u0400-\u04ff]/u);
   assert.deepEqual(

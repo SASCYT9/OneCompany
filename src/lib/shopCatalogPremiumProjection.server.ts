@@ -17,6 +17,7 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
+import { isExactWheelForceSkuSearch, isWheelForceWheel, isWheelForceWheelSet, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
@@ -236,24 +237,63 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   ]);
   const totalItems = stockSummary.totalItems;
   const items = result.items;
+  const rawSearch = params.get("q")?.trim();
+  const requestedWheelSku = isExactWheelForceSkuSearch(rawSearch) &&
+    items.some((item) => item.brandKey.toLowerCase() === "wheelforce")
+    ? rawSearch
+    : null;
+  const matchingWheelProduct = requestedWheelSku
+    ? await prisma.shopProduct.findFirst({
+        where: {
+          sku: { equals: requestedWheelSku, mode: "insensitive" },
+          brand: { equals: "WheelForce", mode: "insensitive" },
+          status: "ACTIVE",
+          isPublished: true,
+        },
+        select: { id: true },
+      })
+    : null;
   const prices = await measure(
     "prices",
-    getShopCatalogCardPricingByIds(items.map((item) => item.productId))
+    getShopCatalogCardPricingByIds([
+      ...items.map((item) => item.productId),
+      ...(matchingWheelProduct ? [matchingWheelProduct.id] : []),
+    ])
   );
   const priceByProduct = new Map(prices.map((price) => [price.productId, price]));
 
   const data = items.map((item) => {
     const warehouseProduct = warehouseProductById.get(item.productId);
     const displayBrand = getProductDisplayBrand(item.brandLabel || item.brandKey);
-    const cardPrice = priceByProduct.get(item.productId);
+    const cardPrice = displayBrand.toLowerCase() === "wheelforce" && matchingWheelProduct
+      ? priceByProduct.get(matchingWheelProduct.id)
+      : priceByProduct.get(item.productId);
+    const isWheelSetProduct =
+      item.slug.toLowerCase().startsWith("wheelforce-set-") ||
+      isWheelForceWheelSet({
+        brand: displayBrand,
+        sku: item.normalizedSku,
+        category: item.categoryLabel,
+      });
+    const wheelForceWheel =
+      !isWheelSetProduct &&
+      isWheelForceWheel({
+        brand: displayBrand,
+        partNumber: requestedWheelSku ?? item.normalizedSku,
+        category: item.categoryLabel,
+      });
     const pricing = cardPrice
       ? resolveShopProductPricing(cardPrice as never, pricingContext)
       : null;
-    const priceSet = pricing
+    const unitPriceSet = pricing
       ? expandShopPrices(pricing.effectivePrice, settings.currencyRates)
       : { eur: 0, usd: 0, uah: 0 };
-    const compareAtSet = pricing?.effectiveCompareAt
+    const priceSet = wheelForceWheel ? wheelForceSetMoney(unitPriceSet) : unitPriceSet;
+    const unitCompareAtSet = pricing?.effectiveCompareAt
       ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
+      : null;
+    const compareAtSet = unitCompareAtSet
+      ? wheelForceWheel ? wheelForceSetMoney(unitCompareAtSet) : unitCompareAtSet
       : null;
     const usdRate = settings.currencyRates.USD || 1.152174;
     const uahRate = settings.currencyRates.UAH || 53;
@@ -273,6 +313,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
           .filter(Boolean)
       )
     );
+    const productHref = buildShopStorefrontProductPath(locale, {
+      slug: item.slug,
+      brand: displayBrand,
+    });
+    const cardWheelSku = displayBrand.toLowerCase() === "wheelforce" ? requestedWheelSku : null;
     return {
       id: item.productId,
       name: getKwCardTitle({
@@ -281,7 +326,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         locale,
       }),
       brand: displayBrand,
-      partNumber: item.normalizedSku ?? "",
+      partNumber: displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
+        ? requestedWheelSku
+        : (item.normalizedSku ?? ""),
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       imageSources,
@@ -320,10 +367,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       basePrice: displayPrice,
       markupPct: pricing?.discountPercent ?? 0,
       slug: item.slug,
-      href: buildShopStorefrontProductPath(locale, {
-        slug: item.slug,
-        brand: displayBrand,
-      }),
+      href: cardWheelSku ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}` : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
       turn14Id: "",
       source: "catalog_v2_projection" as const,
@@ -335,6 +379,13 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     const displayBrand = getProductDisplayBrand(label);
     brandCounts.set(displayBrand, (brandCounts.get(displayBrand) ?? 0) + count);
   }
+  const exactWheelPrice = matchingWheelProduct && data.length === 1
+    ? priceCurrency === "EUR"
+      ? data[0].priceEur
+      : priceCurrency === "UAH"
+        ? data[0].priceUah
+        : data[0].priceUsd
+    : null;
   const filterStats = {
     brands: [...brandCounts.entries()]
       .map(([label, count]) => ({ label, count }))
@@ -345,7 +396,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       inStock: stockSummary.inStock,
       preOrder: stockSummary.preOrder,
     },
-    price: stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency },
+    price: exactWheelPrice && exactWheelPrice > 0
+      ? { min: exactWheelPrice, max: exactWheelPrice, currency: priceCurrency }
+      : (stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency }),
   };
   const response = NextResponse.json({
     data,

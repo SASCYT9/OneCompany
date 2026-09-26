@@ -94,6 +94,7 @@ function projectionTargets(payload: Prisma.JsonValue): ShopCatalogProjectionTarg
 export async function claimShopCatalogOutbox(input: {
   workerId: string;
   limit?: number;
+  outboxIds?: readonly string[];
   now?: Date;
   leaseMs?: number;
 }): Promise<ShopCatalogClaimedOutbox[]> {
@@ -114,8 +115,13 @@ export async function claimShopCatalogOutbox(input: {
   }
   const now = input.now ?? new Date();
   const leaseExpiresAt = new Date(now.getTime() + leaseMs);
+  const outboxIdFilter = input.outboxIds
+    ? input.outboxIds.length
+      ? Prisma.sql`AND "id" IN (${Prisma.join([...new Set(input.outboxIds)])})`
+      : Prisma.sql`AND false`
+    : Prisma.empty;
 
-  return prisma.$transaction(async (tx) => {
+  const claimedIds = await prisma.$transaction(async (tx) => {
     const claimed = await tx.$queryRaw<Array<{ id: string }>>`
       WITH candidates AS (
         SELECT "id"
@@ -124,6 +130,7 @@ export async function claimShopCatalogOutbox(input: {
           ("status" IN ('PENDING', 'RETRY') AND "availableAt" <= ${now})
           OR ("status" = 'PROCESSING' AND "leaseExpiresAt" < ${now})
         )
+        ${outboxIdFilter}
         ORDER BY "availableAt" ASC, "createdAt" ASC, "id" ASC
         FOR UPDATE SKIP LOCKED
         LIMIT ${limit}
@@ -140,31 +147,34 @@ export async function claimShopCatalogOutbox(input: {
       WHERE outbox."id" = candidates."id"
       RETURNING outbox."id"
     `;
-    if (!claimed.length) return [];
-    const ids = claimed.map((row) => row.id);
-    const jobs = await tx.shopCatalogOutbox.findMany({
-      where: {
-        id: { in: ids },
-        status: ShopCatalogOutboxStatus.PROCESSING,
-        lockedBy: workerId,
-        leaseExpiresAt,
-      },
-      include: {
-        revision: {
-          select: {
-            id: true,
-            productId: true,
-            version: true,
-            contentHash: true,
-            createdAt: true,
-            snapshot: true,
-          },
+    return claimed.map((row) => row.id);
+  });
+  if (!claimedIds.length) return [];
+
+  // Revision snapshots can be large. Load them after the atomic lease claim so
+  // the row-locking transaction doesn't time out while materializing JSON.
+  const jobs = await prisma.shopCatalogOutbox.findMany({
+    where: {
+      id: { in: claimedIds },
+      status: ShopCatalogOutboxStatus.PROCESSING,
+      lockedBy: workerId,
+      leaseExpiresAt,
+    },
+    include: {
+      revision: {
+        select: {
+          id: true,
+          productId: true,
+          version: true,
+          contentHash: true,
+          createdAt: true,
+          snapshot: true,
         },
       },
-      orderBy: [{ canonicalVersion: "asc" }, { id: "asc" }],
-    });
-    return jobs as ShopCatalogClaimedOutbox[];
+    },
+    orderBy: [{ canonicalVersion: "asc" }, { id: "asc" }],
   });
+  return jobs as ShopCatalogClaimedOutbox[];
 }
 
 async function setReceiptPublishing(

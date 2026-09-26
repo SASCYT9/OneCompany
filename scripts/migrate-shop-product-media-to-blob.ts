@@ -36,13 +36,19 @@ import {
 
 const prisma = new PrismaClient();
 const execFileAsync = promisify(execFile);
+const curlExecutable = process.platform === "win32" ? "curl.exe" : "curl";
 const args = process.argv.slice(2);
 const commit = args.includes("--commit");
+const reusePublicBlobs = args.includes("--reuse-public-blobs");
 const allowPartial = args.includes("--allow-partial");
 const concurrency = Math.max(1, Math.min(32, Number(option("--concurrency") ?? 8) || 8));
 const rewriteConcurrency = Math.max(
   1,
   Math.min(8, Number(option("--rewrite-concurrency") ?? 8) || 8)
+);
+const transactionMaxWaitMs = Math.max(
+  2_000,
+  Math.min(60_000, Number(option("--transaction-max-wait") ?? 2_000) || 2_000)
 );
 const limit = parsePositiveInteger(option("--limit"));
 const brand = option("--brand");
@@ -67,6 +73,10 @@ const PRODUCT_SELECT = {
   variants: {
     select: { id: true, image: true },
     orderBy: [{ position: "asc" as const }, { createdAt: "asc" as const }],
+  },
+  metafields: {
+    where: { namespace: "wheelforce_import", key: "accessory_options" },
+    select: { id: true, namespace: true, key: true, value: true },
   },
 } satisfies Prisma.ShopProductSelect;
 
@@ -156,7 +166,7 @@ async function curlJson(
     `${BLOB_API_URL}${pathname}`
   );
 
-  const result = await execFileAsync("curl.exe", args, {
+  const result = await execFileAsync(curlExecutable, args, {
     encoding: "utf8",
     maxBuffer: 50 * 1024 * 1024,
   });
@@ -184,7 +194,7 @@ async function downloadRemoteImageCandidate(source: string) {
   const headerPath = path.join(tempDir, "headers");
   try {
     const result = await execFileAsync(
-      "curl.exe",
+      curlExecutable,
       [
         "--silent",
         "--show-error",
@@ -241,7 +251,7 @@ async function uploadPublicBlobViaCurl(pathname: string, buffer: Buffer, content
     await fs.writeFile(bodyPath, buffer);
     const token = blobToken();
     const result = await execFileAsync(
-      "curl.exe",
+      curlExecutable,
       [
         "--silent",
         "--show-error",
@@ -307,8 +317,11 @@ async function retryTransient<T>(action: () => Promise<T>) {
       const code =
         typeof error === "object" && error !== null && "code" in error
           ? String(error.code)
-          : "";
-      if (!(code === "P1017" || code === "P2024" || code === "P2034") || attempt === 5) {
+        : "";
+      const message = error instanceof Error ? error.message : String(error);
+      const transient = code === "P1017" || code === "P2024" || code === "P2028" ||
+        code === "P2034" || /40001|could not serialize|Catalog version conflict|Unable to start a transaction in the given time/u.test(message);
+      if (!transient || attempt === 5) {
         throw error;
       }
       await new Promise((resolve) => setTimeout(resolve, attempt * 500));
@@ -339,6 +352,13 @@ function productSources(product: ProductRow) {
   collectRemoteShopProductMediaSources(product.gallery, sources);
   collectRemoteShopProductMediaSources(product.media, sources);
   collectRemoteShopProductMediaSources(product.variants, sources);
+  for (const metafield of product.metafields) {
+    try {
+      collectRemoteShopProductMediaSources(JSON.parse(metafield.value), sources);
+    } catch {
+      // Keep malformed accessory metadata untouched and migrate all other media.
+    }
+  }
   return sources;
 }
 
@@ -390,6 +410,31 @@ async function downloadImage(source: string) {
 }
 
 async function loadExistingBlobUrls(sources: string[]) {
+  if (reusePublicBlobs) {
+    const sample = await prisma.shopProduct.findFirst({
+      where: {
+        ...(brand ? { brand: { equals: brand, mode: "insensitive" as const } } : {}),
+        image: { contains: ".public.blob.vercel-storage.com" },
+      },
+      select: { image: true },
+    });
+    if (!sample?.image) throw new Error("No public Blob URL is available to identify the existing store");
+    const origin = new URL(sample.image).origin;
+    const existing = new Map<string, string>();
+    await runWithConcurrency(sources, async (source) => {
+      const pathname = buildShopProductMediaBlobPathname(source);
+      const url = `${origin}/${pathname}`;
+      try {
+        const response = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(15_000) });
+        if (response.ok && response.headers.get("content-type")?.toLowerCase().startsWith("image/")) {
+          existing.set(pathname, url);
+        }
+      } catch {
+        // Missing Blob copies remain unresolved and are reported below.
+      }
+    }, concurrency);
+    return existing;
+  }
   if (!isBlobStorageConfigured()) return new Map<string, string>();
   const existing = new Map<string, string>();
   let cursor: string | undefined;
@@ -416,14 +461,16 @@ async function resolveSources(sources: string[], existingBlobUrls: Map<string, s
     const existing = existingBlobUrls.get(pathname);
     if (existing) {
       resolutions.set(source, { source, blobUrl: existing, status: "existing" });
-    } else if (commit) {
+    } else if (commit && !reusePublicBlobs) {
       missing.push(source);
+    } else if (reusePublicBlobs) {
+      resolutions.set(source, { source, blobUrl: null, status: "failed", error: "No verified public Blob copy" });
     } else {
       resolutions.set(source, { source, blobUrl: null, status: "pending" });
     }
   }
 
-  if (!commit) return resolutions;
+  if (!commit || reusePublicBlobs) return resolutions;
 
   await runWithConcurrency(
     missing,
@@ -459,6 +506,7 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
   let productGalleries = 0;
   let productMedia = 0;
   let variantImages = 0;
+  let accessoryOptionImages = 0;
   let productsSkipped = 0;
   let mutationFailures = 0;
   const catalogOutboxIds: string[] = [];
@@ -489,20 +537,40 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
         return next ? { id: variant.id, image: next } : null;
       })
       .filter((value): value is { id: string; image: string } => Boolean(value));
+    const metafieldUpdates = product.metafields.flatMap((metafield) => {
+      try {
+        const rewritten = rewriteShopProductMediaValue(
+          JSON.parse(metafield.value),
+          resolvedSources
+        );
+        return rewritten.replacements
+          ? [{ id: metafield.id, value: JSON.stringify(rewritten.value) }]
+          : [];
+      } catch {
+        return [];
+      }
+    });
 
     const primaryChanged = Boolean(nextPrimary && nextPrimary !== product.image);
     const hasChanges =
       primaryChanged ||
       rewrittenGallery.replacements > 0 ||
       mediaUpdates.length > 0 ||
-      variantUpdates.length > 0;
+      variantUpdates.length > 0 ||
+      metafieldUpdates.length > 0;
     if (!hasChanges) return;
 
-    const mutation = await retryTransient(() =>
-      coordinateShopCatalogProductMutationWithClient(prisma, {
+    const mutation = await retryTransient(async () => {
+      const latest = await prisma.shopProduct.findUnique({
+        where: { id: product.id },
+        select: { catalogVersion: true },
+      });
+      if (!latest) throw new Error(`Missing product during media migration: ${product.id}`);
+      return coordinateShopCatalogProductMutationWithClient(prisma, {
         productId: product.id,
-        expectedCatalogVersion: product.catalogVersion.toString(),
-        changeDomains: ["MEDIA"],
+        expectedCatalogVersion: latest.catalogVersion.toString(),
+      changeDomains: ["MEDIA"],
+      transactionMaxWaitMs,
         async mutateAndSnapshot(tx, nextCatalogVersion) {
           const productData: Prisma.ShopProductUpdateInput = {};
           if (primaryChanged && nextPrimary) productData.image = nextPrimary;
@@ -526,14 +594,28 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
             });
             if (updated.count !== 1) throw new Error(`Media ownership changed for ${variant.id}`);
           }
+          for (const metafield of metafieldUpdates) {
+            const updated = await tx.shopProductMetafield.updateMany({
+              where: {
+                id: metafield.id,
+                productId: product.id,
+                namespace: "wheelforce_import",
+                key: "accessory_options",
+              },
+              data: { value: metafield.value },
+            });
+            if (updated.count !== 1) {
+              throw new Error("Accessory media ownership changed for " + metafield.id);
+            }
+          }
           return buildShopCatalogAdminSnapshot(tx, product.id, nextCatalogVersion, {
             type: "IMPORT",
             id: "shop-product-media-blob-migration@system.local",
             reason: "shop.product-media.blob-migration",
           });
         },
-      })
-    ).catch((error) => {
+      });
+    }).catch((error) => {
       mutationFailures += 1;
       console.error(
         `Product mutation skipped for ${product.slug}: ${error instanceof Error ? error.message : String(error)}`
@@ -548,6 +630,7 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
     if (rewrittenGallery.replacements > 0) productGalleries += 1;
     productMedia += mediaUpdates.length;
     variantImages += variantUpdates.length;
+    accessoryOptionImages += metafieldUpdates.length;
     },
     rewriteConcurrency
   );
@@ -557,6 +640,7 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
     productGalleries,
     productMedia,
     variantImages,
+    accessoryOptionImages,
     productsSkipped,
     mutationFailures,
     catalogOutboxIds,
@@ -565,16 +649,21 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
 
 async function cleanupUnreferencedUploads() {
   if (!commit || uploadedThisRun.size === 0) return;
-  const [products, media, variants] = await Promise.all([
+  const [products, media, variants, metafields] = await Promise.all([
     prisma.shopProduct.findMany({ select: { image: true, gallery: true } }),
     prisma.shopProductMedia.findMany({ select: { src: true } }),
     prisma.shopProductVariant.findMany({ select: { image: true } }),
+    prisma.shopProductMetafield.findMany({
+      where: { namespace: "wheelforce_import", key: "accessory_options" },
+      select: { value: true },
+    }),
   ]);
   const retainedBlobUrls = new Set<string>([
     ...products.flatMap((product) => collectBlobUrls(product.gallery)),
     ...products.flatMap((product) => collectBlobUrls(product.image)),
     ...media.flatMap((row) => collectBlobUrls(row.src)),
     ...variants.flatMap((row) => collectBlobUrls(row.image)),
+    ...metafields.flatMap((row) => collectBlobUrls(row.value)),
   ]);
   const orphaned = getUnreferencedUploadedBlobUrls(uploadedThisRun, retainedBlobUrls);
   const cleanup = await deleteUploadedBlobUrls(orphaned, deleteBlobViaCurl);
@@ -606,9 +695,10 @@ async function main() {
   console.log(`Mode: ${commit ? "COMMIT" : "DRY-RUN (pass --commit to apply)"}`);
   console.log(`Scope: ${brand ? `brand=${brand}` : slug ? `slug=${slug}` : "all products"}`);
   console.log(`Concurrency: ${concurrency}`);
+  console.log(`DB rewrite concurrency: ${rewriteConcurrency}; transaction max wait: ${transactionMaxWaitMs}ms`);
   console.log(`Incomplete products: ${allowPartial ? "rewrite verified sources only" : "skip atomically"}`);
 
-  if (commit && !isBlobStorageConfigured()) {
+  if (commit && !reusePublicBlobs && !isBlobStorageConfigured()) {
     throw new Error(
       "BLOB_READ_WRITE_TOKEN is not set. Pull the intended Vercel environment before --commit."
     );
@@ -650,8 +740,10 @@ async function main() {
     console.log(`Product galleries rewritten: ${dbSummary.productGalleries}`);
     console.log(`Product media rows rewritten: ${dbSummary.productMedia}`);
     console.log(`Variant images rewritten: ${dbSummary.variantImages}`);
+    console.log(`Accessory option image sets rewritten: ${dbSummary.accessoryOptionImages}`);
     console.log(`Product mutation failures for retry: ${dbSummary.mutationFailures}`);
     console.log(`Catalog outbox events: ${dbSummary.catalogOutboxIds.length}`);
+    if (dbSummary.mutationFailures > 0) process.exitCode = 1;
   } else {
     console.log("Dry-run only: no Blob uploads or database writes were made.");
   }
