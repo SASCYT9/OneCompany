@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
           await runShopCatalogOutboxRuntime({
             workerId: `catalog-csv:${process.env.VERCEL_REGION || "local"}:${randomUUID()}`,
             limit: Math.min(50, Math.max(10, catalog.length)),
+            outboxIds: catalog.map((mutation) => mutation.outboxId),
           });
         } catch (error) {
           console.error("[shop-catalog.csv] immediate publish failed; cron recovery remains active", {
