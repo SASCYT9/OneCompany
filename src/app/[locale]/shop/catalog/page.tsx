@@ -148,7 +148,10 @@ export default async function CatalogPage({
   try {
     const vehicleProductIdsPromise = vehiclePlan.canonical
       ? Promise.resolve(null)
-      : resolveLegacyVehicleProductIds(vehiclePlan.constraints);
+      : resolveLegacyVehicleProductIds({
+          ...vehiclePlan.constraints,
+          modelAlternates: vehiclePlan.modelAlternates,
+        });
     const warehouseProductsPromise: Promise<
       Array<{ id: string; sku: string | null; slug: string }>
     > =
@@ -199,6 +202,8 @@ export default async function CatalogPage({
     const warehouseProductIds = warehouseProducts.map((product) => product.id);
     const projectionQuery = {
       ...query,
+      ...vehiclePlan.constraints,
+      modelAlternates: vehiclePlan.modelAlternates,
       // The established catalog treats auto as the default unpartitioned tab;
       // only moto is a strict projection scope.
       scope: query.scope === "moto" ? "moto" : null,
@@ -240,6 +245,7 @@ export default async function CatalogPage({
       }
       projectionQuery.make = null;
       projectionQuery.model = null;
+      projectionQuery.modelAlternates = [];
       projectionQuery.generation = null;
       projectionQuery.year = null;
     }

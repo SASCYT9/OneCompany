@@ -70,9 +70,9 @@ export function getShopCatalogSuggestionVehicleConstraints(query: string) {
   const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: query }), {
     readerMode: "projection",
   });
-  const { make, model, generation, year, engine, fuel, opfGpf } = plan.constraints;
+  const { make, model, generation } = plan.constraints;
   if (!make || (!model && !generation)) return null;
-  return { make, model, generation, year, engine, fuel, opfGpf };
+  return { ...plan.constraints, modelAlternates: plan.modelAlternates };
 }
 
 export function getShopCatalogSuggestionTextQuery(query: string) {
@@ -226,7 +226,10 @@ export async function queryShopCatalogSuggestions(
   );
   const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
   const vehicleProductIds = vehicleConstraints && !vehicleSearchPlan.canonical
-    ? await resolveLegacyVehicleProductIds(vehicleSearchPlan.constraints)
+    ? await resolveLegacyVehicleProductIds({
+        ...vehicleSearchPlan.constraints,
+        modelAlternates: vehicleSearchPlan.modelAlternates,
+      })
     : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);
   const normalizedProductQuery = normalizeShopSearchText(

@@ -59,11 +59,11 @@ export function StopflexDescriptionCallout({ isUa, isLongFiber }: StopflexDescri
   return (
     <section
       aria-labelledby="stopflex-description-title"
-      className="relative isolate overflow-hidden rounded-2xl border border-[#e3262b]/30 bg-linear-to-br from-[#1a1a1a] via-[#111111] to-[#260e10] p-5 text-white shadow-[0_14px_36px_-28px_rgba(227,38,43,0.85)] sm:p-6"
+      className="relative isolate overflow-hidden rounded-2xl border border-[#e3262b]/30 bg-[#151515] p-5 text-white shadow-lg sm:p-6"
     >
       <div
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-1 bg-linear-to-b from-[#fa5b5f] via-[#e3262b] to-[#8e1015]"
+        className="absolute inset-y-0 left-0 w-1 bg-[#e3262b]"
       />
       <div className="relative">
         <div className="flex flex-wrap items-center justify-between gap-3">

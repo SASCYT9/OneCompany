@@ -514,9 +514,10 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     ? do88Enriched.shortDescription
     : localizeShopDescription(resolvedLocale, product.shortDescription);
   const supplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
-  const isStopflexLongFiber = /long[-\s]?fiber|довг\w*\s+(?:вуглецев\w*\s+)?волок/iu.test(
-    `${productTitle} ${supplierLongDescription}`
-  );
+  const isStopflexLongFiber =
+    /long[-\s]?fiber|довг[\p{L}\p{M}]*\s+(?:(?:вуглецев|карбон)[\p{L}\p{M}]*\s+)?волок/iu.test(
+      `${productTitle} ${supplierLongDescription}`
+    );
   // Keep parsing the supplier long description so spec list still extracts;
   // the enriched headline + bullets replace the intro narrative.
   const descriptionSections = extractShopProductDescriptionSections(
