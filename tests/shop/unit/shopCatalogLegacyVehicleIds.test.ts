@@ -63,6 +63,25 @@ test("removes rejected flights so a transient lookup failure can retry", async (
   assert.equal(mock.state.applicationCalls, 2);
 });
 
+test("legacy resolution queries both the selected family and its specific model alternate", async () => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  await resolveLegacyVehicleProductIds({
+    make: "Mercedes-Benz",
+    model: "G-Class",
+    modelAlternates: ["AMG G 63"],
+    generation: "W465",
+  });
+
+  const applicationModels = mock.state.applicationArgs[0].where.model.in;
+  assert.ok(applicationModels.includes("G-Class"));
+  assert.ok(applicationModels.includes("G63"));
+  const clauseFilters = JSON.stringify(mock.state.projectionArgs[0].where.AND);
+  assert.match(clauseFilters, /G-Class/);
+  assert.match(clauseFilters, /G63/);
+});
+
 test("vehicle results expire and unrelated vehicle keys do not share answers", async (t) => {
   const { resolveLegacyVehicleProductIds } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");

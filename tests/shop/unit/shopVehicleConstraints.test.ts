@@ -25,6 +25,33 @@ test("legacy model labels match their canonical selectable model", () => {
   assert.equal(shopVehicleModelsMatch("M3", "3 Series", "BMW"), false);
 });
 
+test("specific Mercedes trim aliases match without broadening generic G-Class fitment", () => {
+  const fitment = {
+    make: "Mercedes-AMG",
+    models: ["G63"],
+    chassisCodes: ["W465"],
+    yearRanges: [],
+    confidence: "high" as const,
+  };
+  assert.equal(
+    shopFitmentMatchesVehicleConstraints(fitment, {
+      make: "Mercedes-Benz",
+      model: "G-Class",
+      chassis: "W465",
+    }),
+    false
+  );
+  assert.equal(
+    shopFitmentMatchesVehicleConstraints(fitment, {
+      make: "Mercedes-Benz",
+      model: "G-Class",
+      modelAlternates: ["AMG G 63"],
+      chassis: "W465",
+    }),
+    true
+  );
+});
+
 test("selected chassis does not accept platform siblings or generic generations", () => {
   assert.equal(shopVehicleChassisMatches("MK7", "MK7"), true);
   assert.equal(shopVehicleChassisMatches("MK8", "MK7"), false);

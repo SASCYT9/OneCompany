@@ -95,7 +95,21 @@ test("Mercedes G63 generation queries infer one canonical make and preserve expl
       opfGpf: null,
     });
     assert.deepEqual(plan.qualifierTerms, ["G63"]);
+    assert.deepEqual(plan.modelAlternates, ["G63"]);
   }
+
+  const selectorPlan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams("make=Mercedes-Benz&model=AMG+G+63&chassis=W465")
+  );
+  assert.deepEqual(selectorPlan.modelAlternates, ["AMG G 63"]);
+});
+
+test("generic G-Class selection does not acquire the AMG G 63 model alternate", () => {
+  const plan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams("make=Mercedes-Benz&model=G-Class&chassis=W465")
+  );
+  assert.equal(plan.constraints.model, "G-Class");
+  assert.deepEqual(plan.modelAlternates, []);
 });
 
 test("mixed vehicle and product queries keep exact vehicle identity plus text search", () => {

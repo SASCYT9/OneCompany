@@ -17,6 +17,7 @@ import {
 type LegacyVehicleQuery = {
   make?: string | null;
   model?: string | null;
+  modelAlternates?: readonly string[] | null;
   generation?: string | null;
   year?: number | null;
 };
@@ -74,6 +75,7 @@ function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
   return JSON.stringify([
     canonicalVehicleMakeLabel(input.make ?? ""),
     input.model ? vehicleModelKey(input.model) : "",
+    [...new Set((input.modelAlternates ?? []).map(vehicleModelKey))].sort(),
     normalizeShopSearchText(input.generation ?? ""),
     input.year ?? null,
   ]);
@@ -152,7 +154,13 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
   const makeValues = [
     ...new Set([canonicalMake, ...(input.make ? vehicleMakeAliases(canonicalMake) : [])]),
   ];
-  const modelValues = input.model ? vehicleModelAliases(canonicalMake, input.model) : [];
+  const modelValues = [
+    ...new Set(
+      [input.model, ...(input.modelAlternates ?? [])]
+        .filter((value): value is string => Boolean(value?.trim()))
+        .flatMap((value) => vehicleModelAliases(canonicalMake, value))
+    ),
+  ];
   const generationValues = input.generation ? [input.generation] : [];
   const tagValues = new Set<string>();
   const modelTagValues = new Set<string>();
@@ -228,13 +236,19 @@ async function getCachedVehicleEvidence(
   makeAliases: string[],
   year?: number | null,
   model?: string | null,
+  modelAlternates?: readonly string[] | null,
   generation?: string | null
 ) {
-  const modelAliases = model ? vehicleModelAliases(canonicalMake, model) : [];
+  const requestedModels = [model, ...(modelAlternates ?? [])]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+  const modelAliases = [
+    ...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value))),
+  ];
   const generationValue = generation?.trim() || null;
   const key = JSON.stringify([
     canonicalMake,
-    model ? vehicleModelKey(model) : null,
+    [...new Set(requestedModels.map(vehicleModelKey))].sort(),
     generationValue ? normalizeShopSearchText(generationValue) : null,
     year ?? null,
   ]);
@@ -372,6 +386,7 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
           makeAliases,
           input.year,
           input.model,
+          input.modelAlternates,
           input.generation
         )
       : Promise.resolve<VehicleEvidence>({ applications: [], clauses: [] }),
@@ -386,6 +401,7 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
         return shopFitmentMatchesVehicleConstraints(product.fitment, {
           make: canonicalMake,
           model: input.model,
+          modelAlternates: input.modelAlternates,
           chassis: input.generation,
           year: input.year,
         });
@@ -393,10 +409,28 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
       .map((product) => product.id)
       .filter((id): id is string => Boolean(id))
   );
-  const requestedModel = input.model ? vehicleModelKey(input.model) : null;
+  const requestedModels = [input.model, ...(input.modelAlternates ?? [])]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+  const requestedModelKeys = new Set(
+    [...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value)))].flatMap(
+      (value) => [
+        vehicleModelKey(value),
+        vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)),
+      ]
+    )
+  );
   const requestedChassis = normalizeShopSearchText(input.generation ?? "");
   for (const application of canonicalApplications) {
-    if (requestedModel && vehicleModelKey(application.model ?? "") !== requestedModel) continue;
+    if (
+      requestedModelKeys.size &&
+      !requestedModelKeys.has(vehicleModelKey(application.model ?? "")) &&
+      !requestedModelKeys.has(
+        vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, application.model ?? ""))
+      )
+    ) {
+      continue;
+    }
     if (
       requestedChassis &&
       normalizeShopSearchText(application.chassisCode ?? "") !== requestedChassis
@@ -429,11 +463,11 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
       continue;
     }
     if (
-      input.model &&
+      requestedModelKeys.size &&
       !exactTextValues("MODEL").some(
         (value) =>
-          vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)) ===
-          vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, input.model!))
+          requestedModelKeys.has(vehicleModelKey(value)) ||
+          requestedModelKeys.has(vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)))
       )
     ) {
       continue;

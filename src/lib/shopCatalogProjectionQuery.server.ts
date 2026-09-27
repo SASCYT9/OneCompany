@@ -39,6 +39,7 @@ export type ShopCatalogProjectionQueryInput = {
   category?: string | null;
   make?: string | null;
   model?: string | null;
+  modelAlternates?: readonly string[] | null;
   generation?: string | null;
   year?: number | null;
   engine?: string | null;
@@ -275,6 +276,15 @@ export function normalizeShopCatalogProjectionQuery(
     ),
     make: optionalBounded(input.make, "make", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     model: optionalBounded(input.model, "model", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    modelAlternates: [
+      ...new Set(
+        (input.modelAlternates ?? [])
+          .map((value) =>
+            optionalBounded(value, "modelAlternates", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet)
+          )
+          .filter((value): value is string => Boolean(value))
+      ),
+    ],
     generation: optionalBounded(
       input.generation,
       "generation",
@@ -370,8 +380,12 @@ function canonicalProjectionBrandSql() {
 function textConstraint(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
-  make?: string | null
+  make?: string | null,
+  modelAlternates?: readonly string[] | null
 ): Prisma.ShopCatalogProjectionConstraintWhereInput {
+  const modelValues = make
+    ? [...new Set([value, ...(modelAlternates ?? [])].flatMap((model) => vehicleModelAliases(make, model)))]
+    : [value];
   return {
     dimension,
     OR: [
@@ -383,7 +397,7 @@ function textConstraint(
         textValue: {
           in:
             dimension === ShopCatalogCompatibilityDimension.MODEL && make
-              ? vehicleModelAliases(make, value)
+              ? modelValues
               : dimension === ShopCatalogCompatibilityDimension.MAKE
                 ? vehicleMakeAliases(value)
                 : [value],
@@ -522,11 +536,21 @@ function projectionSearchRelevanceSql(text: string) {
 function correlatedTextConstraintSql(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
-  make?: string | null
+  make?: string | null,
+  modelAlternates?: readonly string[] | null
 ) {
+  const modelKeys = make
+    ? [
+        ...new Set(
+          [value, ...(modelAlternates ?? [])]
+            .flatMap((model) => vehicleModelAliases(make, model))
+            .map(vehicleModelKey)
+        ),
+      ]
+    : [vehicleModelKey(value)];
   const exactMatch =
     dimension === ShopCatalogCompatibilityDimension.MODEL
-      ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join([...new Set((make ? vehicleModelAliases(make, value) : [value]).map(vehicleModelKey))])})`
+      ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join(modelKeys)})`
       : dimension === ShopCatalogCompatibilityDimension.MAKE
         ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map((alias) => alias.toLowerCase()))})`
         : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
@@ -621,7 +645,14 @@ function selectedVehicleCondition(
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
     if (value)
-      constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
+      constraints.push(
+        correlatedTextConstraintSql(
+          VEHICLE_DIMENSIONS[field],
+          value,
+          input.make,
+          input.modelAlternates
+        )
+      );
   }
   if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
   if (!constraints.length) return null;
@@ -685,7 +716,14 @@ function selectedVehicleFacetConstraints(
     }
     const value = input[field];
     if (value)
-      constraints.push(correlatedTextConstraintSql(VEHICLE_DIMENSIONS[field], value, input.make));
+      constraints.push(
+        correlatedTextConstraintSql(
+          VEHICLE_DIMENSIONS[field],
+          value,
+          input.make,
+          input.modelAlternates
+        )
+      );
   }
   return constraints;
 }
@@ -1119,7 +1157,10 @@ export function buildShopCatalogProjectionWhere(
   const and: Prisma.ShopCatalogProjectionWhereInput[] = [];
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
-    if (value) constraints.push(textConstraint(VEHICLE_DIMENSIONS[field], value, input.make));
+    if (value)
+      constraints.push(
+        textConstraint(VEHICLE_DIMENSIONS[field], value, input.make, input.modelAlternates)
+      );
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));
   if (input.brand) {
