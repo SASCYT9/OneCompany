@@ -11,6 +11,7 @@ import {
 export type ShopVehicleConstraints = {
   make?: string | null;
   model?: string | null;
+  modelAlternates?: readonly string[] | null;
   chassis?: string | null;
   year?: number | null;
 };
@@ -67,9 +68,14 @@ export function shopFitmentMatchesVehicleConstraints(
   constraints: ShopVehicleConstraints
 ) {
   if (!shopVehicleMakesMatch(fitment.make, constraints.make)) return false;
+  const requestedModels = [constraints.model, ...(constraints.modelAlternates ?? [])].filter(
+    (model): model is string => Boolean(model?.trim())
+  );
   if (
-    constraints.model &&
-    !fitment.models.some((model) => shopVehicleModelsMatch(model, constraints.model, fitment.make))
+    requestedModels.length > 0 &&
+    !fitment.models.some((candidate) =>
+      requestedModels.some((requested) => shopVehicleModelsMatch(candidate, requested, fitment.make))
+    )
   ) {
     return false;
   }

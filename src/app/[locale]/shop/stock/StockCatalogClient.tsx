@@ -345,6 +345,7 @@ const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("vf engineering") || b.includes("vf-engineering"))
     return "/logos/vf-engineering.png";
   if (b.includes("vorsteiner")) return "/logos/vorsteiner.png";
+  if (b.includes("stopflex")) return "/logos/stopflex.png";
   if (b.includes("eventuri")) return "/logos/eventuri-official.svg";
   if (b.includes("remus")) return "/logos/remus-dark.png";
   if (b.includes("fi exhaust") || b.includes("fi-exhaust")) return "/logos/fi-exhaust.svg";
@@ -397,6 +398,7 @@ const LOGO_WIDE_MARK_BRANDS = [
   "racechip",
   "revozport",
   "remus",
+  "stopflex",
   "urban",
 ];
 
@@ -445,11 +447,13 @@ function BrandLogoTile({
   logoPath,
   size = "sm",
   className = "",
+  decorative = false,
 }: {
   brandName: string;
   logoPath: string | null;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  decorative?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
 
@@ -497,6 +501,7 @@ function BrandLogoTile({
       <span
         className={`flex shrink-0 items-center justify-start overflow-hidden ${sizeClass} ${className}`}
         title={brandName}
+        aria-hidden={decorative || undefined}
       >
         <span className="max-w-full truncate text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground/65">
           {brandName}
@@ -509,10 +514,11 @@ function BrandLogoTile({
     <span
       className={`relative flex shrink-0 items-center ${size === "xs" ? "justify-center" : "justify-start"} overflow-visible ${sizeClass} ${className}`}
       title={brandName}
+      aria-hidden={decorative || undefined}
     >
       <Image
         src={lightThemeLogoPath}
-        alt={brandName}
+        alt={decorative ? "" : brandName}
         width={112}
         height={36}
         unoptimized
@@ -524,7 +530,7 @@ function BrandLogoTile({
       {hasThemeSpecificLogo ? (
         <Image
           src={logoPath}
-          alt={brandName}
+          alt={decorative ? "" : brandName}
           width={112}
           height={36}
           unoptimized
@@ -2967,7 +2973,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       >
                         {selected ? <Check className="h-3 w-3" /> : null}
                       </span>
-                      <BrandLogoTile brandName={brandName} logoPath={logoPath} size="xs" />
+                      <BrandLogoTile
+                        brandName={brandName}
+                        logoPath={logoPath}
+                        size="xs"
+                        decorative
+                      />
                       <span className="min-w-0 flex-1 truncate" title={brandName}>
                         {brandName}
                       </span>
@@ -4053,9 +4064,21 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       key={brandName}
                       type="button"
                       onClick={() => handleToggleBrand(brandName)}
-                      className="inline-flex min-h-8 items-center gap-2 rounded-[7px] border border-foreground/12 bg-foreground/[0.03] px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground"
+                      className={`inline-flex min-h-8 items-center gap-2 rounded-[7px] border px-3 text-[11px] text-foreground/70 transition hover:border-foreground/25 hover:text-foreground ${
+                        normalizeBrandLogoName(brandName).includes("stopflex")
+                          ? "border-[#e3262b]/30 bg-[#e3262b]/[0.06]"
+                          : "border-foreground/12 bg-foreground/[0.03]"
+                      }`}
                     >
-                      {isUa ? `Бренд: ${brandName}` : `Brand: ${brandName}`}
+                      {normalizeBrandLogoName(brandName).includes("stopflex") ? (
+                        <BrandLogoTile
+                          brandName={brandName}
+                          logoPath={getBrandLogoPath(brandName)}
+                          size="xs"
+                          decorative
+                        />
+                      ) : null}
+                      <span>{isUa ? `Бренд: ${brandName}` : `Brand: ${brandName}`}</span>
                       <X className="h-3.5 w-3.5 text-foreground/45" />
                     </button>
                   ))}

@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
+import { StopflexDescriptionCallout } from "@/components/shop/StopflexDescriptionCallout";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
@@ -494,6 +495,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const isUrbanMode = mode === "urban" || Boolean(urbanCollectionHandle);
   const isDo88Mode = mode === "do88" || Boolean(do88CollectionHandle);
   const productBrandLc = (product.brand || "").toLowerCase();
+  const isStopflexProduct =
+    productBrandLc.includes("stopflex") ||
+    product.vendor?.toLowerCase().includes("stopflex") === true;
   const isAkrapovicAccessory = isAkrapovicTailpipeAccessory(product);
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
@@ -510,6 +514,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     ? do88Enriched.shortDescription
     : localizeShopDescription(resolvedLocale, product.shortDescription);
   const supplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const isStopflexLongFiber = /long[-\s]?fiber|довг\w*\s+(?:вуглецев\w*\s+)?волок/iu.test(
+    `${productTitle} ${supplierLongDescription}`
+  );
   // Keep parsing the supplier long description so spec list still extracts;
   // the enriched headline + bullets replace the intro narrative.
   const descriptionSections = extractShopProductDescriptionSections(
@@ -1001,13 +1008,17 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
               ) : null}
 
-              {descriptionSections.introHtml ||
+              {isStopflexProduct ||
+              descriptionSections.introHtml ||
               detailFeatureItems.length > 0 ||
               detailSpecs.length > 0 ? (
                 <MobileProductDisclosure
                   title={isUa ? "Опис і характеристики" : "Description & specs"}
                   contentClassName="space-y-4"
                 >
+                  {isStopflexProduct ? (
+                    <StopflexDescriptionCallout isUa={isUa} isLongFiber={isStopflexLongFiber} />
+                  ) : null}
                   {descriptionSections.introHtml ? (
                     <div
                       className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
