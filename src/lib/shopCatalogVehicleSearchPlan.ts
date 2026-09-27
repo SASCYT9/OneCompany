@@ -74,6 +74,13 @@ export function buildShopCatalogVehicleSearchPlan(
   const make = clean(params.get("make")) ?? inferredMake;
   const requestedModel = clean(params.get("model")) ?? inferredModel;
   const modelFilter = make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
+  // Preserve a specific selector identity when its broad family is used for
+  // the catalog constraint (for example AMG G 63 -> G-Class). The qualifier
+  // term keeps free-text matching specific to the selected model.
+  const modelAlternates =
+    modelFilter && requestedModel && vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
+      ? [requestedModel]
+      : [];
   const requestedGeneration = clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
   // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53.
   // Keep the RS5 qualifier and translate only that explicitly selected pair.
@@ -108,6 +115,7 @@ export function buildShopCatalogVehicleSearchPlan(
   return {
     constraints,
     qualifierTerms: modelFilter?.qualifierTerms ?? [],
+    modelAlternates,
     canonical,
     reader,
   };

@@ -57,20 +57,30 @@ test("product suggestions can reuse the verified clause vehicle predicate", asyn
   assert.ok(condition.values.includes("W465"));
 });
 
-test("ORM and cascading facets use the same aliases as catalog results", async () => {
-  const { buildShopCatalogProjectionWhere, buildShopCatalogProjectionFacetQuerySql } =
-    await queryModule;
+test("ORM and cascading facets retain a specific model alternate alongside its family", async () => {
+  const {
+    buildShopCatalogProjectionWhere,
+    buildShopCatalogProjectionFacetQuerySql,
+    buildShopCatalogProjectionVehicleQuerySql,
+  } = await queryModule;
   const input = {
     locale: "ua" as const,
     brand: "Eventuri",
     make: "Mercedes-Benz",
-    model: "AMG G 63",
+    model: "G-Class",
+    modelAlternates: ["AMG G 63"],
   };
   const where = JSON.stringify(buildShopCatalogProjectionWhere(input));
+  assert.ok(where.includes("G-Class"));
+  assert.ok(where.includes("G63"));
   assert.ok(where.includes("G63 AMG"));
   const facets = buildShopCatalogProjectionFacetQuerySql(input);
   assert.ok(facets.values.includes("g63amg"));
+  assert.ok(facets.values.includes("g63"));
   assert.ok(facets.values.includes("mercedes-amg"));
+  const vehicleQuery = buildShopCatalogProjectionVehicleQuerySql(input);
+  assert.ok(vehicleQuery);
+  assert.ok(vehicleQuery.values.includes("g63"));
 });
 
 test("query normalization is bounded and fail-closed", async () => {

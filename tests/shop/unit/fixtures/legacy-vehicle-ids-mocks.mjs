@@ -101,5 +101,8 @@ export function vehicleMakeAliases() {
 }
 
 export function vehicleModelAliases(_make, value) {
+  if (["amg g 63", "amg g63", "g63", "g63 amg"].includes(String(value ?? "").toLowerCase())) {
+    return ["AMG G 63", "AMG G63", "G63", "G63 AMG"];
+  }
   return [value, String(value ?? "").replace(/\s+/g, "-")];
 }

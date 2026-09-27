@@ -105,7 +105,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     "vehicle",
     vehiclePlan.canonical
       ? Promise.resolve(null)
-      : resolveLegacyVehicleProductIds(vehiclePlan.constraints)
+      : resolveLegacyVehicleProductIds({
+          ...vehiclePlan.constraints,
+          modelAlternates: vehiclePlan.modelAlternates,
+        })
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
   const warehouseProductsPromise = measure("warehouse", getShopInStockProducts());
@@ -151,6 +154,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     brand: firstBrand(params),
     category: clean(params.get("category")),
     ...vehiclePlan.constraints,
+    modelAlternates: vehiclePlan.modelAlternates,
     minPrice,
     maxPrice,
     priceCurrency,
@@ -226,6 +230,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     }
     query.make = null;
     query.model = null;
+    query.modelAlternates = null;
     query.generation = null;
     query.year = null;
   }
