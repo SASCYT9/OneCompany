@@ -16,6 +16,10 @@ import {
   getLocalizedSubcategory,
 } from "@/lib/brands";
 import { getBrandLogo } from "@/lib/brandLogos";
+import {
+  brandLogoNeedsLightSurface,
+  getBrandLogoSurfaceClass,
+} from "@/lib/brandLogoPresentation";
 import { shouldInvertBrand, shouldSmartInvertBrand } from "@/lib/invertBrands";
 import { categoryData } from "@/lib/categoryData";
 
@@ -783,14 +787,14 @@ export default function MotoPage() {
                                 e.stopPropagation();
                                 setSelectedBrand(brand);
                               }}
-                              className="shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-foreground/5 border border-foreground/10 p-2 flex items-center justify-center hover:bg-foreground/10 hover:border-foreground/20 transition-all duration-300"
+                              className={`shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-foreground/5 border border-foreground/10 p-2 flex items-center justify-center hover:bg-foreground/10 hover:border-foreground/20 transition-all duration-300 ${getBrandLogoSurfaceClass(brand.name)}`}
                             >
                               <div className="relative w-full h-full">
                                 <Image
                                   src={getBrandLogo(brand.name)}
                                   alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                                   fill
-                                  className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? "opacity-95 hover:opacity-100" : "opacity-70 hover:opacity-100"} transition-opacity ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrand(brand.name) ? "filter brightness-0 invert" : ""}`}
+                                  className={`object-contain ${shouldSmartInvertBrand(brand.name) || (shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name)) ? "opacity-95 hover:opacity-100" : "opacity-70 hover:opacity-100"} transition-opacity ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
                                   unoptimized
                                 />
                               </div>
@@ -809,14 +813,14 @@ export default function MotoPage() {
                                 e.stopPropagation();
                                 setSelectedBrand(brand);
                               }}
-                              className="shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-foreground/5 border border-foreground/10 p-2 flex items-center justify-center hover:bg-foreground/10 hover:border-foreground/20 transition-all duration-300"
+                              className={`shrink-0 h-12 w-28 sm:h-14 sm:w-32 rounded-xl bg-foreground/5 border border-foreground/10 p-2 flex items-center justify-center hover:bg-foreground/10 hover:border-foreground/20 transition-all duration-300 ${getBrandLogoSurfaceClass(brand.name)}`}
                             >
                               <div className="relative w-full h-full">
                                 <Image
                                   src={getBrandLogo(brand.name)}
                                   alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                                   fill
-                                  className={`object-contain ${shouldSmartInvertBrand(brand.name) || shouldInvertBrand(brand.name) ? "opacity-95 hover:opacity-100" : "opacity-70 hover:opacity-100"} transition-opacity ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrand(brand.name) ? "filter brightness-0 invert" : ""}`}
+                                  className={`object-contain ${shouldSmartInvertBrand(brand.name) || (shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name)) ? "opacity-95 hover:opacity-100" : "opacity-70 hover:opacity-100"} transition-opacity ${shouldSmartInvertBrand(brand.name) ? "filter invert hue-rotate-180" : shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
                                   unoptimized
                                 />
                               </div>
@@ -1132,12 +1136,14 @@ export default function MotoPage() {
                                 <span>{origin}</span>
                               </div>
                             </div>
-                            <div className="relative mt-4 h-20 w-full sm:mt-6 sm:h-24">
+                            <div
+                              className={`relative mt-4 h-20 w-full sm:mt-6 sm:h-24 ${getBrandLogoSurfaceClass(brand.name)} ${brandLogoNeedsLightSurface(brand.name) ? "p-3" : ""}`}
+                            >
                               <Image
                                 src={getBrandLogo(brand.name)}
                                 alt={`${brand.name} Україна - мото тюнінг Київ, купити ${brand.name} OneCompany`}
                                 fill
-                                className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) ? "filter brightness-0 invert" : ""}`}
+                                className={`object-contain object-center transition-all duration-500 ${shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
                                 sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 20vw"
                                 unoptimized
                               />
