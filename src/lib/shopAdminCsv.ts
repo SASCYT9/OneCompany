@@ -304,6 +304,7 @@ function buildProductPayload(
       .join(" / ");
 
     return {
+      id: nullableString(row["Variant ID"]),
       title: variantTitle || "Default Title",
       sku: nullableString(row["Variant SKU"]),
       position: index + 1,
