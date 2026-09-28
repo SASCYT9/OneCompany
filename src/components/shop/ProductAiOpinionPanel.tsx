@@ -57,7 +57,9 @@ function buildPrompt(locale: SupportedLocale, product: ShopProduct) {
             label: isUa ? "Габарити" : "Dimensions",
             value: [product.length, product.width, product.height]
               .filter((value): value is number => value != null)
-              .map((value) => `${value} mm`)
+              // ShopProduct dimensions are stored in centimeters by the
+              // supplier-dimensions and freight sync paths.
+              .map((value) => `${value} cm`)
               .join(" × "),
           }
         : null,

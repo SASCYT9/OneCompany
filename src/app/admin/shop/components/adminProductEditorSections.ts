@@ -19,7 +19,7 @@ export const ADMIN_PRODUCT_EDITOR_SECTIONS: AdminEditorNavSection[] = [
   {
     id: "dimensions",
     label: "Dimensions",
-    description: "Shipping dimensions and AI-estimated flags.",
+    description: "Shipping weight, package dimensions, and estimate flags.",
   },
   {
     id: "compatibility",

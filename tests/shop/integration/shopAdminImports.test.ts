@@ -58,10 +58,19 @@ const PARTIAL_OPTION_CSV = [
   'Handle,Title,Option1 Name,Variant SKU',
   'urban-rear-bumper,Updated title,Surface,URB-RB-001',
 ].join('\n');
+const DO88_SHIPPING_CSV = [
+  'Handle,Title,Variant SKU,Variant Weight,Variant Weight Unit,Variant Length,Variant Width,Variant Height,Variant Dimensions Estimated,Variant Weight Estimated',
+  'do88-wc-420,Current product title,WC-420,10,kg,85,60,28,true,true',
+].join('\n');
 
 type MockProductRecord = {
   id: string;
   slug: string;
+  weight?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+  isDimensionsEstimated?: boolean;
   collections?: Array<{ collectionId: string; sortOrder: number }>;
   media?: Array<{ id: string; src: string; position: number }>;
   options?: Array<{ id: string; name: string; position: number }>;
@@ -74,6 +83,12 @@ type MockProductRecord = {
     option2Value: string | null;
     option3Value: string | null;
     isDefault: boolean;
+    weightUnit?: string | null;
+    weight?: number | null;
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
+    isDimensionsEstimated?: boolean;
   }>;
   metafields?: Array<{ id: string; namespace: string; key: string }>;
 };
@@ -160,6 +175,7 @@ function createMockPrisma(existingProduct: MockProductRecord | null) {
     },
     shopProduct: {
       findUnique: async () => state.existingProduct,
+      findMany: async () => (state.existingProduct ? [state.existingProduct] : []),
       update: async ({ data }: { data: Record<string, unknown> }) => {
         state.updated += 1;
         state.lastUpdateData = data;
@@ -330,6 +346,68 @@ test('runShopCsvImport respects SKIP and UPDATE conflict modes', async () => {
   });
   assert.equal(updateData.variants?.update?.[0]?.data.requiresShipping, undefined);
   assert.equal(updateData.variants?.update?.[0]?.data.taxable, undefined);
+});
+
+test('fill-empty shipping dry-run distinguishes complete and missing product fields', async () => {
+  const existing = {
+    id: 'do88-product-1',
+    slug: 'do88-wc-420',
+    weight: 7.983,
+    length: 76.962,
+    width: 55.88,
+    height: 17.018,
+    isDimensionsEstimated: false,
+    variants: [{
+      id: 'do88-variant-1',
+      sku: 'WC-420',
+      title: 'Default Title',
+      position: 1,
+      option1Value: null,
+      option2Value: null,
+      option3Value: null,
+      isDefault: true,
+      weightUnit: 'kg',
+      weight: 7.983,
+      length: 76.962,
+      width: 55.88,
+      height: 17.018,
+      isDimensionsEstimated: false,
+    }],
+  } satisfies MockProductRecord;
+  const completePrisma = createMockPrisma(existing);
+  const completeResult = await runShopCsvImport(completePrisma as never, adminSession as never, {
+    csvText: DO88_SHIPPING_CSV,
+    action: 'dry-run',
+    conflictMode: 'CREATE',
+    fillEmptyShippingOnly: true,
+  }, mockCatalogWriter);
+
+  assert.equal(completeResult.fillEmptyShipping?.matchedProducts, 1);
+  assert.equal(completeResult.fillEmptyShipping?.rowsAlreadyComplete, 1);
+  assert.equal(completeResult.fillEmptyShipping?.fieldValuesToFill, 0);
+  assert.equal(completePrisma.state.updated, 0);
+  assert.equal(completePrisma.state.created, 0);
+
+  const partialPrisma = createMockPrisma({
+    ...existing,
+    length: null,
+    width: null,
+    height: null,
+    variants: [{ ...existing.variants![0]!, length: null, width: null, height: null }],
+  });
+  const partialResult = await runShopCsvImport(partialPrisma as never, adminSession as never, {
+    csvText: DO88_SHIPPING_CSV,
+    action: 'dry-run',
+    conflictMode: 'CREATE',
+    fillEmptyShippingOnly: true,
+  }, mockCatalogWriter);
+
+  assert.equal(partialResult.fillEmptyShipping?.matchedProducts, 1);
+  assert.equal(partialResult.fillEmptyShipping?.rowsWithMissingShipping, 1);
+  assert.equal(partialResult.fillEmptyShipping?.fieldValuesToFill, 6);
+  assert.equal(partialResult.errors.length, 0);
+  assert.equal(partialPrisma.state.updated, 0);
+  assert.equal(partialPrisma.state.created, 0);
 });
 
 test('runShopCsvImport treats missing nested CSV columns as preserve, not delete-all', async () => {

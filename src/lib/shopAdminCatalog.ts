@@ -236,6 +236,11 @@ export type AdminShopProductListRecord = Prisma.ShopProductGetPayload<{
 export const adminProductImportMergeSelect = {
   id: true,
   slug: true,
+  weight: true,
+  length: true,
+  width: true,
+  height: true,
+  isDimensionsEstimated: true,
   collections: {
     select: {
       collectionId: true,
@@ -266,6 +271,12 @@ export const adminProductImportMergeSelect = {
       option2Value: true,
       option3Value: true,
       isDefault: true,
+      weight: true,
+      weightUnit: true,
+      length: true,
+      width: true,
+      height: true,
+      isDimensionsEstimated: true,
     },
   },
   metafields: {
@@ -392,6 +403,7 @@ export type AdminShopProductVariantInput = {
   costPerItem?: number | null;
   isDefault?: boolean;
   isDimensionsEstimated?: boolean;
+  weightEstimated?: boolean;
 };
 
 export type AdminShopProductMetafieldInput = {
@@ -775,6 +787,7 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
         costPerItem: decimalValue(item.costPerItem),
         isDefault: boolValue(item.isDefault, index === 0),
         isDimensionsEstimated: boolValue(item.isDimensionsEstimated, false),
+        weightEstimated: boolValue(item.weightEstimated, false),
       };
     })
     .filter(

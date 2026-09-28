@@ -25,6 +25,7 @@ import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
 import type { SupportedLocale } from "@/lib/seo";
 import { isWheelForceWheel, isWheelForceWheelSet, wheelForceSetPricing } from "@/lib/wheelforceFamily";
+import { useShopVariantImage } from "./ShopVariantImageContext";
 
 type Props = {
   product: ShopProduct;
@@ -45,7 +46,18 @@ type VariantAxis = {
 const FALLBACK_AXIS_NAMES = ["Configuration", "Design", "Option"];
 
 const UA_OPTION_NAMES: Record<string, string> = {
-  Size: "Розмір диска",
+  Color: "Колір",
+  Colour: "Колір",
+  "Hose color": "Колір шлангів",
+  Options: "Додаткові опції",
+  Type: "Тип виконання",
+  "For piping": "Варіант пайпів",
+  Turbo: "Варіант турбіни",
+  "Throttle body size": "Діаметр дроселя",
+  "Air Filter": "Повітряний фільтр",
+  "Turbo inletpipe": "Впускна труба турбін",
+  Intercooler: "Інтеркулер",
+  Size: "Розмір",
   "Wheel size": "Розмір диска",
   Finish: "Оздоблення",
   Version: "Версія",
@@ -67,13 +79,41 @@ const EN_OPTION_VALUES: Array<[RegExp, string]> = [
   [/^покращені турбіни\s*\(вхід 3"\)$/i, 'Upgraded turbos (3" inlet)'],
 ];
 
+const UA_OPTION_VALUES: Array<[RegExp, string]> = [
+  [/^black$/i, "Чорний"],
+  [/^silver$/i, "Сріблястий"],
+  [/^blue$/i, "Синій"],
+  [/^red$/i, "Червоний"],
+  [/^none$/i, "Без додаткових опцій"],
+  [/^inlet hoses$/i, "Впускні шланги"],
+  [/^without air straighteners$/i, "Без випрямлювачів потоку"],
+  [/^oe air straighteners Ø54mm$/i, "OE-випрямлювачі потоку Ø54 мм"],
+  [/^hybrid air straight Ø60mm$/i, "Гібридний повітряний випрямляч Ø60 мм"],
+  [/^for std\. rear bumper$/i, "Для стандартного заднього бампера"],
+  [/^for sportdesign \/ gts$/i, "Для SportDesign / GTS"],
+  [/^oe 66mm$/i, "OE, 66 мм"],
+  [/^66mm with turbo inlet hoses$/i, "66 мм зі впускними шлангами турбін"],
+  [/^80mm with turbo inlet hoses$/i, "80 мм зі впускними шлангами турбін"],
+  [/^oem$/i, "OE"],
+  [/^xl$/i, "XL"],
+  [/^large$/i, "Великий"],
+  [/^medium$/i, "Середній"],
+  [/^small$/i, "Малий"],
+  [/^without filter$/i, "Без фільтра"],
+  [/^bmc filter$/i, "Фільтр BMC"],
+  [/^do88 v2 \/ oem$/i, "do88 V2 / OE"],
+  [/^do88 v1$/i, "do88 V1"],
+  [/^do88 y-pipe$/i, "Y-пайп do88"],
+  [/^oem y-pipe$/i, "Y-пайп OE"],
+];
+
 function localizeOptionName(name: string, isUa: boolean) {
   const normalized = name.trim();
   return isUa ? (UA_OPTION_NAMES[normalized] ?? normalized) : normalized;
 }
 
 function localizeOptionValue(value: string, isUa: boolean) {
-  if (isUa) return value;
+  if (isUa) return UA_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
   return EN_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
 }
 
@@ -157,6 +197,8 @@ export function ShopProductVariantPurchaseSection({
   continueShoppingHref,
   children,
 }: Props) {
+  const variantImageContext = useShopVariantImage();
+  const setSelectedVariantImage = variantImageContext?.setSelectedVariantImage;
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const { rates } = useShopCurrency();
   const variants = useMemo(() => product.variants ?? [], [product.variants]);
@@ -184,6 +226,10 @@ export function ShopProductVariantPurchaseSection({
     if (!variants.length) return null;
     return variants.find((variant) => variantMatches(variant, selected)) ?? initialVariant;
   }, [initialVariant, selected, variants]);
+
+  useEffect(() => {
+    setSelectedVariantImage?.(currentVariant?.image ?? null);
+  }, [currentVariant?.id, currentVariant?.image, setSelectedVariantImage]);
 
   const currentProduct = useMemo<ShopProduct>(() => {
     if (!currentVariant) return product;

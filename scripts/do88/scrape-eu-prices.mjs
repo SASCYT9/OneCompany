@@ -9,7 +9,8 @@
  *   sitemap of their own — so we BFS-crawl from the homepage and follow only
  *   internal `/en/artiklar/…/index.html` links.
  *
- *   Cookies: VALUTA=EUR + SPRAK=EN switch responses to English + EUR.
+ *   Cookies: VALUTA=EUR + SPRAK=EN + MOMS=inkl. select English,
+ *   EUR, Consumer / Incl. VAT prices.
  *   Each product card lives in `<div class="PT_Wrapper">` and exposes
  *     - <div class="PT_Pris ...">XX.XX EUR</div> (or PT_PrisKampanj for sale)
  *     - data-cart='{"altnr":"<SKU>", ...}' on the buy button
@@ -18,7 +19,7 @@
  * Output: scripts/do88/scraped/do88-eu-prices.json — array of
  *   { sku, titleEn, priceEur, sourceUrl }
  *
- * Usage: node scripts/do88/scrape-eu-prices.mjs
+ * Usage: node scripts/do88/scrape-eu-prices.mjs [output-json-path]
  *   No DB writes. Pure raw price feed for diffing.
  */
 
@@ -27,8 +28,11 @@ import fs from 'fs';
 import path from 'path';
 
 const BASE_URL = 'https://www.do88performance.eu';
-const COOKIE = 'VALUTA=EUR; SPRAK=EN';
-const OUTPUT_JSON = path.join(process.cwd(), 'scripts/do88/scraped/do88-eu-prices.json');
+const COOKIE = 'VALUTA=EUR; SPRAK=EN; MOMS=inkl.';
+const SOURCE_RETRIEVED_AT = new Date().toISOString();
+const OUTPUT_JSON = path.resolve(
+  process.argv[2] || path.join(process.cwd(), 'scripts/do88/scraped/do88-eu-prices.json')
+);
 const DELAY_MS = 200;
 const MAX_PAGES = 4000;
 // Persist progress every N successfully-fetched pages so a crash mid-run
@@ -79,15 +83,10 @@ function extractFromDetailPage(html, pageUrl) {
   if (!skuMatch) return null;
   const sku = skuMatch[1];
 
-  // Price priority on detail pages:
-  //   1. PrisORD — regular ("ordinarie" sv) price, present when the item is
-  //      currently on sale; the struck-through original we want to mirror.
-  //   2. PrisBOLD — the canonical price when no sale is active.
-  //   3. PrisREA — the live sale price. We deliberately ignore this so our DB
-  //      doesn't drift down to a temporary discount and then strand at that
-  //      level when do88 ends the campaign.
+  // Use the currently displayed Customer / Incl. VAT price: PrisREA during a
+  // sale, otherwise PrisBOLD. PrisORD is the struck-through regular price.
   const priceMatch =
-    html.match(/<span class="PrisORD[^"]*">([0-9\s.,]+)/) ||
+    html.match(/<span class="PrisREA[^"]*">([0-9\s.,]+)/) ||
     html.match(/<span class="PrisBOLD[^"]*">([0-9\s.,]+)/);
   if (!priceMatch) return null;
   const priceStr = priceMatch[1].replace(/\s/g, '').replace(',', '.');
@@ -105,7 +104,7 @@ function extractFromDetailPage(html, pageUrl) {
     if (t) titleEn = t[1].trim();
   }
 
-  return { sku, titleEn, priceEur, sourceUrl: pageUrl, source: 'detail' };
+  return { sku, titleEn, priceEur, sourceUrl: pageUrl, source: 'detail', sourceRetrievedAt: SOURCE_RETRIEVED_AT };
 }
 
 function extractFromListing(html, pageUrl) {
@@ -122,12 +121,11 @@ function extractFromListing(html, pageUrl) {
     if (!skuMatch) continue;
     const sku = skuMatch[1];
 
-    // Skip listing cards flagged as sale (PT_PrisKampanj / PrisREA classes).
-    // We mirror do88 regular pricing only — picking up a temporary REA price
-    // here would silently undercut us when the campaign ends.
-    const isSaleCard = /class="[^"]*\b(?:PT_PrisKampanj|PrisREA)\b/.test(block);
-    if (isSaleCard) continue;
-    const priceMatch = block.match(/<div class="PT_Pris[^"]*">([0-9\s.,]+)\s*EUR/);
+    // Mirror the currently displayed customer price, including an active sale.
+    const priceMatch =
+      block.match(/<div class="PT_PrisKampanj[^"]*">([0-9\s.,]+)\s*EUR/) ||
+      block.match(/<div class="PrisREA[^"]*">([0-9\s.,]+)\s*EUR/) ||
+      block.match(/<div class="PT_Pris[^"]*">([0-9\s.,]+)\s*EUR/);
     if (!priceMatch) continue;
     // Skip "From X.XX EUR" (multi-variant) cards — the detail-page visit will
     // capture the canonical price.
@@ -141,7 +139,7 @@ function extractFromListing(html, pageUrl) {
       block.match(/alt="([^"]+)"/);
     const titleEn = titleMatch ? titleMatch[1].trim() : '';
 
-    products.push({ sku, titleEn, priceEur, sourceUrl: pageUrl, source: 'listing' });
+    products.push({ sku, titleEn, priceEur, sourceUrl: pageUrl, source: 'listing', sourceRetrievedAt: SOURCE_RETRIEVED_AT });
   }
 
   return products;

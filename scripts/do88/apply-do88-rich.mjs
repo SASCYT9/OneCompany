@@ -7,9 +7,8 @@
  * everything else untouched. Safe to re-run.
  *
  * Usage:
- *   node scripts/do88/apply-do88-rich.mjs               # apply all
- *   node scripts/do88/apply-do88-rich.mjs --skus LF-210-ST-66r,WC-430
- *   node scripts/do88/apply-do88-rich.mjs --dry-run     # show what would change
+ *   node scripts/do88/apply-do88-rich.mjs               # dry-run all
+ *   node scripts/do88/apply-do88-rich.mjs --apply --skus LF-210-ST-66r,WC-430
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -27,7 +26,11 @@ const argVal = (n) => {
   return i >= 0 ? args[i + 1] : null;
 };
 const SKU_FILTER = argVal('--skus') ? new Set(argVal('--skus').split(',').map((s) => s.trim().toUpperCase())) : null;
-const DRY_RUN = args.includes('--dry-run');
+const APPLY = args.includes('--apply');
+const DRY_RUN = !APPLY || args.includes('--dry-run');
+if (APPLY && !SKU_FILTER) {
+  throw new Error('Applying rich Do88 copy requires an explicit reviewed --skus allowlist.');
+}
 
 async function main() {
   const data = JSON.parse(await fs.readFile(INPUT, 'utf8'));

@@ -1,15 +1,17 @@
 /**
- * Apply EU-native do88performance.eu prices to DO88 products in our DB.
+ * Apply the do88 manufacturer's EUR price rule to already-listed products.
  *
  * Hard rules:
- *   - ONLY updates SKUs that already exist in our DB (per shop-owner brief
- *     "тільки ті SKU які в нас включені"). New SKUs from the scrape are
- *     ignored — those would need separate review for chassis-exclusion fits.
+ *   - Uses the supplier's Consumer / Incl. VAT source price and adds 10%,
+ *     rounded to cents. Never compounds from the current OneCompany price.
+ *   - ONLY updates SKUs already in our DB. New SKUs need a separate catalog
+ *     review, including manufacturer and fitment confirmation.
+ *   - Excludes known third-party product lines sold by the supplier.
  *   - ONLY writes `priceEur` on ShopProduct + matching ShopVariant. Never
  *     touches titles, body HTML, tags, media, or anything else (per
  *     `minimal_reimport.md` memory: shop DB has polished translations not in
  *     JSON; full reimport wipes them).
- *   - Defaults to dry-run. Requires --apply to actually write.
+ *   - Defaults to dry-run. Requires --apply and a reviewed SKU allowlist to write.
  *   - Snapshots every (id, oldPrice, newPrice, sku) to artifacts/do88-price-
  *     apply/<ts>/before-after.json BEFORE any write so the change is
  *     trivially reversible.
@@ -20,21 +22,32 @@
  *
  * Usage:
  *   npx tsx scripts/do88/apply-eu-prices.ts                 # dry run
- *   npx tsx scripts/do88/apply-eu-prices.ts --apply         # actually write
- *   npx tsx scripts/do88/apply-eu-prices.ts --apply --skip-large-drop
+ *   npx tsx scripts/do88/apply-eu-prices.ts --prices=tmp/do88-current-price-refresh.json
+ *   npx tsx scripts/do88/apply-eu-prices.ts --apply --prices=feed.json --approved-skus=approved.json
  */
 
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import { calculateDo88CustomerPriceEur } from '../../src/lib/do88Pricing';
 
-const SCRAPED = path.join(process.cwd(), 'scripts/do88/scraped/do88-eu-prices.json');
 const APPLY = process.argv.includes('--apply');
 const SKIP_LARGE_DROP = process.argv.includes('--skip-large-drop');
+const flagValue = (name: string) => process.argv.find((arg) => arg.startsWith(`${name}=`))?.slice(name.length + 1);
+const SCRAPED = path.resolve(flagValue('--prices') || 'scripts/do88/scraped/do88-eu-prices.json');
+const APPROVED_SKUS_PATH = flagValue('--approved-skus') ? path.resolve(flagValue('--approved-skus')!) : null;
 const LARGE_DROP_PCT = 35; // % below old price ⇒ "large drop"
 const ONLY_NONZERO_DELTA = 0.01; // skip rows where the new price equals the old to the cent
+const EXTERNAL_PRODUCT_MARKERS = /\b(?:BMC|GFB|Garrett|Setrab|Mikalor)\b/i;
 
-type EuItem = { sku: string; titleEn: string; priceEur: number; sourceUrl: string; source?: string };
+type EuItem = {
+  sku: string;
+  titleEn: string;
+  priceEur: number;
+  sourceUrl: string;
+  source?: string;
+  sourceRetrievedAt?: string;
+};
 
 function buildEuLookup(eu: EuItem[]) {
   const map = new Map<string, EuItem>();
@@ -66,9 +79,45 @@ async function main() {
     console.error(`❌ Scraped file missing: ${SCRAPED}`);
     process.exit(1);
   }
-  const eu: EuItem[] = JSON.parse(fs.readFileSync(SCRAPED, 'utf-8'));
+  const parsedFeed: unknown = JSON.parse(fs.readFileSync(SCRAPED, 'utf-8'));
+  let sourceFeedErrors: unknown[] = [];
+  let eu: EuItem[];
+  if (Array.isArray(parsedFeed)) {
+    eu = parsedFeed as EuItem[];
+  } else if (parsedFeed && typeof parsedFeed === 'object') {
+    const feed = parsedFeed as { products?: unknown; errors?: unknown; sourceMode?: unknown };
+    if (!Array.isArray(feed.products)) throw new Error('Price feed object must contain a products array');
+    eu = feed.products.map((row) => {
+      const item = row as Record<string, unknown>;
+      return {
+        sku: String(item.sku ?? item.pageSku ?? item.requestedSku ?? ''),
+        titleEn: String(item.titleEn ?? ''),
+        priceEur: Number(item.priceEur),
+        sourceUrl: String(item.sourceUrl ?? ''),
+        source: typeof item.source === 'string' ? item.source : 'detail',
+        sourceRetrievedAt: typeof item.sourceRetrievedAt === 'string' ? item.sourceRetrievedAt : undefined,
+      };
+    });
+    sourceFeedErrors = Array.isArray(feed.errors) ? feed.errors : [];
+  } else {
+    throw new Error('Price feed must be an array or contain a products array');
+  }
+  if (APPLY && sourceFeedErrors.length) {
+    throw new Error(`Refusing to apply an incomplete supplier feed with ${sourceFeedErrors.length} fetch errors`);
+  }
+  let approvedSkuSet: Set<string> | null = null;
+  if (APPLY) {
+    if (!APPROVED_SKUS_PATH) throw new Error('Applying prices requires --approved-skus=<reviewed JSON array>');
+    if (!fs.existsSync(APPROVED_SKUS_PATH)) throw new Error(`Approved SKU allowlist missing: ${APPROVED_SKUS_PATH}`);
+    const approved: unknown = JSON.parse(fs.readFileSync(APPROVED_SKUS_PATH, 'utf-8'));
+    if (!Array.isArray(approved) || approved.some((sku) => typeof sku !== 'string' || !sku.trim())) {
+      throw new Error('Approved SKU allowlist must be a non-empty-string JSON array');
+    }
+    approvedSkuSet = new Set(approved.map((sku: string) => sku.trim().toLowerCase()));
+    if (!approvedSkuSet.size) throw new Error('Approved SKU allowlist cannot be empty');
+  }
   const findEu = buildEuLookup(eu);
-  console.log(`📥 EU items: ${eu.length}  (mode=${APPLY ? 'APPLY' : 'DRY RUN'}${SKIP_LARGE_DROP ? ', skip-large-drop' : ''})`);
+  console.log(`📥 EU items: ${eu.length}  (mode=${APPLY ? 'APPLY' : 'DRY RUN'}${sourceFeedErrors.length ? `, source-errors=${sourceFeedErrors.length}` : ''}${SKIP_LARGE_DROP ? ', skip-large-drop' : ''})`);
 
   const prisma = new PrismaClient();
   const dbProducts = await prisma.shopProduct.findMany({
@@ -78,6 +127,7 @@ async function main() {
       slug: true,
       sku: true,
       titleEn: true,
+      categoryEn: true,
       priceEur: true,
       variants: { select: { id: true, sku: true, priceEur: true } },
     },
@@ -101,13 +151,24 @@ async function main() {
   let unmatched = 0;
   let identical = 0;
   let largeDrops = 0;
+  let outsideDo88Scope = 0;
+  let outsideApprovedSkuList = 0;
 
   for (const p of dbProducts) {
     const eu = findEu(p.sku);
     if (!eu) { unmatched++; continue; }
 
+    if (EXTERNAL_PRODUCT_MARKERS.test(`${eu.titleEn} ${p.titleEn} ${p.categoryEn}`)) {
+      outsideDo88Scope++;
+      continue;
+    }
+    if (APPLY && !approvedSkuSet?.has((p.sku ?? '').trim().toLowerCase())) {
+      outsideApprovedSkuList++;
+      continue;
+    }
+
     const oldEur = p.priceEur ?? 0;
-    const newEur = eu.priceEur;
+    const newEur = calculateDo88CustomerPriceEur(eu.priceEur);
     const deltaEur = +(newEur - oldEur).toFixed(2);
     if (Math.abs(deltaEur) < ONLY_NONZERO_DELTA) { identical++; continue; }
 
@@ -121,7 +182,9 @@ async function main() {
     const variantUpdates = p.variants
       .map((v) => {
         const vEu = findEu(v.sku);
-        const vNew = vEu ? vEu.priceEur : newEur; // fall back to product price
+        if (!vEu || EXTERNAL_PRODUCT_MARKERS.test(`${vEu.titleEn} ${eu.titleEn}`)) return null;
+        if (APPLY && !approvedSkuSet?.has((v.sku ?? '').trim().toLowerCase())) return null;
+        const vNew = calculateDo88CustomerPriceEur(vEu.priceEur);
         const vOld = v.priceEur ?? 0;
         return Math.abs(vNew - vOld) < ONLY_NONZERO_DELTA
           ? null
@@ -140,6 +203,10 @@ async function main() {
       deltaPct,
       variantUpdates,
       source: eu.source,
+      sourceUrl: eu.sourceUrl,
+      sourceRetrievedAt: eu.sourceRetrievedAt ?? null,
+      sourceCustomerPriceEur: eu.priceEur,
+      markupPct: 10,
       skipReason,
     });
   }
@@ -147,6 +214,8 @@ async function main() {
   const willApply = plan.filter((r) => !r.skipReason);
   console.log(`\n📊 Plan:`);
   console.log(`   matched in EU:                    ${plan.length + identical}`);
+  console.log(`   skipped outside do88 maker scope: ${outsideDo88Scope}`);
+  if (APPLY) console.log(`   skipped outside reviewed SKU allowlist: ${outsideApprovedSkuList}`);
   console.log(`     - identical, no change needed:  ${identical}`);
   console.log(`     - to update:                    ${plan.length}`);
   console.log(`     - skipped (large drop):         ${SKIP_LARGE_DROP ? largeDrops : '— (use --skip-large-drop)'}`);
@@ -160,7 +229,16 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(
     path.join(outDir, 'plan.json'),
-    JSON.stringify({ apply: APPLY, skipLargeDrop: SKIP_LARGE_DROP, plan }, null, 2),
+    JSON.stringify({
+      apply: APPLY,
+      generatedAt: new Date().toISOString(),
+      sourceMode: "EUR / Consumer Incl. VAT",
+      markupPct: 10,
+      sourceFeedErrorCount: sourceFeedErrors.length,
+      skipLargeDrop: SKIP_LARGE_DROP,
+      approvedSkuCount: approvedSkuSet?.size ?? null,
+      plan,
+    }, null, 2),
     'utf-8'
   );
   console.log(`\n💾 Plan snapshot: ${outDir}/plan.json`);

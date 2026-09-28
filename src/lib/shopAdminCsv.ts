@@ -319,6 +319,7 @@ function buildProductPayload(
       width: decimalValue(row["Variant Width"]),
       height: decimalValue(row["Variant Height"]),
       isDimensionsEstimated: boolValue(row["Variant Dimensions Estimated"], false),
+      weightEstimated: boolValue(row["Variant Weight Estimated"], false),
       inventoryTracker: nullableString(row["Variant Inventory Tracker"]),
       inventoryQty: intValue(row["Variant Inventory Qty"]) ?? 0,
       inventoryPolicy: inventoryPolicy(row["Variant Inventory Policy"]),

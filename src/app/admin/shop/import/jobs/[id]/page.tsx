@@ -139,6 +139,19 @@ export default function AdminImportJobDetailPage() {
     );
   }, [job]);
 
+  const fillEmptyShippingSummary = useMemo(() => {
+    if (!job?.summary || typeof job.summary !== "object") return null;
+    const candidate = (job.summary as Record<string, unknown>).fillEmptyShipping;
+    if (!candidate || typeof candidate !== "object") return null;
+    const summary = candidate as Record<string, unknown>;
+    return {
+      matchedProducts: Number(summary.matchedProducts ?? 0),
+      rowsWithMissingShipping: Number(summary.rowsWithMissingShipping ?? 0),
+      rowsAlreadyComplete: Number(summary.rowsAlreadyComplete ?? 0),
+      fieldValuesToFill: Number(summary.fieldValuesToFill ?? 0),
+    };
+  }, [job]);
+
   return (
     <AdminPage className="space-y-6">
       <AdminPageHeader
@@ -239,6 +252,22 @@ export default function AdminImportJobDetailPage() {
                     ]}
                   />
                 </AdminInspectorCard>
+
+                {fillEmptyShippingSummary ? (
+                  <AdminInspectorCard
+                    title="Fill-empty shipping preview"
+                    description="Only blank shipping fields are filled. Existing weights and dimensions are preserved."
+                  >
+                    <AdminKeyValueGrid
+                      rows={[
+                        { label: "Matched products", value: fillEmptyShippingSummary.matchedProducts },
+                        { label: "Rows with missing shipping fields", value: fillEmptyShippingSummary.rowsWithMissingShipping },
+                        { label: "Rows already complete", value: fillEmptyShippingSummary.rowsAlreadyComplete },
+                        { label: "Field values to fill", value: fillEmptyShippingSummary.fieldValuesToFill },
+                      ]}
+                    />
+                  </AdminInspectorCard>
+                ) : null}
 
                 <AdminInspectorCard
                   title="Detected columns"

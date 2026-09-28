@@ -2316,7 +2316,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
                 <div className="mt-4 flex items-center">
                   <CheckboxField
-                    label="Орієнтовні габарити (згенеровано ШІ / потребують перевірки)"
+                    label="Орієнтовні параметри доставки (потребують перевірки)"
                     checked={form.isDimensionsEstimated}
                     onChange={(value) => updateField("isDimensionsEstimated", value)}
                   />
