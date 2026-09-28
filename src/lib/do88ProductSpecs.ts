@@ -31,7 +31,165 @@ export type Do88ProductSpec = {
   replacesOe?: string[];
 };
 
+const VOLVO_WC210_SPEC: Do88ProductSpec = {
+  headline: {
+    ua: 'Алюмінієвий радіатор do88 для Volvo S60 R, V70 R та S80 (1999–2008).',
+    en: 'Aluminium do88 radiator for Volvo S60 R, V70 R and S80 (1999–2008).',
+  },
+  fitment: {
+    ua: 'Volvo S60 R / V70 R / S80, 1999–2008',
+    en: 'Volvo S60 R / V70 R / S80, 1999–2008',
+  },
+  sections: [
+    {
+      kicker: { ua: 'Конструкція', en: 'Construction' },
+      bullets: {
+        ua: [
+          'Площа охолодження на 25% більша за штатну.',
+          'Дворядне осердя завтовшки 40 мм із жалюзійним оребренням висотою 6,5 мм.',
+          'Під час монтажу повторно використовуються гвинтові фіксатори та втулки штатного радіатора.',
+        ],
+        en: [
+          'Cooling area is 25% larger than the original radiator.',
+          'Two-row, 40 mm core with 6.5 mm multi-louvered fins.',
+          'Installation reuses the original radiator screw clips and bushings.',
+        ],
+      },
+    },
+    {
+      kicker: { ua: 'Важливо перед монтажем', en: 'Before installation' },
+      bullets: {
+        ua: ['Якщо використовується інтеркулер не do88 і не OE, перед замовленням прочитайте крок 24 інструкції з монтажу.'],
+        en: ['If using an intercooler other than do88 or OE, read step 24 of the installation instructions before ordering.'],
+      },
+    },
+  ],
+};
+
 export const DO88_PRODUCT_SPECS: Record<string, Do88ProductSpec> = {
+  'LF-260-FILTER': {
+    headline: {
+      ua: 'Змінний бавовняний повітряний фільтр для впускної системи do88.',
+      en: 'Replacement cotton air filter for the do88 intake system.',
+    },
+    sections: [
+      {
+        kicker: { ua: 'Обслуговування', en: 'Maintenance' },
+        bullets: {
+          ua: [
+            'do88 рекомендує очищувати фільтр кожні 10 000 км засобом для бавовняних повітряних фільтрів.',
+            'Фільтр постачається без оливи. Для руху в запилених умовах виробник рекомендує нанести оливу для бавовняних фільтрів.',
+            'Як приклади засобів do88 наводить BMC Washing Fluid WADET500 та BMC Filter Oil WAFLU250.',
+          ],
+          en: [
+            'do88 recommends cleaning the filter every 10,000 km with a cleaner intended for cotton air filters.',
+            'The filter is supplied without oil. For dusty driving conditions, the manufacturer recommends applying cotton filter oil.',
+            'The source lists BMC Washing Fluid WADET500 and BMC Filter Oil WAFLU250 as examples.',
+          ],
+        },
+      },
+    ],
+  },
+  'LF-200-FILTER': {
+    headline: {
+      ua: 'Змінний бавовняний повітряний фільтр для впускної системи do88.',
+      en: 'Replacement cotton air filter for the do88 intake system.',
+    },
+    sections: [
+      {
+        kicker: { ua: 'Обслуговування', en: 'Maintenance' },
+        bullets: {
+          ua: [
+            'do88 рекомендує очищувати фільтр кожні 10 000 км засобом для бавовняних повітряних фільтрів.',
+            'Фільтр постачається без оливи. Для руху в запилених умовах виробник рекомендує нанести оливу для бавовняних фільтрів.',
+            'Як приклади засобів do88 наводить BMC Washing Fluid WADET500 та BMC Filter Oil WAFLU250.',
+          ],
+          en: [
+            'do88 recommends cleaning the filter every 10,000 km with a cleaner intended for cotton air filters.',
+            'The filter is supplied without oil. For dusty driving conditions, the manufacturer recommends applying cotton filter oil.',
+            'The source lists BMC Washing Fluid WADET500 and BMC Filter Oil WAFLU250 as examples.',
+          ],
+        },
+      },
+    ],
+  },
+  'WC-210-MAN': VOLVO_WC210_SPEC,
+  'WC-210-AUT': VOLVO_WC210_SPEC,
+  'WC-230': {
+    headline: {
+      ua: 'Алюмінієвий радіатор do88 для Saab 9-3 2.0T (2003+).',
+      en: 'Aluminium do88 radiator for the Saab 9-3 2.0T (2003+).',
+    },
+    fitment: { ua: 'Saab 9-3 2.0T, 2003+', en: 'Saab 9-3 2.0T, 2003+' },
+    sections: [
+      {
+        kicker: { ua: 'Конструкція', en: 'Construction' },
+        bullets: {
+          ua: [
+            'Об’єм осердя 13 488 см³. Виробник наводить порівняння: +83% проти штатного варіанта для автоматичної коробки та +204% для механічної (перераховано з наведених об’ємів 7 360 см³ і 4 439 см³).',
+            'Дворядне осердя завтовшки 50 мм із жалюзійним оребренням висотою 8 мм.',
+            'Для монтажу без модифікацій дотримуйтесь інструкції виробника; неправильне встановлення може вплинути на гарантію.',
+          ],
+          en: [
+            'Core volume is 13,488 cm³. The source comparisons are +83% for automatic-transmission OE (7,360 cm³) and +204% for manual-transmission OE (4,439 cm³; recalculated from the listed volumes).',
+            'Two-row, 50 mm core with 8 mm multi-louvered fins.',
+            'Follow the supplier installation instructions for a no-modification fit; incorrect installation may affect warranty coverage.',
+          ],
+        },
+      },
+    ],
+  },
+  'WC-260': {
+    headline: {
+      ua: 'Алюмінієвий радіатор do88 для Saab 900 Turbo (1979–1993).',
+      en: 'Aluminium do88 radiator for Saab 900 Turbo (1979–1993).',
+    },
+    fitment: { ua: 'Saab 900 Turbo, 1979–1993', en: 'Saab 900 Turbo, 1979–1993' },
+    sections: [
+      {
+        kicker: { ua: 'Конструкція', en: 'Construction' },
+        bullets: {
+          ua: [
+            'Об’єм осердя 7 631 см³ проти 6 096 см³ у штатного радіатора (+25%).',
+            'Дворядне осердя завтовшки 40 мм із жалюзійним оребренням висотою 8 мм.',
+            'Підключення термовимикача M22 × 1,5; заглушка цього отвору входить у комплект.',
+          ],
+          en: [
+            'Core volume: 7,631 cm³ versus 6,096 cm³ for the original radiator (+25%).',
+            'Two-row, 40 mm core with 8 mm multi-louvered fins.',
+            'M22 × 1.5 thermo-switch connection; a blanking plug is included.',
+          ],
+        },
+      },
+    ],
+  },
+  'WC-390': {
+    headline: {
+      ua: 'Алюмінієвий радіатор do88 для BMW 135i/335i/35i з N54 або N55 (2007–2013).',
+      en: 'Aluminium do88 radiator for BMW 135i/335i/35i with N54 or N55 (2007–2013).',
+    },
+    fitment: {
+      ua: 'BMW 135i / 335i / 35i, N54/N55, механічна коробка передач, 2007–2013 (E9X/E82/E89)',
+      en: 'BMW 135i / 335i / 35i, N54/N55, manual transmission, 2007–2013 (E9X/E82/E89)',
+    },
+    sections: [
+      {
+        kicker: { ua: 'Конструкція', en: 'Construction' },
+        bullets: {
+          ua: [
+            'Об’єм осердя 8 616 см³ проти 6 701 см³ штатного (+29%); фронтальна площа 2 154 см² проти 2 094 см² (+3%).',
+            'Однорядне осердя завтовшки 40 мм із жалюзійним оребренням висотою 5 мм.',
+            'Монтаж на штатне місце; перед встановленням перевірте інструкцію виробника.',
+          ],
+          en: [
+            'Core volume: 8,616 cm³ versus 6,701 cm³ OE (+29%); frontal area: 2,154 cm² versus 2,094 cm² (+3%).',
+            'Single-row, 40 mm core with 5 mm multi-louvered fins.',
+            'Drop-in installation; check the supplier instructions before fitting.',
+          ],
+        },
+      },
+    ],
+  },
   'ICM-400': {
     headline: {
       ua: 'Інтеркулерний комплект do88 для Porsche 911 Turbo / Turbo S (992). Знижує температуру наддуву на 12 °C і дає +8% повітряного потоку проти OE.',

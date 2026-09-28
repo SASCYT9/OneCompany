@@ -28,7 +28,51 @@ export type ModelEntry = {
 };
 
 export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
+  Alpine: [
+    {
+      model: "A110",
+      chassis: "A110",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Alpine"],
+      sharedTitleMustInclude: ["Alpine A110"],
+    },
+  ],
+  CUPRA: [
+    {
+      model: "Formentor",
+      chassis: "5FF · 2020+ · 2.0 TSI EA888 Gen4",
+      categoryTokens: [],
+      sharedCategoryTokens: ["CUPRA"],
+      sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
+    },
+    {
+      model: "Formentor VZ5",
+      chassis: "Formentor VZ5",
+      categoryTokens: [],
+      sharedCategoryTokens: ["CUPRA"],
+      sharedTitleMustInclude: ["Formentor VZ5"],
+    },
+  ],
+  Ford: [
+    {
+      model: "Focus RS",
+      chassis: "MKII · 2009–2011",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Ford"],
+      sharedTitleMustInclude: ["Ford Focus RS MKII"],
+    },
+  ],
   Porsche: [
+    {
+      model: "911 Turbo",
+      chassis: "964 · 1990–1994",
+      categoryTokens: ["964, Turbo (911)"],
+      // The do88 clamp-kit number matches the related hose-kit number. The
+      // hose-kit SKU is absent from our current catalog snapshot, so retain
+      // this exact, manufacturer-numbered accessory mapping explicitly.
+      sharedCategoryTokens: ["Clamp Kits"],
+      sharedTitleMustInclude: ["do88-Kit158"],
+    },
     {
       model: "911 Turbo S",
       chassis: "992",
@@ -74,6 +118,9 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       chassis: "997",
       categoryTokens: ["997.1, Turbo GT2 (911)", "997.2, Turbo (911)"],
     },
+    { model: "911 Turbo", chassis: "930", categoryTokens: ["930, Turbo (911)"] },
+    { model: "911 Turbo / GT2 / Carrera", chassis: "996", categoryTokens: ["996, Turbo GT2 Carrera (911)"] },
+    { model: "968", chassis: "968", categoryTokens: ["968, 3.0"] },
   ],
   BMW: [
     { model: "M2", chassis: "G87", categoryTokens: ["G80 G87, S58 (M2 M3 M4)"] },
@@ -86,10 +133,26 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     },
     { model: "M340i / M440i", chassis: "G20 G22", categoryTokens: ["G-Chassis, B58 Gen 2"] },
     { model: "Z4 M40i", chassis: "G29", categoryTokens: ["G-Chassis, B58 Gen 2"] },
+    { model: "1 / 3 Series", chassis: "E90 / E82 · N54 / N52 / N53", categoryTokens: ["E90 E82, N54 N52 N53 (1 & 3-Serie)"] },
+    { model: "1 / 3 Series", chassis: "E90 / E82 · N55", categoryTokens: ["E90 E82, N55 (1 & 3-Serie)"] },
+    { model: "3 Series / M3", chassis: "E46", categoryTokens: ["E46, S54 M52 M54 (M3 & 3-Serie)"] },
+    { model: "3 Series / M3", chassis: "E36", categoryTokens: ["E36, S50 M50 (M3 & 3-Serie)"] },
+    { model: "M3", chassis: "E90", categoryTokens: ["E90, S65 (M3)"] },
+    { model: "M3", chassis: "E30", categoryTokens: ["E30, S14 (M3)"] },
+    { model: "5 Series / M5", chassis: "E34", categoryTokens: ["E34, M50 S38 (M5 & 5-Serie)"] },
+    { model: "3 / 4 Series", chassis: "F / G · B58 Gen 1", categoryTokens: ["F & G Chassiss, B58 Gen 1"] },
+    { model: "2 / 3 / 4 Series", chassis: "F / G · B46 / B48", categoryTokens: ["F & G Chassiss, B48 B46"] },
   ],
   Audi: [
     { model: "RS6 / RS7", chassis: "C8", categoryTokens: ["RS6 RS7, 4.0 V8 TFSI (C8)"] },
     { model: "RS3 / TTRS", chassis: "8V 8Y", categoryTokens: ["RS3 TT RS, 2.5 TFSI (8V 8Y 8S)"] },
+    {
+      model: "A3 / S3",
+      chassis: "8Y · 2020+ · 2.0 TSI EA888 Gen4",
+      categoryTokens: [],
+      sharedCategoryTokens: ["CUPRA"],
+      sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
+    },
     {
       model: "A3 / S3",
       chassis: "8V 8Y",
@@ -108,6 +171,16 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       // genuinely multi-fit Audi/VAG part.
       sharedTitleMustInclude: ["Audi", "AUDI", "VAG", "8V"],
     },
+    { model: "S2 / RS2", chassis: "B3 · 3B / ABY / ADU", categoryTokens: ["S2 RS2, 3B ABY ADU (3B)"] },
+    { model: "UrQuattro", chassis: "UrQuattro", categoryTokens: ["UrQuattro, 2.2T 10V & 20V"] },
+    { model: "RS6", chassis: "C5", categoryTokens: ["RS6, 4.2T (C5)"] },
+    { model: "S4 / S6", chassis: "C4", categoryTokens: ["S4 S6, 2.2T (C4)"] },
+    { model: "S4 / A6", chassis: "B5 / C5", categoryTokens: ["S4 A6, 2.7T (B5 C5)"] },
+    { model: "S3 / TT", chassis: "8L / 8N", categoryTokens: ["S3 TT, 1.8T (8L 8N)"] },
+    { model: "A4", chassis: "B6", categoryTokens: ["A4, 1.8T (B6)"] },
+    { model: "RS4", chassis: "B5", categoryTokens: ["RS4, 2.7T (B5)"] },
+    { model: "A3 / S3 / TT", chassis: "8P / 8J", categoryTokens: ["A3 S3 TT, 2.0 TFSI (8P 8J)"] },
+    { model: "S1", chassis: "8X", categoryTokens: ["S1, 2.0 TFSI EA888 (8X)"] },
   ],
   VW: [
     // Newer chassis on top, older below — per shop owner brief.
@@ -120,7 +193,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       // or "MQB Evo…"). The title gate excludes Formentor-only SKUs (e.g.
       // ICM-380-VZ5) which sit in the same bucket but don't fit the Mk8 Golf.
       sharedCategoryTokens: ["CUPRA"],
-      sharedTitleMustInclude: ["Gen4", "GEN4", "Gen 4", "MQB Evo"],
+      sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
     },
     {
       model: "Golf GTI / R",
@@ -138,6 +211,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       sharedCategoryTokens: ["A3 S3 TT, 2.0 TFSI EA888 (8V 8S)", "GFB Dump Valves"],
       sharedTitleMustInclude: ["MQB", "EA888", "Mk7 Golf"],
     },
+    { model: "Polo", chassis: "Mk6 · AW", categoryTokens: ["Polo, 2.0 TSI EA888 (Mk 6 AW)"] },
   ],
   Toyota: [
     {
@@ -154,6 +228,107 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       sharedTitleMustInclude: ["B58", "G-Serie", "Supra", "GR Supra", "A90"],
     },
     { model: "GR Yaris", chassis: "GXPA16", categoryTokens: ["GR Yaris, 1.6T G16E-GTS (GXPA16)"] },
+  ],
+  // These makes exist in do88's Vehicle Specific catalog only at make level.
+  // Keep them available for make-only filtering; no model/chassis is implied.
+  Mazda: [
+    {
+      model: "MX-5 Miata",
+      chassis: "NC · 2006–2015",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Mazda"],
+      sharedTitleMustInclude: ["Mazda MX-5 Miata NC"],
+    },
+    {
+      model: "MX-5 Miata",
+      chassis: "ND · 2015+",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Mazda"],
+      sharedTitleMustInclude: ["Mazda MX-5 Miata ND"],
+    },
+  ],
+  Opel: [
+    {
+      model: "Calibra / Vectra A Turbo",
+      chassis: "C20LET",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Opel"],
+      sharedTitleMustInclude: ["Opel Calibra Vectra A Turbo C20LET"],
+    },
+    {
+      model: "Vectra C",
+      chassis: "2.0T · 2002–2008",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Opel"],
+      sharedTitleMustInclude: ["Opel Vectra C 2.0T"],
+    },
+    {
+      model: "Vectra C OPC",
+      chassis: "V6 · 2005–2008",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Opel"],
+      sharedTitleMustInclude: ["Opel Vectra C OPC V6"],
+    },
+    {
+      model: "Insignia A / Buick Regal",
+      chassis: "A",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Opel"],
+      sharedTitleMustInclude: ["Opel Insignia A", "Buick Regal"],
+    },
+  ],
+  Suzuki: [
+    {
+      model: "Swift Sport",
+      chassis: "1.6 · 2005–2010",
+      categoryTokens: [],
+      sharedCategoryTokens: ["Suzuki"],
+      sharedTitleMustInclude: ["Suzuki Swift Sport 1.6 05-10"],
+    },
+  ],
+  Saab: [
+    { model: "900", chassis: "1979–1993", categoryTokens: ["900, (1979-1993)"] },
+    { model: "9000", chassis: "1985–1998", categoryTokens: ["9000, (1985-1998)"] },
+    { model: "900 / 9-3", chassis: "1994–2000", categoryTokens: ["900 9-3, (1994-2000)"] },
+    { model: "9-3", chassis: "2000–2002", categoryTokens: ["9-3, (2000-2002)"] },
+    { model: "9-3", chassis: "2003–2012", categoryTokens: ["9-3, (2003-2012)"] },
+    { model: "9-5", chassis: "1998–2010", categoryTokens: ["9-5, (1998-2010)"] },
+    { model: "9-5", chassis: "2010–2011", categoryTokens: ["9-5, (2010-2011)"] },
+    { model: "9-3 / 9-5 diesel", chassis: "1998–2011", categoryTokens: ["9-3 9-5, TTiD TiD (1998-2011)"] },
+  ],
+  Seat: [
+    { model: "Ibiza Cupra", chassis: "6J", categoryTokens: ["Ibiza Cupra, 1.8 TSI (6J)"] },
+    {
+      model: "León",
+      chassis: "Mk4 · 2020+ · 2.0 TSI EA888 Gen4",
+      categoryTokens: [],
+      sharedCategoryTokens: ["CUPRA"],
+      sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
+    },
+  ],
+  Skoda: [
+    {
+      model: "Octavia",
+      chassis: "NX · 2019+ · 2.0 TSI EA888 Gen4",
+      categoryTokens: [],
+      sharedCategoryTokens: ["CUPRA"],
+      sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
+    },
+  ],
+  Volvo: [
+    { model: "240", chassis: "1975–1993", categoryTokens: ["240, (1975-1993)"] },
+    { model: "740 / 940", chassis: "1985–1998", categoryTokens: ["740 940, (1985-1998)"] },
+    { model: "960 / S90 / V90", chassis: "1985–1998", categoryTokens: ["960 S90 V90, (1985-1998)"] },
+    { model: "850 / S70 / V70 / C70", chassis: "P80 · 1992–1998", categoryTokens: ["850 S70 V70 C70, P80 (1992-1998)"] },
+    { model: "S70 / V70 / C70 / XC70", chassis: "P80 · 1999–2000", categoryTokens: ["S70 V70 C70 XC70, P80 (1999-2000)"] },
+    { model: "S40 / V40", chassis: "1998–2004", categoryTokens: ["S40 V40, (1998-2004)"] },
+    { model: "S60 / V70 / S80 / XC70", chassis: "P2 · 2000–2009", categoryTokens: ["S60 V70 S80 XC70, P2 (2000-2009)"] },
+    { model: "C30 / C70 / S40 / V50", chassis: "P1 · 2004–2013", categoryTokens: ["C30 C70 S40 V50, P1 (2004-2013)"] },
+    { model: "V70 / S80 / XC70", chassis: "P3 · 2008–2016", categoryTokens: ["V70 S80 XC70, P3 (2008-2016)"] },
+    { model: "S60 / V70 / XC60", chassis: "P3 · 2010–2016", categoryTokens: ["S60 V70 XC60, P3 (2010-2016)"] },
+    { model: "V40", chassis: "P1 · 2013–2019", categoryTokens: ["V40, P1 (2013-2019)"] },
+    { model: "S60 / S90 / XC60 / XC90", chassis: "SPA · 2016+", categoryTokens: ["SV60 SV90 XC60 XC90, SPA (2016-202X)"] },
+    { model: "Diesel applications", chassis: "Multiple generations", categoryTokens: ["Diesel Engines"] },
   ],
 } as const;
 
@@ -231,4 +406,26 @@ export function getDo88MakeEntries(make: string): readonly ModelEntry[] {
   return Object.prototype.hasOwnProperty.call(CAR_DATA, make)
     ? CAR_DATA[make as keyof typeof CAR_DATA]
     : [];
+}
+
+type Do88ClampFitmentRecord = {
+  sku?: string | null;
+  category?: { en?: string | null } | null;
+};
+
+/** Resolve a clamp kit through its exact do88 hose-kit number, failing closed. */
+export function findDo88ClampKitFitmentParent<T extends Do88ClampFitmentRecord>(
+  product: T,
+  catalog: readonly T[]
+): T | undefined {
+  const kitNumber = product.sku?.match(/^clamp-kit(\d+)$/i)?.[1];
+  if (!kitNumber) return undefined;
+
+  const parentSkuPattern = new RegExp(`^do88-kit${kitNumber}(?:[a-z-].*)?$`, "i");
+  const parents = catalog.filter(
+    (candidate) =>
+      parentSkuPattern.test(candidate.sku ?? "") &&
+      /^Vehicle Specific\s*>/i.test(candidate.category?.en ?? "")
+  );
+  return parents.length === 1 ? parents[0] : undefined;
 }

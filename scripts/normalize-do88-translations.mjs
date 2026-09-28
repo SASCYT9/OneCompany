@@ -5,6 +5,11 @@ import { PrismaClient } from '@prisma/client';
 const INPUT_FILE = path.join(process.cwd(), 'do88-products-v4.json');
 const WRITE = process.argv.includes('--write');
 const SYNC_DB = process.argv.includes('--sync-db');
+if (WRITE || SYNC_DB) {
+  throw new Error(
+    'Legacy Do88 normalization writes are disabled: this script creates category-level copy, not SKU-verified descriptions. Use the reviewed source-backed catalog update workflow.'
+  );
+}
 const prisma = SYNC_DB ? new PrismaClient() : null;
 
 const EN_PART_MAP = new Map([
@@ -1351,8 +1356,8 @@ function buildSummaryByKind(kind, descriptor, fitmentEn, fitmentUa) {
       };
     default:
       return {
-        en: 'Official do88 performance component manufactured in Sweden.',
-        ua: 'Офіційний компонент do88, виготовлений у Швеції.',
+        en: 'Official do88 performance product.',
+        ua: 'Офіційний продукт do88.',
       };
   }
 }
@@ -1387,7 +1392,6 @@ function buildBodyCopy(product) {
     materialFinish ? `<li>Material / finish: ${materialFinish.en}</li>` : null,
     `<li>Category: ${product.categoryEn}</li>`,
     '<li>Brand: do88</li>',
-    '<li>Origin: Sweden</li>',
   ].filter(Boolean).join('');
 
   const detailLinesUa = [
@@ -1398,7 +1402,6 @@ function buildBodyCopy(product) {
     materialFinish ? `<li>Матеріал / виконання: ${materialFinish.ua}</li>` : null,
     `<li>Категорія: ${product.categoryUa}</li>`,
     '<li>Бренд: do88</li>',
-    '<li>Походження: Швеція</li>',
   ].filter(Boolean).join('');
 
   return {

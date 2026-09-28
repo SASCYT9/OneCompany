@@ -440,9 +440,46 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/** Remove unsupported legacy copy generated from brand/category-level assumptions. */
+export function sanitizeDo88StoredDescription(description: string): string {
+  let cleaned = description
+    .replace(/<li\b[^>]*>\s*Origin:\s*Sweden\s*<\/li>/gi, "")
+    .replace(/<li\b[^>]*>\s*Походження:\s*Швеція\s*<\/li>/gi, "")
+    .replace(/<ul\b[^>]*>\s*<\/ul>/gi, "");
+
+  // These exact sentences came from the old category-level copy generator.
+  // Remove them only from records bearing its generated-origin marker, so
+  // genuine manufacturer prose that happens to use similar wording survives.
+  const legacyGenerated = /<li\b[^>]*>\s*(?:Origin:\s*Sweden|Походження:\s*Швеція)\s*<\/li>/i.test(description);
+  if (!legacyGenerated) return cleaned;
+
+  const generatedClaims = [
+    /Built for cleaner airflow, stable fitment and workshop-friendly installation\./gi,
+    /Built for cleaner airflow, stable fitment and easy integration into the listed platform\./gi,
+    /Built to refresh the listed platform with reinforced hose construction and direct-fit geometry\./gi,
+    /Bundles key hardware into one direct-fit solution for a more coordinated upgrade path\./gi,
+    /Built to improve charge-air cooling under repeated street and track use\./gi,
+    /Built for dependable temperature control and OEM-style fitment\./gi,
+    /Supports stable oil temperatures during demanding road or track driving\./gi,
+    /Developed for direct integration with the listed platform\./gi,
+    /Розрахований на чистіший повітряний потік, стабільну посадку та зручний монтаж у майстерні\./gi,
+    /Розрахований на чистіший повітряний потік, стабільну посадку та просту інтеграцію в зазначену платформу\./gi,
+    /Допомагає оновити зазначену платформу завдяки посиленій конструкції шлангів і геометрії точної посадки\./gi,
+    /Об'єднує ключові компоненти в одне рішення точної посадки для більш цілісного апгрейду\./gi,
+    /Розроблений для стабільного охолодження наддувного повітря у вуличному та трековому режимі\./gi,
+    /Розрахований на стабільний температурний режим та посадку рівня OEM\./gi,
+    /Допомагає утримувати стабільну температуру масла при активній їзді\./gi,
+    /Розроблений для точної інтеграції в зазначену платформу\./gi,
+  ];
+  for (const claim of generatedClaims) cleaned = cleaned.replace(claim, "");
+  cleaned = cleaned.replace(/<p>\s*<\/p>/gi, "");
+  return cleaned;
+}
+
 export function buildDo88EnrichedDescription(
   product: Pick<ShopProduct, 'title' | 'brand' | 'sku'>,
   locale: Locale,
+  allowGenericFallback = false,
 ): { shortDescription: string; longDescriptionHtml: string; bullets: string[] } | null {
   if (product.brand.toLowerCase() !== 'do88') return null;
 
@@ -490,6 +527,11 @@ export function buildDo88EnrichedDescription(
       bullets: flatBullets,
     };
   }
+
+  // A generic category-level spec can assert details that are not true for a
+  // particular SKU. Storefront pages must use the supplier copy unless the SKU
+  // has source-backed product facts; generic copy is opt-in for controlled use.
+  if (!allowGenericFallback) return null;
 
   // 2) Fallback: kind-based generic enriched copy.
   const titleSource = `${product.title.ua} ${product.title.en}`;

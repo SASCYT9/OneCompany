@@ -204,6 +204,7 @@ test("CSV update masks include explicit multi-currency prices and package dimens
     "Variant Width",
     "Variant Height",
     "Variant Dimensions Estimated",
+    "Variant Weight Estimated",
   ]);
 
   assert.equal(mask.product.priceUsd, true);
@@ -217,4 +218,16 @@ test("CSV update masks include explicit multi-currency prices and package dimens
   assert.equal(mask.variants?.width, true);
   assert.equal(mask.variants?.height, true);
   assert.equal(mask.variants?.isDimensionsEstimated, true);
+});
+
+test("CSV keeps the weight estimate flag separate from the estimated-dimensions flag", () => {
+  const csv = [
+    "Handle,Title,Variant SKU,Variant Weight,Variant Weight Estimated",
+    "sample-part,Sample part,SAMPLE-1,0.8,true",
+  ].join("\n");
+  const product = buildProductsFromShopifyCsv(csv).products[0];
+
+  assert.equal(product?.isDimensionsEstimated, false);
+  assert.equal(product?.variants[0]?.isDimensionsEstimated, false);
+  assert.equal(product?.variants[0]?.weightEstimated, true);
 });

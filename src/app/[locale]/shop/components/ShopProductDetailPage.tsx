@@ -28,7 +28,10 @@ import {
   resolveShopProductPricing,
 } from "@/lib/shopPricingAudience";
 import { extractShopProductDescriptionSections } from "@/lib/shopProductDescription";
-import { buildDo88EnrichedDescription } from "@/lib/do88DescriptionEnricher";
+import {
+  buildDo88EnrichedDescription,
+  sanitizeDo88StoredDescription,
+} from "@/lib/do88DescriptionEnricher";
 import {
   buildShopStorefrontProductPathForProduct,
   resolveShopStorefrontSegment,
@@ -43,6 +46,7 @@ import {
 import { DO88_COLLECTION_CARDS } from "../data/do88CollectionsList";
 import {
   extractDo88CategoryLeafToken,
+  findDo88ClampKitFitmentParent,
   resolveCompatibleVehiclesForDo88Product,
   type CompatibleVehicle,
 } from "../do88/do88FitmentData";
@@ -59,6 +63,7 @@ import {
 } from "@/lib/urbanImageUtils";
 import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import { ShopProductGallery } from "./ShopProductGallery";
+import { ShopVariantImageProvider } from "./ShopVariantImageContext";
 import { ShopProductVideos } from "./ShopProductVideos";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
@@ -504,8 +509,8 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const productCategory = localizeShopText(resolvedLocale, product.category);
   const primaryPartNumber = (product.sku || defaultVariant?.sku || "").trim();
 
-  // For DO88 products we override the supplier's templated descriptions with
-  // a concise, info-dense version generated from the product type + chassis.
+  // Use Do88 enrichment only when the product has a source-backed SKU entry.
+  // Otherwise preserve stored copy instead of adding category-level assumptions.
   const do88Enriched = isDo88Mode
     ? buildDo88EnrichedDescription(product, resolvedLocale === "ua" ? "ua" : "en")
     : null;
@@ -513,7 +518,10 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const shortDescription = do88Enriched
     ? do88Enriched.shortDescription
     : localizeShopDescription(resolvedLocale, product.shortDescription);
-  const supplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const localizedSupplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const supplierLongDescription = isDo88Mode
+    ? sanitizeDo88StoredDescription(localizedSupplierLongDescription)
+    : localizedSupplierLongDescription;
   const isStopflexLongFiber =
     /long[-\s]?fiber|довг[\p{L}\p{M}]*\s+(?:(?:вуглецев|карбон)[\p{L}\p{M}]*\s+)?волок/iu.test(
       `${productTitle} ${supplierLongDescription}`
@@ -615,17 +623,23 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   // Resolve from the locale string first; fall back to whichever side has the
   // category breadcrumb (some legacy rows only carry one locale). Token gate is
   // language-agnostic — `categoryTokens` use the canonical English suffix.
+  const do88ClampParent =
+    isDo88Mode && /^clamp-kit\d+$/i.test(product.sku ?? "")
+      ? findDo88ClampKitFitmentParent(product, await getDo88ProductsServer())
+      : undefined;
+  const do88FitmentProduct = do88ClampParent ?? product;
   const do88CategoryBreadcrumb =
-    localizeShopText(resolvedLocale, product.category) ||
-    product.category?.en ||
-    product.category?.ua ||
+    localizeShopText(resolvedLocale, do88FitmentProduct.category) ||
+    do88FitmentProduct.category?.en ||
+    do88FitmentProduct.category?.ua ||
     "";
   const do88CompatibleVehicles: CompatibleVehicle[] = isDo88Mode
     ? resolveCompatibleVehiclesForDo88Product(
         extractDo88CategoryLeafToken(do88CategoryBreadcrumb),
         // Title gate uses lowercased substring match — feed it the English
         // title so phrases like "EA888" / "Mk7 Golf" hit regardless of locale.
-        product.title?.en || localizeShopProductTitle(resolvedLocale, product)
+        do88FitmentProduct.title?.en ||
+          localizeShopProductTitle(resolvedLocale, do88FitmentProduct)
       )
     : [];
 
@@ -825,6 +839,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   }
 
   return (
+    <ShopVariantImageProvider key={product.slug} enabled={isDo88Mode}>
     <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
       <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
       <ShopProductViewTracker
@@ -1111,6 +1126,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
         <CrossShopFitmentDeferredSection product={product} locale={resolvedLocale} />
       ) : null}
     </div>
+    </ShopVariantImageProvider>
   );
 }
 

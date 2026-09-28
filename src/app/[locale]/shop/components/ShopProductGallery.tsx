@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import { useShopVariantImage } from "./ShopVariantImageContext";
 
 import type { CompatibleVehicle } from "../do88/do88FitmentData";
 
@@ -25,6 +26,12 @@ export function ShopProductGallery({
   isUa,
   compatibleVehicles,
 }: Props) {
+  const variantImageContext = useShopVariantImage();
+  const displayImages = useMemo(() => {
+    const selectedImage = variantImageContext?.selectedVariantImage;
+    if (!selectedImage) return images;
+    return [selectedImage, ...images.filter((image) => image !== selectedImage)];
+  }, [images, variantImageContext?.selectedVariantImage]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [preference, setPreference] = useState<{
     brand?: string;
@@ -74,14 +81,14 @@ export function ShopProductGallery({
     return category;
   }, [category, compatibleVehicles, preference, isUa]);
 
-  const imageKey = useMemo(() => images.join("|"), [images]);
+  const imageKey = useMemo(() => displayImages.join("|"), [displayImages]);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [imageKey]);
 
-  const safeActiveIndex = activeIndex >= 0 && activeIndex < images.length ? activeIndex : 0;
-  const activeImage = images[safeActiveIndex];
+  const safeActiveIndex = activeIndex >= 0 && activeIndex < displayImages.length ? activeIndex : 0;
+  const activeImage = displayImages[safeActiveIndex];
 
   return (
     <div className="space-y-4">
@@ -148,9 +155,9 @@ export function ShopProductGallery({
       </div>
 
       {/* Thumbnails */}
-      {images.length > 1 && (
+      {displayImages.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-2 pr-1 [scrollbar-color:rgba(194,157,89,0.55)_transparent] scrollbar-thin">
-          {images.map((image, index) => {
+          {displayImages.map((image, index) => {
             const isActive = index === safeActiveIndex;
             return (
               <button

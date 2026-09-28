@@ -83,11 +83,120 @@ export type AdminImportJobRecord = Prisma.ShopImportJobGetPayload<{
 type CsvImportRequest = {
   csvText: string;
   action: "dry-run" | "commit";
+  fillEmptyShippingOnly?: boolean;
   supplierName?: string | null;
   sourceFilename?: string | null;
   templateId?: string | null;
   conflictMode?: string | null;
 };
+
+const FILL_EMPTY_SHIPPING_SCALAR_MASK: AdminProductImportScalarMask = {
+  product: {
+    weight: true,
+    length: true,
+    width: true,
+    height: true,
+    isDimensionsEstimated: true,
+  },
+  variants: {
+    weight: true,
+    weightUnit: true,
+    length: true,
+    width: true,
+    height: true,
+    isDimensionsEstimated: true,
+  },
+};
+
+type FillEmptyShippingResult = {
+  data: AdminShopProductPayload;
+  fieldValuesToFill: number;
+  error?: string;
+};
+
+function positiveOrNull(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+/** Preserve every existing shipping value and fill only null/empty fields. */
+export function fillEmptyShippingValues(
+  data: AdminShopProductPayload,
+  existing: Prisma.ShopProductGetPayload<{ select: typeof adminProductImportMergeSelect }>
+): FillEmptyShippingResult {
+  const next: AdminShopProductPayload = {
+    ...data,
+    variants: data.variants.map((variant) => ({ ...variant })),
+  };
+  const existingPrimary =
+    existing.variants.find((variant) => variant.isDefault) ??
+    [...existing.variants].sort((left, right) => left.position - right.position)[0] ??
+    null;
+  const incomingPrimary = next.variants.find(
+    (variant) => String(variant.sku ?? "").trim().toLowerCase() === String(existingPrimary?.sku ?? "").trim().toLowerCase()
+  ) ?? next.variants[0];
+  let fieldValuesToFill = 0;
+  let hasEstimateToApply = false;
+
+  for (const field of ["weight", "length", "width", "height"] as const) {
+    const productValue = positiveOrNull(existing[field]);
+    const primaryVariantValue = positiveOrNull(existingPrimary?.[field]);
+    if (productValue != null) {
+      next[field] = productValue;
+    } else if (primaryVariantValue != null) {
+      next[field] = primaryVariantValue;
+      fieldValuesToFill += 1;
+    } else if (positiveOrNull(next[field]) != null) {
+      fieldValuesToFill += 1;
+      hasEstimateToApply ||= field === "weight"
+        ? Boolean(incomingPrimary?.weightEstimated)
+        : Boolean(next.isDimensionsEstimated);
+    }
+  }
+  next.isDimensionsEstimated =
+    Boolean(existing.isDimensionsEstimated || existingPrimary?.isDimensionsEstimated || hasEstimateToApply);
+
+  for (const incoming of next.variants) {
+    const sku = String(incoming.sku ?? "").trim().toLowerCase();
+    if (!sku) return { data: next, fieldValuesToFill, error: "Variant SKU is required in fill-empty shipping mode" };
+    const matches = existing.variants.filter(
+      (variant) => String(variant.sku ?? "").trim().toLowerCase() === sku
+    );
+    if (matches.length !== 1) {
+      return {
+        data: next,
+        fieldValuesToFill,
+        error: matches.length
+          ? `Variant SKU is ambiguous in existing product: ${incoming.sku}`
+          : `Variant SKU is not present on the existing product: ${incoming.sku}`,
+      };
+    }
+    const current = matches[0];
+    let variantHasEstimateToApply = false;
+    for (const field of ["weight", "length", "width", "height"] as const) {
+      const variantValue = positiveOrNull(current[field]);
+      const productValue = positiveOrNull(existing[field]);
+      if (variantValue != null) {
+        incoming[field] = variantValue;
+      } else if (productValue != null) {
+        incoming[field] = productValue;
+        fieldValuesToFill += 1;
+      } else if (positiveOrNull(incoming[field]) != null) {
+        fieldValuesToFill += 1;
+        variantHasEstimateToApply ||= field === "weight"
+          ? Boolean(incoming.weightEstimated)
+          : Boolean(incoming.isDimensionsEstimated);
+      }
+    }
+    incoming.weightUnit = current.weightUnit ?? incoming.weightUnit ?? "kg";
+    incoming.isDimensionsEstimated = Boolean(
+      current.isDimensionsEstimated || existing.isDimensionsEstimated || variantHasEstimateToApply
+    );
+    hasEstimateToApply ||= variantHasEstimateToApply;
+  }
+
+  next.isDimensionsEstimated = Boolean(next.isDimensionsEstimated || hasEstimateToApply);
+  return { data: next, fieldValuesToFill };
+}
 
 type ImportRowErrorInput = {
   rowNumber: number;
@@ -581,7 +690,7 @@ export function buildAdminProductCsvScalarMask(
       length: has("Variant Length"),
       width: has("Variant Width"),
       height: has("Variant Height"),
-      isDimensionsEstimated: has("Variant Dimensions Estimated"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated", "Variant Weight Estimated"),
       image,
       gallery: has("Image Src"),
       seoTitleUa: has("SEO Title"),
@@ -629,7 +738,7 @@ export function buildAdminProductCsvScalarMask(
       length: has("Variant Length"),
       width: has("Variant Width"),
       height: has("Variant Height"),
-      isDimensionsEstimated: has("Variant Dimensions Estimated"),
+      isDimensionsEstimated: has("Variant Dimensions Estimated", "Variant Weight Estimated"),
       requiresShipping: has("Variant Requires Shipping"),
       taxable: has("Variant Taxable"),
       barcode: has("Variant Barcode"),
@@ -863,17 +972,31 @@ export async function runShopCsvImport(
   session: AdminSession,
   request: CsvImportRequest,
   catalogWriter: ShopCsvCatalogWriter = prismaShopCsvCatalogWriter
-) {
+): Promise<{
+  dryRun?: boolean;
+  created?: number;
+  updated?: number;
+  skipped?: number;
+  catalog?: Array<{ productId: string; version: string; revisionId: string; outboxId: string; status: "SAVED" }>;
+  columns?: string[];
+  totalRows?: number;
+  valid?: number;
+  variants?: number;
+  products?: number;
+  fillEmptyShipping?: { matchedProducts: number; rowsWithMissingShipping: number; rowsAlreadyComplete: number; fieldValuesToFill: number };
+  fitment: ReturnType<typeof summarizeImportFitment>;
+  errors: Array<{ row: number; message: string }>;
+  job: ReturnType<typeof serializeImportJob>;
+}> {
   const template = await findTemplate(prisma, request.templateId);
   const headerMapping = extractHeaderMapping(template?.fieldMapping);
   const parsed = buildProductsFromShopifyCsv(request.csvText, headerMapping);
   if (parsed.columns.length === 0) {
     throw new Error("CSV is empty or has no header row");
   }
-  const conflictMode = normalizeConflictMode(
-    request.conflictMode,
-    template?.defaultConflictMode ?? "UPDATE"
-  );
+  const conflictMode = request.fillEmptyShippingOnly
+    ? "UPDATE"
+    : normalizeConflictMode(request.conflictMode, template?.defaultConflictMode ?? "UPDATE");
   const importedColumns = new Set(parsed.columns.map((column) => column.trim().toLowerCase()));
   const scalarMask = buildAdminProductCsvScalarMask(parsed.columns);
 
@@ -907,8 +1030,61 @@ export async function runShopCsvImport(
       data: normalized.data,
       rowIndex: rowNumber,
       relationMask,
+      scalarMask,
     };
   });
+
+  const fillEmptyShippingSummary = request.fillEmptyShippingOnly
+    ? { matchedProducts: 0, rowsWithMissingShipping: 0, rowsAlreadyComplete: 0, fieldValuesToFill: 0 }
+    : null;
+
+  if (request.fillEmptyShippingOnly && productsToUpsert.length) {
+    const existingProducts = await prisma.shopProduct.findMany({
+      where: { slug: { in: productsToUpsert.map((item) => item.data.slug) } },
+      select: adminProductImportMergeSelect,
+    });
+    const existingBySlug = new Map(existingProducts.map((product) => [product.slug, product]));
+
+    for (const item of productsToUpsert) {
+      const existing = existingBySlug.get(item.data.slug);
+      if (!existing) {
+        validationErrors.push({
+          rowNumber: item.rowIndex,
+          handle: item.data.slug,
+          message: "Fill-empty shipping mode only updates existing products; no product matched this handle.",
+          payload: { slug: item.data.slug },
+        });
+        continue;
+      }
+      fillEmptyShippingSummary!.matchedProducts += 1;
+      const merged = fillEmptyShippingValues(item.data, existing);
+      if (merged.error) {
+        validationErrors.push({
+          rowNumber: item.rowIndex,
+          handle: item.data.slug,
+          message: merged.error,
+          payload: { slug: item.data.slug },
+        });
+        continue;
+      }
+      item.data = merged.data;
+      item.relationMask = {
+        tags: false,
+        collections: false,
+        media: false,
+        options: false,
+        variants: true,
+        metafields: false,
+      };
+      item.scalarMask = FILL_EMPTY_SHIPPING_SCALAR_MASK;
+      fillEmptyShippingSummary!.fieldValuesToFill += merged.fieldValuesToFill;
+      if (merged.fieldValuesToFill > 0) {
+        fillEmptyShippingSummary!.rowsWithMissingShipping += 1;
+      } else {
+        fillEmptyShippingSummary!.rowsAlreadyComplete += 1;
+      }
+    }
+  }
 
   const supplierContracts = productsToUpsert.map((item) => ({
     ...item,
@@ -1027,6 +1203,7 @@ export async function runShopCsvImport(
       summary: {
         action: "dry-run",
         fitment: fitmentValidation.counts,
+        ...(fillEmptyShippingSummary ? { fillEmptyShipping: fillEmptyShippingSummary } : {}),
       },
       rowErrors: validationErrors,
     });
@@ -1059,6 +1236,7 @@ export async function runShopCsvImport(
       })),
       columns: parsed.columns,
       fitment: fitmentValidation,
+      ...(fillEmptyShippingSummary ? { fillEmptyShipping: fillEmptyShippingSummary } : {}),
       job: serializeImportJob(job as AdminImportJobRecord),
     };
   }
@@ -1066,11 +1244,16 @@ export async function runShopCsvImport(
   let created = 0;
   let updated = 0;
   let skipped = 0;
+  const fillEmptyShippingApplied = request.fillEmptyShippingOnly
+    ? { matchedProducts: 0, rowsWithMissingShipping: 0, rowsAlreadyComplete: 0, fieldValuesToFill: 0 }
+    : null;
   const catalogMutations: ShopCatalogCoordinatedMutationResult[] = [];
   const productsToRevalidate: Array<{ slug: string; brand?: string | null; vendor?: string | null; tags?: string[] | null }> = [];
   const commitErrors: ImportRowErrorInput[] = [...validationErrors];
 
-  for (const { data, rowIndex, relationMask } of productsToUpsert) {
+  for (const item of productsToUpsert) {
+    const { rowIndex, relationMask } = item;
+    let data = item.data;
     if (validationErrors.some((entry) => entry.rowNumber === rowIndex)) {
       continue;
     }
@@ -1082,6 +1265,22 @@ export async function runShopCsvImport(
       });
 
       if (existing) {
+        if (request.fillEmptyShippingOnly) {
+          fillEmptyShippingApplied!.matchedProducts += 1;
+          const merged = fillEmptyShippingValues(data, existing);
+          if (merged.error) {
+            commitErrors.push({ rowNumber: rowIndex, handle: data.slug, message: merged.error });
+            continue;
+          }
+          if (merged.fieldValuesToFill === 0) {
+            fillEmptyShippingApplied!.rowsAlreadyComplete += 1;
+            skipped += 1;
+            continue;
+          }
+          fillEmptyShippingApplied!.rowsWithMissingShipping += 1;
+          fillEmptyShippingApplied!.fieldValuesToFill += merged.fieldValuesToFill;
+          data = merged.data;
+        }
         if (conflictMode === "SKIP") {
           skipped += 1;
           continue;
@@ -1106,11 +1305,21 @@ export async function runShopCsvImport(
             data,
             existing,
             relationMask,
-            scalarMask,
+            scalarMask: item.scalarMask,
           })
         );
         productsToRevalidate.push({ slug: data.slug, brand: data.brand, vendor: data.vendor, tags: data.tags });
         updated += 1;
+        continue;
+      }
+
+      if (request.fillEmptyShippingOnly) {
+        commitErrors.push({
+          rowNumber: rowIndex,
+          handle: data.slug,
+          message: "Fill-empty shipping mode does not create products.",
+          payload: { slug: data.slug },
+        });
         continue;
       }
 
@@ -1153,6 +1362,7 @@ export async function runShopCsvImport(
       updated,
       skipped,
       fitment: fitmentValidation.counts,
+      ...(fillEmptyShippingApplied ? { fillEmptyShipping: fillEmptyShippingApplied } : {}),
     },
     rowErrors: commitErrors,
   });
@@ -1194,6 +1404,7 @@ export async function runShopCsvImport(
       row: item.rowNumber,
       message: item.message,
     })),
+    ...(fillEmptyShippingApplied ? { fillEmptyShipping: fillEmptyShippingApplied } : {}),
     job: serializeImportJob(job as AdminImportJobRecord),
   };
 }

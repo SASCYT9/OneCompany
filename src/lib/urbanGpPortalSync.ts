@@ -1229,6 +1229,11 @@ export async function applyUrbanGpPortalSnapshot(
     const mergeCurrent: AdminProductImportMergeRecord = existing ?? {
       id: `unresolved:${payload.slug}`,
       slug: payload.slug,
+      weight: null,
+      length: null,
+      width: null,
+      height: null,
+      isDimensionsEstimated: false,
       collections: [],
       media: [],
       options: [],

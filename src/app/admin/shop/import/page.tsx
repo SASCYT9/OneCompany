@@ -144,6 +144,7 @@ export default function AdminShopImportPage() {
   const [supplierName, setSupplierName] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [conflictMode, setConflictMode] = useState<ImportConflictMode>("UPDATE");
+  const [fillEmptyShippingOnly, setFillEmptyShippingOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -213,6 +214,7 @@ export default function AdminShopImportPage() {
           supplierName: supplierName || null,
           templateId: selectedTemplateId || null,
           conflictMode,
+          fillEmptyShippingOnly,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -575,6 +577,21 @@ export default function AdminShopImportPage() {
                 />
               </Field>
             </div>
+
+            <label className="flex items-start gap-3 rounded-none border border-white/10 bg-white/2 px-4 py-3 text-sm text-zinc-200">
+              <input
+                type="checkbox"
+                checked={fillEmptyShippingOnly}
+                onChange={(event) => setFillEmptyShippingOnly(event.target.checked)}
+                className="mt-1 accent-blue-500"
+              />
+              <span>
+                <span className="block font-medium">Заповнювати лише порожні поля доставки</span>
+                <span className="mt-1 block text-xs text-zinc-400">
+                  Залишає наявні вагу й габарити без змін; оновлює лише порожні поля для вже наявних товарів та SKU.
+                </span>
+              </span>
+            </label>
 
             <Field label="CSV payload">
               <textarea

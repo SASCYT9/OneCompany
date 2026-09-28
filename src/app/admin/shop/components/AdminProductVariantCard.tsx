@@ -530,10 +530,10 @@ export function AdminProductVariantCard({
                   onChange={(c) => onUpdate({ taxable: c })}
                 />
                 <CheckboxField
-                  label="Орієнтовні габарити"
+                  label="Орієнтовні параметри доставки"
                   checked={variant.isDimensionsEstimated}
                   onChange={(c) => onUpdate({ isDimensionsEstimated: c })}
-                  helper="Marks dimensions as AI-estimated, not measured"
+                  helper="Flags estimated shipping weight or package dimensions that need review"
                 />
               </div>
             </div>

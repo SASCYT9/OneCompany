@@ -18,6 +18,7 @@ async function parseImportRequest(request: NextRequest) {
       sourceFilename: body.sourceFilename ? String(body.sourceFilename) : null,
       templateId: body.templateId ? String(body.templateId) : null,
       conflictMode: body.conflictMode ? String(body.conflictMode) : null,
+      fillEmptyShippingOnly: body.fillEmptyShippingOnly === true,
     };
   }
 
@@ -40,6 +41,7 @@ async function parseImportRequest(request: NextRequest) {
             : null,
       templateId: formData.get("templateId") ? String(formData.get("templateId")) : null,
       conflictMode: formData.get("conflictMode") ? String(formData.get("conflictMode")) : null,
+      fillEmptyShippingOnly: formData.get("fillEmptyShippingOnly") === "true",
     };
   }
 
