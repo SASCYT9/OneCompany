@@ -171,11 +171,31 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       // genuinely multi-fit Audi/VAG part.
       sharedTitleMustInclude: ["Audi", "AUDI", "VAG", "8V"],
     },
-    { model: "S2 / RS2", chassis: "B3 · 3B / ABY / ADU", categoryTokens: ["S2 RS2, 3B ABY ADU (3B)"] },
+    {
+      model: "S2 / RS2",
+      chassis: "B3 · 3B / ABY / ADU",
+      categoryTokens: ["S2 RS2, 3B ABY ADU (3B)"],
+      // The official do88-kit186B-r crankcase-vent kit is categorized under
+      // RS6 C5 even though do88 explicitly lists S2 / RS2 fitment as well.
+      sharedCategoryTokens: ["RS6, 4.2T (C5)"],
+      sharedTitleMustInclude: ["Crankcase vent hose"],
+    },
     { model: "UrQuattro", chassis: "UrQuattro", categoryTokens: ["UrQuattro, 2.2T 10V & 20V"] },
     { model: "RS6", chassis: "C5", categoryTokens: ["RS6, 4.2T (C5)"] },
-    { model: "S4 / S6", chassis: "C4", categoryTokens: ["S4 S6, 2.2T (C4)"] },
-    { model: "S4 / A6", chassis: "B5 / C5", categoryTokens: ["S4 A6, 2.7T (B5 C5)"] },
+    {
+      model: "S4 / S6",
+      chassis: "C4",
+      categoryTokens: ["S4 S6, 2.2T (C4)"],
+      sharedCategoryTokens: ["RS6, 4.2T (C5)"],
+      sharedTitleMustInclude: ["Crankcase vent hose"],
+    },
+    {
+      model: "S4 / A6",
+      chassis: "B5 / C5",
+      categoryTokens: ["S4 A6, 2.7T (B5 C5)"],
+      sharedCategoryTokens: ["RS6, 4.2T (C5)"],
+      sharedTitleMustInclude: ["Crankcase vent hose"],
+    },
     { model: "S3 / TT", chassis: "8L / 8N", categoryTokens: ["S3 TT, 1.8T (8L 8N)"] },
     { model: "A4", chassis: "B6", categoryTokens: ["A4, 1.8T (B6)"] },
     { model: "RS4", chassis: "B5", categoryTokens: ["RS4, 2.7T (B5)"] },
