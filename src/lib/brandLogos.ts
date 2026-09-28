@@ -279,6 +279,7 @@ export const BRAND_LOGO_MAP: Record<string, string> = {
 
 const BRAND_LOGO_ALIASES: Record<string, string> = {
   "rolls-royce": "Rolls Royce",
+  bmc: "BMC filters",
   // Cross-shop fitment & catalog rendering surface brand names with stray
   // suffixes / casing variants; map them all back to the canonical map keys.
   "burger motorsports": "Burger Motorsports",

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { shouldInvertBrandOrLogo } from "@/lib/invertBrands";
+import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 
 interface Brand {
   name: string;
@@ -66,7 +67,7 @@ export default function BrandCarousel({
           {duplicatedBrands.map((brand, index) => (
             <motion.div
               key={`${brand.name}-${index}`}
-              className="shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-foreground/10 hover:border-zinc-900/30 dark:hover:border-primary/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-xs relative overflow-hidden group/card"
+              className={`shrink-0 w-48 h-32 border border-zinc-900/10 dark:border-foreground/10 hover:border-zinc-900/30 dark:hover:border-primary/30 transition-all duration-300 p-6 flex items-center justify-center bg-zinc-100/50 dark:bg-zinc-950/50 backdrop-blur-xs relative overflow-hidden group/card ${getBrandLogoSurfaceClass(brand.name)}`}
               whileHover={{
                 scale: 1.05,
                 transition: { duration: 0.2 },

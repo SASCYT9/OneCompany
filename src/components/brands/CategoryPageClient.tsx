@@ -5,6 +5,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { getBrandLogo } from "@/lib/brandLogos";
+import {
+  brandLogoNeedsLightSurface,
+  getBrandLogoSurfaceClass,
+} from "@/lib/brandLogoPresentation";
 import { shouldInvertBrand } from "@/lib/invertBrands";
 import {
   getBrandMetadata,
@@ -180,13 +184,15 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
                     <div
                       className={`relative w-full max-w-[200px] ${
                         isFeatured ? "h-28 sm:h-36 lg:h-44" : "h-24 sm:h-32"
+                      } ${getBrandLogoSurfaceClass(brand.name)} ${
+                        brandLogoNeedsLightSurface(brand.name) ? "p-3" : ""
                       }`}
                     >
                       <Image
                         src={logo}
                         alt={brand.name}
                         fill
-                        className={`object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${shouldInvertBrand(brand.name) ? "filter brightness-0 invert" : ""}`}
+                        className={`object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         unoptimized
                       />

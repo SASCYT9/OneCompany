@@ -19,6 +19,7 @@ import {
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 
 type Props = {
@@ -271,7 +272,9 @@ function CrossShopCard({ match, locale }: { match: CrossShopMatch; locale: Suppo
           </div>
         )}
         {brandLogo ? (
-          <span className="absolute left-3 top-3 inline-flex h-8 items-center gap-2 rounded-full border border-foreground/18 bg-black/60 px-3 backdrop-blur-md">
+          <span
+            className={`absolute left-3 top-3 inline-flex h-8 items-center gap-2 rounded-full border border-foreground/18 bg-black/60 px-3 backdrop-blur-md ${getBrandLogoSurfaceClass(product.brand)}`}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={brandLogo}

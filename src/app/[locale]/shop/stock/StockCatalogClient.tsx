@@ -326,6 +326,7 @@ const normalizeBrandLogoName = (brandName: string) =>
 const getBrandLogoPath = (brandName: string): string | null => {
   const b = normalizeBrandLogoName(brandName);
   if (b.includes("akrapovic")) return "/logos/akrapovic.svg";
+  if (b.includes("bmc")) return "/logos/bmc-filters.png";
   if (b.includes("adro")) return "/images/shop/adro/adro-logo-white.svg";
   if (b.includes("brabus")) return "/logos/brabus.svg";
   if (b.includes("racechip")) return "/logos/racechip.png";
@@ -385,7 +386,7 @@ const LOGO_INVERT_BRANDS = ["brabus", "wheelforce"];
 
 const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban"];
 
-const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "burger"];
+const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "bmc", "burger"];
 
 const LOGO_WIDE_MARK_BRANDS = [
   "akrapovic",
@@ -431,12 +432,15 @@ function getBrandLogoBackdropClass(brandName: string) {
   const normalized = normalizeBrandLogoName(brandName);
   // Keep mixed-color artwork legible without inverting its brand colors.
   if (
+    normalized.includes("bmc") ||
     normalized.includes("csf") ||
     normalized.includes("ipe exhaust") ||
     normalized === "ipe" ||
     normalized.includes("innotech performance")
   )
-    return "rounded-sm bg-neutral-950 p-0.5";
+    return normalized.includes("bmc")
+      ? "rounded-sm bg-white p-0.5"
+      : "rounded-sm bg-neutral-950 p-0.5";
   if (normalized.includes("g-sport") || normalized.includes("gsport"))
     return "rounded-sm bg-white p-0.5";
   return "";
