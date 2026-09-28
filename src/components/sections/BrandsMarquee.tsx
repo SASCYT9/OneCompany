@@ -5,6 +5,7 @@ import Image from "next/image";
 import { gsap } from "gsap";
 import { getBrandLogo } from "@/lib/brandLogos";
 import { shouldInvertBrandOrLogo } from "@/lib/invertBrands";
+import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 
 // Select top brands from automotive and moto categories
 const topBrands = [
@@ -91,7 +92,7 @@ export default function BrandsMarquee() {
           {featuredBrands.map((brand) => (
             <div
               key={brand.name}
-              className="flex items-center justify-center w-40 h-24 opacity-80 hover:opacity-100 transition-all duration-500"
+              className={`flex items-center justify-center w-40 h-24 opacity-80 hover:opacity-100 transition-all duration-500 ${getBrandLogoSurfaceClass(brand.name)}`}
             >
               <Image
                 src={brand.logo}

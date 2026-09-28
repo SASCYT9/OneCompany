@@ -7,6 +7,10 @@ import Link from "next/link";
 import { BRAND_LOGO_MAP } from "@/lib/brandLogos";
 import { shouldInvertBrand } from "@/lib/invertBrands";
 import {
+  brandLogoNeedsLightSurface,
+  getBrandLogoSurfaceClass,
+} from "@/lib/brandLogoPresentation";
+import {
   getBrandMetadata,
   countryNames,
   subcategoryNames,
@@ -135,14 +139,14 @@ export default function BrandsPageContent() {
               {/* Logo with unified sizing */}
               <div className="relative w-full h-full flex items-center justify-center opacity-90 group-hover:opacity-100 transition-all duration-500">
                 <div
-                  className="relative w-full h-full p-2"
+                  className={`relative w-full h-full p-2 ${getBrandLogoSurfaceClass(name)} ${brandLogoNeedsLightSurface(name) ? "p-3" : ""}`}
                   style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.15))" }}
                 >
                   <Image
                     src={logo}
                     alt={name}
                     fill
-                    className={`object-contain ${shouldInvertBrand(name) ? "filter brightness-0 invert" : ""}`}
+                    className={`object-contain ${shouldInvertBrand(name) && !brandLogoNeedsLightSurface(name) ? "filter brightness-0 invert" : ""}`}
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                   />
                 </div>

@@ -37,7 +37,6 @@ const INVERT_BRANDS_NORMALIZED = new Set(
     // backgrounds otherwise.
     "1016 Industries",
     "AEM Factory",
-    "BMC filters",
     "Cobb tuning",
     "Melotti Racing",
     "Maxton Design",
@@ -69,6 +68,7 @@ const INVERT_BRANDS_NORMALIZED = new Set(
 
 const INVERT_BRAND_ALIASES: Record<string, string> = {
   // common variants / typos
+  bmc: "bmc filters",
   "libery walk": "liberty walk",
   liberywalk: "liberty walk",
   libertywalk: "liberty walk",
@@ -79,7 +79,7 @@ const INVERT_BRAND_ALIASES: Record<string, string> = {
 };
 
 const NO_INVERT_BRANDS_NORMALIZED = new Set(
-  ["GTHaus", "Hardrace", "Extreme Performance Tyres"].map(normalizeBrandName)
+  ["BMC filters", "GTHaus", "Hardrace", "Extreme Performance Tyres"].map(normalizeBrandName)
 );
 
 export const shouldInvertBrand = (brandName: string | undefined | null): boolean => {
@@ -154,6 +154,7 @@ const LIGHT_BG_LOGO_BRANDS_NORMALIZED = new Set(
     "Accossato",
     "Alpha Racing",
     "Big Boost",
+    "BMC filters",
     "BootMod3",
     "Domino",
     "Dorch Engineering",
