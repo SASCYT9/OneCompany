@@ -386,7 +386,7 @@ const LOGO_INVERT_BRANDS = ["brabus", "wheelforce"];
 
 const LOGO_LIGHT_INVERT_BRANDS = ["racechip", "do88", "urban"];
 
-const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "burger"];
+const LOGO_LIGHT_OUTLINE_BRANDS = ["akrapovic", "akrapovi", "bmc", "burger"];
 
 const LOGO_WIDE_MARK_BRANDS = [
   "akrapovic",
@@ -432,6 +432,7 @@ function getBrandLogoBackdropClass(brandName: string) {
   const normalized = normalizeBrandLogoName(brandName);
   // Keep mixed-color artwork legible without inverting its brand colors.
   if (
+    normalized.includes("bmc") ||
     normalized.includes("csf") ||
     normalized.includes("ipe exhaust") ||
     normalized === "ipe" ||
