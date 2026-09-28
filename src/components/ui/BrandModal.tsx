@@ -12,6 +12,7 @@ import {
   shouldSmartInvertBrand,
   hasLightBackgroundLogo,
 } from "@/lib/invertBrands";
+import { brandLogoNeedsLightSurface } from "@/lib/brandLogoPresentation";
 import { resolveShopStorefrontSegment } from "@/lib/shopStorefrontRouting";
 
 interface BrandModalProps {
@@ -23,7 +24,9 @@ interface BrandModalProps {
 export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
   const t = useTranslations("brands");
   const locale = useLocale();
-  const isLightBg = brand ? hasLightBackgroundLogo(brand.name) : false;
+  const isLightBg = brand
+    ? hasLightBackgroundLogo(brand.name) || brandLogoNeedsLightSurface(brand.name)
+    : false;
   const shopSegment = brand ? resolveShopStorefrontSegment({ brand: brand.name }) : null;
 
   // Close on escape key
