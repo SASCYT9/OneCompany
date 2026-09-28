@@ -666,11 +666,17 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       ...legacyBrandRedirects,
-      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.map(({ prefix, segment }) => ({
-        source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
-        destination: `/:locale/shop/${segment}/products/:slug`,
-        permanent: true,
-      })),
+      // Resolve Do88-prefixed PDPs in the catalog route, where the current
+      // product brand is known. A static `/shop/do88-*` redirect loops for
+      // third-party products that were reclassified after import (for example
+      // BMC SKUs that retain their legacy `do88-` slug).
+      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES
+        .filter(({ segment }) => segment !== "do88")
+        .map(({ prefix, segment }) => ({
+          source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
+          destination: `/:locale/shop/${segment}/products/:slug`,
+          permanent: true,
+        })),
       {
         source: "/:locale(ua|en)/admin/shop/turn14-sync",
         destination: "/admin/shop/turn14-sync",
