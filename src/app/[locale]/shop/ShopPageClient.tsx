@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { getBrandMetadata, getLocalizedCountry } from "@/lib/brands";
 import { SHOP_PRODUCTS, type ShopScope, type ShopMoneySet } from "@/lib/shopCatalog";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
@@ -415,7 +416,9 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
                   </div>
 
                   <div>
-                    <div className="mb-3 flex h-16 items-center justify-center rounded-xl border border-foreground/10 bg-card px-3 shadow-[0_10px_18px_rgba(0,0,0,0.1)]">
+                    <div
+                      className={`mb-3 flex h-16 items-center justify-center rounded-xl border border-foreground/10 bg-card px-3 shadow-[0_10px_18px_rgba(0,0,0,0.1)] ${getBrandLogoSurfaceClass(brand.name)}`}
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={getBrandLogo(brand.name)}
@@ -654,7 +657,9 @@ export default function ShopPageClient({ locale, variant = "default" }: ShopPage
 
                     <div className="space-y-3 p-5">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/15 bg-muted p-1.5">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/15 bg-muted p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
+                        >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={getBrandLogo(product.brand)}

@@ -8,6 +8,7 @@ import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker
 import { StopflexDescriptionCallout } from "@/components/shop/StopflexDescriptionCallout";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getBrandLogo } from "@/lib/brandLogos";
+import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   getShopProductBySlugServer,
@@ -927,7 +928,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
             <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={getBrandLogo(product.brand)}

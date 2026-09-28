@@ -438,7 +438,9 @@ function getBrandLogoBackdropClass(brandName: string) {
     normalized === "ipe" ||
     normalized.includes("innotech performance")
   )
-    return "rounded-sm bg-neutral-950 p-0.5";
+    return normalized.includes("bmc")
+      ? "rounded-sm bg-white p-0.5"
+      : "rounded-sm bg-neutral-950 p-0.5";
   if (normalized.includes("g-sport") || normalized.includes("gsport"))
     return "rounded-sm bg-white p-0.5";
   return "";
