@@ -326,6 +326,7 @@ const normalizeBrandLogoName = (brandName: string) =>
 const getBrandLogoPath = (brandName: string): string | null => {
   const b = normalizeBrandLogoName(brandName);
   if (b.includes("akrapovic")) return "/logos/akrapovic.svg";
+  if (b.includes("bmc")) return "/logos/bmc-filters.png";
   if (b.includes("adro")) return "/images/shop/adro/adro-logo-white.svg";
   if (b.includes("brabus")) return "/logos/brabus.svg";
   if (b.includes("racechip")) return "/logos/racechip.png";
