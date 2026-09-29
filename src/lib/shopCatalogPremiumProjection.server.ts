@@ -85,9 +85,22 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const locale = params.get("locale") === "en" ? "en" : "ua";
   const page = positiveInteger(params.get("page"), 1);
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
-  const vehiclePlan = buildShopCatalogVehicleSearchPlan(params, {
+  let vehiclePlan = buildShopCatalogVehicleSearchPlan(params, {
     readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE,
   });
+  const hasVehicleIdentity = Boolean(
+    vehiclePlan.constraints.make ||
+      vehiclePlan.constraints.model ||
+      vehiclePlan.constraints.generation ||
+      vehiclePlan.constraints.year
+  );
+  // BMC supplier applications are stored as validated product-owned fitment
+  // contracts. Until those policies are complete in the V2 search projection,
+  // use the existing bounded legacy bridge for BMC vehicle selections so the
+  // customer still gets the official SKU fitment results.
+  if (firstBrand(params)?.toLowerCase() === "bmc" && hasVehicleIdentity) {
+    vehiclePlan = buildShopCatalogVehicleSearchPlan(params, { readerMode: "legacy" });
+  }
   let minPrice = nonNegativeAmount(params.get("minPrice"));
   let maxPrice = nonNegativeAmount(params.get("maxPrice"));
   if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
