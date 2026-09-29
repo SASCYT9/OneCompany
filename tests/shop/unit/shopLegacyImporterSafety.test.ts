@@ -72,6 +72,23 @@ test("live do88 admin import publishes through the central catalog writer", () =
   assert.doesNotMatch(source, /prisma\.shopProduct\.(?:create|update)\(/);
 });
 
+test("supplier CSV fitment updates and creates persist the normalized selector metafield", () => {
+  const source = readWorkspaceFile("src/lib/shopAdminImports.ts");
+  const normalizedFitmentConversions =
+    source.match(/supplierContractToNormalizedFitment\(supplierContract\)/g)?.length ?? 0;
+  const persistedFitmentValues =
+    source.match(/value: JSON\.stringify\(importedFitment\)/g)?.length ?? 0;
+  assert.ok(
+    normalizedFitmentConversions >= 2,
+    "both product updates and creations must normalize the supplied contract"
+  );
+  assert.ok(
+    persistedFitmentValues >= 2,
+    "both paths must persist normalized fitment used by catalog selector snapshots"
+  );
+  assert.match(source, /supplierProvided && existingFitment\?\.source !== "manual"/);
+});
+
 test("live Brabus and Burger routes publish snapshot merges through the catalog adapter", () => {
   for (const relativePath of [
     "src/app/api/import-brabus/route.ts",
