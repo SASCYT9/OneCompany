@@ -9,6 +9,7 @@ export const state =
     supplierFitmentValue: null,
     supplierFitmentProductId: "fitment-id",
     productSearchIds: [],
+    productSearchArgs: [],
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
@@ -23,6 +24,7 @@ export function reset() {
   state.supplierFitmentValue = null;
   state.supplierFitmentProductId = "fitment-id";
   state.productSearchIds.length = 0;
+  state.productSearchArgs.length = 0;
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
@@ -30,7 +32,8 @@ export function reset() {
 
 export const prisma = {
   shopProduct: {
-    findMany: async () => {
+    findMany: async (args) => {
+      state.productSearchArgs.push(args);
       if (!state.productSearchIds.length) throw new Error("no product text candidates configured");
       return state.productSearchIds.map((id) => ({ id }));
     },

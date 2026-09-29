@@ -122,6 +122,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       : resolveLegacyVehicleProductIds({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
+          brand: firstBrand(params),
         })
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
