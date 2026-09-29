@@ -38,6 +38,9 @@ test("route preserves the existing reader-off legacy fallback", () => {
   const reader = route.indexOf("isShopCatalogReaderRequestEnabled(", canonical);
   const legacyLoader = route.indexOf("await getShopProductsWithFitments()", reader);
   assert.ok(canonical >= 0 && reader > canonical && legacyLoader > reader);
+  assert.match(route, /getBmcSupplierApplications/);
+  assert.match(route, /supplierContractToNormalizedFitment/);
+  assert.match(route, /canonicalizeVehicleMakes/);
 });
 
 test("bounded reader joins each policy to its product projection source revision", async () => {
