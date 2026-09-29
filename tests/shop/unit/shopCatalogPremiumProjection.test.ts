@@ -173,6 +173,27 @@ test("projection vehicle reader makes one native constraint query and no legacy 
   }
 });
 
+test("BMC vehicle selections use product-owned supplier fitment until V2 policies are complete", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  const oldMode = process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+  process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = "projection";
+  try {
+    await queryPremiumCatalogProjection(
+      params({ brand: "BMC", make: "Audi", model: "A3", scope: "auto" })
+    );
+    assert.equal(mock.state.legacyCalls, 1);
+    assert.deepEqual(mock.state.queries[0]?.productIds, ["legacy-id"]);
+    assert.equal(mock.state.queries[0]?.make, null);
+    assert.equal(mock.state.facetQueries[0]?.productIds?.[0], "legacy-id");
+    assert.equal(mock.state.countQueries[0]?.productIds?.[0], "legacy-id");
+  } finally {
+    if (oldMode === undefined) delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+    else process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = oldMode;
+  }
+});
+
 test("legacy vehicle reader resolves once and restricts the projection to returned IDs", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");
