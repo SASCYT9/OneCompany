@@ -68,8 +68,13 @@ test("matches every official BMC supplier application, not only the primary vehi
     note: null,
   });
 
-  const result = await resolveLegacyVehicleProductIds({ make: "Volkswagen", model: "Golf" });
+  const result = await resolveLegacyVehicleProductIds({ brand: "BMC", make: "Volkswagen", model: "Golf" });
   assert.deepEqual(result, ["bmc-multi-application-id"]);
+  assert.ok(
+    mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
+      JSON.stringify(args.where.OR).includes('"BMC"')
+    )
+  );
 });
 
 test("coalesces concurrent vehicle resolutions and reuses the bounded result", async () => {

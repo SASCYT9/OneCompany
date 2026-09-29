@@ -21,6 +21,7 @@ import {
 } from "@/lib/shopVehicleTaxonomy";
 
 type LegacyVehicleQuery = {
+  brand?: string | null;
   make?: string | null;
   model?: string | null;
   modelAlternates?: readonly string[] | null;
@@ -416,7 +417,7 @@ async function getCachedVehicleEvidence(
 async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery) {
   const canonicalMake = canonicalVehicleMakeLabel(input.make ?? "");
   const makeAliases = input.make ? vehicleMakeAliases(canonicalMake) : [];
-  const [candidateIds, evidence] = await Promise.all([
+  const [candidateIds, evidence, bmcCandidateIds] = await Promise.all([
     input.make
       ? findLegacyFitmentCandidateIds(input, canonicalMake).catch(() => null)
       : Promise.resolve<string[] | null>(null),
@@ -430,10 +431,29 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
           input.generation
         )
       : Promise.resolve<VehicleEvidence>({ applications: [], clauses: [] }),
+    input.make && normalizeShopSearchText(input.brand) === "bmc"
+      ? prisma.shopProduct
+          .findMany({
+            where: {
+              isPublished: true,
+              status: "ACTIVE",
+              OR: [
+                { brand: { equals: "BMC", mode: "insensitive" } },
+                { vendor: { equals: "BMC", mode: "insensitive" } },
+              ],
+            },
+            select: { id: true },
+          })
+          .then((rows) => rows.map((row) => row.id))
+      : Promise.resolve<string[]>([]),
   ]);
   // Canonical relation evidence can resolve IDs without loading their product
   // payload. Only parse bounded text candidates for the historical fallback.
-  const products = await getCachedFitmentProducts(candidateIds);
+  const candidatesIncludingBmcContracts =
+    bmcCandidateIds.length > 0
+      ? [...new Set([...(candidateIds ?? []), ...bmcCandidateIds])]
+      : candidateIds;
+  const products = await getCachedFitmentProducts(candidatesIncludingBmcContracts);
   const { applications: canonicalApplications, clauses: projectionClauses } = evidence;
   const ids = new Set(
     products
