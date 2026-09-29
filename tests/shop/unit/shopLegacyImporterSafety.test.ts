@@ -86,7 +86,10 @@ test("supplier CSV fitment updates and creates persist the normalized selector m
     persistedFitmentValues >= 2,
     "both paths must persist normalized fitment used by catalog selector snapshots"
   );
-  assert.match(source, /supplierProvided && existingFitment\?\.source !== "manual"/);
+  assert.match(
+    source,
+    /existingFitment\?\.source === "manual" && existingFitment\.status === "verified"/
+  );
 });
 
 test("live Brabus and Burger routes publish snapshot merges through the catalog adapter", () => {
