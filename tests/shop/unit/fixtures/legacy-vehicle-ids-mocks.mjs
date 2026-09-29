@@ -6,6 +6,9 @@ export const state =
     catalogCalls: 0,
     metafieldCalls: 0,
     metafieldArgs: [],
+    supplierFitmentValue: null,
+    supplierFitmentProductId: "fitment-id",
+    productSearchIds: [],
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
@@ -17,17 +20,35 @@ export function reset() {
   state.catalogCalls = 0;
   state.metafieldCalls = 0;
   state.metafieldArgs.length = 0;
+  state.supplierFitmentValue = null;
+  state.supplierFitmentProductId = "fitment-id";
+  state.productSearchIds.length = 0;
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
 }
 
 export const prisma = {
+  shopProduct: {
+    findMany: async () => {
+      if (!state.productSearchIds.length) throw new Error("no product text candidates configured");
+      return state.productSearchIds.map((id) => ({ id }));
+    },
+  },
   shopProductMetafield: {
     findMany: async (args) => {
       state.metafieldCalls += 1;
       state.metafieldArgs.push(args);
-      return [];
+      return state.supplierFitmentValue
+        ? [
+            {
+              productId: state.supplierFitmentProductId,
+              namespace: "onecompany",
+              key: "supplier_fitment",
+              value: state.supplierFitmentValue,
+            },
+          ]
+        : [];
     },
   },
   shopVehicleApplication: {
@@ -77,15 +98,20 @@ export const prisma = {
 export async function getShopFitmentCatalogProducts(options) {
   state.catalogCalls += 1;
   if (!options?.evidenceOnly) throw new Error("evidenceOnly expected");
-  return [{ id: "fitment-id", brand: "BMC" }];
+  const id = options.productIds?.[0] ?? "fitment-id";
+  return [{ id, brand: "BMC" }];
 }
 
 export function extractProductFitment() {
   return { make: "BMW", model: "M5", chassisCodes: ["G90"], years: [{ from: 2020, to: null }] };
 }
 
-export function shopFitmentMatchesVehicleConstraints() {
-  return true;
+export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
+  const models = fitment.models ?? (fitment.model ? [fitment.model] : []);
+  return (
+    String(fitment.make ?? "").toLowerCase() === String(constraints.make ?? "").toLowerCase() &&
+    (!constraints.model || models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
+  );
 }
 
 export function normalizeShopSearchText(value) {

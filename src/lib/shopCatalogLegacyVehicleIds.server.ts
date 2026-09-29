@@ -38,7 +38,7 @@ const RESOLUTION_CACHE_MAX_ENTRIES = 256;
 
 type CachedFitmentProducts = Array<{
   id: string | undefined;
-  fitment: ReturnType<typeof extractProductFitment>;
+  fitments: ReturnType<typeof resolveSearchFitments>;
 }>;
 type VehicleApplication = {
   productId: string;
@@ -167,7 +167,7 @@ async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopF
         : persisted?.normalized ?? null;
     return {
       id: product.id,
-      fitment: resolveSearchFitments(automatic, value)[0] ?? automatic,
+      fitments: resolveSearchFitments(automatic, value),
     };
   });
 }
@@ -438,13 +438,15 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
   const ids = new Set(
     products
       .filter((product) => {
-        return shopFitmentMatchesVehicleConstraints(product.fitment, {
-          make: canonicalMake,
-          model: input.model,
-          modelAlternates: input.modelAlternates,
-          chassis: input.generation,
-          year: input.year,
-        });
+        return product.fitments.some((fitment) =>
+          shopFitmentMatchesVehicleConstraints(fitment, {
+            make: canonicalMake,
+            model: input.model,
+            modelAlternates: input.modelAlternates,
+            chassis: input.generation,
+            year: input.year,
+          })
+        );
       })
       .map((product) => product.id)
       .filter((id): id is string => Boolean(id))

@@ -21,6 +21,57 @@ registerTestModuleHooks({
 
 const modulePromise = import("../../../src/lib/shopCatalogLegacyVehicleIds.server");
 
+test("matches every official BMC supplier application, not only the primary vehicle", async () => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.supplierFitmentProductId = "bmc-multi-application-id";
+  mock.state.productSearchIds = ["bmc-multi-application-id"];
+  mock.state.supplierFitmentValue = JSON.stringify({
+    version: 1,
+    mode: "vehicle_specific",
+    scope: "auto",
+    applications: [
+      {
+        vehicleType: "car",
+        make: "Audi",
+        model: "A3",
+        chassisCode: null,
+        yearFrom: null,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+      {
+        vehicleType: "car",
+        make: "Volkswagen",
+        model: "Golf",
+        chassisCode: "8",
+        yearFrom: 2019,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+    ],
+    parentSku: null,
+    source: { supplier: "BMC", sourceRef: "FB409-01", sourceUpdatedAt: null },
+    note: null,
+  });
+
+  const result = await resolveLegacyVehicleProductIds({ make: "Volkswagen", model: "Golf" });
+  assert.deepEqual(result, ["bmc-multi-application-id"]);
+});
+
 test("coalesces concurrent vehicle resolutions and reuses the bounded result", async () => {
   const { resolveLegacyVehicleProductIds } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
