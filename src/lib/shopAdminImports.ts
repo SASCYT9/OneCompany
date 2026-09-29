@@ -291,11 +291,27 @@ export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
         );
         const supplierProvided = data.metafields.some(isSupplierFitmentMetafield);
         if (supplierProvided && existingFitment?.source !== "manual") {
+          const supplierContract = parseSupplierFitmentContract(
+            data.metafields.find(isSupplierFitmentMetafield)?.value
+          );
+          if (!supplierContract) {
+            throw new Error("SUPPLIER_FITMENT_CONTRACT_INVALID");
+          }
+          const importedFitment = supplierContractToNormalizedFitment(supplierContract);
           await tx.shopProductMetafield.deleteMany({
             where: {
               productId: existing.id,
               namespace: NORMALIZED_FITMENT_NAMESPACE,
               key: NORMALIZED_FITMENT_KEY,
+            },
+          });
+          await tx.shopProductMetafield.create({
+            data: {
+              productId: existing.id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+              value: JSON.stringify(importedFitment),
+              valueType: "json",
             },
           });
         } else if (
@@ -396,7 +412,23 @@ export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
           data: buildAdminProductCreateData(data),
           select: { id: true },
         });
-        if (!data.metafields.some(isSupplierFitmentMetafield)) {
+        const supplierMetafield = data.metafields.find(isSupplierFitmentMetafield);
+        if (supplierMetafield) {
+          const supplierContract = parseSupplierFitmentContract(supplierMetafield.value);
+          if (!supplierContract) {
+            throw new Error("SUPPLIER_FITMENT_CONTRACT_INVALID");
+          }
+          const importedFitment = supplierContractToNormalizedFitment(supplierContract);
+          await tx.shopProductMetafield.create({
+            data: {
+              productId: created.id,
+              namespace: NORMALIZED_FITMENT_NAMESPACE,
+              key: NORMALIZED_FITMENT_KEY,
+              value: JSON.stringify(importedFitment),
+              valueType: "json",
+            },
+          });
+        } else {
           const automaticFitment = buildAutomaticFitmentFromAdminPayload(data);
           if (shouldPersistAutomaticFitment(automaticFitment)) {
             await tx.shopProductMetafield.create({
