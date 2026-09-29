@@ -8,7 +8,7 @@ import {
   supplierContractToNormalizedFitment,
   SUPPLIER_FITMENT_KEY,
 } from "@/lib/shopImportFitment";
-import { resolveSearchFitments } from "@/lib/shopFitmentQuality";
+import { parseNormalizedFitment, resolveSearchFitments } from "@/lib/shopFitmentQuality";
 import { prisma } from "@/lib/prisma";
 import { Prisma, ShopCatalogCompatibilityDimension } from "@prisma/client";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
@@ -158,9 +158,13 @@ async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopF
     const automatic = extractProductFitment(product);
     const persisted = byProduct.get(product.id ?? "");
     const supplier = parseSupplierFitmentContract(persisted?.supplier);
-    const value =
-      persisted?.normalized ??
-      (supplier ? JSON.stringify(supplierContractToNormalizedFitment(supplier)) : null);
+    const manualFitment = parseNormalizedFitment(persisted?.normalized);
+    const preserveManualFitment = manualFitment?.source === "manual" && manualFitment.status === "verified";
+    const value = preserveManualFitment
+      ? persisted?.normalized
+      : supplier
+        ? JSON.stringify(supplierContractToNormalizedFitment(supplier))
+        : persisted?.normalized ?? null;
     return {
       id: product.id,
       fitment: resolveSearchFitments(automatic, value)[0] ?? automatic,
