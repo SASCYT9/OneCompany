@@ -94,9 +94,11 @@ test("supplier CSV fitment updates and creates persist the normalized selector m
 
 test("supplier-imported fitment supersedes stale catalog policies in projection snapshots", () => {
   const source = readWorkspaceFile("src/lib/shopCatalogAdminSnapshot.server.ts");
-  assert.match(source, /normalizedFitment\?\.source === "import"/);
-  assert.match(source, /record\.metafields\.some\(isSupplierFitmentMetafield\)/);
+  assert.match(source, /parseSupplierFitmentContract\(/);
+  assert.match(source, /supplierContractToNormalizedFitment\(supplierContract\)/);
+  assert.match(source, /const authoritativeFitment = manuallyVerifiedFitment \?\? supplierFitment \?\? normalizedFitment/);
   assert.match(source, /record\.catalogPolicies\?\.length && !supplierFitmentIsAuthoritative/);
+  assert.match(source, /normalizedFitment\?\.source === "manual" && normalizedFitment\.status === "verified"/);
 });
 
 test("live Brabus and Burger routes publish snapshot merges through the catalog adapter", () => {
