@@ -366,6 +366,8 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   const page = readFileSync("src/app/[locale]/shop/stock/StockCatalogClient.tsx", "utf8");
   const canonical = readFileSync("src/lib/shopCanonicalFitmentOptions.server.ts", "utf8");
   assert.match(api, /await getCanonicalFitmentOptions\(/);
+  assert.match(api, /supplementBmcSupplierFitment\(/);
+  assert.match(api, /getBmcSupplierApplications\(/);
 
   assert.match(canonical, /shopCatalogProjectionConstraint\.groupBy/);
   for (const dimension of ["MAKE", "MODEL", "CHASSIS", "GENERATION", "ENGINE"]) {
@@ -374,7 +376,10 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   assert.doesNotMatch(canonical, /shopProductKnowledge|shopVehicleApplication/);
   assert.doesNotMatch(api, /hasCanonicalCatalogCoverage/);
   assert.match(api, /SELECTOR_NOT_READY/);
-  assert.match(api, /isShopCatalogReaderRequestEnabled\([\s\S]*?\)\s*\)\s*\{[\s\S]*?status: 503/);
+  assert.match(
+    api,
+    /isShopCatalogReaderRequestEnabled\([\s\S]*?\)\s*\)\s*\{[\s\S]*?status: 503/
+  );
   assert.match(
     api,
     /if \(canonical\) return cachedJson\(canonical\);[\s\S]*?SELECTOR_NOT_READY[\s\S]*?getShopProductsWithFitments\(\)/
@@ -382,7 +387,7 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   assert.match(canonical, /dimension: "YEAR"/);
   assert.match(canonical, /detailClauseWhere/);
   assert.match(api, /searchParams\.get\("details"\) === "1"/);
-  assert.match(page, /fitmentBrandParam/);
+  assert.match(page, /Vehicle choices are brand-independent/);
   assert.match(page, /details: "1"/);
   const detailsEffect = page.slice(
     page.indexOf("// Model/chassis"),

@@ -1,4 +1,10 @@
 import { getCanonicalFitmentOptions } from "@/lib/shopCanonicalFitmentOptions.server";
+import { prisma } from "@/lib/prisma";
+import {
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+  SUPPLIER_FITMENT_KEY,
+} from "@/lib/shopImportFitment";
 import { NextRequest, NextResponse } from "next/server";
 import { getShopProductsWithFitments } from "@/lib/shopStockSearch.server";
 import {
@@ -36,6 +42,125 @@ const cachedJson = (body: unknown) =>
     },
   });
 
+type SupplierVehicleApplication = {
+  make: string;
+  model: string | null;
+  chassisCode: string | null;
+  yearFrom: number | null;
+  yearTo: number | null;
+};
+let cachedBmcApplications: { expiresAt: number; value: SupplierVehicleApplication[] } | null = null;
+let pendingBmcApplications: Promise<SupplierVehicleApplication[]> | null = null;
+
+async function getBmcSupplierApplications(): Promise<SupplierVehicleApplication[]> {
+  if (cachedBmcApplications && cachedBmcApplications.expiresAt > Date.now()) {
+    return cachedBmcApplications.value;
+  }
+  if (pendingBmcApplications) return pendingBmcApplications;
+  pendingBmcApplications = (async () => {
+    const products = await prisma.shopProduct.findMany({
+      where: {
+        isPublished: true,
+        status: "ACTIVE",
+        OR: [
+          { brand: { equals: "BMC", mode: "insensitive" } },
+          { vendor: { equals: "BMC", mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    const productIds = products.map((product) => product.id);
+    if (!productIds.length) return [];
+    const metafields = await prisma.shopProductMetafield.findMany({
+      where: {
+        productId: { in: productIds },
+        namespace: "onecompany",
+        key: SUPPLIER_FITMENT_KEY,
+      },
+      select: { value: true },
+    });
+    const applications = metafields.flatMap((metafield) => {
+      const contract = parseSupplierFitmentContract(metafield.value);
+      if (!contract || contract.mode !== "vehicle_specific" || contract.scope !== "auto") return [];
+      return supplierContractToNormalizedFitment(contract).applications.map((application) => ({
+        make: application.make,
+        model: application.models[0] ?? null,
+        chassisCode: application.chassisCodes[0] ?? null,
+        yearFrom: application.yearRanges[0]?.from ?? null,
+        yearTo: application.yearRanges[0]?.to ?? null,
+      }));
+    });
+    cachedBmcApplications = { value: applications, expiresAt: Date.now() + 60_000 };
+    return applications;
+  })().finally(() => {
+    pendingBmcApplications = null;
+  });
+  return pendingBmcApplications;
+}
+
+async function supplementBmcSupplierFitment<T extends { type?: string; data?: unknown }>(
+  result: T | null,
+  input: { make: string | null; model: string | null; chassis: string | null; brand: string | null; scope: "auto" | "moto" | null }
+): Promise<T | null> {
+  if (!result || (input.brand && input.brand.toLocaleLowerCase() !== "bmc")) return result;
+  const applications = (await getBmcSupplierApplications()).filter((application) =>
+    isVehicleMakeCompatibleWithScope(application.make, input.scope)
+  );
+  if (result.type === "makes" && Array.isArray(result.data)) {
+    return {
+      ...result,
+      data: canonicalizeVehicleMakes([
+        ...result.data.filter((value): value is string => typeof value === "string"),
+        ...applications.map((application) => application.make),
+      ]),
+    };
+  }
+  const forMake = applications.filter((application) =>
+    input.make ? shopVehicleMakesMatch(application.make, input.make) : false
+  );
+  if (result.type === "models" && Array.isArray(result.data) && input.make) {
+    return {
+      ...result,
+      data: canonicalizeVehicleModels(input.make, [
+        ...result.data.filter((value): value is string => typeof value === "string"),
+        ...forMake.map((application) => application.model).filter((value): value is string => Boolean(value)),
+        ...getVehicleSelectorModelAliases(input.make),
+      ]),
+    };
+  }
+  const forModel = forMake.filter(
+    (application) =>
+      Boolean(application.model && input.model && shopVehicleModelsMatch(application.model, input.model, application.make)) &&
+      (!input.chassis || application.chassisCode?.toLocaleLowerCase() === input.chassis.toLocaleLowerCase())
+  );
+  if (result.type === "chassis" && Array.isArray(result.data) && input.make && input.model) {
+    return {
+      ...result,
+      data: canonicalizeVehicleChassisCodes(
+        [
+          ...result.data.filter((value): value is string => typeof value === "string"),
+          ...forModel.map((application) => application.chassisCode).filter((value): value is string => Boolean(value)),
+          ...getVehicleSelectorChassisAliases(input.make, input.model),
+        ],
+        input.make,
+        input.model
+      ),
+    };
+  }
+  if (result.type === "details" && input.make && input.model && result.data && typeof result.data === "object") {
+    const years = new Set<number>("years" in result.data && Array.isArray(result.data.years) ? result.data.years : []);
+    const maxYear = new Date().getFullYear() + 2;
+    for (const application of forModel) {
+      if (application.yearFrom == null) continue;
+      for (let year = Math.max(1886, application.yearFrom); year <= Math.min(maxYear, application.yearTo ?? maxYear); year += 1) {
+        years.add(year);
+      }
+    }
+    return { ...result, data: { ...result.data, years: [...years].sort((left, right) => right - left) } };
+  }
+  return result;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -55,15 +180,15 @@ export async function GET(request: NextRequest) {
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await getCanonicalFitmentOptions({
-      make,
-      model,
-      chassis,
-      year,
-      brand,
-      scope: vehicleScope,
-      details,
-    });
+    const canonical = await supplementBmcSupplierFitment(await getCanonicalFitmentOptions({
+          make,
+          model,
+          chassis,
+          year,
+          brand,
+          scope: vehicleScope,
+          details,
+        }), { make, model, chassis, brand, scope: vehicleScope });
     if (
       canonical?.type === "models" &&
       isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
