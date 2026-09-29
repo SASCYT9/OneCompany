@@ -11,6 +11,7 @@ export const SHOP_REMOTE_IMAGE_HOSTS = [
   "www.jb4tech.com",
   "www.do88.se",
   "www.do88performance.eu",
+  "www.bmcairfilters.com",
   "gp-portal.eu",
   "images.unsplash.com",
   "kwsuspension.shop",
