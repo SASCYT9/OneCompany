@@ -101,6 +101,19 @@ test("supplier-imported fitment supersedes stale catalog policies in projection 
   assert.match(source, /normalizedFitment\?\.source === "manual" && normalizedFitment\.status === "verified"/);
 });
 
+test("vehicle search prefers supplier fitment over unverified manual records", () => {
+  const stockSearch = readWorkspaceFile("src/lib/shopStockSearch.server.ts");
+  const legacyResolver = readWorkspaceFile("src/lib/shopCatalogLegacyVehicleIds.server.ts");
+  assert.match(
+    stockSearch,
+    /persistedNormalized\?\.source === "manual" && persistedNormalized\.status === "verified"/
+  );
+  assert.match(
+    legacyResolver,
+    /manualFitment\?\.source === "manual" && manualFitment\.status === "verified"/
+  );
+});
+
 test("live Brabus and Burger routes publish snapshot merges through the catalog adapter", () => {
   for (const relativePath of [
     "src/app/api/import-brabus/route.ts",

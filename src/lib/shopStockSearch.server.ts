@@ -200,19 +200,21 @@ function indexProductWithFitment(
     ? supplierContractToNormalizedFitment(supplierContract)
     : null;
   const persistedNormalized = parseNormalizedFitment(persisted?.manual);
+  const preserveManualFitment =
+    persistedNormalized?.source === "manual" && persistedNormalized.status === "verified";
   const automaticSafetyValue =
     automaticNormalized.status === "needs_review" || automaticNormalized.status === "universal"
       ? JSON.stringify(automaticNormalized)
       : null;
   const effectivePersistedValue =
-    (persistedNormalized?.source === "manual"
+    (preserveManualFitment
       ? persisted?.manual
       : supplierNormalized
         ? JSON.stringify(supplierNormalized)
         : persisted?.manual) ?? automaticSafetyValue;
   const normalizedFitment = mergePersistedFitment(
     supplierNormalized ?? persistedNormalized ?? automaticNormalized,
-    persistedNormalized?.source === "manual" ? persisted?.manual : null
+    preserveManualFitment ? persisted?.manual : null
   );
   const fitments = resolveSearchFitments(automaticFitment, effectivePersistedValue);
   const fitment = fitments[0];
