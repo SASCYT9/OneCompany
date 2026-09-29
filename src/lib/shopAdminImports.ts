@@ -290,7 +290,9 @@ export const prismaShopCsvCatalogWriter: ShopCsvCatalogWriter = {
           existing.metafields.find(isNormalizedFitmentMetafield)?.value
         );
         const supplierProvided = data.metafields.some(isSupplierFitmentMetafield);
-        if (supplierProvided && existingFitment?.source !== "manual") {
+        const preserveManualFitment =
+          existingFitment?.source === "manual" && existingFitment.status === "verified";
+        if (supplierProvided && !preserveManualFitment) {
           const supplierContract = parseSupplierFitmentContract(
             data.metafields.find(isSupplierFitmentMetafield)?.value
           );

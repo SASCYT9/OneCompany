@@ -1697,10 +1697,12 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     automaticProduct,
     extractProductFitment(automaticProduct)
   );
-  const normalizedFitment =
-    persistedFitment?.source === "manual"
+  const manuallyVerifiedFitment =
+    persistedFitment?.source === "manual" && persistedFitment.status === "verified"
       ? persistedFitment
-      : (supplierFitment ?? persistedFitment ?? automaticFitment);
+      : null;
+  const normalizedFitment =
+    manuallyVerifiedFitment ?? supplierFitment ?? persistedFitment ?? automaticFitment;
   const storefront = resolveProductStorefront({
     slug: record.slug,
     brand: record.brand,
