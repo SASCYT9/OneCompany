@@ -4,6 +4,8 @@ export const state =
     applicationCalls: 0,
     projectionCalls: 0,
     catalogCalls: 0,
+    metafieldCalls: 0,
+    metafieldArgs: [],
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
@@ -13,12 +15,21 @@ export function reset() {
   state.applicationCalls = 0;
   state.projectionCalls = 0;
   state.catalogCalls = 0;
+  state.metafieldCalls = 0;
+  state.metafieldArgs.length = 0;
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
 }
 
 export const prisma = {
+  shopProductMetafield: {
+    findMany: async (args) => {
+      state.metafieldCalls += 1;
+      state.metafieldArgs.push(args);
+      return [];
+    },
+  },
   shopVehicleApplication: {
     findMany: async (args) => {
       state.applicationCalls += 1;
@@ -66,7 +77,7 @@ export const prisma = {
 export async function getShopFitmentCatalogProducts(options) {
   state.catalogCalls += 1;
   if (!options?.evidenceOnly) throw new Error("evidenceOnly expected");
-  return [{ id: "fitment-id" }];
+  return [{ id: "fitment-id", brand: "BMC" }];
 }
 
 export function extractProductFitment() {
