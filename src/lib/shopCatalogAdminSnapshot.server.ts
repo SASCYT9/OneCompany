@@ -8,6 +8,7 @@ import {
   type NormalizedFitment,
   type VehicleApplication,
 } from "./shopFitmentQuality";
+import { isSupplierFitmentMetafield } from "./shopImportFitment";
 import type { ShopCatalogCoordinatedMutationSnapshot } from "./shopCatalogMutationCoordinator.server";
 import type { ShopCatalogProjectionSource } from "./shopCatalogProjection.server";
 import type {
@@ -194,6 +195,8 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     (item) => item.namespace === NORMALIZED_FITMENT_NAMESPACE && item.key === NORMALIZED_FITMENT_KEY
   );
   const normalizedFitment = parseNormalizedFitment(normalizedMetafield?.value);
+  const supplierFitmentIsAuthoritative =
+    normalizedFitment?.source === "import" && record.metafields.some(isSupplierFitmentMetafield);
   const primaryMedia = record.media[0];
   return {
     productId: record.id,
@@ -267,7 +270,7 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       isDefault: variant.isDefault,
       stableRank: variant.position || index + 1,
     })),
-    compatibilityPolicies: record.catalogPolicies?.length
+    compatibilityPolicies: record.catalogPolicies?.length && !supplierFitmentIsAuthoritative
       ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
       : [
           compatibilityPolicyFromNormalizedFitment(
