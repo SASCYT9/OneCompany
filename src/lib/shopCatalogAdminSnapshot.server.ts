@@ -8,7 +8,11 @@ import {
   type NormalizedFitment,
   type VehicleApplication,
 } from "./shopFitmentQuality";
-import { isSupplierFitmentMetafield } from "./shopImportFitment";
+import {
+  isSupplierFitmentMetafield,
+  parseSupplierFitmentContract,
+  supplierContractToNormalizedFitment,
+} from "./shopImportFitment";
 import type { ShopCatalogCoordinatedMutationSnapshot } from "./shopCatalogMutationCoordinator.server";
 import type { ShopCatalogProjectionSource } from "./shopCatalogProjection.server";
 import type {
@@ -195,8 +199,18 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     (item) => item.namespace === NORMALIZED_FITMENT_NAMESPACE && item.key === NORMALIZED_FITMENT_KEY
   );
   const normalizedFitment = parseNormalizedFitment(normalizedMetafield?.value);
-  const supplierFitmentIsAuthoritative =
-    normalizedFitment?.source === "import" && record.metafields.some(isSupplierFitmentMetafield);
+  const supplierContract = parseSupplierFitmentContract(
+    record.metafields.find(isSupplierFitmentMetafield)?.value
+  );
+  const manuallyVerifiedFitment =
+    normalizedFitment?.source === "manual" && normalizedFitment.status === "verified"
+      ? normalizedFitment
+      : null;
+  const supplierFitment = supplierContract
+    ? supplierContractToNormalizedFitment(supplierContract)
+    : null;
+  const authoritativeFitment = manuallyVerifiedFitment ?? supplierFitment ?? normalizedFitment;
+  const supplierFitmentIsAuthoritative = Boolean(supplierContract && !manuallyVerifiedFitment);
   const primaryMedia = record.media[0];
   return {
     productId: record.id,
@@ -210,7 +224,7 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       options: record.options.length,
       metafields: record.metafields.length,
       collections: record.collections.length,
-      applications: normalizedFitment?.applications.length ?? 0,
+      applications: authoritativeFitment?.applications.length ?? 0,
       bundleItems: record.bundle?.items.length ?? 0,
       inventoryLevels: inventoryLevelCount,
     },
@@ -275,7 +289,7 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       : [
           compatibilityPolicyFromNormalizedFitment(
             record.id,
-            normalizedFitment,
+            authoritativeFitment,
             record.scope === "moto" ? "moto" : "auto"
           ),
         ],
