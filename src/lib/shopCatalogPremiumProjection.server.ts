@@ -34,6 +34,7 @@ import {
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
 import { canonicalizeShopSearchQuery } from "@/lib/shopSearch";
@@ -310,10 +311,17 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
           : priceSet.uah > 0
             ? priceSet.uah / (uahRate / usdRate)
             : 0;
-    const primaryImage = cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null;
+    const bmcOfficialMedia =
+      displayBrand.trim().toUpperCase() === "BMC"
+        ? getBmcOfficialProductImage(item.normalizedSku)
+        : null;
+    const primaryImage =
+      bmcOfficialMedia?.image ?? cardPrice?.primaryMediaUrl ?? item.primaryMediaUrl ?? null;
     const imageSources = Array.from(
       new Set(
-        [cardPrice?.primaryMediaUrl, item.primaryMediaUrl, ...(cardPrice?.imageSources ?? [])]
+        bmcOfficialMedia
+          ? [bmcOfficialMedia.image, ...bmcOfficialMedia.gallery]
+          : [cardPrice?.primaryMediaUrl, item.primaryMediaUrl, ...(cardPrice?.imageSources ?? [])]
           .map((value) => String(value ?? "").trim())
           .filter(Boolean)
       )

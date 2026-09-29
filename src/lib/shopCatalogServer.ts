@@ -9,6 +9,7 @@ import path from "path";
 import { readShopStorefrontDisplay } from "@/lib/shopStorefrontDisplay";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
+import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
 import {
   hasShopProductAdminMediaOverride,
   SHOP_PRODUCT_ADMIN_MEDIA_KEY,
@@ -1272,6 +1273,18 @@ function normalizeShopifyImageUrl(url: string | null | undefined): string {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
+  const isBmcProduct =
+    String(product.brand ?? "").trim().toUpperCase() === "BMC" ||
+    String(product.vendor ?? "").trim().toUpperCase() === "BMC";
+  const officialBmcMedia = isBmcProduct ? getBmcOfficialProductImage(product.sku) : null;
+  if (officialBmcMedia) {
+    return {
+      ...product,
+      image: officialBmcMedia.image,
+      gallery: [...officialBmcMedia.gallery],
+    };
+  }
+
   // Admin media ownership protects reviewed uploads from legacy product and
   // brand overrides while still normalizing old Shopify CDN image URLs.
   const normalizedImage = normalizeShopifyImageUrl(product.image);
