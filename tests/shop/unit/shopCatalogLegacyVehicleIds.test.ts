@@ -36,6 +36,8 @@ test("coalesces concurrent vehicle resolutions and reuses the bounded result", a
   assert.equal(mock.state.applicationCalls, 1);
   assert.equal(mock.state.projectionCalls, 1);
   assert.equal(mock.state.catalogCalls, 1);
+  assert.equal(mock.state.metafieldCalls, 1);
+  assert.deepEqual(mock.state.metafieldArgs[0].where.key.in, ["normalized_fitment", "supplier_fitment"]);
   assert.equal(mock.state.applicationArgs[0].where.AND.length, 2);
   assert.equal(mock.state.applicationArgs[0].where.verificationStatus, "VERIFIED");
   // Evidence is narrowed to the selected year, model, and chassis before the

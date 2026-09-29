@@ -134,7 +134,7 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
 
 async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>) {
   const productIds = products
-    .filter((product) => normalizeShopSearchText(product.brand) === "wheelforce")
+    .filter((product) => ["wheelforce", "bmc"].includes(normalizeShopSearchText(product.brand)))
     .map((product) => product.id)
     .filter((id): id is string => Boolean(id));
   const metafields = productIds.length
