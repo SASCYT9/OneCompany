@@ -43,3 +43,9 @@ test("SAI-only cross-make fitment stays gated from unrelated EA888 products", ()
   assert.equal(vehicles.some((vehicle) => vehicle.model === "Tiguan II"), false);
   assert.equal(vehicles.some((vehicle) => vehicle.model === "Formentor"), false);
 });
+
+test("Audi Gen3 category never advertises Gen4 8Y fitment", () => {
+  const vehicles = resolveCompatibleVehiclesForDo88Product(saiCategory, "VAG 1.8 2.0 TSI MQB Turbo inlet pipe");
+  assert.ok(vehicles.some((vehicle) => vehicle.make === "Audi" && vehicle.model === "A3 / S3" && vehicle.chassis === "8V"));
+  assert.equal(vehicles.some((vehicle) => vehicle.make === "Audi" && vehicle.chassis.includes("8Y")), false);
+});

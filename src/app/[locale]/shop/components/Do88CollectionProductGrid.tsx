@@ -14,6 +14,7 @@ import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
+import { stripDo88SearchText } from "@/lib/do88ProductSearch";
 
 /** Lower-case + strip diacritics for tolerant matching. */
 function normalizeForSearch(value: string | null | undefined) {
@@ -39,13 +40,15 @@ function normalizeForSearch(value: string | null | undefined) {
 const MAX_SUBSEQUENCE_GAP = 2;
 
 function stripNonAlnum(value: string) {
-  return value.replace(/[^a-z0-9]/g, "");
+  return stripDo88SearchText(value);
 }
 
 function isTolerantMatch(query: string, haystack: string) {
   if (!query) return true;
+  const queryKey = stripNonAlnum(query);
+  if (!queryKey) return false;
   // Pass 1: strict substring after stripping punctuation/whitespace.
-  if (stripNonAlnum(haystack).includes(stripNonAlnum(query))) return true;
+  if (stripNonAlnum(haystack).includes(queryKey)) return true;
   // Pass 2: gap-limited subsequence.
   let i = 0;
   let gap = 0;
