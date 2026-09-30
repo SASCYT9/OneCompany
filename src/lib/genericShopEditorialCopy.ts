@@ -80,6 +80,7 @@ function cyrillicRatio(value: string | null | undefined): number {
 }
 
 export function isUaBodyEmptyOrLatin(row: {
+  brand?: string | null;
   bodyHtmlUa?: string | null;
   longDescUa?: string | null;
   shortDescUa?: string | null;
@@ -87,6 +88,13 @@ export function isUaBodyEmptyOrLatin(row: {
   const stripped = stripHtml(row.bodyHtmlUa) || stripHtml(row.longDescUa) || stripHtml(row.shortDescUa);
   if (!stripped) return true;
   if (stripped.length < 40) return true;
+  // Official BMC application tables contain many Latin make/model/engine
+  // names. Preserve their Ukrainian copy instead of replacing the table.
+  if (
+    row.brand?.trim().toUpperCase() === 'BMC' &&
+    /[А-Яа-яІіЇїЄєҐґ]/.test(stripped) &&
+    /https:\/\/www\.bmcairfilters\.com\//i.test(row.bodyHtmlUa ?? '')
+  ) return false;
   return cyrillicRatio(stripped) < 0.4;
 }
 
