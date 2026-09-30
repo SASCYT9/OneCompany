@@ -20,7 +20,6 @@ import {
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
 import type { SupportedLocale } from "@/lib/seo";
@@ -174,29 +173,6 @@ function buildOptionAxes(
   return axes;
 }
 
-function computeCrossPrices(
-  priceObj: { eur: number; usd: number; uah: number },
-  rates: { EUR: number; USD: number; UAH: number } | null | undefined
-) {
-  let computedUah = priceObj.uah || 0;
-  let computedEur = priceObj.eur || 0;
-  let computedUsd = priceObj.usd || 0;
-  const hasValid = (value?: number) => typeof value === "number" && value > 0;
-
-  if (hasValid(priceObj.uah) && rates) {
-    if (!hasValid(computedEur)) computedEur = (priceObj.uah / rates.UAH) * rates.EUR;
-    if (!hasValid(computedUsd)) computedUsd = (priceObj.uah / rates.UAH) * rates.USD;
-  } else if (hasValid(priceObj.eur) && rates) {
-    if (!hasValid(computedUah)) computedUah = (priceObj.eur / rates.EUR) * rates.UAH;
-    if (!hasValid(computedUsd)) computedUsd = (priceObj.eur / rates.EUR) * rates.USD;
-  } else if (hasValid(priceObj.usd) && rates) {
-    if (!hasValid(computedUah)) computedUah = (priceObj.usd / rates.USD) * rates.UAH;
-    if (!hasValid(computedEur)) computedEur = (priceObj.usd / rates.USD) * rates.EUR;
-  }
-
-  return { uah: computedUah, eur: computedEur, usd: computedUsd };
-}
-
 export function ShopProductVariantPurchaseSection({
   product,
   ssrViewerContext,
@@ -210,7 +186,6 @@ export function ShopProductVariantPurchaseSection({
   const setSelectedVariantImage = variantImageContext?.setSelectedVariantImage;
   const setSelectedVariantSku = variantImageContext?.setSelectedVariantSku;
   const viewerContext = useShopViewerContext(ssrViewerContext);
-  const { rates } = useShopCurrency();
   const variants = useMemo(() => product.variants ?? [], [product.variants]);
   const optionAxes = useMemo(
     () => buildOptionAxes(product.options, variants),
@@ -282,9 +257,6 @@ export function ShopProductVariantPurchaseSection({
         .map((value) => localizeOptionValue(value, isUa))
         .join(" / ") || localizeOptionValue(currentVariant.title?.trim() ?? "", isUa)
     : "";
-  const compareAt = displayPricing.effectiveCompareAt
-    ? computeCrossPrices(displayPricing.effectiveCompareAt, rates)
-    : null;
   const isWheelForce = product.brand.trim().toLowerCase() === "wheelforce";
   const selectedWheelSku = currentVariant?.sku?.trim() || product.sku;
   const availability = getShopConfirmedAvailability(
@@ -346,19 +318,6 @@ export function ShopProductVariantPurchaseSection({
             </div>
             <ShopAvailabilityBadge availability={availability} locale={isUa ? "ua" : "en"} />
           </div>
-          {compareAt ? (
-            <div className="mt-1 flex items-center gap-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40">
-                {isUa ? "Стара ціна" : "Was"}
-              </span>
-              <ShopInlinePriceText
-                locale={locale}
-                price={compareAt}
-                className="text-sm text-red-400/80 line-through"
-                requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
-              />
-            </div>
-          ) : null}
         </div>
 
         <ShopB2BPricingBand pricing={displayPricing} locale={locale} />
