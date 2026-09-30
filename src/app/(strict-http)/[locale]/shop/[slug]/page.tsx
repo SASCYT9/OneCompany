@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import bmcDescriptionStyles from "@/app/[locale]/shop/components/BmcProductDescription.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -233,7 +234,7 @@ export default async function ShopProductPage({ params }: Props) {
               <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>
                 {descriptionSections.introHtml ? (
                   <div
-                    className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]"
+                    className={`product-description ${product.brand.trim().toUpperCase() === "BMC" ? bmcDescriptionStyles.description : ""} max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]`}
                     dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
                   />
                 ) : shortDescription ? (
