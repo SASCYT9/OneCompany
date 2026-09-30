@@ -1,3 +1,4 @@
+import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import crypto from "node:crypto";
 
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
@@ -172,7 +173,12 @@ export async function serializeLocalShopCart(
       : null;
     const pricing = variant
       ? resolveShopPriceBands({
-          b2cPrice: variant.price,
+          b2cPrice: addRevozportUkraineShippingToPriceSet(
+            variant.price, product.brand, context.priceCountry,
+            variant.shippingPricingWeightKg ?? product.shippingPricingWeightKg ?? variant.weightKg ?? product.weightKg,
+            context.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 },
+            variant.shippingToUaUsd ?? product.shippingToUaUsd
+          ),
           europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
           b2bPrice: variant.b2bPrice ?? null,

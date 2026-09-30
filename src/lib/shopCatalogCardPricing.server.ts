@@ -1,3 +1,4 @@
+import { parseRevozportShippingQuotes, parseRevozportPricingWeight } from "@/lib/revozportShipping";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,8 @@ export type ShopCatalogCardPricing = Readonly<{
   brand: string | null;
   sku: string | null;
   weightKg: number | null;
+  shippingPricingWeightKg: number | null;
+  shippingToUaUsd: number | null;
   primaryMediaUrl: string | null;
   imageSources: string[];
   defaultVariantId: string | null;
@@ -46,6 +49,8 @@ type ShopCatalogCardPricingRow = {
   brand: string | null;
   vendor: string | null;
   productWeight: unknown;
+  seaShippingUsd: string | null;
+  pricingWeightKg: string | null;
   image: string | null;
   sku: string | null;
   priceEur: unknown;
@@ -101,6 +106,14 @@ async function readShopCatalogCardPricingRows(
       product."brand",
       product."vendor",
       product."weight" AS "productWeight",
+      (SELECT field."value" FROM "ShopProductMetafield" field
+       WHERE field."productId" = product."id" AND field."namespace" = 'revozport_logistics'
+         AND field."key" = 'delivery_pricing_weight_kg' LIMIT 1) AS "pricingWeightKg",
+      (SELECT field."value" FROM "ShopProductMetafield" field
+       WHERE field."productId" = product."id"
+         AND field."namespace" = 'revozport_logistics'
+         AND field."key" = 'sea_shipping_usd'
+       LIMIT 1) AS "seaShippingUsd",
       product."image",
       product."sku",
       product."priceEur",
@@ -256,12 +269,16 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
         ),
         brand: resolveShopProductBrand(row) || null,
         sku: row.sku ?? variant.sku ?? null,
+        shippingPricingWeightKg: parseRevozportPricingWeight([{ namespace: "revozport_logistics", key: "delivery_pricing_weight_kg", value: row.pricingWeightKg }]),
         weightKg:
           row.variantWeight != null
             ? Number(row.variantWeight)
             : row.productWeight != null
               ? Number(row.productWeight)
               : null,
+        shippingToUaUsd: parseRevozportShippingQuotes([
+          { namespace: "revozport_logistics", key: "sea_shipping_usd", value: row.seaShippingUsd },
+        ]).seaUsd,
         primaryMediaUrl: row.image?.trim() || variant.image?.trim() || row.mediaSrc?.trim() || null,
         imageSources: [
           ...new Set(

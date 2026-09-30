@@ -48,3 +48,6 @@ tmp
 /test.txt
 /vlogs*.txt
 *.log
+
+/.tmp/
+/outputs/

@@ -296,8 +296,9 @@ export default async function CatalogPage({
             product.price,
             product.brand,
             pricingContext.priceCountry,
-            product.weightKg,
-            pricingContext.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 }
+            product.shippingPricingWeightKg ?? product.weightKg,
+            pricingContext.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 },
+            product.shippingToUaUsd
           ),
           europePrice: product.europePrice ?? null,
           b2bPrice: product.b2bPrice ?? null,

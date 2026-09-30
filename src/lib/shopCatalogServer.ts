@@ -49,7 +49,7 @@ import {
 import { isBrabusLocalImage, resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import { resolveBundleInventory } from "@/lib/shopBundles";
 import { prisma } from "@/lib/prisma";
-import { parseRevozportShippingQuotes } from "@/lib/revozportShipping";
+import { parseRevozportShippingQuotes, parseRevozportPricingWeight } from "@/lib/revozportShipping";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
@@ -1975,6 +1975,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
             uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah),
           }
         : undefined,
+    shippingPricingWeightKg: parseRevozportPricingWeight(row.metafields ?? []),
     weightKg:
       (row as any).weight != null
         ? Number((row as any).weight)

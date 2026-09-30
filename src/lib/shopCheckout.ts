@@ -21,6 +21,7 @@ import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.se
 import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
   addRevozportUkraineShippingToPriceSet,
+  resolveRevozportUkraineShippingUsd,
   calculateRevozportShippingUsd,
   isRevozportBrand,
   isUkraineCountry,
@@ -303,7 +304,9 @@ function calculateShippingCost(
   items: ResolvedCheckoutItem[],
   advancedLogisticsPricingEnabled: boolean
 ): ShippingCostResult {
-  if (!zone) return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
+  if (!zone || (items.length > 0 && items.every((item) => item.shippingIncludedInPrice))) {
+    return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
+  }
   if (advancedLogisticsPricingEnabled && zone.shippingMode === "included") {
     return { cost: 0, requiresQuote: false, brandsRequiringQuote: [] };
   }
@@ -902,6 +905,7 @@ export function buildCheckoutSettingsPreview(
       width?: number | null;
       height?: number | null;
       shippingToUaUsd?: number | null;
+      shippingIncludedInPrice?: boolean;
     }>;
     advancedLogisticsPricingEnabled?: boolean;
   }
@@ -929,7 +933,7 @@ export function buildCheckoutSettingsPreview(
       width: item.width ?? null,
       height: item.height ?? null,
       shippingToUaUsd: item.shippingToUaUsd ?? null,
-      shippingIncludedInPrice: false,
+      shippingIncludedInPrice: item.shippingIncludedInPrice === true,
     };
   });
   const subtotal = previewItems.length
@@ -997,7 +1001,7 @@ export async function buildCheckoutQuote(
     const variant = rawItem.variantId
       ? product.variants?.find((entry) => entry.id === rawItem.variantId)
       : undefined;
-    const variantWeightKg = variant?.weightKg ?? product.weightKg ?? null;
+    const variantWeightKg = variant?.shippingPricingWeightKg ?? product.shippingPricingWeightKg ?? variant?.weightKg ?? product.weightKg ?? null;
     const pricing = variant
       ? resolveShopPriceBands({
           b2cPrice: addRevozportUkraineShippingToPriceSet(
@@ -1005,7 +1009,8 @@ export async function buildCheckoutQuote(
             product.brand,
             input.shippingAddress.country,
             variantWeightKg,
-            settings.currencyRates
+            settings.currencyRates,
+            variant.shippingToUaUsd ?? product.shippingToUaUsd
           ),
           europePrice: variant.europePrice ?? product.europePrice ?? null,
           b2cCompareAt: variant.compareAt ?? null,
@@ -1039,7 +1044,7 @@ export async function buildCheckoutQuote(
       pricingBaseRegion: pricing.baseRegion,
       discountPercent: pricing.discountPercent,
       brandName: product.brand,
-      weightKg: variant?.weightKg ?? product.weightKg ?? null,
+      weightKg: variantWeightKg,
       length: variant?.length ?? product.length ?? null,
       width: variant?.width ?? product.width ?? null,
       height: variant?.height ?? product.height ?? null,
@@ -1047,7 +1052,7 @@ export async function buildCheckoutQuote(
       shippingIncludedInPrice:
         isUkraineCountry(input.shippingAddress.country) &&
         isRevozportBrand(product.brand) &&
-        calculateRevozportShippingUsd(variantWeightKg) != null,
+        resolveRevozportUkraineShippingUsd(variantWeightKg, variant?.shippingToUaUsd ?? product.shippingToUaUsd) != null,
     });
     subtotal = roundMoney(subtotal + total);
     itemCount += quantity;

@@ -1,4 +1,6 @@
 "use client";
+
+import { fetchShopStockSearch } from "@/lib/shopStockSearchRequest";
 import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ReactNode } from "react";
@@ -1835,10 +1837,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       }
 
       try {
-        const res = await fetch(`/api/shop/stock/search?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        const payload = await parseShopStockJsonResponse(res);
+        const payload = await fetchShopStockSearch(
+          `/api/shop/stock/search?${params.toString()}`,
+          controller.signal
+        );
         const data = payload as StockSearchResponse;
         if (!data || typeof data !== "object" || !Array.isArray(data.data)) {
           throw new Error("stock_response_invalid");

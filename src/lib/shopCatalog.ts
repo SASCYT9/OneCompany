@@ -70,6 +70,8 @@ export type ShopProductVariantSummary = {
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;
   weightKg?: number | null;
+  /** Approved shipping estimate with reserve, used for delivery pricing only. */
+  shippingPricingWeightKg?: number | null;
   length?: number | null;
   width?: number | null;
   height?: number | null;
@@ -137,6 +139,8 @@ export interface ShopProduct {
   compareAt?: ShopMoneySet;
   b2bCompareAt?: ShopMoneySet;
   weightKg?: number | null;
+  /** Approved shipping estimate with reserve, used for delivery pricing only. */
+  shippingPricingWeightKg?: number | null;
   length?: number | null;
   width?: number | null;
   height?: number | null;

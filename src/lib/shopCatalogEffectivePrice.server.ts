@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { isUkraineCountry, REVOZPORT_SHIPPING_RATE_USD_PER_KG, REVOZPORT_USD_TO_UAH_RATE } from "@/lib/revozportShipping";
 
 import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
@@ -7,6 +8,7 @@ import { resolveCheckoutAudience, type ShopViewerPricingContext } from "@/lib/sh
 export type ShopCatalogEffectivePriceContext = Readonly<{
   audience: "b2c" | "b2b";
   useEuropeBase: boolean;
+  includeUkraineDelivery?: boolean;
   currency: ShopCurrencyCode;
   currencyRates: Readonly<{
     EUR: number | null;
@@ -57,6 +59,7 @@ export function buildShopCatalogEffectivePriceContext(input: {
   return Object.freeze({
     audience: resolveCheckoutAudience(input.viewer),
     useEuropeBase: isEuropePricingCountry(input.viewer.priceCountry),
+    includeUkraineDelivery: isUkraineCountry(input.viewer.priceCountry),
     currency: input.currency,
     currencyRates: Object.freeze({
       EUR: safeRate(input.currencyRates.EUR),
@@ -99,6 +102,40 @@ export function buildShopCatalogEffectivePriceSql(
         OR lower(trim(COALESCE(canonical_product."productType", ''))) IN ('wheel', 'wheels'))
     THEN 4::numeric ELSE 1::numeric END`;
 
+  // Mirror the shared Revozport resolver before currency conversion and B2B discounts.
+  // A supplier sea quote is retained when no verified shipping weight is available.
+  const deliverySql = Prisma.sql`CASE
+    WHEN ${Boolean(context.includeUkraineDelivery)}
+      AND lower(trim(COALESCE(canonical_product."brand", canonical_product."vendor", ''))) = 'revozport'
+    THEN COALESCE(
+      (SELECT CASE WHEN field."value" ~ '^[0-9]+([.][0-9]+)?$' AND field."value"::numeric > 0
+                   THEN field."value"::numeric * ${REVOZPORT_SHIPPING_RATE_USD_PER_KG} END
+       FROM "ShopProductMetafield" field WHERE field."productId" = canonical_product."id"
+         AND field."namespace" = 'revozport_logistics' AND field."key" = 'delivery_pricing_weight_kg' LIMIT 1),
+      CASE WHEN COALESCE(canonical_variant."weight", canonical_product."weight") > 0
+           THEN COALESCE(canonical_variant."weight", canonical_product."weight") * ${REVOZPORT_SHIPPING_RATE_USD_PER_KG} END,
+      (SELECT CASE WHEN replace(trim(field."value"), ',', '') ~ '^[0-9]+([.][0-9]+)?$'
+                   THEN replace(trim(field."value"), ',', '')::numeric END
+       FROM "ShopProductMetafield" field
+       WHERE field."productId" = canonical_product."id"
+         AND field."namespace" = 'revozport_logistics' AND field."key" = 'sea_shipping_usd'
+       LIMIT 1)
+    ) ELSE NULL END`;
+  const deliveryEurRate = eurRate ?? 1;
+  const deliveryUsdRate = usdRate ?? 1.152174;
+  const withDelivery = (eur: Prisma.Sql, usd: Prisma.Sql, uah: Prisma.Sql, currency: ShopCurrencyCode) => {
+    if (!context.includeUkraineDelivery) return currency === "EUR" ? eur : currency === "USD" ? usd : uah;
+    const usdBase = Prisma.sql`CASE WHEN (${usd}) > 0 THEN (${usd})
+      WHEN (${eur}) > 0 THEN ((${eur}) / ${deliveryEurRate}) * ${deliveryUsdRate}
+      WHEN (${uah}) > 0 THEN (${uah}) / ${REVOZPORT_USD_TO_UAH_RATE} ELSE 0 END`;
+    const deliveredUsd = Prisma.sql`((${usdBase}) + (${deliverySql}))`;
+    const original = currency === "EUR" ? eur : currency === "USD" ? usd : uah;
+    const delivered = currency === "EUR"
+      ? Prisma.sql`((${deliveredUsd}) / ${deliveryUsdRate}) * ${deliveryEurRate}`
+      : currency === "UAH" ? Prisma.sql`(${deliveredUsd}) * ${REVOZPORT_USD_TO_UAH_RATE}` : deliveredUsd;
+    return Prisma.sql`CASE WHEN (${deliverySql}) IS NOT NULL THEN round((${delivered})::numeric, 2) ELSE (${original}) END`;
+  };
+
   // Guest/B2C requests do not need any of the B2B discount JSON or band
   // resolution below. Keep their price predicate to one product row plus the
   // default variant. This expression is used by price filters, ordering and
@@ -125,15 +162,18 @@ export function buildShopCatalogEffectivePriceSql(
       canonical_variant."priceUah",
       0
     )::numeric`;
+    const deliveredEur = withDelivery(rawEur, rawUsd, rawUah, "EUR");
+    const deliveredUsd = withDelivery(rawEur, rawUsd, rawUah, "USD");
+    const deliveredUah = withDelivery(rawEur, rawUsd, rawUah, "UAH");
     const baseEur = useEuropeBase
-      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN (${rawEuropeEur}) ELSE (${rawEur}) END`
-      : rawEur;
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN (${rawEuropeEur}) ELSE (${deliveredEur}) END`
+      : deliveredEur;
     const baseUsd = useEuropeBase
-      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${rawUsd}) END`
-      : rawUsd;
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${deliveredUsd}) END`
+      : deliveredUsd;
     const baseUah = useEuropeBase
-      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${rawUah}) END`
-      : rawUah;
+      ? Prisma.sql`CASE WHEN (${rawEuropeEur}) > 0 THEN 0::numeric ELSE (${deliveredUah}) END`
+      : deliveredUah;
     const requestedAmount =
       context.currency === "EUR"
         ? Prisma.sql`CASE
@@ -161,7 +201,7 @@ export function buildShopCatalogEffectivePriceSql(
       FROM "ShopProduct" canonical_product
       LEFT JOIN LATERAL (
         SELECT
-          variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah"
+          variant."weight", variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah"
         FROM "ShopProductVariant" variant
         WHERE variant."productId" = canonical_product."id"
         ORDER BY variant."isDefault" DESC, variant."position" ASC, variant."id" ASC
@@ -202,7 +242,7 @@ export function buildShopCatalogEffectivePriceSql(
     FROM "ShopProduct" canonical_product
     LEFT JOIN LATERAL (
       SELECT
-        variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah",
+        variant."weight", variant."priceEur", variant."priceEurEurope", variant."priceUsd", variant."priceUah",
         variant."priceEurB2b", variant."priceUsdB2b", variant."priceUahB2b"
       FROM "ShopProductVariant" variant
       WHERE variant."productId" = canonical_product."id"
@@ -226,9 +266,9 @@ export function buildShopCatalogEffectivePriceSql(
     ) raw
     CROSS JOIN LATERAL (
       SELECT
-        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN raw."rawEuropeEur" ELSE raw."rawEur" END AS "eur",
-        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN 0::numeric ELSE raw."rawUsd" END AS "usd",
-        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN 0::numeric ELSE raw."rawUah" END AS "uah"
+        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN raw."rawEuropeEur" ELSE (${withDelivery(Prisma.sql`raw."rawEur"`, Prisma.sql`raw."rawUsd"`, Prisma.sql`raw."rawUah"`, "EUR")}) END AS "eur",
+        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN 0::numeric ELSE (${withDelivery(Prisma.sql`raw."rawEur"`, Prisma.sql`raw."rawUsd"`, Prisma.sql`raw."rawUah"`, "USD")}) END AS "usd",
+        CASE WHEN ${useEuropeBase} AND raw."rawEuropeEur" > 0 THEN 0::numeric ELSE (${withDelivery(Prisma.sql`raw."rawEur"`, Prisma.sql`raw."rawUsd"`, Prisma.sql`raw."rawUah"`, "UAH")}) END AS "uah"
     ) base
     CROSS JOIN LATERAL (
       SELECT CASE

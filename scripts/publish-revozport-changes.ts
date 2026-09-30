@@ -7,12 +7,14 @@ import { persistShopCatalogProjectionBuild } from "../src/lib/shopCatalogProject
 
 async function main() {
   if (!process.argv.includes("--commit") || !process.argv.includes("--target=onecompany.global")) throw new Error("Explicit commit and target required");
+  const actorId = process.argv.find((arg) => arg.startsWith("--actor="))?.slice(8) ?? "revozport-content@system.local";
+  if (!["revozport-content@system.local", "revozport-delivery@system.local"].includes(actorId)) throw new Error("Unsupported Revozport actor");
   const workerId = `revozport-publication:${randomUUID()}`;
   try {
     const candidates = await prisma.shopCatalogOutbox.findMany({
       where: { entityType: "PRODUCT", product: { brand: "Revozport" },
         OR: [{ status: { in: ["PENDING", "RETRY"] }, availableAt: { lte: new Date() } }, { status: "PROCESSING", leaseExpiresAt: { lt: new Date() } }],
-        revision: { actorId: "revozport-content@system.local" } },
+        revision: { actorId } },
       select: { id: true, productId: true }, orderBy: [{ createdAt: "asc" }], take: 600,
     });
     let completed = 0;

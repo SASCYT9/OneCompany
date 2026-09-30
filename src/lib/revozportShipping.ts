@@ -2,8 +2,8 @@
  * Revozport shipping inputs.
  *
  * The current supplier rule is a worldwide rate of $25 per kilogram. The
- * requested 10% safety reserve applies only to weights we estimate when the
- * workbook has no shipping weight. The
+ * approved delivery-pricing weight is kept separately from source measurements
+ * and includes a 10% reserve. The
  * workbook sea/air quotes remain available as source data and a fallback for
  * legacy products that do not yet have a usable shipping weight.
  */
@@ -48,6 +48,14 @@ export function parseRevozportShippingQuotes(
   };
 }
 
+export const REVOZPORT_PRICING_WEIGHT_KEY = "delivery_pricing_weight_kg";
+
+export function parseRevozportPricingWeight(metafields: Array<{ namespace?: string | null; key?: string | null; value?: string | null }>) {
+  const value = metafields.find((field) => field.namespace === REVOZPORT_LOGISTICS_NAMESPACE && field.key === REVOZPORT_PRICING_WEIGHT_KEY)?.value;
+  const weight = Number(value);
+  return Number.isFinite(weight) && weight > 0 ? weight : null;
+}
+
 export function isRevozportBrand(brandName: string | null | undefined) {
   return (
     String(brandName ?? "")
@@ -69,15 +77,27 @@ export function calculateRevozportShippingUsd(weightKg: number | null | undefine
   return weight * REVOZPORT_SHIPPING_RATE_USD_PER_KG;
 }
 
+export function resolveRevozportUkraineShippingUsd(
+  weightKg: number | null | undefined,
+  supplierQuoteUsd?: number | null
+) {
+  const weightRate = calculateRevozportShippingUsd(weightKg);
+  if (weightRate != null) return weightRate;
+  return typeof supplierQuoteUsd === "number" && Number.isFinite(supplierQuoteUsd) && supplierQuoteUsd >= 0
+    ? supplierQuoteUsd
+    : null;
+}
+
 export function addRevozportUkraineShippingToPriceSet(
   price: { eur: number; usd: number; uah: number },
   brandName: string | null | undefined,
   country: string | null | undefined,
   weightKg: number | null | undefined,
-  rates: RevozportCurrencyRates
+  rates: RevozportCurrencyRates,
+  supplierQuoteUsd?: number | null
 ) {
   if (!isRevozportBrand(brandName) || !isUkraineCountry(country)) return price;
-  const shippingUsd = calculateRevozportShippingUsd(weightKg);
+  const shippingUsd = resolveRevozportUkraineShippingUsd(weightKg, supplierQuoteUsd);
   if (shippingUsd == null) return price;
 
   const hasValue = (value: number | null | undefined) =>

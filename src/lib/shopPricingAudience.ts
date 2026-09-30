@@ -329,8 +329,9 @@ export function resolveShopProductPricing(product: ShopProduct, context: ShopVie
     product.price,
     brand,
     context.priceCountry,
-    product.weightKg,
-    context.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 }
+    product.shippingPricingWeightKg ?? product.weightKg,
+    context.currencyRates ?? { EUR: 1, USD: 1.152174, UAH: 53 },
+    product.shippingToUaUsd
   );
   return resolveShopPriceBands({
     b2cPrice: deliveredUkrainePrice,
