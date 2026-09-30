@@ -27,6 +27,24 @@ export type ModelEntry = {
   sharedTitleMustInclude?: string[];
 };
 
+const DO88_SAI_CATEGORY_TOKEN = "A3 S3 TT, 2.0 TFSI EA888 (8V 8S)";
+
+/**
+ * do88 lists LF-190-SAI-KIT for these EA888 Gen.3/Gen.4 applications. Its
+ * current catalog row is filed under the Audi 8V category, so keep every
+ * cross-make application gated to this SAI filter title.
+ * Source: https://www.do88performance.eu/en/artiklar/do88-vag-ea888-sai-air-filter.html
+ */
+function do88SaiApplication(model: string, chassis: string): ModelEntry {
+  return {
+    model,
+    chassis,
+    categoryTokens: [],
+    sharedCategoryTokens: [DO88_SAI_CATEGORY_TOKEN],
+    sharedTitleMustInclude: ["SAI Air Filter"],
+  };
+}
+
 export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   Alpine: [
     {
@@ -38,6 +56,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     },
   ],
   CUPRA: [
+    do88SaiApplication("Formentor", "5FF · 2020+ · 2.0 TSI EA888 Gen4"),
     {
       model: "Formentor",
       chassis: "5FF · 2020+ · 2.0 TSI EA888 Gen4",
@@ -45,6 +64,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       sharedCategoryTokens: ["CUPRA"],
       sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
     },
+    do88SaiApplication("Leon", "Mk4 · 2020+ · 2.0 TSI EA888 Gen4"),
     {
       model: "Formentor VZ5",
       chassis: "Formentor VZ5",
@@ -171,6 +191,9 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       // genuinely multi-fit Audi/VAG part.
       sharedTitleMustInclude: ["Audi", "AUDI", "VAG", "8V"],
     },
+    do88SaiApplication("TT", "8S · 2014+"),
+    do88SaiApplication("SQ2", "2018+"),
+    do88SaiApplication("Q3 45 TFSI", "2018+"),
     {
       model: "S2 / RS2",
       chassis: "B3 · 3B / ABY / ADU",
@@ -203,6 +226,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     { model: "S1", chassis: "8X", categoryTokens: ["S1, 2.0 TFSI EA888 (8X)"] },
   ],
   VW: [
+    do88SaiApplication("Golf GTI / R", "Mk8"),
     // Newer chassis on top, older below — per shop owner brief.
     {
       model: "Golf GTI / R",
@@ -215,6 +239,11 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
       sharedCategoryTokens: ["CUPRA"],
       sharedTitleMustInclude: ["VAG 2.0 TSI EA888 Gen4"],
     },
+    do88SaiApplication("Passat", "B8 (3G) · 2015+"),
+    do88SaiApplication("Arteon", "2017+"),
+    do88SaiApplication("T-Roc R", "2019+"),
+    do88SaiApplication("Tiguan II", "2021+"),
+    do88SaiApplication("Arteon R", "2020+"),
     {
       model: "Golf GTI / R",
       chassis: "Mk7",
@@ -318,6 +347,8 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
   ],
   Seat: [
     { model: "Ibiza Cupra", chassis: "6J", categoryTokens: ["Ibiza Cupra, 1.8 TSI (6J)"] },
+    do88SaiApplication("Leon Cupra", "Mk3 (5F) · 2014+"),
+    do88SaiApplication("Ateca Cupra", "2018+"),
     {
       model: "León",
       chassis: "Mk4 · 2020+ · 2.0 TSI EA888 Gen4",
@@ -327,6 +358,9 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     },
   ],
   Skoda: [
+    do88SaiApplication("Octavia vRS", "Mk4 (NX) · 2020+"),
+    do88SaiApplication("Octavia vRS", "Mk3 (5E) · 2014+"),
+    do88SaiApplication("Superb", "Mk3 (B8 / 3V) · 2015+"),
     {
       model: "Octavia",
       chassis: "NX · 2019+ · 2.0 TSI EA888 Gen4",

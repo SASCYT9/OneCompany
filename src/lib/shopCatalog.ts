@@ -123,6 +123,9 @@ export interface ShopProduct {
   title: LocalizedText;
   category: LocalizedText;
   shortDescription: LocalizedText;
+  /** Optional product-specific search metadata, localized per storefront. */
+  seoTitle?: LocalizedText;
+  seoDescription?: LocalizedText;
   longDescription: LocalizedText;
   leadTime: LocalizedText;
   stock: ShopStock;

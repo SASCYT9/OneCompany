@@ -1,0 +1,29 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { resolveCompatibleVehiclesForDo88Product } from "../../../src/app/[locale]/shop/do88/do88FitmentData";
+
+const saiCategory = "A3 S3 TT, 2.0 TFSI EA888 (8V 8S)";
+const saiTitle = "do88 VAG EA888 SAI Air Filter Kit";
+
+test("LF-190 SAI fitment includes the official EA888 Gen 3 and Gen 4 applications", () => {
+  const vehicles = resolveCompatibleVehiclesForDo88Product(saiCategory, saiTitle);
+  const pairs = new Set(vehicles.map((vehicle) => vehicle.make + "|" + vehicle.model + "|" + vehicle.chassis));
+
+  assert.ok(pairs.size >= 18, "expected at least 18 distinct supplier applications; got " + pairs.size);
+  assert.ok(pairs.has("VW|Passat|B8 (3G) · 2015+"));
+  assert.ok(pairs.has("VW|Tiguan II|2021+"));
+  assert.ok(pairs.has("Audi|SQ2|2018+"));
+  assert.ok(pairs.has("Audi|TT|8S · 2014+"));
+  assert.ok(pairs.has("CUPRA|Formentor|5FF · 2020+ · 2.0 TSI EA888 Gen4"));
+  assert.ok(pairs.has("CUPRA|Leon|Mk4 · 2020+ · 2.0 TSI EA888 Gen4"));
+  assert.ok(pairs.has("Skoda|Superb|Mk3 (B8 / 3V) · 2015+"));
+});
+
+test("SAI-only cross-make fitment stays gated from unrelated EA888 products", () => {
+  const vehicles = resolveCompatibleVehiclesForDo88Product(saiCategory, "VAG EA888 coolant hose kit");
+
+  assert.equal(vehicles.some((vehicle) => vehicle.model === "Passat"), false);
+  assert.equal(vehicles.some((vehicle) => vehicle.model === "Tiguan II"), false);
+  assert.equal(vehicles.some((vehicle) => vehicle.model === "Formentor"), false);
+});

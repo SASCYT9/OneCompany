@@ -1908,6 +1908,8 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       ua: row.categoryUa ?? row.category?.titleUa ?? "",
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || "",
     },
+    seoTitle: { ua: row.seoTitleUa ?? "", en: row.seoTitleEn ?? "" },
+    seoDescription: { ua: row.seoDescriptionUa ?? "", en: row.seoDescriptionEn ?? "" },
     shortDescription: {
       ua:
         curatedUrbanDescription?.shortDescription.ua ??

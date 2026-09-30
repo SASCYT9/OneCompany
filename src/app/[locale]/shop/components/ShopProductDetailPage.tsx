@@ -412,17 +412,21 @@ export async function getShopProductPageMetadata({
   );
   const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
   const localizedDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
+  const localizedSeoTitle = product.seoTitle?.[resolvedLocale]?.trim();
+  const localizedSeoDescription = product.seoDescription?.[resolvedLocale]?.trim();
   const metadataDescription =
+    localizedSeoDescription ||
     localizedDescription ||
     (resolvedLocale === "ua"
       ? `${localizedTitle} від ${product.brand}. Офіційне постачання та професійний підбір One Company.`
       : `${localizedTitle} by ${product.brand}. Official supply and professional fitment support from One Company.`);
+  const metadataTitle = localizedSeoTitle || `${localizedTitle} | ${product.brand}`;
 
   // Drop the trailing "| One Company Shop" — siteName already carries it in
   // og:site_name, and the suffix used to push titles past the truncation
   // limit, producing "One C…" in Telegram/Twitter previews.
   return buildPageMetadata(resolvedLocale, pageSlug, {
-    title: `${localizedTitle} | ${product.brand}`,
+    title: metadataTitle,
     description: metadataDescription,
     image: product.image,
     type: "product",
