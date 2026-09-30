@@ -77,6 +77,20 @@ test("matches every official BMC supplier application, not only the primary vehi
   );
 });
 
+test("BMC supplier candidates are still loaded after the same vehicle was cached without a brand", async () => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds = ["bmc-brand-cache-id"];
+  const vehicle = { make: "Volkswagen", model: "Golf V", year: 2007 };
+  await resolveLegacyVehicleProductIds(vehicle);
+  mock.state.productSearchArgs.length = 0;
+  await resolveLegacyVehicleProductIds({ ...vehicle, brand: "BMC" });
+  assert.ok(mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
+    JSON.stringify(args.where.OR).includes('"BMC"')
+  ));
+});
+
 test("coalesces concurrent vehicle resolutions and reuses the bounded result", async () => {
   const { resolveLegacyVehicleProductIds } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
