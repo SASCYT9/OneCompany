@@ -58,6 +58,25 @@ test("CSV builder supports template-driven header remapping", () => {
   assert.equal(result.products[0]?.variants[0]?.inventoryPolicy, "DENY");
 });
 
+test("CSV builder preserves the third do88 option axis and exact variant IDs", () => {
+  const csv = [
+    "Handle,Title,Variant ID,Variant SKU,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Option3 Name,Option3 Value",
+    "do88-lf120,Intake,v-blue,LF-120-B-F-OEM,Air filter,BMC Filter,Hose connection,For OEM,Color,Blue",
+    "do88-lf120,Intake,v-red,LF-120-R-F-OEM,Air filter,BMC Filter,Hose connection,For OEM,Color,Red",
+  ].join("\n");
+  const result = buildProductsFromShopifyCsv(csv);
+  const product = result.products[0];
+  assert.equal(result.products.length, 1);
+  assert.equal(result.variantsCount, 2);
+  assert.deepEqual(product.options.map((option) => option.position), [1, 2, 3]);
+  assert.deepEqual(product.options[2].values, ["Blue", "Red"]);
+  assert.deepEqual(product.variants.map((variant) => [variant.id, variant.sku, variant.option3Value]), [
+    ["v-blue", "LF-120-B-F-OEM", "Blue"],
+    ["v-red", "LF-120-R-F-OEM", "Red"],
+  ]);
+  assert.notEqual(product.variants[0].title, product.variants[1].title);
+});
+
 test("CSV builder does not turn image-only rows into variants", () => {
   const csv = [
     "Handle,Title,Published,Status,Option1 Name,Option1 Value,Variant SKU,Variant Price,Image Src,Image Position",
