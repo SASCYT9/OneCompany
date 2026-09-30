@@ -10,9 +10,8 @@ import Do88CollectionProductGrid from "../../../components/Do88CollectionProduct
 import Do88VehicleFilter from "../../Do88VehicleFilter";
 import Do88CategoryFilter from "../../Do88CategoryFilter";
 import {
-  CAR_DATA,
   findDo88ClampKitFitmentParent,
-  getDo88MakeEntries,
+  matchesDo88VehicleFilter,
 } from "../../do88FitmentData";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -176,27 +175,9 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
     // — we match by exact category-suffix instead of substring on title to
     // avoid the Turbo/Carrera mix-up where supplier marketing copy ("Turbo /
     // Carrera") in titles bled into the wrong filter result.
-    const brandEntries = brand ? getDo88MakeEntries(brand) : Object.values(CAR_DATA).flat();
-    const matchedEntry = brandEntries.find(
-      (entry) => (!model || entry.model === model) && (!chassis || entry.chassis === chassis)
-    );
-
     collectionProducts = collectionProducts.filter((product) => {
       const cat = product.category?.en ?? "";
 
-      // Brand-only filter: match any product under "Vehicle Specific > {brand} >"
-      // and the make-only category "Vehicle Specific > {brand}". The source
-      // catalog contains both shapes (for example, make-only Ford listings).
-      if (brand && !model && !chassis) {
-        const categorySegments = cat.split(/\s*>\s*/).map((segment) => segment.trim());
-        return (
-          categorySegments[0]?.toLowerCase() === "vehicle specific" &&
-          categorySegments[1]?.toLowerCase() === brand.toLowerCase()
-        );
-      }
-
-      // Model/chassis filter: require an exact CAR_DATA entry and a category-token match.
-      if (!matchedEntry) return false;
       let fitmentCategory = cat;
       let fitmentTitleEn = product.title?.en ?? "";
       let fitmentTitleUa = product.title?.ua ?? "";
@@ -211,22 +192,10 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
         fitmentTitleUa = clampParent.title?.ua ?? "";
       }
 
-      const categorySegments = fitmentCategory.split(/\s*>\s*/).map((segment) => segment.trim());
-      const tokenMatches = (token: string) => categorySegments.includes(token);
-      if (matchedEntry.categoryTokens.some(tokenMatches)) return true;
-
-      // Shared-parts fallback: a few products fit two trims (e.g. 992 "Turbo /
-      // Carrera" plenum / intercooler piping) but live under one category in
-      // the supplier feed. Pull them in when (a) they sit in a configured
-      // shared category AND (b) their title flags them as dual-fit.
-      const sharedCats = matchedEntry.sharedCategoryTokens ?? [];
-      const sharedTitles = matchedEntry.sharedTitleMustInclude ?? [];
-      if (sharedCats.length === 0 || sharedTitles.length === 0) return false;
-      if (!sharedCats.some(tokenMatches)) return false;
-      const titleEn = fitmentTitleEn.toLowerCase();
-      const titleUa = fitmentTitleUa.toLowerCase();
-      return sharedTitles.some(
-        (phrase) => titleEn.includes(phrase.toLowerCase()) || titleUa.includes(phrase.toLowerCase())
+      return matchesDo88VehicleFilter(
+        fitmentCategory,
+        `${fitmentTitleEn} ${fitmentTitleUa}`,
+        { make: brand, model, chassis }
       );
     });
   }
