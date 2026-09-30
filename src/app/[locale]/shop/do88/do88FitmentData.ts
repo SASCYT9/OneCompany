@@ -176,7 +176,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     },
     {
       model: "A3 / S3",
-      chassis: "8V 8Y",
+      chassis: "8V",
       categoryTokens: ["A3 S3 TT, 2.0 TFSI EA888 (8V 8S)"],
       // Mirror of the VW Mk7 Golf entry below: Audi 8V S3 and VW Mk7 Golf R
       // share the EA888 Gen3 MQB platform. Several do88 SKUs are filed under
