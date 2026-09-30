@@ -55,6 +55,10 @@ const UA_OPTION_NAMES: Record<string, string> = {
   Turbo: "Варіант турбіни",
   "Throttle body size": "Діаметр дроселя",
   "Air Filter": "Повітряний фільтр",
+  "Air filter": "Повітряний фільтр",
+  "Hose connection": "Підключення шланга",
+  Turbocharger: "Варіант турбіни",
+  "Airbox connection": "Підключення до впуску",
   "Turbo inletpipe": "Впускна труба турбін",
   Intercooler: "Інтеркулер",
   Size: "Розмір",
@@ -100,6 +104,11 @@ const UA_OPTION_VALUES: Array<[RegExp, string]> = [
   [/^medium$/i, "Середній"],
   [/^small$/i, "Малий"],
   [/^without filter$/i, "Без фільтра"],
+  [/^for oem$/i, "Для штатного впуску"],
+  [/^for do88$/i, "Для впуску do88"],
+  [/^with inlet pipe$/i, "Із впускною трубою"],
+  [/^oem 48,5mm$/i, "Штатна турбіна, 48,5 мм"],
+  [/^hybrid 53mm$/i, "Гібридна турбіна, 53 мм"],
   [/^bmc filter$/i, "Фільтр BMC"],
   [/^do88 v2 \/ oem$/i, "do88 V2 / OE"],
   [/^do88 v1$/i, "do88 V1"],
@@ -199,6 +208,7 @@ export function ShopProductVariantPurchaseSection({
 }: Props) {
   const variantImageContext = useShopVariantImage();
   const setSelectedVariantImage = variantImageContext?.setSelectedVariantImage;
+  const setSelectedVariantSku = variantImageContext?.setSelectedVariantSku;
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const { rates } = useShopCurrency();
   const variants = useMemo(() => product.variants ?? [], [product.variants]);
@@ -229,7 +239,8 @@ export function ShopProductVariantPurchaseSection({
 
   useEffect(() => {
     setSelectedVariantImage?.(currentVariant?.image ?? null);
-  }, [currentVariant?.id, currentVariant?.image, setSelectedVariantImage]);
+    setSelectedVariantSku?.(currentVariant?.sku?.trim() || product.sku || null);
+  }, [currentVariant?.id, currentVariant?.image, currentVariant?.sku, product.sku, setSelectedVariantImage, setSelectedVariantSku]);
 
   const currentProduct = useMemo<ShopProduct>(() => {
     if (!currentVariant) return product;

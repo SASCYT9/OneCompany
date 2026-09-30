@@ -64,7 +64,7 @@ import {
 } from "@/lib/urbanImageUtils";
 import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
 import { ShopProductGallery } from "./ShopProductGallery";
-import { ShopVariantImageProvider } from "./ShopVariantImageContext";
+import { ShopVariantImageProvider, ShopVariantSkuText } from "./ShopVariantImageContext";
 import { ShopProductVideos } from "./ShopProductVideos";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
@@ -244,7 +244,11 @@ function DetailSpecPanel({
             <dt className="text-[10px] uppercase tracking-[0.18em] text-foreground/38">
               {spec.label}
             </dt>
-            <dd className="text-pretty text-foreground/95 dark:text-foreground/82">{spec.value}</dd>
+            <dd className="text-pretty text-foreground/95 dark:text-foreground/82">
+              {/^(артикул|sku|part number)$/i.test(spec.label.trim())
+                ? <ShopVariantSkuText fallbackSku={spec.value} />
+                : spec.value}
+            </dd>
           </div>
         ))}
       </dl>
@@ -590,6 +594,13 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
         ? "Переваги"
         : "Benefits";
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
+  if (isDo88Mode) {
+    // Historical supplier-copy SKU rows can retain aliases that no longer
+    // match the canonical variants. The active variant supplies the part number.
+    descriptionSections.specs = descriptionSections.specs.filter(
+      (spec) => !/^(артикул|sku|part number)$/i.test(spec.label.trim())
+    );
+  }
   pushFallbackSpec(isUa ? "Артикул" : "Part number", primaryPartNumber);
   pushFallbackSpec(isUa ? "Термін постачання" : "Lead time", leadTime);
   // Do88 dimensions/weight are unreliable — supplier feed returns packing-box
@@ -965,7 +976,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                     {isUa ? "Артикул" : "Part number"}
                   </span>
                   <span className="min-w-0 break-all rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 font-mono text-xs tracking-[0.04em] text-foreground/85">
-                    {primaryPartNumber}
+                    <ShopVariantSkuText fallbackSku={primaryPartNumber} />
                   </span>
                 </div>
               ) : null}

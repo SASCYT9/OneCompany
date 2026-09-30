@@ -18,6 +18,10 @@ or adding supplier options to existing product pages.
   values, each exact SKU, and the price for each combination as product options
   and variants. The selected variant must determine the SKU and price; if the
   source supplies a distinct image for that SKU, the product gallery must show it.
+- Preserve all three supplier option axes when present. Before publication,
+  reject duplicate option combinations for distinct SKUs and verify that the
+  part number at the top of the page follows the selected variant. Translate
+  option labels for UA while keeping the original values used for matching.
 - Keep a normal purchase flow for products with no manufacturer options. Do
   not create artificial variants or product-specific configurator components
   when the shared selector can represent the source choices.
