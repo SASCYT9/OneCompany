@@ -1282,6 +1282,10 @@ function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
       ...product,
       image: officialBmcMedia.image,
       gallery: [...officialBmcMedia.gallery],
+      variants: product.variants?.map((variant) => ({
+        ...variant,
+        image: getBmcOfficialProductImage(variant.sku)?.image ?? officialBmcMedia.image,
+      })),
     };
   }
 

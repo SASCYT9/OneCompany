@@ -80,6 +80,7 @@ const sharedCache: LegacyVehicleCacheState = (globalCache.__oneCompanyLegacyVehi
 
 function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
   return JSON.stringify([
+    normalizeShopSearchText(input.brand),
     canonicalVehicleMakeLabel(input.make ?? ""),
     input.model ? vehicleModelKey(input.model) : "",
     [...new Set((input.modelAlternates ?? []).map(vehicleModelKey))].sort(),

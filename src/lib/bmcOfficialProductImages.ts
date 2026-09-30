@@ -371,12 +371,16 @@ const BMC_OFFICIAL_PRODUCT_IMAGES: Record<string, BmcOfficialProductImage> = {
     sourceUrl: "https://www.bmcairfilters.com/en/products/engine-filter/twin-air/fbtw80-151p",
     status: "exact",
   },
-  FBTW90130P: {
+  FBTW90130PWH: {
     image:
-      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/default_images/bmc-air-filter-fallback_0.jpg?itok=vGFuXQ9a",
-    gallery: [],
-    sourceUrl: "https://www.bmcairfilters.com/en/search_by_code",
-    status: "unconfirmed_code",
+      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/products/fbtw90-130p_profile_0.png?itok=Olq3lJWs",
+    gallery: [
+      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/products/fbtw90-130p_profile_0.png?itok=Olq3lJWs",
+      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/products/fbtw90-130p_stand_0.png?itok=a6GnDSgd",
+      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/products/fbtw90-130p-side_0.png?itok=AryGpGhi",
+    ],
+    sourceUrl: "https://www.bmcairfilters.com/en/products/engine-filter/twin-air/fbtw90-130pwh",
+    status: "exact",
   },
   FBTW90140P: {
     image:
@@ -617,6 +621,7 @@ const BMC_OFFICIAL_PRODUCT_IMAGES: Record<string, BmcOfficialProductImage> = {
 export function getBmcOfficialProductImage(sku: string | null | undefined) {
   const key = String(sku ?? "")
     .trim()
-    .toUpperCase();
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
   return BMC_OFFICIAL_PRODUCT_IMAGES[key] ?? null;
 }
