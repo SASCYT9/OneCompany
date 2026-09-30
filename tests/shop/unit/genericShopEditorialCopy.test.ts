@@ -86,3 +86,11 @@ test('buildGenericShopEditorialCopy: keeps existing UA title (titleUa) instead o
   assert.match(copy.shortDescUa, /Система охолодження/);
   assert.match(copy.shortDescUa, /Porsche 928/);
 });
+test('preserves Ukrainian BMC copy with an official Latin-heavy application table', () => {
+  const bodyHtmlUa = '<p>Повітряний фільтр. Сумісність з автомобілями.</p><table>' +
+    '<tr><td>Volkswagen Golf V GTI 2.0 TFSI</td></tr>'.repeat(30) +
+    '</table><a href="https://www.bmcairfilters.com/en/products/engine-filter/car/panel/fb409-01">BMC</a>';
+  assert.equal(isUaBodyEmptyOrLatin({ brand: 'BMC', bodyHtmlUa }), false);
+  assert.equal(isUaBodyEmptyOrLatin({ brand: 'Other', bodyHtmlUa }), true);
+  assert.equal(isUaBodyEmptyOrLatin({ brand: 'BMC', bodyHtmlUa: '<p>English-only filter description from BMC.</p>' }), true);
+});
