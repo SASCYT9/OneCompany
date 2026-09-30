@@ -673,6 +673,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     });
   }
   const detailSpecs = [...descriptionSections.specs].filter((spec) => {
+    if (isDo88Mode && primaryPartNumber && isPartNumberSpecLabel(spec.label)) return false;
     if (/^категорія$|^category$/i.test(spec.label) && /[>›→]/.test(spec.value)) {
       return false;
     }
@@ -691,6 +692,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     )
   );
   fallbackSpecs.forEach((spec) => {
+    if (isDo88Mode && primaryPartNumber && isPartNumberSpecLabel(spec.label)) return;
     const normalizedSpecValue = normalizeSpecComparable(spec.value);
     if (
       isPartNumberSpecLabel(spec.label) &&
@@ -854,6 +856,57 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     continueShoppingHref = `/${resolvedLocale}/shop/akrapovic${scopeQuery}`;
   }
 
+  const purchaseSection = (
+    <ShopProductVariantPurchaseSection
+      product={product}
+      ssrViewerContext={viewerContext}
+      locale={resolvedLocale}
+      isUa={isUa}
+      productTitle={productTitle}
+      continueShoppingHref={continueShoppingHref}
+    >
+      {product.bundle ? (
+        <div className="space-y-3 rounded-2xl border border-foreground/18 bg-foreground/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-foreground/65 dark:text-foreground/50">
+              {isUa ? "Склад комплекту" : "Bundle contents"}
+            </p>
+            <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/85 dark:text-foreground/70">
+              {isUa
+                ? `Доступно комплектів: ${product.bundle.availableQuantity}`
+                : `Available bundles: ${product.bundle.availableQuantity}`}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {product.bundle.items.map((item) => (
+              <Link
+                key={item.id}
+                href={buildShopStorefrontProductPathForProduct(
+                  resolvedLocale,
+                  item.product
+                )}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-foreground/12 bg-foreground/10 dark:bg-black/20 px-4 py-3 text-sm text-foreground/90 dark:text-foreground/75 transition hover:border-foreground/30 hover:text-foreground"
+              >
+                <div>
+                  <p className="font-medium">
+                    {localizeShopProductTitle(resolvedLocale, item.product)}
+                  </p>
+                  <p className="mt-1 text-xs text-foreground/65 dark:text-foreground/45">
+                    {item.quantity} ×{" "}
+                    {item.variantTitle || (isUa ? "Базовий варіант" : "Default variant")}
+                  </p>
+                </div>
+                <span className="text-xs uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
+                  {item.availableQuantity}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </ShopProductVariantPurchaseSection>
+  );
+
   return (
     <ShopVariantImageProvider key={product.slug} enabled={isDo88Mode}>
     <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
@@ -959,7 +1012,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                     locale={resolvedLocale}
                     className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
                   />
-                  {product.vendor ? (
+                  {product.vendor && (!isDo88Mode || product.vendor.trim().toLowerCase() !== product.brand.trim().toLowerCase()) ? (
                     <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
                       {product.vendor}
                     </p>
@@ -980,6 +1033,20 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                   </span>
                 </div>
               ) : null}
+
+              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
+              ) : null}
+
+              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                <Do88CompatibleVehiclesBlock
+                  vehicles={do88CompatibleVehicles}
+                  locale={locale}
+                  isUa={isUa}
+                />
+              ) : null}
+
+              {isDo88Mode ? purchaseSection : null}
 
               {product.sounds && product.sounds.length > 0 ? (
                 <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
@@ -1038,9 +1105,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 </div>
               ) : null}
 
-              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
-              ) : null}
+
 
               {isStopflexProduct ||
               descriptionSections.introHtml ||
@@ -1071,13 +1136,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 </MobileProductDisclosure>
               ) : null}
 
-              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                <Do88CompatibleVehiclesBlock
-                  vehicles={do88CompatibleVehicles}
-                  locale={locale}
-                  isUa={isUa}
-                />
-              ) : null}
+
 
               {product.externalVideos?.length ? (
                 <ShopProductVideos
@@ -1087,54 +1146,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 />
               ) : null}
 
-              <ShopProductVariantPurchaseSection
-                product={product}
-                ssrViewerContext={viewerContext}
-                locale={resolvedLocale}
-                isUa={isUa}
-                productTitle={productTitle}
-                continueShoppingHref={continueShoppingHref}
-              >
-                {product.bundle ? (
-                  <div className="space-y-3 rounded-2xl border border-foreground/18 bg-foreground/5 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-foreground/65 dark:text-foreground/50">
-                        {isUa ? "Склад комплекту" : "Bundle contents"}
-                      </p>
-                      <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-foreground/85 dark:text-foreground/70">
-                        {isUa
-                          ? `Доступно комплектів: ${product.bundle.availableQuantity}`
-                          : `Available bundles: ${product.bundle.availableQuantity}`}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {product.bundle.items.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={buildShopStorefrontProductPathForProduct(
-                            resolvedLocale,
-                            item.product
-                          )}
-                          className="flex items-center justify-between gap-3 rounded-2xl border border-foreground/12 bg-foreground/10 dark:bg-black/20 px-4 py-3 text-sm text-foreground/90 dark:text-foreground/75 transition hover:border-foreground/30 hover:text-foreground"
-                        >
-                          <div>
-                            <p className="font-medium">
-                              {localizeShopProductTitle(resolvedLocale, item.product)}
-                            </p>
-                            <p className="mt-1 text-xs text-foreground/65 dark:text-foreground/45">
-                              {item.quantity} ×{" "}
-                              {item.variantTitle || (isUa ? "Базовий варіант" : "Default variant")}
-                            </p>
-                          </div>
-                          <span className="text-xs uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
-                            {item.availableQuantity}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </ShopProductVariantPurchaseSection>
+              {!isDo88Mode ? purchaseSection : null}
             </div>
           </section>
         </div>

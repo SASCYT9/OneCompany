@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import styles from "./Do88PurchaseSection.module.css";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
@@ -295,8 +296,10 @@ export function ShopProductVariantPurchaseSection({
     };
   }, displayPricing.effectivePrice);
 
+  const isDo88Product = product.brand.trim().toLowerCase() === "do88";
+
   return (
-    <div className="space-y-5">
+    <div className={`space-y-5 ${isDo88Product ? styles.purchase : ""}`}>
       <div className="rounded-2xl border border-foreground/12 bg-card p-3 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:bg-black/40 dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-5">
         <div className="flex flex-col">
           <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
@@ -465,7 +468,7 @@ export function ShopProductVariantPurchaseSection({
 
       {children}
 
-      <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap">
+      <div className={isDo88Product ? styles.actions : "flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap"}>
         <AddToCartButton
           slug={currentVariant?.purchaseSlug ?? product.slug}
           locale={locale}
@@ -483,11 +486,11 @@ export function ShopProductVariantPurchaseSection({
               ? isUa ? "Додати диск і аксесуари" : "Add wheel and accessories"
               : undefined}
           variant="minimal"
-          className="inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-primary bg-primary px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_18px_40px_-24px_rgba(213,0,28,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 disabled:translate-y-0 disabled:opacity-50 dark:shadow-[0_18px_40px_-24px_rgba(194,157,89,0.55)] dark:hover:shadow-[0_22px_46px_-24px_rgba(194,157,89,0.65)]"
+          className={isDo88Product ? styles.primaryAction : "inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-primary bg-primary px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_18px_40px_-24px_rgba(213,0,28,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 disabled:translate-y-0 disabled:opacity-50 dark:shadow-[0_18px_40px_-24px_rgba(194,157,89,0.55)] dark:hover:shadow-[0_22px_46px_-24px_rgba(194,157,89,0.65)]"}
         />
         <Link
           href={`/${locale}/contact`}
-          className="group relative overflow-hidden rounded-full border border-foreground/12 bg-foreground/[0.03] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/12 hover:text-foreground dark:text-foreground/80"
+          className={isDo88Product ? styles.secondaryAction : "group relative overflow-hidden rounded-full border border-foreground/12 bg-foreground/[0.03] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/12 hover:text-foreground dark:text-foreground/80"}
         >
           {pricing.requestQuote
             ? isUa
@@ -501,13 +504,13 @@ export function ShopProductVariantPurchaseSection({
           fallbackHref={continueShoppingHref}
           label={isUa ? "Продовжити покупки" : "Continue shopping"}
           disableHistoryBack
-          className="rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-foreground/60 transition-all duration-500 hover:text-foreground/95 dark:text-foreground/40 dark:hover:text-foreground/80"
+          className={isDo88Product ? styles.backAction : "rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-foreground/60 transition-all duration-500 hover:text-foreground/95 dark:text-foreground/40 dark:hover:text-foreground/80"}
         />
       </div>
 
       <ProductAiOpinionPanel locale={locale} product={product} shape="pill" />
 
-      {currentVariant?.sku || product.sku ? (
+      {!isDo88Product && (currentVariant?.sku || product.sku) ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
             SKU
