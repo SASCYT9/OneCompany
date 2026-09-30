@@ -6,6 +6,8 @@ import {
   resolveVehicleModelFilter,
   vehicleModelKey,
   vehicleMakesMentionedInQuery,
+  vehicleMakeAliases,
+  vehicleModelAliases,
 } from "@/lib/shopVehicleTaxonomy";
 
 export function buildShopCatalogVehicleSearchPlan(
@@ -29,10 +31,13 @@ export function buildShopCatalogVehicleSearchPlan(
   const query = canonicalizeShopSearchQuery(params.get("q") ?? "");
   const queryExpansion = query ? expandVehicleAliases(query) : null;
   const queryMakes = query
-    ? [...new Set([
-        ...vehicleMakesMentionedInQuery(query),
-        ...(queryExpansion?.makes ?? []),
-      ].map(canonicalVehicleMakeLabel))]
+    ? [
+        ...new Set(
+          [...vehicleMakesMentionedInQuery(query), ...(queryExpansion?.makes ?? [])].map(
+            canonicalVehicleMakeLabel
+          )
+        ),
+      ]
     : [];
   const isChassisToken = (token: string) =>
     /^(?:[efg]\d{2,3}[a-z]?|[wcl]\d{3}[a-z]?|r\d{2,3}[a-z]?|mk\d(?:\.\d)?|mqb|[89]\d{2}(?:\.\d)?|718)$/i.test(
@@ -55,10 +60,17 @@ export function buildShopCatalogVehicleSearchPlan(
   // one model or chassis; additional product words remain text search terms.
   const hasSpecificQueryIdentity = Boolean(
     queryExpansion &&
-    queryMakes.length === 1 &&
-    (explicitlyMentionedModels.length === 1 ||
-      queryExpansion.models.length === 1 ||
-      queryChassis.length === 1)
+      // Multiple explicit trim/model codes in a pasted product name describe
+      // several applications, not one vehicle selected by the customer.
+      explicitlyMentionedModels.length <= 1 &&
+      query
+        .split(" ")
+        .filter((token) => /^(?:g[345678]\d{2}[a-z]?|m[234568]|rs[2345678])$/.test(token)).length <=
+        1 &&
+      queryMakes.length === 1 &&
+      (explicitlyMentionedModels.length === 1 ||
+        queryExpansion.models.length === 1 ||
+        queryChassis.length === 1)
   );
   const inferredMake = hasSpecificQueryIdentity ? (queryMakes[0] ?? null) : null;
   const inferredModel =
@@ -73,23 +85,22 @@ export function buildShopCatalogVehicleSearchPlan(
     hasSpecificQueryIdentity && queryExpansion?.years.length === 1 ? queryExpansion.years[0] : null;
   const make = clean(params.get("make")) ?? inferredMake;
   const requestedModel = clean(params.get("model")) ?? inferredModel;
-  const modelFilter = make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
+  const modelFilter =
+    make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
   // Preserve a specific selector identity when its broad family is used for
   // the catalog constraint (for example AMG G 63 -> G-Class). The qualifier
   // term keeps free-text matching specific to the selected model.
   const modelAlternates =
-    modelFilter && requestedModel && vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
+    modelFilter &&
+    requestedModel &&
+    vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
       ? [requestedModel]
       : [];
-  const requestedGeneration = clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
-  // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53.
-  // Keep the RS5 qualifier and translate only that explicitly selected pair.
-  const generation =
-    make?.toLowerCase().replace(/[^a-z]/g, "") === "audi" &&
-    requestedModel && vehicleModelKey(requestedModel) === "rs5" &&
-    requestedGeneration?.toUpperCase() === "B9"
-      ? "B8"
-      : requestedGeneration;
+  const requestedGeneration =
+    clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
+  // Supplier-specific type codes must be normalized during ingestion. A KW
+  // alias must never rewrite the customer's generation for every other brand.
+  const generation = requestedGeneration;
   const yearText = params.get("year")?.trim() ?? "";
   const parsedYear = /^\d{4}$/.test(yearText) ? Number(yearText) : null;
   const constraints = {
@@ -112,8 +123,54 @@ export function buildShopCatalogVehicleSearchPlan(
   const canonical =
     reader === "projection" ||
     Boolean(constraints.engine || constraints.fuel || constraints.opfGpf);
+  // Compatibility has already bound these identities. Requiring their words
+  // again in a product title/index hides valid multi-application products.
+  // Consume only identities resolved by this plan; engine/trim/product words
+  // remain lexical, and conflicting explicit selector values consume nothing.
+  const queryIdentityMatchesSelection = Boolean(
+    hasSpecificQueryIdentity &&
+      inferredMake &&
+      canonicalVehicleMakeLabel(make ?? "") === canonicalVehicleMakeLabel(inferredMake) &&
+      (!inferredModel ||
+        vehicleModelKey(resolveVehicleModelFilter(inferredMake, inferredModel).model) ===
+          vehicleModelKey(constraints.model ?? "")) &&
+      (!inferredGeneration || inferredGeneration.toUpperCase() === generation?.toUpperCase()) &&
+      (inferredYear == null || constraints.year === inferredYear)
+  );
+  const consumedTokens = new Set(
+    queryIdentityMatchesSelection
+      ? [
+          ...vehicleMakeAliases(inferredMake!),
+          ...(inferredModel ? vehicleModelAliases(inferredMake!, inferredModel) : []),
+          ...(inferredGeneration ? [inferredGeneration] : []),
+          ...(inferredYear != null ? [String(inferredYear)] : []),
+        ].flatMap((value) => canonicalizeShopSearchQuery(value).split(" "))
+      : []
+  );
+  const resolvedModelTokens = new Set(
+    inferredModel && inferredMake
+      ? vehicleModelAliases(inferredMake, inferredModel).map(canonicalizeShopSearchQuery)
+      : []
+  );
+  const explicitSoftTerms = queryIdentityMatchesSelection
+    ? (queryExpansion?.softTerms ?? []).filter((term) => {
+        const normalized = canonicalizeShopSearchQuery(term);
+        return (
+          queryWithBoundaries.includes(` ${normalized} `) && !resolvedModelTokens.has(normalized)
+        );
+      })
+    : [];
+  const textTerms = [
+    ...query.split(" ").filter((token) => token && !consumedTokens.has(token)),
+    ...(modelFilter?.qualifierTerms ?? []),
+    ...explicitSoftTerms,
+  ];
+  const textQuery = [
+    ...new Map(textTerms.map((term) => [canonicalizeShopSearchQuery(term), term])).values(),
+  ].join(" ");
   return {
     constraints,
+    textQuery,
     qualifierTerms: modelFilter?.qualifierTerms ?? [],
     modelAlternates,
     canonical,

@@ -68,7 +68,11 @@ test("matches every official BMC supplier application, not only the primary vehi
     note: null,
   });
 
-  const result = await resolveLegacyVehicleProductIds({ brand: "BMC", make: "Volkswagen", model: "Golf" });
+  const result = await resolveLegacyVehicleProductIds({
+    brand: "BMC",
+    make: "Volkswagen",
+    model: "Golf",
+  });
   assert.deepEqual(result, ["bmc-multi-application-id"]);
   assert.ok(
     mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
@@ -93,7 +97,10 @@ test("coalesces concurrent vehicle resolutions and reuses the bounded result", a
   assert.equal(mock.state.projectionCalls, 1);
   assert.equal(mock.state.catalogCalls, 1);
   assert.equal(mock.state.metafieldCalls, 1);
-  assert.deepEqual(mock.state.metafieldArgs[0].where.key.in, ["normalized_fitment", "supplier_fitment"]);
+  assert.deepEqual(mock.state.metafieldArgs[0].where.key.in, [
+    "normalized_fitment",
+    "supplier_fitment",
+  ]);
   assert.equal(mock.state.applicationArgs[0].where.AND.length, 2);
   assert.equal(mock.state.applicationArgs[0].where.verificationStatus, "VERIFIED");
   // Evidence is narrowed to the selected year, model, and chassis before the
@@ -158,4 +165,73 @@ test("vehicle results expire and unrelated vehicle keys do not share answers", a
   await resolveLegacyVehicleProductIds(input);
   // The original vehicle answer expires after one minute and is refreshed.
   assert.equal(mock.state.applicationCalls, 3);
+});
+
+test("brand-dependent supplier resolution cannot reuse another brand's cached ID set", async (t) => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  t.mock.method(Date, "now", () => Date.parse("2035-01-01"));
+  mock.state.productSearchIds = ["fitment-id"];
+  const input = { make: "BMW", model: "M5", generation: "G90", year: 2028 };
+  await resolveLegacyVehicleProductIds(input);
+  const count = mock.state.productSearchArgs.length;
+  await resolveLegacyVehicleProductIds({ ...input, brand: "BMC" });
+  assert.ok(mock.state.productSearchArgs.length > count);
+  assert.ok(
+    mock.state.productSearchArgs.some((args: unknown) => JSON.stringify(args).includes('"BMC"'))
+  );
+});
+
+test("a verified CHASSIS-only clause stays reachable through the generation selector", async (t) => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  t.mock.method(Date, "now", () => Date.parse("2036-01-01"));
+  mock.state.projectionRows = [
+    {
+      productId: "chassis-only",
+      constraints: [
+        { dimension: "MAKE", state: "EXACT", textValue: "BMW" },
+        { dimension: "MODEL", state: "EXACT", textValue: "M5" },
+        { dimension: "CHASSIS", state: "EXACT", textValue: "G90" },
+      ],
+    },
+  ];
+  const ids = await resolveLegacyVehicleProductIds({ make: "BMW", model: "M5", generation: "G90" });
+  assert.ok(ids?.includes("chassis-only"));
+});
+
+test("legacy bridge excludes stale projection clauses and does not turn UNKNOWN year into a wildcard", async (t) => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  t.mock.method(Date, "now", () => Date.parse("2037-01-01"));
+  const constraints = [
+    { dimension: "MAKE", state: "EXACT", textValue: "BMW" },
+    { dimension: "MODEL", state: "EXACT", textValue: "M5" },
+    { dimension: "CHASSIS", state: "EXACT", textValue: "G90" },
+  ];
+  mock.state.projectionRows = [
+    {
+      productId: "stale",
+      sourceVersion: BigInt(1),
+      product: { catalogProjections: [{ sourceVersion: BigInt(2) }] },
+      constraints,
+    },
+    { productId: "any-year", constraints: [...constraints, { dimension: "YEAR", state: "ANY" }] },
+    {
+      productId: "unknown-year",
+      constraints: [...constraints, { dimension: "YEAR", state: "UNKNOWN" }],
+    },
+  ];
+  const ids = await resolveLegacyVehicleProductIds({
+    make: "BMW",
+    model: "M5",
+    generation: "G90",
+    year: 2029,
+  });
+  assert.ok(!ids?.includes("stale"));
+  assert.ok(ids?.includes("any-year"));
+  assert.ok(!ids?.includes("unknown-year"));
 });

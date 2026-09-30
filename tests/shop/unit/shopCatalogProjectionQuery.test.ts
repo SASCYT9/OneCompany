@@ -57,6 +57,24 @@ test("product suggestions can reuse the verified clause vehicle predicate", asyn
   assert.ok(condition.values.includes("W465"));
 });
 
+test("auto browse excludes explicit moto while retaining legacy scope; policies match current projection version", async () => {
+  const {
+    buildShopCatalogProjectionOrderedQuerySql,
+    buildShopCatalogProjectionWhere,
+    buildShopCatalogProjectionVehicleCondition,
+    buildShopCatalogProjectionFacetQuerySql,
+  } = await queryModule;
+  const input = { locale: "ua" as const, scope: "auto", order: "name_asc" as const };
+  const sql = buildShopCatalogProjectionOrderedQuerySql(input)!;
+  assert.match(sql.sql, /projection\."scopeKey" <>/);
+  assert.ok(sql.values.includes("moto"));
+  assert.deepEqual(buildShopCatalogProjectionWhere(input).scopeKey, { not: "moto" });
+  const facets = buildShopCatalogProjectionFacetQuerySql(input);
+  assert.match(facets.sql, /projection\."scopeKey" <>/);
+  const vehicle = buildShopCatalogProjectionVehicleCondition({ make: "BMW", model: "M3" })!;
+  assert.match(vehicle.sql, /policy\."sourceVersion" = projection\."sourceVersion"/);
+});
+
 test("ORM and cascading facets retain a specific model alternate alongside its family", async () => {
   const {
     buildShopCatalogProjectionWhere,
@@ -125,6 +143,42 @@ test("OPF-only query constraints stay clause-correlated in SQL and ORM", async (
     () => normalizeShopCatalogProjectionQuery({ locale: "en", opfGpf: "x".repeat(321) }),
     /opfGpf exceeds 320 characters/
   );
+});
+
+test("multi-brand SQL and ORM use a union inside all other selected constraints", async () => {
+  const {
+    normalizeShopCatalogProjectionQuery,
+    buildShopCatalogProjectionWhere,
+    buildShopCatalogProjectionOrderedQuerySql,
+    buildShopCatalogProjectionFacetQuerySql,
+  } = await queryModule;
+  const input = {
+    locale: "ua" as const,
+    brand: "Eventuri",
+    brands: ["CSF", "eventuri"],
+    scope: "auto",
+    make: "BMW",
+    model: "M3",
+    generation: "G80",
+    order: "price_asc" as const,
+  };
+  assert.equal(normalizeShopCatalogProjectionQuery(input).brands.length, 2);
+  const where = JSON.stringify(buildShopCatalogProjectionWhere(input));
+  assert.match(where, /CSF/);
+  assert.match(where, /eventuri/i);
+  for (const sql of [
+    buildShopCatalogProjectionOrderedQuerySql(input)!,
+    buildShopCatalogProjectionFacetQuerySql(input),
+  ]) {
+    assert.ok(sql.values.includes("CSF"));
+    assert.ok(
+      sql.values.some(
+        (value: unknown) => typeof value === "string" && value.toLowerCase() === "eventuri"
+      )
+    );
+    assert.match(sql.sql, / OR /);
+    assert.match(sql.sql, /clause\."verification" = 'VERIFIED'/);
+  }
 });
 
 test("selected terminal OPF constrains visible vehicle facet candidates", async () => {

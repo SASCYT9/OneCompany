@@ -558,7 +558,10 @@ const STOCK_CATEGORY_RESOLUTION_GROUPS = STOCK_CATEGORY_RESOLUTION_ORDER.map((gr
   const group = GROUP_BY_ID.get(groupId)!;
   return {
     group,
-    keywords: group.keywords.map(normalizeShopSearchText).filter(Boolean).map((word) => ` ${word} `),
+    keywords: group.keywords
+      .map(normalizeShopSearchText)
+      .filter(Boolean)
+      .map((word) => ` ${word} `),
   };
 });
 
@@ -634,6 +637,19 @@ export function getShopStockCategoryGroupForProduct(
   if (EXTERIOR_AERO_PATTERN.test(corpus)) {
     return GROUP_BY_ID.get("carbonAero")!;
   }
+  // A manufacturer is a weak default, not a product category. For example,
+  // do88 sells both cooling and intake parts. Let the actual product nouns
+  // resolve first, then retain the historical brand fallback if needed.
+  let productCorpus = corpus;
+  for (const identity of new Set(
+    [item.product.brand, item.product.vendor].map(normalizeShopSearchText).filter(Boolean)
+  )) {
+    productCorpus = productCorpus.replace(new RegExp(` ${identity}(?= )`, "g"), " ");
+  }
+  const productGroup = STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
+    keywords.some((keyword) => productCorpus.includes(keyword))
+  )?.group;
+  if (productGroup) return productGroup;
   return (
     STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
       keywords.some((keyword) => corpus.includes(keyword))

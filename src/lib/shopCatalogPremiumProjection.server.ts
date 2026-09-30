@@ -17,7 +17,12 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
-import { isExactWheelForceSkuSearch, isWheelForceWheel, isWheelForceWheelSet, wheelForceSetMoney } from "@/lib/wheelforceFamily";
+import {
+  isExactWheelForceSkuSearch,
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  wheelForceSetMoney,
+} from "@/lib/wheelforceFamily";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
@@ -37,7 +42,7 @@ import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
-import { canonicalizeShopSearchQuery } from "@/lib/shopSearch";
+import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
 
 const PAGE_SIZE = 24;
 
@@ -85,6 +90,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const locale = params.get("locale") === "en" ? "en" : "ua";
   const page = positiveInteger(params.get("page"), 1);
   const requestedLimit = Math.min(96, positiveInteger(params.get("limit"), PAGE_SIZE));
+  const brands = parseShopStockParamList(params, "brand");
   let vehiclePlan = buildShopCatalogVehicleSearchPlan(params, {
     readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE,
   });
@@ -98,7 +104,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // contracts. Until those policies are complete in the V2 search projection,
   // use the existing bounded legacy bridge for BMC vehicle selections so the
   // customer still gets the official SKU fitment results.
-  if (firstBrand(params)?.toLowerCase() === "bmc" && hasVehicleIdentity) {
+  if (brands.some((brand) => brand.toLowerCase() === "bmc") && hasVehicleIdentity) {
     vehiclePlan = buildShopCatalogVehicleSearchPlan(params, { readerMode: "legacy" });
   }
   let minPrice = nonNegativeAmount(params.get("minPrice"));
@@ -122,7 +128,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       : resolveLegacyVehicleProductIds({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
-          brand: firstBrand(params),
+          brand: brands.join(",") || null,
         })
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
@@ -152,21 +158,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const query: ShopCatalogProjectionQueryInput = {
     locale,
     limit: requestedLimit,
-    // Keep the premium projection aligned with the legacy search route: common
-    // Cyrillic make names ("бмв", "мерседес", etc.) are canonicalized before
-    // the indexed text query is built.
-    text: clean(
-      canonicalizeShopSearchQuery(
-        [params.get("q") ?? "", ...vehiclePlan.qualifierTerms].filter(Boolean).join(" ")
-      ),
-      SHOP_SEARCH_QUERY_MAX_LENGTH
-    ),
-    // The established UI uses `auto` as its default tab, while many canonical
-    // automotive products intentionally have no explicit scope key. Vehicle
-    // constraints already keep auto searches precise. Moto is an actual
-    // catalog partition and must remain strict.
-    scope: params.get("scope")?.trim().toLowerCase() === "moto" ? "moto" : null,
+    text: clean(vehiclePlan.textQuery, SHOP_SEARCH_QUERY_MAX_LENGTH),
+    // Preserve the requested partition for products, counts and facets. The
+    // query service retains legacy automotive scope values but excludes moto.
+    scope: ["auto", "moto"].includes(params.get("scope")?.trim().toLowerCase() ?? "")
+      ? params.get("scope")!.trim().toLowerCase()
+      : null,
     brand: firstBrand(params),
+    brands,
     category: clean(params.get("category")),
     ...vehiclePlan.constraints,
     modelAlternates: vehiclePlan.modelAlternates,
@@ -234,7 +233,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // preserve the complete product-owned vehicle coverage. Engine/fuel/OPF remain
   // projection-native because legacy evidence does not model them reliably.
   if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
-    if (vehicleProductIds) {
+    if (vehicleProductIds !== null) {
       const effectiveVehicleProductIds =
         canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
           ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
@@ -242,12 +241,12 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       query.productIds = query.productIds
         ? effectiveVehicleProductIds.filter((productId) => query.productIds?.includes(productId))
         : effectiveVehicleProductIds;
+      query.make = null;
+      query.model = null;
+      query.modelAlternates = null;
+      query.generation = null;
+      query.year = null;
     }
-    query.make = null;
-    query.model = null;
-    query.modelAlternates = null;
-    query.generation = null;
-    query.year = null;
   }
 
   const [result, facetResult, stockSummary] = await Promise.all([
@@ -258,10 +257,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const totalItems = stockSummary.totalItems;
   const items = result.items;
   const rawSearch = params.get("q")?.trim();
-  const requestedWheelSku = isExactWheelForceSkuSearch(rawSearch) &&
+  const requestedWheelSku =
+    isExactWheelForceSkuSearch(rawSearch) &&
     items.some((item) => item.brandKey.toLowerCase() === "wheelforce")
-    ? rawSearch
-    : null;
+      ? rawSearch
+      : null;
   const matchingWheelProduct = requestedWheelSku
     ? await prisma.shopProduct.findFirst({
         where: {
@@ -285,9 +285,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const data = items.map((item) => {
     const warehouseProduct = warehouseProductById.get(item.productId);
     const displayBrand = getProductDisplayBrand(item.brandLabel || item.brandKey);
-    const cardPrice = displayBrand.toLowerCase() === "wheelforce" && matchingWheelProduct
-      ? priceByProduct.get(matchingWheelProduct.id)
-      : priceByProduct.get(item.productId);
+    const cardPrice =
+      displayBrand.toLowerCase() === "wheelforce" && matchingWheelProduct
+        ? priceByProduct.get(matchingWheelProduct.id)
+        : priceByProduct.get(item.productId);
     const isWheelSetProduct =
       item.slug.toLowerCase().startsWith("wheelforce-set-") ||
       isWheelForceWheelSet({
@@ -313,7 +314,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
       : null;
     const compareAtSet = unitCompareAtSet
-      ? wheelForceWheel ? wheelForceSetMoney(unitCompareAtSet) : unitCompareAtSet
+      ? wheelForceWheel
+        ? wheelForceSetMoney(unitCompareAtSet)
+        : unitCompareAtSet
       : null;
     const usdRate = settings.currencyRates.USD || 1.152174;
     const uahRate = settings.currencyRates.UAH || 53;
@@ -336,8 +339,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         bmcOfficialMedia
           ? [bmcOfficialMedia.image, ...bmcOfficialMedia.gallery]
           : [cardPrice?.primaryMediaUrl, item.primaryMediaUrl, ...(cardPrice?.imageSources ?? [])]
-          .map((value) => String(value ?? "").trim())
-          .filter(Boolean)
+              .map((value) => String(value ?? "").trim())
+              .filter(Boolean)
       )
     );
     const productHref = buildShopStorefrontProductPath(locale, {
@@ -353,9 +356,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         locale,
       }),
       brand: displayBrand,
-      partNumber: displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
-        ? requestedWheelSku
-        : (item.normalizedSku ?? ""),
+      partNumber:
+        displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
+          ? requestedWheelSku
+          : (item.normalizedSku ?? ""),
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       imageSources,
@@ -394,7 +398,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       basePrice: displayPrice,
       markupPct: pricing?.discountPercent ?? 0,
       slug: item.slug,
-      href: cardWheelSku ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}` : productHref,
+      href: cardWheelSku
+        ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}`
+        : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
       turn14Id: "",
       source: "catalog_v2_projection" as const,
@@ -406,13 +412,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     const displayBrand = getProductDisplayBrand(label);
     brandCounts.set(displayBrand, (brandCounts.get(displayBrand) ?? 0) + count);
   }
-  const exactWheelPrice = matchingWheelProduct && data.length === 1
-    ? priceCurrency === "EUR"
-      ? data[0].priceEur
-      : priceCurrency === "UAH"
-        ? data[0].priceUah
-        : data[0].priceUsd
-    : null;
+  const exactWheelPrice =
+    matchingWheelProduct && data.length === 1
+      ? priceCurrency === "EUR"
+        ? data[0].priceEur
+        : priceCurrency === "UAH"
+          ? data[0].priceUah
+          : data[0].priceUsd
+      : null;
   const filterStats = {
     brands: [...brandCounts.entries()]
       .map(([label, count]) => ({ label, count }))
@@ -423,9 +430,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       inStock: stockSummary.inStock,
       preOrder: stockSummary.preOrder,
     },
-    price: exactWheelPrice && exactWheelPrice > 0
-      ? { min: exactWheelPrice, max: exactWheelPrice, currency: priceCurrency }
-      : (stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency }),
+    price:
+      exactWheelPrice && exactWheelPrice > 0
+        ? { min: exactWheelPrice, max: exactWheelPrice, currency: priceCurrency }
+        : (stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency }),
   };
   const response = NextResponse.json({
     data,

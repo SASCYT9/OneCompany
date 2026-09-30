@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { flattenShopCatalogRawPayload } from "./shopCatalogSourceCoverage";
+import { extractVehicleYearRanges } from "./shopVehicleYears";
 
 export type Do88SnapshotProduct = { id: string; slug: string; sku: string; scope: string; title: { ua: string; en: string }; tags: string[];
   variants: Array<{ id: string; sku: string | null; isDefault: boolean }>; [key: string]: unknown };
@@ -9,7 +10,7 @@ export type Do88Normalization = { productId: string; variantId: string; variantS
 
 const makeLabels: Record<string, string> = { volvo: "Volvo", saab: "Saab", bmw: "BMW", audi: "Audi", porsche: "Porsche", toyota: "Toyota", ford: "Ford", vw: "Volkswagen",
   cupra: "Cupra", opel: "Opel", mazda: "Mazda", alpine: "Alpine", suzuki: "Suzuki", seat: "SEAT" };
-function parseYears(value: string) { const match = value.match(/\b((?:19|20)\d{2})(?:\s*[-–]\s*((?:19|20)\d{2}))?\b/); return { yearFrom: match ? Number(match[1]) : null, yearTo: match?.[2] ? Number(match[2]) : match ? Number(match[1]) : null }; }
+function parseYears(value: string) { const range = extractVehicleYearRanges(value)[0]; return { yearFrom: range?.from ?? null, yearTo: range?.to ?? null }; }
 function humanFitmentTag(product: Do88SnapshotProduct, make: string) { const prefix = `${makeLabels[make]} `; return product.tags.find((tag) => tag.startsWith(prefix) && !tag.startsWith("fits-")); }
 function applicationFromTags(product: Do88SnapshotProduct): Do88Application[] { const rawMake = product.tags.find((tag) => tag.startsWith("fits-make:"))?.slice(10).toLowerCase(); if (!rawMake || !makeLabels[rawMake]) return [];
   const fitment = humanFitmentTag(product, rawMake); if (!fitment) return []; const descriptor = fitment.slice(makeLabels[rawMake].length).trim(); if (!descriptor) return [];
@@ -25,6 +26,6 @@ export function buildDo88SourceRecordDraft(input: { product: Do88SnapshotProduct
   const provenance = flattenShopCatalogRawPayload(input.product).map((leaf) => { const variantField = leaf.fieldPath.startsWith("variants."), variant = variantField ? input.product.variants.length === 1 ? input.product.variants[0] : input.product.variants[leaf.ordinal] : null;
     if (variantField && !variant) throw new Error(`do88 variant provenance cannot resolve ${leaf.fieldPath}`); const legacyScope = leaf.fieldPath === "scope" && leaf.value === "SHOP"; return { fieldPath: leaf.fieldPath, ordinal: leaf.ordinal, rawValue: leaf.value,
       canonicalEntityType: variantField ? ("VARIANT" as const) : ("PRODUCT" as const), canonicalEntityId: variant?.id ?? input.product.id, canonicalField: legacyScope ? "scope" : variantField ? leaf.fieldPath.slice(9) : leaf.fieldPath,
-      normalizedValue: legacyScope ? "auto" : leaf.value, mappingStatus: "MAPPED" as const, mapperVersion: "do88-snapshot-v1" as const, confidence: 1 as const, reason: legacyScope ? "audited LEGACY SHOP scope maps to auto" : null, productId: input.product.id, variantId: variant?.id ?? null }; });
+      normalizedValue: legacyScope ? "auto" : leaf.value, mappingStatus: "MAPPED" as const, mapperVersion: "do88-snapshot-v2" as const, confidence: 1 as const, reason: legacyScope ? "audited LEGACY SHOP scope maps to auto" : null, productId: input.product.id, variantId: variant?.id ?? null }; });
   return { sourceRecord: { recordKey: normalization.recordKey, sourceRevision: input.sourceRevision, rawPayload: input.product, payloadHash: createHash("sha256").update(JSON.stringify(input.product)).digest("hex"), productId: input.product.id }, provenance, normalization,
     issues: normalization.issues.map((issue) => ({ issueKey: `do88:${issue}`, code: issue.toUpperCase(), rawPath: "$", details: { productId: input.product.id, supplierSku: input.product.sku } })) }; }

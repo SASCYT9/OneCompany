@@ -13,6 +13,7 @@ export const state =
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
+    projectionRows: null,
   });
 
 export function reset() {
@@ -28,12 +29,15 @@ export function reset() {
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
+  state.projectionRows = null;
 }
 
 export const prisma = {
   shopProduct: {
     findMany: async (args) => {
       state.productSearchArgs.push(args);
+      if (JSON.stringify(args.where.OR).includes('"BMC"') && !state.productSearchIds.length)
+        return [];
       if (!state.productSearchIds.length) throw new Error("no product text candidates configured");
       return state.productSearchIds.map((id) => ({ id }));
     },
@@ -77,9 +81,17 @@ export const prisma = {
     findMany: async (args) => {
       state.projectionCalls += 1;
       state.projectionArgs.push(args);
+      if (state.projectionRows)
+        return state.projectionRows.map((row) => ({
+          sourceVersion: 1n,
+          product: { catalogProjections: [{ sourceVersion: 1n }] },
+          ...row,
+        }));
       return [
         {
           productId: "projection-id",
+          sourceVersion: 1n,
+          product: { catalogProjections: [{ sourceVersion: 1n }] },
           constraints: [
             { dimension: "MAKE", state: "EXACT", textValue: "BMW", yearFrom: null, yearTo: null },
             { dimension: "MODEL", state: "EXACT", textValue: "M5", yearFrom: null, yearTo: null },
@@ -113,7 +125,8 @@ export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
   const models = fitment.models ?? (fitment.model ? [fitment.model] : []);
   return (
     String(fitment.make ?? "").toLowerCase() === String(constraints.make ?? "").toLowerCase() &&
-    (!constraints.model || models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
+    (!constraints.model ||
+      models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
   );
 }
 

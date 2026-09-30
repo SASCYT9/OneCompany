@@ -19,39 +19,126 @@ registerHooks({
 
 const snapshotModule = import("../../../src/lib/shopCatalogAdminSnapshot.server");
 
+test("published derivatives retain legacy category classification for every uncategorized brand", async () => {
+  const { buildShopCatalogProjectionSourceFromAdminRecord } = await snapshotModule;
+  for (const [brand, title, category] of [
+    ["DO88", "Performance intercooler", "cooling"],
+    ["DO88", "do88 Intake System BMW M3 G80", "performance"],
+    ["RaceChip", "RaceChip GTS 5 chip tuning", "chipTuning"],
+    ["Remus", "Exhaust system", "exhaust"],
+    ["BMC", "Air filter", "performance"],
+  ]) {
+    const record = {
+      id: brand,
+      brand,
+      scope: "SHOP",
+      titleUa: title,
+      titleEn: title,
+      sku: "SKU",
+      slug: brand,
+      category: null,
+      tags: [],
+      variants: [],
+      options: [],
+      media: [],
+      metafields: [],
+      collections: [],
+    } as unknown as Parameters<typeof buildShopCatalogProjectionSourceFromAdminRecord>[0];
+    const source = buildShopCatalogProjectionSourceFromAdminRecord(record, "1", 0);
+    assert.equal(source.category?.key, category, brand);
+    assert.ok(source.category?.labelUa);
+    assert.ok(source.category?.labelEn);
+    assert.equal(source.scopeKey, "auto");
+    assert.equal(record.category, null);
+  }
+});
+
 test("supplier V2 projection preserves verified model clauses and unknown constraints", async () => {
   const { buildShopCatalogProjectionSourceFromAdminRecord } = await snapshotModule;
   const { SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS, strictMatchShopCatalogV2Compatibility } =
     await import("../../../src/lib/shopCatalogV2Compatibility");
   const sourceRef = "https://www.do88performance.eu/en/artiklar/do88-vag-ea888-sai-air-filter.html";
   const contract: SupplierFitmentV2Contract = {
-    version: 2, mode: "vehicle_specific", scope: "auto", parentSku: null,
-    policy: { requiredDimensions: [], clauses: [{
-      id: "passat-b8", verification: "VERIFIED",
-      constraints: SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS.map((dimension) => {
-        if (dimension === "scope") return { dimension, state: "EXACT", values: ["auto"] };
-        if (dimension === "make") return { dimension, state: "EXACT", values: ["Volkswagen"] };
-        if (dimension === "model") return { dimension, state: "EXACT", values: ["Passat"] };
-        if (dimension === "generation") return { dimension, state: "EXACT", values: ["B8"] };
-        return { dimension, state: "UNKNOWN" };
-      }),
-      provenance: { sourceRef, sourceRecordKey: "LF-190-SAI-KIT", rawPaths: ["Fits model"], evidenceRefs: [sourceRef] },
-    }] },
-    source: { supplier: "do88", sourceKey: "do88", sourceRef, sourceRecordKey: "LF-190-SAI-KIT", sourceUpdatedAt: null, sourceRevision: null, payloadHash: null, mapperVersion: "test/1" },
+    version: 2,
+    mode: "vehicle_specific",
+    scope: "auto",
+    parentSku: null,
+    policy: {
+      requiredDimensions: [],
+      clauses: [
+        {
+          id: "passat-b8",
+          verification: "VERIFIED",
+          constraints: SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS.map((dimension) => {
+            if (dimension === "scope") return { dimension, state: "EXACT", values: ["auto"] };
+            if (dimension === "make") return { dimension, state: "EXACT", values: ["Volkswagen"] };
+            if (dimension === "model") return { dimension, state: "EXACT", values: ["Passat"] };
+            if (dimension === "generation") return { dimension, state: "EXACT", values: ["B8"] };
+            return { dimension, state: "UNKNOWN" };
+          }),
+          provenance: {
+            sourceRef,
+            sourceRecordKey: "LF-190-SAI-KIT",
+            rawPaths: ["Fits model"],
+            evidenceRefs: [sourceRef],
+          },
+        },
+      ],
+    },
+    source: {
+      supplier: "do88",
+      sourceKey: "do88",
+      sourceRef,
+      sourceRecordKey: "LF-190-SAI-KIT",
+      sourceUpdatedAt: null,
+      sourceRevision: null,
+      payloadHash: null,
+      mapperVersion: "test/1",
+    },
     note: "SAI-equipped cars with a do88 V2 intake only",
   };
   const record = {
-    id: "sai-product", brand: "DO88", scope: "auto", sku: "LF-190-SAI-KIT", slug: "do88-lf-190-sai-kit",
-    metafields: [{ namespace: "onecompany", key: "supplier_fitment", value: JSON.stringify(contract) }],
-    variants: [], options: [], media: [], tags: [], collections: [],
+    id: "sai-product",
+    brand: "DO88",
+    scope: "auto",
+    sku: "LF-190-SAI-KIT",
+    slug: "do88-lf-190-sai-kit",
+    metafields: [
+      { namespace: "onecompany", key: "supplier_fitment", value: JSON.stringify(contract) },
+    ],
+    variants: [],
+    options: [],
+    media: [],
+    tags: [],
+    collections: [],
   } as unknown as Parameters<typeof buildShopCatalogProjectionSourceFromAdminRecord>[0];
   const source = buildShopCatalogProjectionSourceFromAdminRecord(record, "2", 0);
   const policy = source.compatibilityPolicies![0];
   assert.equal(policy.clauses[0].verification, "VERIFIED");
-  assert.equal(policy.clauses[0].constraints.find((item) => item.dimension === "fuel")?.state, "UNKNOWN");
-  assert.equal(strictMatchShopCatalogV2Compatibility(policy, { make: "Volkswagen", model: "Passat", generation: "B8" }).status, "exact");
-  assert.notEqual(strictMatchShopCatalogV2Compatibility(policy, { make: "Volkswagen", model: "Passat", fuel: "diesel" }).status, "exact");
-  assert.notEqual(strictMatchShopCatalogV2Compatibility(policy, { make: "BMW", model: "M3" }).status, "exact");
+  assert.equal(
+    policy.clauses[0].constraints.find((item) => item.dimension === "fuel")?.state,
+    "UNKNOWN"
+  );
+  assert.equal(
+    strictMatchShopCatalogV2Compatibility(policy, {
+      make: "Volkswagen",
+      model: "Passat",
+      generation: "B8",
+    }).status,
+    "exact"
+  );
+  assert.notEqual(
+    strictMatchShopCatalogV2Compatibility(policy, {
+      make: "Volkswagen",
+      model: "Passat",
+      fuel: "diesel",
+    }).status,
+    "exact"
+  );
+  assert.notEqual(
+    strictMatchShopCatalogV2Compatibility(policy, { make: "BMW", model: "M3" }).status,
+    "exact"
+  );
 });
 
 function fitment(status: "verified" | "inferred" = "verified"): NormalizedFitment {
@@ -115,11 +202,10 @@ test("admin snapshot maps every normalized application dimension into one correl
 });
 
 test("admin snapshot fails closed when fitment is absent and preserves universal policy", async () => {
-  const [{ compatibilityPolicyFromNormalizedFitment }, { validateShopCatalogV2CompatibilityPolicy }] =
-    await Promise.all([
-      snapshotModule,
-      import("../../../src/lib/shopCatalogV2Compatibility"),
-    ]);
+  const [
+    { compatibilityPolicyFromNormalizedFitment },
+    { validateShopCatalogV2CompatibilityPolicy },
+  ] = await Promise.all([snapshotModule, import("../../../src/lib/shopCatalogV2Compatibility")]);
   assert.equal(compatibilityPolicyFromNormalizedFitment("missing", null).mode, "NEEDS_REVIEW");
   const universalFitment = {
     ...fitment(),
@@ -135,7 +221,11 @@ test("admin snapshot fails closed when fitment is absent and preserves universal
   assert.equal(autoPolicy.mode, "UNIVERSAL");
   assert.equal(autoPolicy.clauses.length, 1);
   assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(autoPolicy), []);
-  const motoPolicy = compatibilityPolicyFromNormalizedFitment("universal-moto", universalFitment, "moto");
+  const motoPolicy = compatibilityPolicyFromNormalizedFitment(
+    "universal-moto",
+    universalFitment,
+    "moto"
+  );
   assert.deepEqual(validateShopCatalogV2CompatibilityPolicy(motoPolicy), []);
   assert.deepEqual(motoPolicy.clauses[0]?.constraints[0], {
     dimension: "scope",

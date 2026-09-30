@@ -10,6 +10,7 @@ import {
   splitVehicleChassisCodes,
   vehicleModelKey,
   vehicleModelAliases,
+  vehicleMakeAliases,
 } from "../../../src/lib/shopVehicleTaxonomy";
 
 test("vehicle make aliases collapse without losing their legacy query values", () => {
@@ -20,6 +21,15 @@ test("vehicle make aliases collapse without losing their legacy query values", (
     canonicalizeVehicleMakes(["Land Rover", "Range Rover", "land-rover", "BMW", "bmw"]),
     ["BMW", "Land Rover"]
   );
+});
+
+test("CUPRA and Skoda aliases have one canonical selector identity", () => {
+  assert.deepEqual(
+    canonicalizeVehicleMakes(["Cupra", "CUPRA", "cupra", "Skoda", "ŠKoda", "Škoda"]),
+    ["CUPRA", "Škoda"]
+  );
+  assert.ok(vehicleMakeAliases("Škoda").includes("skoda"));
+  assert.equal(canonicalVehicleMakeLabel("skoda"), "Škoda");
 });
 
 test("vehicle model aliases share one stable identity", () => {
@@ -36,7 +46,14 @@ test("BMW model aliases collapse to canonical labels", () => {
 
 test("BMW trim-shaped legacy models collapse to their selectable model", () => {
   assert.deepEqual(
-    canonicalizeVehicleModels("BMW", ["1 Series M", "M340i/M340d", "M550i", "I4", "Z Series", "Z4"]),
+    canonicalizeVehicleModels("BMW", [
+      "1 Series M",
+      "M340i/M340d",
+      "M550i",
+      "I4",
+      "Z Series",
+      "Z4",
+    ]),
     ["1 Series M Coupé", "3 Series", "5 Series", "i4", "Z4"]
   );
   assert.ok(vehicleModelAliases("BMW", "3 Series").includes("M340i/M340d"));
@@ -56,10 +73,12 @@ test("Land Rover product-title fragments collapse to real models", () => {
 });
 
 test("combined Volvo supplier fitments expand into real selectable models", () => {
-  assert.deepEqual(
-    canonicalizeVehicleModels("Volvo", ["C30 C70 S40 V50 P1"]),
-    ["C30", "C70", "S40", "V50"]
-  );
+  assert.deepEqual(canonicalizeVehicleModels("Volvo", ["C30 C70 S40 V50 P1"]), [
+    "C30",
+    "C70",
+    "S40",
+    "V50",
+  ]);
   assert.ok(vehicleModelAliases("Volvo", "V50").includes("C30 C70 S40 V50 P1"));
 });
 
@@ -140,10 +159,10 @@ test("BMW chassis options stay inside the selected official model", () => {
     canonicalizeVehicleChassisCodes(["E30", "E85", "E86", "E89", "F90", "G29"], "BMW", "Z4"),
     ["E85", "E86", "E89", "G29"]
   );
-  assert.deepEqual(
-    canonicalizeVehicleChassisCodes(["F87N", "F90", "G87", "G90"], "BMW", "M2"),
-    ["F87", "G87"]
-  );
+  assert.deepEqual(canonicalizeVehicleChassisCodes(["F87N", "F90", "G87", "G90"], "BMW", "M2"), [
+    "F87",
+    "G87",
+  ]);
   assert.deepEqual(
     canonicalizeVehicleChassisCodes(["F96", "F96 LCI", "F96 PRE-LCI"], "BMW", "X6 M"),
     ["F96", "F96 LCI", "F96 PRE-LCI"]

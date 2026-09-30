@@ -19,6 +19,11 @@ registerHooks({
 const reader = readFileSync("src/lib/shopCanonicalFitmentOptions.server.ts", "utf8");
 const route = readFileSync("src/app/api/shop/stock/fitment/route.ts", "utf8");
 
+test("selectors normalize actual fitment values without inventing options from the language dictionary", () => {
+  assert.doesNotMatch(route, /getVehicleSelectorModelAliases|getVehicleSelectorChassisAliases/);
+  assert.match(route, /canonicalizeVehicleModels\(canonical.make, canonical.data\)/);
+});
+
 test("fitment fallback is bounded and uses current published projection evidence", () => {
   assert.match(reader, /getBoundedPublishedFitmentOptions\(input\)/);
   assert.match(reader, /const BOUNDED_SELECTOR_VALUE_LIMIT = 2_001/);
@@ -44,8 +49,9 @@ test("route preserves the existing reader-off legacy fallback", () => {
 });
 
 test("bounded reader joins each policy to its product projection source revision", async () => {
-  const { getBoundedPublishedFitmentOptions } =
-    await import("../../../src/lib/shopCanonicalFitmentOptions.server");
+  const { getBoundedPublishedFitmentOptions } = await import(
+    "../../../src/lib/shopCanonicalFitmentOptions.server"
+  );
   const queries: unknown[] = [];
   const client = {
     async $queryRaw(query: unknown) {

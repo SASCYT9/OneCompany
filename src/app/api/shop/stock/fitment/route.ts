@@ -15,10 +15,6 @@ import {
 import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
 import {
-  getVehicleSelectorChassisAliases,
-  getVehicleSelectorModelAliases,
-} from "@/lib/shopVehicleSearch";
-import {
   filterShopStockItemsByVehicleScope,
   isVehicleMakeCompatibleWithScope,
   parseShopStockVehicleScope,
@@ -100,7 +96,13 @@ async function getBmcSupplierApplications(): Promise<SupplierVehicleApplication[
 
 async function supplementBmcSupplierFitment<T extends { type?: string; data?: unknown }>(
   result: T | null,
-  input: { make: string | null; model: string | null; chassis: string | null; brand: string | null; scope: "auto" | "moto" | null }
+  input: {
+    make: string | null;
+    model: string | null;
+    chassis: string | null;
+    brand: string | null;
+    scope: "auto" | "moto" | null;
+  }
 ): Promise<T | null> {
   if (!result || (input.brand && input.brand.toLocaleLowerCase() !== "bmc")) return result;
   const applications = (await getBmcSupplierApplications()).filter((application) =>
@@ -123,15 +125,21 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
       ...result,
       data: canonicalizeVehicleModels(input.make, [
         ...result.data.filter((value): value is string => typeof value === "string"),
-        ...forMake.map((application) => application.model).filter((value): value is string => Boolean(value)),
-        ...getVehicleSelectorModelAliases(input.make),
+        ...forMake
+          .map((application) => application.model)
+          .filter((value): value is string => Boolean(value)),
       ]),
     };
   }
   const forModel = forMake.filter(
     (application) =>
-      Boolean(application.model && input.model && shopVehicleModelsMatch(application.model, input.model, application.make)) &&
-      (!input.chassis || application.chassisCode?.toLocaleLowerCase() === input.chassis.toLocaleLowerCase())
+      Boolean(
+        application.model &&
+          input.model &&
+          shopVehicleModelsMatch(application.model, input.model, application.make)
+      ) &&
+      (!input.chassis ||
+        application.chassisCode?.toLocaleLowerCase() === input.chassis.toLocaleLowerCase())
   );
   if (result.type === "chassis" && Array.isArray(result.data) && input.make && input.model) {
     return {
@@ -139,24 +147,40 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
       data: canonicalizeVehicleChassisCodes(
         [
           ...result.data.filter((value): value is string => typeof value === "string"),
-          ...forModel.map((application) => application.chassisCode).filter((value): value is string => Boolean(value)),
-          ...getVehicleSelectorChassisAliases(input.make, input.model),
+          ...forModel
+            .map((application) => application.chassisCode)
+            .filter((value): value is string => Boolean(value)),
         ],
         input.make,
         input.model
       ),
     };
   }
-  if (result.type === "details" && input.make && input.model && result.data && typeof result.data === "object") {
-    const years = new Set<number>("years" in result.data && Array.isArray(result.data.years) ? result.data.years : []);
+  if (
+    result.type === "details" &&
+    input.make &&
+    input.model &&
+    result.data &&
+    typeof result.data === "object"
+  ) {
+    const years = new Set<number>(
+      "years" in result.data && Array.isArray(result.data.years) ? result.data.years : []
+    );
     const maxYear = new Date().getFullYear() + 2;
     for (const application of forModel) {
       if (application.yearFrom == null) continue;
-      for (let year = Math.max(1886, application.yearFrom); year <= Math.min(maxYear, application.yearTo ?? maxYear); year += 1) {
+      for (
+        let year = Math.max(1886, application.yearFrom);
+        year <= Math.min(maxYear, application.yearTo ?? maxYear);
+        year += 1
+      ) {
         years.add(year);
       }
     }
-    return { ...result, data: { ...result.data, years: [...years].sort((left, right) => right - left) } };
+    return {
+      ...result,
+      data: { ...result.data, years: [...years].sort((left, right) => right - left) },
+    };
   }
   return result;
 }
@@ -180,25 +204,25 @@ export async function GET(request: NextRequest) {
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await supplementBmcSupplierFitment(await getCanonicalFitmentOptions({
-          make,
-          model,
-          chassis,
-          year,
-          brand,
-          scope: vehicleScope,
-          details,
-        }), { make, model, chassis, brand, scope: vehicleScope });
+    const canonical = await supplementBmcSupplierFitment(
+      await getCanonicalFitmentOptions({
+        make,
+        model,
+        chassis,
+        year,
+        brand,
+        scope: vehicleScope,
+        details,
+      }),
+      { make, model, chassis, brand, scope: vehicleScope }
+    );
     if (
       canonical?.type === "models" &&
       isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
     ) {
       return cachedJson({
         ...canonical,
-        data: canonicalizeVehicleModels(canonical.make, [
-          ...canonical.data,
-          ...getVehicleSelectorModelAliases(canonical.make),
-        ]),
+        data: canonicalizeVehicleModels(canonical.make, canonical.data),
       });
     }
     if (
@@ -207,11 +231,7 @@ export async function GET(request: NextRequest) {
     ) {
       return cachedJson({
         ...canonical,
-        data: canonicalizeVehicleChassisCodes(
-          [...canonical.data, ...getVehicleSelectorChassisAliases(canonical.make, canonical.model)],
-          canonical.make,
-          canonical.model
-        ),
+        data: canonicalizeVehicleChassisCodes(canonical.data, canonical.make, canonical.model),
       });
     }
     if (canonical) return cachedJson(canonical);
@@ -326,10 +346,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const models = canonicalizeVehicleModels(make, [
-        ...modelsSet,
-        ...getVehicleSelectorModelAliases(make),
-      ]);
+      const models = canonicalizeVehicleModels(make, [...modelsSet]);
       return cachedJson({ type: "models", make, data: models });
     }
 
@@ -353,11 +370,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const chassis = canonicalizeVehicleChassisCodes(
-        [...chassisSet, ...getVehicleSelectorChassisAliases(make, model)],
-        make,
-        model
-      );
+      const chassis = canonicalizeVehicleChassisCodes([...chassisSet], make, model);
       return cachedJson({ type: "chassis", make, model, data: chassis });
     }
 

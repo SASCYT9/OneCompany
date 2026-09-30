@@ -252,7 +252,14 @@ export function getShopSearchQueryVariants(query: string | null | undefined) {
 }
 
 export function canonicalizeShopSearchQuery(query: string | null | undefined) {
-  return correctKnownShopSearchTypos(canonicalizeShopSearchAliasesAndMakes(query));
+  const canonical = canonicalizeShopSearchAliasesAndMakes(query).replace(
+    /(^| )([гфе])(\d{2,3}[a-z]?)(?= |$)/g,
+    (match, boundary: string, prefix: string, digits: string) => {
+      const code = `${({ г: "g", ф: "f", е: "e" } as Record<string, string>)[prefix]}${digits}`;
+      return isShopVehicleSearchToken(code) ? `${boundary}${code}` : match;
+    }
+  );
+  return correctKnownShopSearchTypos(canonical);
 }
 
 function canonicalizeShopSearchAliasesAndMakes(query: string | null | undefined) {

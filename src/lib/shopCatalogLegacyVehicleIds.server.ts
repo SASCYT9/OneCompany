@@ -55,7 +55,12 @@ type ProjectionConstraint = {
   yearFrom: number | null;
   yearTo: number | null;
 };
-type ProjectionClause = { productId: string; constraints: ProjectionConstraint[] };
+type ProjectionClause = {
+  productId: string;
+  sourceVersion: bigint;
+  constraints: ProjectionConstraint[];
+  product: { catalogProjections: Array<{ sourceVersion: bigint }> };
+};
 type VehicleEvidence = { applications: VehicleApplication[]; clauses: ProjectionClause[] };
 type LegacyVehicleCacheState = {
   cachedProducts: CachedFitmentProducts | null;
@@ -80,6 +85,9 @@ const sharedCache: LegacyVehicleCacheState = (globalCache.__oneCompanyLegacyVehi
 
 function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
   return JSON.stringify([
+    [
+      ...new Set((input.brand ?? "").split(",").map(normalizeShopSearchText).filter(Boolean)),
+    ].sort(),
     canonicalVehicleMakeLabel(input.make ?? ""),
     input.model ? vehicleModelKey(input.model) : "",
     [...new Set((input.modelAlternates ?? []).map(vehicleModelKey))].sort(),
@@ -133,7 +141,9 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
   return sharedCache.fitmentPending;
 }
 
-async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>) {
+async function indexFitmentProducts(
+  products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>
+) {
   const productIds = products
     .filter((product) => ["wheelforce", "bmc"].includes(normalizeShopSearchText(product.brand)))
     .map((product) => product.id)
@@ -160,12 +170,13 @@ async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopF
     const persisted = byProduct.get(product.id ?? "");
     const supplier = parseSupplierFitmentContract(persisted?.supplier);
     const manualFitment = parseNormalizedFitment(persisted?.normalized);
-    const preserveManualFitment = manualFitment?.source === "manual" && manualFitment.status === "verified";
+    const preserveManualFitment =
+      manualFitment?.source === "manual" && manualFitment.status === "verified";
     const value = preserveManualFitment
       ? persisted?.normalized
       : supplier
         ? JSON.stringify(supplierContractToNormalizedFitment(supplier))
-        : persisted?.normalized ?? null;
+        : (persisted?.normalized ?? null);
     return {
       id: product.id,
       fitments: resolveSearchFitments(automatic, value),
@@ -309,10 +320,15 @@ async function getCachedVehicleEvidence(
             constraints: {
               some: {
                 dimension: "YEAR" as const,
-                state: "EXACT" as const,
-                AND: [
-                  { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
-                  { OR: [{ yearTo: null }, { yearTo: { gte: year } }] },
+                OR: [
+                  { state: { in: ["ANY" as const, "NOT_APPLICABLE" as const] } },
+                  {
+                    state: "EXACT" as const,
+                    AND: [
+                      { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
+                      { OR: [{ yearTo: null }, { yearTo: { gte: year } }] },
+                    ],
+                  },
                 ],
               },
             },
@@ -390,6 +406,15 @@ async function getCachedVehicleEvidence(
       },
       select: {
         productId: true,
+        sourceVersion: true,
+        product: {
+          select: {
+            catalogProjections: {
+              where: { locale: "en", isPublished: true, statusKey: "ACTIVE" },
+              select: { sourceVersion: true },
+            },
+          },
+        },
         constraints: {
           select: { dimension: true, state: true, textValue: true, yearFrom: true, yearTo: true },
         },
@@ -397,7 +422,14 @@ async function getCachedVehicleEvidence(
     }),
   ])
     .then(([applications, clauses]) => {
-      const value = { applications, clauses } as VehicleEvidence;
+      const value = {
+        applications,
+        clauses: clauses.filter((clause) =>
+          clause.product.catalogProjections.some(
+            (projection) => projection.sourceVersion === clause.sourceVersion
+          )
+        ),
+      } as VehicleEvidence;
       cacheVehicleEvidence(key, value);
       return value;
     })
@@ -431,7 +463,9 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
           input.generation
         )
       : Promise.resolve<VehicleEvidence>({ applications: [], clauses: [] }),
-    input.make && normalizeShopSearchText(input.brand) === "bmc"
+    input.make &&
+    (!input.brand ||
+      input.brand.split(",").some((brand) => normalizeShopSearchText(brand) === "bmc"))
       ? prisma.shopProduct
           .findMany({
             where: {
@@ -475,12 +509,12 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
   const requestedModelKeys = new Set(
-    [...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value)))].flatMap(
-      (value) => [
-        vehicleModelKey(value),
-        vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)),
-      ]
-    )
+    [
+      ...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value))),
+    ].flatMap((value) => [
+      vehicleModelKey(value),
+      vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)),
+    ])
   );
   const requestedChassis = normalizeShopSearchText(input.generation ?? "");
   for (const application of canonicalApplications) {
@@ -509,7 +543,7 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
     ids.add(application.productId);
   }
   for (const clause of projectionClauses) {
-    const exactTextValues = (dimension: "MAKE" | "MODEL" | "GENERATION") =>
+    const exactTextValues = (dimension: "MAKE" | "MODEL" | "GENERATION" | "CHASSIS") =>
       clause.constraints
         .filter(
           (constraint) =>
@@ -536,7 +570,7 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
     }
     if (
       input.generation &&
-      !exactTextValues("GENERATION").some(
+      ![...exactTextValues("GENERATION"), ...exactTextValues("CHASSIS")].some(
         (value) => normalizeShopSearchText(value) === normalizeShopSearchText(input.generation)
       )
     ) {
@@ -544,14 +578,17 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
     }
     if (input.year) {
       const yearConstraints = clause.constraints.filter(
-        (constraint) => constraint.dimension === "YEAR" && constraint.state === "EXACT"
+        (constraint) => constraint.dimension === "YEAR"
       );
       if (
         yearConstraints.length === 0 ||
         !yearConstraints.some(
           (constraint) =>
-            (constraint.yearFrom == null || constraint.yearFrom <= input.year!) &&
-            (constraint.yearTo == null || constraint.yearTo >= input.year!)
+            constraint.state === "ANY" ||
+            constraint.state === "NOT_APPLICABLE" ||
+            (constraint.state === "EXACT" &&
+              (constraint.yearFrom == null || constraint.yearFrom <= input.year!) &&
+              (constraint.yearTo == null || constraint.yearTo >= input.year!))
         )
       ) {
         continue;

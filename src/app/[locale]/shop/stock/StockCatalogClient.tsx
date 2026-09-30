@@ -41,7 +41,11 @@ import {
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
-import { isWheelForceWheel, isWheelForceWheelSet, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
+import {
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  WHEELFORCE_WHEEL_SET_SIZE,
+} from "@/lib/wheelforceFamily";
 import { getVehicleMakeLogoPath, normalizeVehicleMakeName } from "@/lib/vehicleMakeLogos";
 import {
   canonicalVehicleModelLabel,
@@ -62,7 +66,11 @@ import {
 } from "@/lib/shopAiProductKind";
 import { SHOP_CATALOG_OPEN_FILTERS_EVENT } from "@/lib/mobileBottomNavigation";
 import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
-import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
+import {
+  SHOW_STOCK_BADGE,
+  shouldShowShopStockVehicleMatch,
+  toggleShopStockBrandSelection,
+} from "@/lib/shopStockUi";
 import { resolveShopStockSearchDelay } from "@/lib/shopStockSearchTiming";
 import {
   getShopConfirmedAvailability,
@@ -821,11 +829,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   };
 
   // Search state
-  const initialPage = useRef(parseStockPage(
-    typeof window === "undefined"
-      ? searchParams.get("page")
-      : new URLSearchParams(window.location.search).get("page")
-  )).current;
+  const initialPage = useRef(
+    parseStockPage(
+      typeof window === "undefined"
+        ? searchParams.get("page")
+        : new URLSearchParams(window.location.search).get("page")
+    )
+  ).current;
   const initialBrands = parseShopStockParamList(searchParams, "brand");
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
@@ -1414,7 +1424,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   }, [makePickerOpen]);
 
   const handleToggleBrand = (brandName: string) => {
-    setSelectedBrands((current) => (current.includes(brandName) ? [] : [brandName]));
+    setSelectedBrands((current) => toggleShopStockBrandSelection(current, brandName));
   };
 
   const syncUrlState = useCallback(
@@ -1905,9 +1915,24 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const searchTextKey = JSON.stringify([query, engineFilter, minPriceFilter, maxPriceFilter]);
   const previousSearchTextRef = useRef(searchTextKey);
   const autoSearchFilterKey = JSON.stringify([
-    selectedBrands, make, model, chassis, requestedYear, engineFilter, fuelFilter,
-    opfGpfFilter, productKindFilter, strictMatch, query, stockFilter, sortOrder,
-    localCategory, productTypeFilter, minPriceFilter, maxPriceFilter, vehicleMode,
+    selectedBrands,
+    make,
+    model,
+    chassis,
+    requestedYear,
+    engineFilter,
+    fuelFilter,
+    opfGpfFilter,
+    productKindFilter,
+    strictMatch,
+    query,
+    stockFilter,
+    sortOrder,
+    localCategory,
+    productTypeFilter,
+    minPriceFilter,
+    maxPriceFilter,
+    vehicleMode,
   ]);
   const autoSearchContextKey = JSON.stringify([currency, country, audienceKey, locale]);
   const previousAutoSearchFilterKeyRef = useRef(autoSearchFilterKey);
@@ -2337,6 +2362,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const selectedVehicleLabel = [make, model, chassis].filter(Boolean).join(" ");
+  const canShowVehicleMatch = shouldShowShopStockVehicleMatch({
+    hasVehicle: Boolean(selectedVehicleLabel),
+    loading,
+    error,
+  });
   const emptyStateActions = useMemo(() => {
     const actions: Array<{ key: string; ua: string; en: string; run: () => void }> = [];
     if (query.trim()) {
@@ -2962,6 +2992,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       key={brandName}
                       type="button"
                       onClick={() => handleToggleBrand(brandName)}
+                      aria-pressed={selected}
                       className={`flex min-h-10 w-full items-center gap-3 rounded-none border px-3 text-left text-xs font-light transition ${
                         selected
                           ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
@@ -3057,7 +3088,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
-        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
+        const wheelLike = {
+          brand: item.brand,
+          partNumber: item.partNumber,
+          category: item.category,
+        };
         const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
         const availability =
           item.availability === undefined
@@ -3128,7 +3163,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
                   {item.category}
                 </div>
-                {make || model || chassis ? (
+                {canShowVehicleMatch ? (
                   <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
                     {vehicleLabel}
                   </div>
@@ -3136,7 +3171,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
               </div>
             </Link>
 
-            {make || model || chassis ? (
+            {canShowVehicleMatch ? (
               <FitmentExplanation item={item} vehicleLabel={vehicleLabel} isUa={isUa} />
             ) : null}
 
@@ -3168,7 +3203,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     </div>
                     {isWheelSet ? (
                       <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
-                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                        {isUa
+                          ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків`
+                          : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
                       </div>
                     ) : null}
                     {!isWheelSet ? (
@@ -3197,7 +3234,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     </div>
                     {isWheelSet ? (
                       <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
-                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                        {isUa
+                          ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків`
+                          : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
                       </div>
                     ) : null}
                   </div>
@@ -3263,6 +3302,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       isB2B,
       vehicleMode,
       locale,
+      canShowVehicleMatch,
     ]
   );
 
@@ -3472,10 +3512,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   >
                     <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
                       <Image
-                        src={resolveShopWarehouseHeroImage(
-                          activeHeroProduct.partNumber,
-                          activeHeroProduct.thumbnail
-                        )!}
+                        src={
+                          resolveShopWarehouseHeroImage(
+                            activeHeroProduct.partNumber,
+                            activeHeroProduct.thumbnail
+                          )!
+                        }
                         alt=""
                         fill
                         priority={heroProductIndex === 0}
@@ -3604,18 +3646,20 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           className="relative z-40 mx-2 mt-4 rounded-[16px] border border-foreground/10 bg-card p-3 shadow-[0_24px_70px_rgba(0,0,0,0.13)] dark:bg-[#08090b] sm:mx-0 sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5"
         >
           <div className="space-y-2 self-end sm:space-y-3">
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_380px]">
               <div
                 ref={searchBoxRef}
-                className="relative z-50"
+                className="relative z-50 min-w-0"
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
                     closeSuggestions();
                   }
                 }}
               >
-                <label className="relative flex min-h-11 items-center border border-foreground/18 bg-card px-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition focus-within:border-foreground/40 dark:border-white/18 dark:bg-[#08090b] dark:shadow-none dark:focus-within:border-white/45 sm:min-h-12 sm:px-4">
-                  <Search className="h-4 w-4 shrink-0 text-foreground/45" />
+                <label className="group/search relative flex min-h-[52px] items-center rounded-[10px] border-2 border-primary/55 bg-primary/[0.045] px-3 shadow-[0_5px_18px_rgba(0,0,0,0.06)] transition-[border-color,background-color,box-shadow] hover:border-primary/80 focus-within:border-primary focus-within:bg-primary/[0.07] focus-within:ring-4 focus-within:ring-primary/15 dark:border-primary/60 dark:bg-[#17140e] dark:shadow-[0_0_22px_rgba(198,166,87,0.06)] dark:focus-within:bg-[#1d180f] sm:min-h-14 sm:px-4">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[7px] bg-primary/15 text-primary transition-colors group-focus-within/search:bg-primary group-focus-within/search:text-primary-foreground sm:h-9 sm:w-9">
+                    <Search className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                  </span>
                   <input
                     type="text"
                     inputMode="search"
@@ -3629,9 +3673,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     }}
                     onKeyDown={handleSuggestionKeyDown}
                     placeholder={
-                      isUa ? "Пошук: бренд, SKU, авто" : "Search: brand, SKU, product, or vehicle"
+                      isUa ? "Бренд, SKU або авто" : "Brand, SKU or vehicle"
                     }
                     role="combobox"
+                    aria-label={isUa ? "Пошук товарів" : "Search products"}
                     aria-expanded={suggestionsOpen}
                     aria-controls="stock-search-suggestions"
                     aria-activedescendant={
@@ -3639,7 +3684,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         ? `stock-suggestion-${activeSuggestionIndex}`
                         : undefined
                     }
-                    className="h-10 min-w-0 flex-1 bg-transparent px-2 text-[13px] font-light text-foreground outline-hidden placeholder:text-foreground/38 sm:h-11 sm:px-3 sm:text-sm"
+                    className="h-11 min-w-0 flex-1 bg-transparent px-3 text-base font-medium text-foreground outline-hidden placeholder:font-normal placeholder:text-foreground/70 sm:h-12 sm:text-[15px]"
                   />
                   {suggestionsLoading ? (
                     <Loader2 className="h-4 w-4 shrink-0 animate-spin text-foreground/40" />
@@ -4403,8 +4448,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           const logoPath = getBrandLogoPath(item.brand);
                           const compareAtLabel = formatItemCompareAt(item);
                           const priceLabel = formatItemPrice(item);
-                          const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
-                          const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
+                          const wheelLike = {
+                            brand: item.brand,
+                            partNumber: item.partNumber,
+                            category: item.category,
+                          };
+                          const isWheelSet =
+                            isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                           return (
                             <div
@@ -4522,7 +4572,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     >
                                       {priceLabel}
                                     </span>
-                                    {isWheelSet ? <span className="ml-2 text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</span> : null}
+                                    {isWheelSet ? (
+                                      <span className="ml-2 text-[9px] uppercase tracking-wider text-foreground/45">
+                                        {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                      </span>
+                                    ) : null}
                                   </div>
                                 ) : (
                                   <div
@@ -4532,7 +4586,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
-                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
+                                {isWheelSet ? (
+                                  <div className="text-[9px] uppercase tracking-wider text-foreground/45">
+                                    {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                  </div>
+                                ) : null}
                               </div>
 
                               {/* Add to Cart button */}
@@ -4546,7 +4604,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                   </Link>
                                 ) : isWheelSet ? (
                                   <Link
-                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    href={resolveShopCatalogProductHref(
+                                      locale,
+                                      item.href,
+                                      item.slug
+                                    )}
                                     className="flex h-9 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
                                   >
                                     {isUa ? "Обрати комплект" : "Choose set"}
@@ -4575,8 +4637,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         const logoPath = getBrandLogoPath(item.brand);
                         const compareAtLabel = formatItemCompareAt(item);
                         const priceLabel = formatItemPrice(item);
-                        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
-                        const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
+                        const wheelLike = {
+                          brand: item.brand,
+                          partNumber: item.partNumber,
+                          category: item.category,
+                        };
+                        const isWheelSet =
+                          isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                         return (
                           <div
@@ -4658,7 +4725,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                               </div>
                             </div>
 
-                            {make || model || chassis ? (
+                            {canShowVehicleMatch ? (
                               <div className="mb-3">
                                 <FitmentExplanation
                                   item={item}
@@ -4696,7 +4763,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
-                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
+                                {isWheelSet ? (
+                                  <div className="text-[9px] uppercase tracking-wider text-foreground/45">
+                                    {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                  </div>
+                                ) : null}
                               </div>
 
                               <div className="w-32">
@@ -4709,7 +4780,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                   </Link>
                                 ) : isWheelSet ? (
                                   <Link
-                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    href={resolveShopCatalogProductHref(
+                                      locale,
+                                      item.href,
+                                      item.slug
+                                    )}
                                     className="flex min-h-8 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
                                   >
                                     {isUa ? "Обрати комплект" : "Choose set"}

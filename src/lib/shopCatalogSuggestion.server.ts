@@ -11,6 +11,7 @@ import { prisma } from "./prisma";
 import { resolveLegacyVehicleProductIds } from "./shopCatalogLegacyVehicleIds.server";
 import {
   buildShopCatalogProjectionVehicleCondition,
+  buildShopCatalogProjectionScopeCondition,
   queryShopCatalogProjectionFacets,
 } from "./shopCatalogProjectionQuery.server";
 import { buildShopCatalogVehicleSearchPlan } from "./shopCatalogVehicleSearchPlan";
@@ -23,11 +24,7 @@ import {
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { buildShopStorefrontProductPath } from "./shopStorefrontRouting";
 import { getProductDisplayBrand } from "./shopProductDisplayBrand";
-import {
-  compactShopCode,
-  expandVehicleAliases,
-  getVehicleResidualSearchTokens,
-} from "./shopVehicleSearch";
+import { compactShopCode } from "./shopVehicleSearch";
 
 export const SHOP_CATALOG_SUGGESTION_LIMITS = Object.freeze({
   queryMin: 2,
@@ -80,19 +77,7 @@ export function getShopCatalogSuggestionTextQuery(query: string) {
   const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: query }), {
     readerMode: "projection",
   });
-  const expansion = expandVehicleAliases(query);
-  const queryTokens = new Set(tokenizeShopSearchQuery(canonicalizeShopSearchQuery(query)));
-  const explicitSoftTerms = expansion.softTerms.filter((term) => {
-    const tokens = tokenizeShopSearchQuery(canonicalizeShopSearchQuery(term));
-    return tokens.length > 0 && tokens.every((token) => queryTokens.has(token));
-  });
-  return [
-    ...new Set([
-      ...getVehicleResidualSearchTokens(expansion),
-      ...plan.qualifierTerms,
-      ...explicitSoftTerms,
-    ]),
-  ].join(" ");
+  return plan.textQuery;
 }
 
 export function normalizeShopCatalogSuggestionInput(input: ShopCatalogSuggestionInput) {
@@ -225,16 +210,15 @@ export async function queryShopCatalogSuggestions(
     { readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE }
   );
   const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
-  const vehicleProductIds = vehicleConstraints && !vehicleSearchPlan.canonical
-    ? await resolveLegacyVehicleProductIds({
-        ...vehicleSearchPlan.constraints,
-        modelAlternates: vehicleSearchPlan.modelAlternates,
-      })
-    : null;
+  const vehicleProductIds =
+    vehicleConstraints && !vehicleSearchPlan.canonical
+      ? await resolveLegacyVehicleProductIds({
+          ...vehicleSearchPlan.constraints,
+          modelAlternates: vehicleSearchPlan.modelAlternates,
+        })
+      : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);
-  const normalizedProductQuery = normalizeShopSearchText(
-    canonicalizeShopSearchQuery(productQuery)
-  );
+  const normalizedProductQuery = normalizeShopSearchText(canonicalizeShopSearchQuery(productQuery));
   const normalizedProductSku = compactShopCode(normalizedProductQuery);
   const productSearchPattern = `%${escapeLike(normalizedProductQuery)}%`;
   // Match the same bounded token semantics as the stock search endpoint.
@@ -260,7 +244,8 @@ export async function queryShopCatalogSuggestions(
     Prisma.sql`projection."statusKey" = 'ACTIVE'`,
     lexicalCondition,
   ];
-  if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  const scopeCondition = buildShopCatalogProjectionScopeCondition(input.scope);
+  if (scopeCondition) projectionConditions.push(scopeCondition);
   if (vehicleConstraints) {
     if (vehicleProductIds !== null) {
       projectionConditions.push(

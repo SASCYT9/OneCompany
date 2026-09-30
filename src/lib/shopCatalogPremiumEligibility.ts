@@ -1,7 +1,11 @@
 export type PremiumCatalogEligibilityParams = Pick<URLSearchParams, "get" | "getAll">;
 
 export type PremiumCatalogEligibilityReason =
-  "supported" | "product_type" | "product_kind" | "strict" | "facet_mode" | "multiple_brands";
+  | "supported"
+  | "product_type"
+  | "product_kind"
+  | "strict"
+  | "facet_mode";
 
 export type PremiumCatalogEligibility = {
   eligible: boolean;
@@ -20,11 +24,6 @@ export function getPremiumCatalogEligibility(
   const productKind = params.get("productKind")?.trim().toLowerCase();
   const strictRaw = params.get("strict")?.trim().toLowerCase() ?? "";
   const facetMode = params.get("facetMode")?.trim() ?? "";
-  const brands = params
-    .getAll("brand")
-    .flatMap((value) => value.split(","))
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
 
   if (productType) return { eligible: false, reason: "product_type" };
   if (productKind && productKind !== "any") return { eligible: false, reason: "product_kind" };
@@ -37,7 +36,6 @@ export function getPremiumCatalogEligibility(
   if (facetMode && facetMode !== "filtered") {
     return { eligible: false, reason: "facet_mode" };
   }
-  if (new Set(brands).size > 1) return { eligible: false, reason: "multiple_brands" };
   return { eligible: true, reason: "supported" };
 }
 

@@ -75,13 +75,12 @@ test("projection suggestions canonicalize brand and model spelling combinations"
 });
 
 test("structured vehicle suggestions reuse specific verified fitment constraints", async () => {
-  const {
-    getShopCatalogSuggestionTextQuery,
-    getShopCatalogSuggestionVehicleConstraints,
-  } = await suggestionModule;
+  const { getShopCatalogSuggestionTextQuery, getShopCatalogSuggestionVehicleConstraints } =
+    await suggestionModule;
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("AMG G63 W465"), {
     make: "Mercedes-Benz",
     model: "G-Class",
+    modelAlternates: ["G63"],
     generation: "W465",
     year: null,
     engine: null,
@@ -91,6 +90,7 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("BMW M3 G80 Eventuri"), {
     make: "BMW",
     model: "M3",
+    modelAlternates: [],
     generation: "G80",
     year: null,
     engine: null,

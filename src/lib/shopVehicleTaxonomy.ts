@@ -10,6 +10,7 @@ const VEHICLE_MAKE_ALIAS_GROUPS = {
   BMW: ["bmw"],
   BYD: ["byd"],
   Citroën: ["citroen", "citroën"],
+  CUPRA: ["cupra"],
   DS: ["ds"],
   Ford: ["ford", "ford usa"],
   GMC: ["gmc"],
@@ -22,6 +23,7 @@ const VEHICLE_MAKE_ALIAS_GROUPS = {
   NIO: ["nio"],
   "Rolls-Royce": ["rolls royce", "rolls-royce"],
   SEAT: ["seat"],
+  Škoda: ["skoda", "škoda"],
   Volkswagen: ["volkswagen", "vw"],
 } as const;
 

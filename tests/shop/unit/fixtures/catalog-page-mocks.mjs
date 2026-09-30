@@ -124,7 +124,12 @@ export function buildShopCatalogVehicleSearchPlan(params) {
     opfGpf: params.get("opfGpf") || null,
   };
   const canonical = Boolean(constraints.engine || constraints.fuel || constraints.opfGpf);
-  return { constraints, canonical, reader: canonical ? "projection" : "legacy" };
+  return {
+    constraints,
+    canonical,
+    textQuery: params.get("q") || "",
+    reader: canonical ? "projection" : "legacy",
+  };
 }
 export async function resolveLegacyVehicleProductIds() {
   calls.legacyCalls += 1;

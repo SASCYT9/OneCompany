@@ -104,7 +104,16 @@ test("CatalogPage performs a narrow shared Eventuri lookup for stock=all and ded
   ]);
 });
 
-test("CatalogPage treats auto scope as the unpartitioned default", async () => {
+test("CatalogPage preserves the auto partition like the search API", async () => {
   const calls = await readPage({ make: "BMW", model: "M5", scope: "auto" });
-  assert.equal(calls.queries[0].scope, null);
+  assert.equal(calls.queries[0].scope, "auto");
+});
+
+test("CatalogPage passes text and all brands to listing and facet readers", async () => {
+  const calls = await readPage({ brand: "Eventuri,CSF", q: "intake", scope: "auto" });
+  for (const query of [...calls.queries, ...calls.facetQueries]) {
+    assert.deepEqual(query.brands, ["Eventuri", "CSF"]);
+    assert.equal(query.text, "intake");
+    assert.equal(query.scope, "auto");
+  }
 });

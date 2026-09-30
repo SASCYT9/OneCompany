@@ -52,6 +52,41 @@ function params(values: Record<string, string>) {
   return new URLSearchParams({ locale: "en", ...values });
 }
 
+test("auto scope and vehicle residual text reach products, facets and counts together", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  await queryPremiumCatalogProjection(params({ scope: "auto", q: "BMW M3 G80 do88 intake" }));
+  for (const query of [
+    ...mock.state.queries,
+    ...mock.state.facetQueries,
+    ...mock.state.countQueries,
+  ]) {
+    assert.equal(query.scope, "auto");
+    assert.equal(query.text, "do88 intake");
+    assert.deepEqual(query.productIds, ["legacy-id"]);
+  }
+});
+
+test("multiple brands reach the same bounded product, facet and count predicates", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  for (const brand of ["Eventuri,CSF", "CSF,Eventuri"]) {
+    mock.reset();
+    await queryPremiumCatalogProjection(
+      params({ scope: "auto", brand, make: "BMW", model: "M3", chassis: "G80" })
+    );
+    for (const query of [
+      ...mock.state.queries,
+      ...mock.state.facetQueries,
+      ...mock.state.countQueries,
+    ]) {
+      assert.deepEqual(new Set(query.brands), new Set(["CSF", "Eventuri"]));
+      assert.deepEqual(query.productIds, ["legacy-id"]);
+    }
+  }
+});
+
 test("default browse interleaves brands while text search keeps relevance order", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");

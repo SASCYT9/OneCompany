@@ -1,5 +1,45 @@
 # Catalog V2 — live execution status
 
+## System-wide filter repair R04 — 2026-09-30
+
+Read-only production investigation made 550 public requests across 27 brands,
+50 makes and 426 make/model pairs. Eventuri and CSF individually returned 6
+and 8 BMW M3/G80 products, while their union returned zero through the alternate
+reader. Auto scope included 368 explicit moto records. Twenty brands had no
+category facets; all brand slices exposed 14,871 products without visible groups.
+
+Local changes unify OR-brand predicates, vehicle/residual text, scope, make
+aliases, CHASSIS matching and current policy/projection versions. Selectors no
+longer fabricate options from the language dictionary. The client supports
+additive brands and does not relabel stale cards during loading/errors.
+Projection sources retain classification; three source adapters preserve open
+year ranges. The global KW-specific RS5/B9-to-B8 rewrite is removed; its source
+records require explicit reconciliation before rollout.
+
+Validation: 554 catalog unit tests and TypeScript passed; touched-file lint has
+zero errors and five warnings. All 47 SQL migrations replayed on an owned
+in-memory PGlite database. The Prisma integration, local HTTP and Chrome checks
+passed for multi-brand vehicle/price queries, UNKNOWN engine, wrong chassis,
+moto partitioning and stale policy revisions. These are fixture checks, not
+production coverage or load/concurrency/publication acceptance.
+
+The owner approved a more visible search input: stronger theme accent border,
+larger icon/text, focus ring and a shorter localized hint. Chrome checks covered
+dark/light desktop and a 390 x 844 mobile viewport; the mobile input stays within
+its container. TypeScript was rerun successfully after this change. Commit-time
+touched-file lint has zero errors and five warnings (including one ignored
+fixture script); existing React hook warnings remain.
+
+The whole-project unit suite is not certified green: an earlier broad run had
+16 failures, and two catalog assertions were subsequently corrected. The
+554-test catalog result above is the scoped acceptance result, not a claim
+that all project tests pass.
+
+Production actions: none. R04 release remains open. R02/R03 source correction,
+advanced-filter parity, projection publication and performance acceptance are
+still required. See [CATALOG_SYSTEM_AUDIT_2026-09-30.md](./CATALOG_SYSTEM_AUDIT_2026-09-30.md)
+and [CATALOG_FILTER_REPAIR_PLAN_2026-09-30.md](./CATALOG_FILTER_REPAIR_PLAN_2026-09-30.md).
+
 ## Current filter/source audit — 2026-09-23
 
 The commit-bound disposable PostgreSQL all-source gate passed at `0c8c98fa`:

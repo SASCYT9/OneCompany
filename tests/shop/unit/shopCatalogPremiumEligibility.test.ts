@@ -7,12 +7,7 @@ import {
 
 test("premium projection rejects legacy-only query dimensions", () => {
   assert.equal(canUsePremiumCatalogProjection(new URLSearchParams("make=BMW")), true);
-  for (const query of [
-    "productType=intake",
-    "productKind=turbo",
-    "productKind=brakes&strict=1",
-    "brand=A&brand=B",
-  ]) {
+  for (const query of ["productType=intake", "productKind=turbo", "productKind=brakes&strict=1"]) {
     assert.equal(canUsePremiumCatalogProjection(new URLSearchParams(query)), false, query);
   }
   assert.equal(
@@ -29,7 +24,6 @@ test("premium projection gates every URL dimension whose semantics are legacy-on
     ["strict=true", "strict"],
     ["facetMode=global", "facet_mode"],
     ["facetMode=unexpected", "facet_mode"],
-    ["brand=Eventuri&brand=KW", "multiple_brands"],
   ] as const;
 
   for (const [query, reason] of cases) {
@@ -44,4 +38,16 @@ test("premium projection gates every URL dimension whose semantics are legacy-on
     ),
     { eligible: true, reason: "supported" }
   );
+});
+
+test("multiple brands keep the projection reader for comma and repeated URL parameters", () => {
+  for (const query of [
+    "brand=Eventuri,CSF",
+    "brand=Eventuri&brand=CSF&make=BMW&model=M3&chassis=G80",
+  ]) {
+    assert.deepEqual(getPremiumCatalogEligibility(new URLSearchParams(query)), {
+      eligible: true,
+      reason: "supported",
+    });
+  }
 });

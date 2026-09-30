@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { flattenShopCatalogRawPayload } from "./shopCatalogSourceCoverage";
+import { extractVehicleYearRanges } from "./shopVehicleYears";
 
 export type GirodiscSnapshotProduct = { id: string; slug: string; sku: string; scope: string; title: { ua: string; en: string }; tags: string[];
   variants: Array<{ id: string; sku: string | null; isDefault: boolean }>; [key: string]: unknown };
@@ -28,10 +29,10 @@ function clean(value: string) { return value.replace(/\b(?:front|rear|left|right
 function parseApplications(product: GirodiscSnapshotProduct, evidence: NonNullable<ReturnType<typeof makeEvidence>>) {
   const title = product.title.en || product.title.ua, makeMatch = new RegExp(`\\b${escape(evidence.alias).replace(/[-_]/g, "[-_ ]")}\\b`, "i").exec(title);
   if (!makeMatch) return [];
-  let after = title.slice(makeMatch.index + makeMatch[0].length); const year = after.match(/\b((?:19|20)\d{2})(?:\s*[-–]\s*((?:19|20)\d{2}))?\s*(\+)?/);
-  const yearFrom = year ? Number(year[1]) : null, yearTo = year?.[2] ? Number(year[2]) : year?.[3] ? null : yearFrom;
+  let after = title.slice(makeMatch.index + makeMatch[0].length); const year = extractVehicleYearRanges(after)[0];
+  const yearFrom = year?.from ?? null, yearTo = year?.to ?? null;
   const applications: GirodiscApplication[] = [], parens = [...after.matchAll(/([^()/,;]{1,50})\s*\(([^)]+)\)/g)];
-  for (const match of parens) { const model = clean(match[1] ?? ""), codes = (match[2]?.match(/\b(?:[A-Z]{1,4}\d{1,4}|\d{3,4})\b/gi) ?? []).map((value) => value.toUpperCase());
+  for (const match of parens) { const model = clean(match[1] ?? ""), codes = (match[2]?.match(/\b(?:[A-Z]{1,4}\d{1,4}|\d{3,4})\b/gi) ?? []).filter((value) => !/^(?:19|20)\d{2}$/.test(value)).map((value) => value.toUpperCase());
     if (!model) continue; if (codes.length) for (const generation of codes) applications.push({ make: evidence.label, model, generation, yearFrom, yearTo }); else applications.push({ make: evidence.label, model, generation: null, yearFrom, yearTo }); }
   if (!applications.length) { after = clean(after); if (after) applications.push({ make: evidence.label, model: after, generation: null, yearFrom, yearTo }); }
   return [...new Map(applications.map((app) => [`${app.make}|${app.model}|${app.generation ?? "*"}`, app])).values()];
@@ -49,7 +50,7 @@ export function buildGirodiscSourceRecordDraft(input: { product: GirodiscSnapsho
   const provenance = flattenShopCatalogRawPayload(input.product).map((leaf) => { const variantField = leaf.fieldPath.startsWith("variants."), variant = variantField ? input.product.variants.length === 1 ? input.product.variants[0] : input.product.variants[leaf.ordinal] : null;
     if (variantField && !variant) throw new Error(`GiroDisc variant provenance cannot resolve ${leaf.fieldPath}`); const legacyScope = leaf.fieldPath === "scope" && leaf.value === "SHOP"; return { fieldPath: leaf.fieldPath, ordinal: leaf.ordinal, rawValue: leaf.value,
       canonicalEntityType: variantField ? ("VARIANT" as const) : ("PRODUCT" as const), canonicalEntityId: variant?.id ?? input.product.id, canonicalField: legacyScope ? "scope" : variantField ? leaf.fieldPath.slice(9) : leaf.fieldPath,
-      normalizedValue: legacyScope ? "auto" : leaf.value, mappingStatus: "MAPPED" as const, mapperVersion: "girodisc-snapshot-v1" as const, confidence: 1 as const, reason: legacyScope ? "audited LEGACY SHOP scope maps to auto" : null,
+      normalizedValue: legacyScope ? "auto" : leaf.value, mappingStatus: "MAPPED" as const, mapperVersion: "girodisc-snapshot-v2" as const, confidence: 1 as const, reason: legacyScope ? "audited LEGACY SHOP scope maps to auto" : null,
       productId: input.product.id, variantId: variant?.id ?? null }; });
   return { sourceRecord: { recordKey: normalization.recordKey, sourceRevision: input.sourceRevision, rawPayload: input.product, payloadHash: createHash("sha256").update(JSON.stringify(input.product)).digest("hex"), productId: input.product.id }, provenance, normalization,
     issues: normalization.issues.map((issue) => ({ issueKey: `girodisc:${issue}`, code: issue.toUpperCase(), rawPath: issue.includes("parse") ? "title" : "$", details: { productId: input.product.id, supplierSku: input.product.sku } })) };

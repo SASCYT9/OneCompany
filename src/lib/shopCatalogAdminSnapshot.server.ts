@@ -26,6 +26,8 @@ import {
   canonicalPoliciesToProjectionV2,
   type CanonicalPolicyProjectionInput,
 } from "./shopCatalogCanonicalPolicyProjection";
+import { getShopStockCategoryGroupForProduct } from "./shopStockTaxonomy";
+import { resolveShopStockVehicleScope } from "./shopStockVehicleScope";
 
 type AdminProductRecord = Prisma.ShopProductGetPayload<{ include: typeof adminProductInclude }>;
 type ProjectionAdminProductRecord = Omit<AdminProductRecord, "bundle"> & {
@@ -215,10 +217,32 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
   // Preserve correlated V2 clauses and UNKNOWN dimensions directly. The
   // conservative legacy normalization downgrades the whole contract when
   // even an unrequested dimension is unknown (for example transmission).
-  const supplierV2Policy = supplierFitmentIsAuthoritative && supplierContract?.version === 2
-    ? supplierFitmentV2ToShopCatalogV2Policy(supplierContract, { productId: record.id })
-    : null;
+  const supplierV2Policy =
+    supplierFitmentIsAuthoritative && supplierContract?.version === 2
+      ? supplierFitmentV2ToShopCatalogV2Policy(supplierContract, { productId: record.id })
+      : null;
   const primaryMedia = record.media[0];
+  // The legacy reader classifies products without a category relation. Keep
+  // that same taxonomy in the published derivative instead of dropping the
+  // category facet for whole imported brands. Canonical relations stay intact.
+  const categoryGroup = getShopStockCategoryGroupForProduct(
+    {
+      product: {
+        brand: record.brand,
+        vendor: record.vendor,
+        productType: record.productType,
+        sku: record.sku,
+        slug: record.slug,
+        tags: record.tags,
+        title: { ua: record.titleUa, en: record.titleEn },
+        category: record.category
+          ? { ua: record.category.titleUa, en: record.category.titleEn }
+          : null,
+        variants: record.variants,
+      },
+    },
+    "ua"
+  );
   return {
     productId: record.id,
     sourceVersion: nextCatalogVersion,
@@ -237,7 +261,7 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     },
     slug: record.slug,
     sku: record.sku,
-    scopeKey: record.scope,
+    scopeKey: resolveShopStockVehicleScope(record.scope, authoritativeFitment?.vehicleType),
     statusKey: record.status,
     stockKey: record.stock,
     isPublished: record.isPublished,
@@ -255,10 +279,10 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
           labelUa: record.category.titleUa,
           labelEn: record.category.titleEn,
         }
-      : null,
+      : { key: categoryGroup.id, labelUa: categoryGroup.ua, labelEn: categoryGroup.en },
     productTypeKey: record.productType,
     productKindKey: record.productCategory,
-    categoryGroupKey: record.category?.slug ?? null,
+    categoryGroupKey: record.category?.slug ?? categoryGroup.id,
     locales: {
       ua: {
         title: record.titleUa,
@@ -294,14 +318,14 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     compatibilityPolicies: supplierV2Policy
       ? [supplierV2Policy]
       : record.catalogPolicies?.length && !supplierFitmentIsAuthoritative
-      ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
-      : [
-          compatibilityPolicyFromNormalizedFitment(
-            record.id,
-            authoritativeFitment,
-            record.scope === "moto" ? "moto" : "auto"
-          ),
-        ],
+        ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
+        : [
+            compatibilityPolicyFromNormalizedFitment(
+              record.id,
+              authoritativeFitment,
+              record.scope === "moto" ? "moto" : "auto"
+            ),
+          ],
   };
 }
 

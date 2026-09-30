@@ -93,10 +93,7 @@ function legacyCatalogHref(locale: string, filters: CatalogSearchParams) {
   return `/${locale}/shop/stock${query ? `?${query}` : ""}`;
 }
 
-export default async function CatalogPage({
-  params,
-  searchParams,
-}: Props) {
+export default async function CatalogPage({ params, searchParams }: Props) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
   const requestHeaders = reader.mode === "canary" ? await headers() : null;
   const [{ locale }, filters] = await Promise.all([params, searchParams]);
@@ -114,7 +111,7 @@ export default async function CatalogPage({
   // The projection DTO contains some URL dimensions for transport and link
   // continuity even though their native semantics are not published yet.
   // Gate those requests before parsing/defaulting can turn them into a
-  // projection no-op (product type/kind, strict, global facets, and OR brands).
+  // projection no-op (product type/kind, strict, global facets).
   const eligibilityParams = {
     get: (name: string) => catalogParamValues(filters, name)[0] ?? null,
     getAll: (name: string) => [...catalogParamValues(filters, name)],
@@ -130,6 +127,7 @@ export default async function CatalogPage({
   const query = parseShopCatalogStorefrontQuery(resolvedLocale, filters);
   const vehicleParams = new URLSearchParams();
   for (const key of [
+    "q",
     "make",
     "model",
     "generation",
@@ -151,6 +149,7 @@ export default async function CatalogPage({
       : resolveLegacyVehicleProductIds({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
+          brand: query.brands.join(",") || null,
         });
     const warehouseProductsPromise: Promise<
       Array<{ id: string; sku: string | null; slug: string }>
@@ -204,9 +203,8 @@ export default async function CatalogPage({
       ...query,
       ...vehiclePlan.constraints,
       modelAlternates: vehiclePlan.modelAlternates,
-      // The established catalog treats auto as the default unpartitioned tab;
-      // only moto is a strict projection scope.
-      scope: query.scope === "moto" ? "moto" : null,
+      text: vehiclePlan.textQuery || null,
+      scope: query.scope,
       effectivePriceContext,
       ...(query.stock === "inStock"
         ? { productIds: warehouseProductIds }
@@ -231,8 +229,14 @@ export default async function CatalogPage({
           .map((product) => product.id),
       ]),
     ];
-    if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
-      if (vehicleProductIds) {
+    if (
+      !vehiclePlan.canonical &&
+      (projectionQuery.make ||
+        projectionQuery.model ||
+        projectionQuery.generation ||
+        projectionQuery.year)
+    ) {
+      if (vehicleProductIds !== null) {
         const effectiveVehicleProductIds =
           canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
             ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
@@ -242,12 +246,12 @@ export default async function CatalogPage({
               projectionQuery.productIds?.includes(productId)
             )
           : effectiveVehicleProductIds;
+        projectionQuery.make = null;
+        projectionQuery.model = null;
+        projectionQuery.modelAlternates = [];
+        projectionQuery.generation = null;
+        projectionQuery.year = null;
       }
-      projectionQuery.make = null;
-      projectionQuery.model = null;
-      projectionQuery.modelAlternates = [];
-      projectionQuery.generation = null;
-      projectionQuery.year = null;
     }
     const [listingRead, facetRead] = await Promise.all([
       observeShopCatalogRead({

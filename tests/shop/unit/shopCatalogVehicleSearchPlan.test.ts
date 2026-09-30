@@ -135,3 +135,44 @@ test("invalid OPF selections fail closed before the legacy bridge can run", () =
     /opfGpf exceeds 320 characters/
   );
 });
+
+test("verified vehicle identity removes only resolved vehicle text from product matching", () => {
+  for (const q of ["BMW M3 G80", "G80 BMW M3", "бмв м3 г80"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q }));
+    assert.equal(plan.textQuery, "", q);
+  }
+  assert.equal(
+    buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: "BMW M3 G80 do88 intake" }))
+      .textQuery,
+    "do88 intake"
+  );
+  assert.equal(
+    buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: "BMW M3 G80 S58 V2" })).textQuery,
+    "s58 v2"
+  );
+  assert.equal(
+    buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: "BMW G8X" })).textQuery,
+    "bmw g8x"
+  );
+  assert.equal(
+    buildShopCatalogVehicleSearchPlan(new URLSearchParams({ q: "IR-130R-48-do88" })).textQuery,
+    "ir 130r 48 do88"
+  );
+});
+
+test("query vehicle terms stay lexical when they conflict with the selected vehicle", () => {
+  const plan = buildShopCatalogVehicleSearchPlan(
+    new URLSearchParams({ make: "Audi", model: "RS3", chassis: "8V", q: "BMW M3 G80" })
+  );
+  assert.equal(plan.constraints.make, "Audi");
+  assert.equal(plan.textQuery, "bmw m3 g80");
+});
+
+test("supplier type codes cannot rewrite the selected generation for other manufacturers", () => {
+  for (const brand of ["Eventuri", "KW Suspensions", "GiroDisc"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(
+      new URLSearchParams({ brand, make: "Audi", model: "RS5", chassis: "B9" })
+    );
+    assert.equal(plan.constraints.generation, "B9");
+  }
+});

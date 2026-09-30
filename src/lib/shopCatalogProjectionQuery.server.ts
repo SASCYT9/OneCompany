@@ -37,6 +37,7 @@ export type ShopCatalogProjectionQueryInput = {
   text?: string | null;
   scope?: string | null;
   brand?: string | null;
+  brands?: readonly string[] | null;
   category?: string | null;
   make?: string | null;
   model?: string | null;
@@ -226,7 +227,7 @@ function normalizeOpfGpf(value: string | null | undefined) {
 export function normalizeShopCatalogProjectionQuery(
   input: ShopCatalogProjectionQueryInput
 ): Required<Pick<ShopCatalogProjectionQueryInput, "locale">> &
-  Omit<ShopCatalogProjectionQueryInput, "locale"> & { limit: number } {
+  Omit<ShopCatalogProjectionQueryInput, "locale"> & { limit: number; brands: readonly string[] } {
   const limit = input.limit ?? SHOP_CATALOG_PROJECTION_QUERY_LIMITS.defaultPageSize;
   const offset = input.offset ?? 0;
   if (
@@ -264,13 +265,28 @@ export function normalizeShopCatalogProjectionQuery(
   if (input.after && (offset !== 0 || (input.order && input.order !== "default"))) {
     throw new TypeError("stable-rank cursor requires default order and no offset");
   }
+  if ((input.brands?.length ?? 0) > 100) throw new TypeError("brands exceeds 100 values");
+  const brands = [
+    ...new Map(
+      [input.brand, ...(input.brands ?? [])]
+        .map((value) =>
+          optionalBounded(value, "brands", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet)
+        )
+        .filter((value): value is string => Boolean(value))
+        .map((value) => [value.toLowerCase(), value])
+    ).values(),
+  ];
   return Object.freeze({
     locale: input.locale,
     limit,
     after: input.after ?? null,
     text: optionalBounded(input.text, "text", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.text),
     scope: optionalBounded(input.scope, "scope", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
-    brand: optionalBounded(input.brand, "brand", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    brand:
+      optionalBounded(input.brand, "brand", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet) ??
+      brands[0] ??
+      null,
+    brands,
     category: optionalBounded(
       input.category,
       "category",
@@ -386,10 +402,34 @@ function textConstraint(
   modelAlternates?: readonly string[] | null
 ): Prisma.ShopCatalogProjectionConstraintWhereInput {
   const modelValues = make
-    ? [...new Set([value, ...(modelAlternates ?? [])].flatMap((model) => vehicleModelAliases(make, model)))]
+    ? [
+        ...new Set(
+          [value, ...(modelAlternates ?? [])].flatMap((model) => vehicleModelAliases(make, model))
+        ),
+      ]
     : [value];
   return {
-    dimension,
+    dimension:
+      dimension === ShopCatalogCompatibilityDimension.GENERATION
+        ? {
+            in: [
+              ShopCatalogCompatibilityDimension.GENERATION,
+              ShopCatalogCompatibilityDimension.CHASSIS,
+            ],
+          }
+        : dimension,
+    ...(dimension === ShopCatalogCompatibilityDimension.GENERATION
+      ? {
+          AND: [
+            {
+              OR: [
+                { dimension: ShopCatalogCompatibilityDimension.GENERATION },
+                { state: ShopCatalogConstraintState.EXACT },
+              ],
+            },
+          ],
+        }
+      : {}),
     OR: [
       {
         state: { in: [ShopCatalogConstraintState.ANY, ShopCatalogConstraintState.NOT_APPLICABLE] },
@@ -556,6 +596,10 @@ function correlatedTextConstraintSql(
       : dimension === ShopCatalogCompatibilityDimension.MAKE
         ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map((alias) => alias.toLowerCase()))})`
         : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
+  const dimensionMatch =
+    dimension === ShopCatalogCompatibilityDimension.GENERATION
+      ? Prisma.sql`(compatibility_constraint."dimension" = 'GENERATION' OR (compatibility_constraint."dimension" = 'CHASSIS' AND compatibility_constraint."state" = 'EXACT'))`
+      : Prisma.sql`compatibility_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"`;
   return Prisma.sql`
     EXISTS (
       SELECT 1
@@ -564,7 +608,7 @@ function correlatedTextConstraintSql(
         AND compatibility_constraint."clauseKey" = clause."clauseKey"
         AND compatibility_constraint."productId" = clause."productId"
         AND compatibility_constraint."sourceVersion" = clause."sourceVersion"
-        AND compatibility_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"
+        AND ${dimensionMatch}
         AND (
           compatibility_constraint."state" IN ('ANY', 'NOT_APPLICABLE')
           OR (
@@ -626,9 +670,12 @@ function projectionFacetBaseConditions(
   const price = priceOverride ?? projectionPriceSql(input);
   if (input.minPrice != null) conditions.push(Prisma.sql`${price} >= ${input.minPrice}`);
   if (input.maxPrice != null) conditions.push(Prisma.sql`${price} <= ${input.maxPrice}`);
-  if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
-  if (includeBrand && input.brand) {
-    conditions.push(projectionBrandConditionSql(input.brand));
+  const scopeCondition = buildShopCatalogProjectionScopeCondition(input.scope);
+  if (scopeCondition) conditions.push(scopeCondition);
+  if (includeBrand && input.brands.length) {
+    conditions.push(
+      Prisma.sql`(${Prisma.join(input.brands.map(projectionBrandConditionSql), " OR ")})`
+    );
   }
   if (includeCategory && input.category) {
     conditions.push(
@@ -639,6 +686,14 @@ function projectionFacetBaseConditions(
     conditions.push(projectionSearchConditionSql(input.text));
   }
   return conditions;
+}
+
+/** Auto keeps legacy unclassified rows but never explicit motorcycle rows. */
+export function buildShopCatalogProjectionScopeCondition(scope?: string | null) {
+  if (!scope) return null;
+  return scope === "auto"
+    ? Prisma.sql`projection."scopeKey" <> ${"moto"}`
+    : Prisma.sql`projection."scopeKey" = ${scope}`;
 }
 
 /** All selected dimensions must be satisfied by the same version of one clause. */
@@ -660,6 +715,10 @@ function selectedVehicleCondition(
   }
   if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
   if (!constraints.length) return null;
+  if (input.scope)
+    constraints.push(
+      correlatedTextConstraintSql(ShopCatalogCompatibilityDimension.SCOPE, input.scope)
+    );
   return Prisma.sql`EXISTS (
     SELECT 1 FROM "ShopCatalogProjectionPolicy" policy
     JOIN "ShopCatalogProjectionClause" clause
@@ -667,6 +726,7 @@ function selectedVehicleCondition(
      AND clause."productId" = policy."productId"
      AND clause."sourceVersion" = policy."sourceVersion"
     WHERE policy."productId" = projection."productId"
+      AND policy."sourceVersion" = projection."sourceVersion"
       AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
       AND clause."verification" = 'VERIFIED'
       AND ${Prisma.join(constraints, " AND ")}
@@ -756,7 +816,7 @@ function buildProjectionFacetSource(
   return {
     prefix: Prisma.sql`WITH priced_facet_projection AS MATERIALIZED (
       SELECT projection."productId", projection."brandKey", projection."brandLabel",
-             projection."categoryKey", projection."categoryLabel"
+             projection."categoryKey", projection."categoryLabel", projection."sourceVersion"
       FROM "ShopCatalogProjection" projection
       CROSS JOIN LATERAL (SELECT ${projectionPriceSql(input)} AS amount OFFSET 0) facet_price
       WHERE ${Prisma.join(common, " AND ")}
@@ -764,7 +824,10 @@ function buildProjectionFacetSource(
     from: Prisma.sql`priced_facet_projection projection`,
     conditions: (includeBrand, includeCategory = true) => {
       const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
-      if (includeBrand && input.brand) conditions.push(projectionBrandConditionSql(input.brand));
+      if (includeBrand && input.brands.length)
+        conditions.push(
+          Prisma.sql`(${Prisma.join(input.brands.map(projectionBrandConditionSql), " OR ")})`
+        );
       if (includeCategory && input.category) {
         conditions.push(
           Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
@@ -782,7 +845,13 @@ function vehicleFacetBranch(
 ) {
   const dimension =
     field === "year" ? ShopCatalogCompatibilityDimension.YEAR : VEHICLE_DIMENSIONS[field];
+  const candidateDimension =
+    field === "generation"
+      ? Prisma.sql`candidate_row."dimension" IN ('GENERATION', 'CHASSIS')`
+      : Prisma.sql`candidate_row."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"`;
   const prefix = selectedVehicleFacetConstraints(input, field);
+  if (input.scope)
+    prefix.push(correlatedTextConstraintSql(ShopCatalogCompatibilityDimension.SCOPE, input.scope));
   const conditions = source.conditions(true);
   const key =
     field === "year"
@@ -819,9 +888,10 @@ function vehicleFacetBranch(
         AND candidate_row."clauseKey" = clause."clauseKey"
         AND candidate_row."productId" = clause."productId"
         AND candidate_row."sourceVersion" = clause."sourceVersion"
-        AND candidate_row."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"
+        AND ${candidateDimension}
         AND candidate_row."state" = 'EXACT'
        WHERE policy."productId" = projection."productId"
+         AND policy."sourceVersion" = projection."sourceVersion"
          AND policy."mode" IN ('VEHICLE_SPECIFIC', 'UNIVERSAL')
          AND clause."verification" = 'VERIFIED'
          ${prefix.length ? Prisma.sql`AND ${Prisma.join(prefix, " AND ")}` : Prisma.empty}
@@ -847,6 +917,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
   const source = buildProjectionFacetSource(input);
   const vehicleCondition = selectedVehicleCondition(input);
   const brandBranch =
+    input.scope === "auto" ||
     input.text ||
     input.productIds ||
     input.excludeProductIds?.length ||
@@ -909,14 +980,16 @@ export function buildShopCatalogProjectionFacetQuerySql(
   // existing per-brand make counters for the all-brand entry point; this avoids
   // scanning every policy just to show the initial make dropdown.
   const liveMakeCounts = Boolean(
-    input.text ||
-    input.opfGpf ||
-    input.productIds ||
-    input.excludeProductIds?.length ||
-    input.category ||
-    input.minPrice != null ||
-    input.maxPrice != null ||
-    isUrbanProductBrand(input.brand ?? "")
+    input.brands.length > 1 ||
+      input.scope === "auto" ||
+      input.text ||
+      input.opfGpf ||
+      input.productIds ||
+      input.excludeProductIds?.length ||
+      input.category ||
+      input.minPrice != null ||
+      input.maxPrice != null ||
+      isUrbanProductBrand(input.brand ?? "")
   );
   if (!input.brand && !liveMakeCounts) {
     branches.push(Prisma.sql`
@@ -1083,11 +1156,11 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     return null;
   const reuseEffectivePrice = Boolean(
     input.effectivePriceContext &&
-    (input.minPrice != null ||
-      input.maxPrice != null ||
-      input.order === "price_asc" ||
-      input.order === "price_desc" ||
-      input.order === "brand_interleave")
+      (input.minPrice != null ||
+        input.maxPrice != null ||
+        input.order === "price_asc" ||
+        input.order === "price_desc" ||
+        input.order === "brand_interleave")
   );
   const price = reuseEffectivePrice ? Prisma.sql`ordered_price.amount` : projectionPriceSql(input);
   // Keep one canonical/default-variant lookup per candidate even when both
@@ -1169,18 +1242,22 @@ export function buildShopCatalogProjectionWhere(
       );
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));
-  if (input.brand) {
-    const urbanAliases = isUrbanProductBrand(input.brand) ? [...URBAN_PRODUCT_BRAND_ALIASES] : null;
+  if (constraints.length && input.scope)
+    constraints.push(textConstraint(ShopCatalogCompatibilityDimension.SCOPE, input.scope));
+  if (input.brands.length) {
     and.push({
-      OR: urbanAliases
-        ? [
-            { brandKey: { in: urbanAliases, mode: "insensitive" } },
-            { brandLabel: { in: urbanAliases, mode: "insensitive" } },
-          ]
-        : [
-            { brandKey: { equals: input.brand, mode: "insensitive" } },
-            { brandLabel: { equals: input.brand, mode: "insensitive" } },
-          ],
+      OR: input.brands.flatMap((brand): Prisma.ShopCatalogProjectionWhereInput[] => {
+        const aliases = isUrbanProductBrand(brand) ? [...URBAN_PRODUCT_BRAND_ALIASES] : null;
+        return aliases
+          ? [
+              { brandKey: { in: aliases, mode: "insensitive" } },
+              { brandLabel: { in: aliases, mode: "insensitive" } },
+            ]
+          : [
+              { brandKey: { equals: brand, mode: "insensitive" } },
+              { brandLabel: { equals: brand, mode: "insensitive" } },
+            ];
+      }),
     });
   }
   if (input.category) {
@@ -1227,9 +1304,11 @@ export function buildShopCatalogProjectionWhere(
   return {
     locale: input.locale,
     isPublished: true,
-    statusKey: isExactWheelForceSkuSearch(input.text) ? { in: ["ACTIVE", "FAMILY_CHILD"] } : "ACTIVE",
+    statusKey: isExactWheelForceSkuSearch(input.text)
+      ? { in: ["ACTIVE", "FAMILY_CHILD"] }
+      : "ACTIVE",
     ...(input.productIds ? { productId: { in: [...input.productIds] } } : {}),
-    ...(input.scope ? { scopeKey: input.scope } : {}),
+    ...(input.scope ? { scopeKey: input.scope === "auto" ? { not: "moto" } : input.scope } : {}),
     ...(and.length ? { AND: and } : {}),
     ...(constraints.length
       ? {

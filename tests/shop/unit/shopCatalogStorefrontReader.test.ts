@@ -165,7 +165,7 @@ test("catalog page serves projection SSR only behind the reader guard", () => {
   assert.match(adapter, /queryShopCatalogProjectionStockSummary\(query, warehouseProductIds\)/);
   assert.match(adapter, /totalItems = stockSummary\.totalItems/);
   assert.match(adapter, /getShopCatalogCardPricingByIds/);
-  assert.match(adapter, /=== "moto" \? "moto" : null/);
+  assert.match(adapter, /scope: \["auto", "moto"\]\.includes/);
   assert.match(adapter, /Promise\.all/);
   assert.match(source, /CatalogV2Server/);
   assert.match(source, /redirect\(legacyCatalogHref/);
@@ -376,10 +376,7 @@ test("fitment selectors read the same projection clauses as vehicle search", () 
   assert.doesNotMatch(canonical, /shopProductKnowledge|shopVehicleApplication/);
   assert.doesNotMatch(api, /hasCanonicalCatalogCoverage/);
   assert.match(api, /SELECTOR_NOT_READY/);
-  assert.match(
-    api,
-    /isShopCatalogReaderRequestEnabled\([\s\S]*?\)\s*\)\s*\{[\s\S]*?status: 503/
-  );
+  assert.match(api, /isShopCatalogReaderRequestEnabled\([\s\S]*?\)\s*\)\s*\{[\s\S]*?status: 503/);
   assert.match(
     api,
     /if \(canonical\) return cachedJson\(canonical\);[\s\S]*?SELECTOR_NOT_READY[\s\S]*?getShopProductsWithFitments\(\)/
