@@ -1,10 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resolveCompatibleVehiclesForDo88Product } from "../../../src/app/[locale]/shop/do88/do88FitmentData";
+import { matchesDo88VehicleFilter, resolveCompatibleVehiclesForDo88Product } from "../../../src/app/[locale]/shop/do88/do88FitmentData";
 
 const saiCategory = "A3 S3 TT, 2.0 TFSI EA888 (8V 8S)";
 const saiTitle = "do88 VAG EA888 SAI Air Filter Kit";
+
+test("duplicate vehicle entries retain both SAI and original platform parts", () => {
+  const vehicle = { make: "VW", model: "Golf GTI / R", chassis: "Mk8" };
+  assert.equal(matchesDo88VehicleFilter("Vehicle Specific > Audi > " + saiCategory, saiTitle, vehicle), true);
+  assert.equal(matchesDo88VehicleFilter("Vehicle Specific > CUPRA", "VAG 2.0 TSI EA888 Gen4 Big Pack", vehicle), true);
+  assert.equal(matchesDo88VehicleFilter("Vehicle Specific > CUPRA", "Formentor VZ5 intercooler", vehicle), false);
+});
+
+test("make-only discovery includes gated shared parts and unknown filters fail closed", () => {
+  const category = "Vehicle Specific > Audi > " + saiCategory;
+  assert.equal(matchesDo88VehicleFilter(category, saiTitle, { make: "VW" }), true);
+  assert.equal(matchesDo88VehicleFilter(category, "Unrelated coolant hose", { make: "VW", model: "Passat" }), false);
+  assert.equal(matchesDo88VehicleFilter(category, saiTitle, { make: "VW", model: "Passat", chassis: "B8 (3G) · 2015+" }), true);
+  assert.equal(matchesDo88VehicleFilter(category, saiTitle, { make: "__proto__" }), false);
+  assert.equal(matchesDo88VehicleFilter(category, saiTitle, { make: "VW", model: "unknown" }), false);
+});
 
 test("LF-190 SAI fitment includes the official EA888 Gen 3 and Gen 4 applications", () => {
   const vehicles = resolveCompatibleVehiclesForDo88Product(saiCategory, saiTitle);

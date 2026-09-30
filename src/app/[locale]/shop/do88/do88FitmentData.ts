@@ -462,6 +462,31 @@ export function getDo88MakeEntries(make: string): readonly ModelEntry[] {
     : [];
 }
 
+/** A vehicle may have several independently gated supplier application rules. */
+export function matchesDo88VehicleFilter(
+  category: string,
+  title: string,
+  filters: { make?: string; model?: string; chassis?: string }
+): boolean {
+  const { make, model, chassis } = filters;
+  if (!make && !model && !chassis) return true;
+  const segments = category.split(/\s*>\s*/).map((segment) => segment.trim());
+  const entries = make ? getDo88MakeEntries(make) : Object.values(CAR_DATA).flat();
+  if (make && entries.length === 0) return false;
+  if (make && !model && !chassis &&
+      segments[0]?.toLowerCase() === "vehicle specific" &&
+      segments[1]?.toLowerCase() === make.toLowerCase()) return true;
+  const titleLc = title.toLowerCase();
+  return entries.some((entry) => {
+    if ((model && entry.model !== model) || (chassis && entry.chassis !== chassis)) return false;
+    if (entry.categoryTokens.some((token) => segments.includes(token))) return true;
+    return Boolean(
+      entry.sharedCategoryTokens?.some((token) => segments.includes(token)) &&
+      entry.sharedTitleMustInclude?.some((phrase) => titleLc.includes(phrase.toLowerCase()))
+    );
+  });
+}
+
 type Do88ClampFitmentRecord = {
   sku?: string | null;
   category?: { en?: string | null } | null;
