@@ -94,3 +94,12 @@ test("PDP related reader is a narrow select and the page uses it", () => {
   assert.match(page, /getShopRelatedProductsByBrandServer\(product\.brand\)/);
   assert.doesNotMatch(page, /getShopProductsByBrandServer\(product\.brand\)/);
 });
+
+test("related Revozport cards preserve the approved delivery-pricing weight", () => {
+  const product = projectShopRelatedProduct(row({ brand: "Revozport", metafields: [
+    { namespace: "revozport_logistics", key: "delivery_pricing_weight_kg", value: "5.489" },
+    { namespace: "revozport_logistics", key: "sea_shipping_usd", value: "49.00" },
+  ] }));
+  assert.equal(product.shippingPricingWeightKg, 5.489);
+  assert.equal(product.shippingToUaUsd, 49);
+});

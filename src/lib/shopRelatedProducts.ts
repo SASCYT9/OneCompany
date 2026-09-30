@@ -9,6 +9,7 @@
  * 5. Same scope fallback                                              → last resort
  */
 
+import { parseRevozportPricingWeight, parseRevozportShippingQuotes } from "./revozportShipping";
 import type { ShopProduct } from "./shopCatalog";
 import { hasShopProductAdminMediaOverride } from "./shopProductAdminMedia";
 
@@ -84,6 +85,8 @@ export function projectShopRelatedProduct(row: ShopRelatedProductRow): ShopProdu
     stock: row.stock === "preOrder" ? "preOrder" : "inStock",
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
     price: relatedMoney(row, "price"),
+    shippingPricingWeightKg: parseRevozportPricingWeight([...(row.metafields ?? [])]),
+    shippingToUaUsd: parseRevozportShippingQuotes([...(row.metafields ?? [])]).seaUsd,
     europePrice: relatedEuropeMoney(row),
     b2bPrice: {
       eur: Number(row.priceEurB2b ?? 0) || 0,

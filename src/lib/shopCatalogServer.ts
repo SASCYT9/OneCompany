@@ -2786,8 +2786,7 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
           image: true,
           metafields: {
             where: {
-              namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
-              key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+              OR: [{ namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE, key: SHOP_PRODUCT_ADMIN_MEDIA_KEY }, { namespace: "revozport_logistics", key: { in: ["delivery_pricing_weight_kg", "sea_shipping_usd"] } }],
             },
             select: { namespace: true, key: true, value: true },
           },
