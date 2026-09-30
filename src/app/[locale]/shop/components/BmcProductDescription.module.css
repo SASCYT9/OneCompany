@@ -1,0 +1,75 @@
+.description {
+  min-width: 0;
+}
+
+.description h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+.description table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+.description th,
+.description td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--foreground) / 0.12);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.description th {
+  width: 68%;
+  padding-left: 0;
+  font-weight: 400;
+  color: hsl(var(--foreground) / 0.65);
+}
+
+.description td {
+  width: 32%;
+  padding-right: 0;
+  font-weight: 500;
+  color: hsl(var(--foreground) / 0.95);
+}
+
+.description tbody tr:last-child th,
+.description tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.description table:has(thead) {
+  display: block;
+  max-height: 26rem;
+  overflow: auto;
+  table-layout: auto;
+  border: 1px solid hsl(var(--foreground) / 0.12);
+  border-radius: 0.75rem;
+  overscroll-behavior: contain;
+}
+
+.description table:has(thead) th,
+.description table:has(thead) td {
+  width: auto;
+  padding: 0.625rem 0.75rem;
+  white-space: nowrap;
+}
+
+.description thead {
+  position: sticky;
+  top: 0;
+  background: hsl(var(--background));
+}
+
+.description thead th {
+  font-weight: 600;
+  color: hsl(var(--foreground) / 0.85);
+}
