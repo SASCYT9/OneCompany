@@ -12,6 +12,7 @@ import {
   isSupplierFitmentMetafield,
   parseSupplierFitmentContract,
   supplierContractToNormalizedFitment,
+  supplierFitmentV2ToShopCatalogV2Policy,
 } from "./shopImportFitment";
 import type { ShopCatalogCoordinatedMutationSnapshot } from "./shopCatalogMutationCoordinator.server";
 import type { ShopCatalogProjectionSource } from "./shopCatalogProjection.server";
@@ -211,6 +212,12 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
     : null;
   const authoritativeFitment = manuallyVerifiedFitment ?? supplierFitment ?? normalizedFitment;
   const supplierFitmentIsAuthoritative = Boolean(supplierContract && !manuallyVerifiedFitment);
+  // Preserve correlated V2 clauses and UNKNOWN dimensions directly. The
+  // conservative legacy normalization downgrades the whole contract when
+  // even an unrequested dimension is unknown (for example transmission).
+  const supplierV2Policy = supplierFitmentIsAuthoritative && supplierContract?.version === 2
+    ? supplierFitmentV2ToShopCatalogV2Policy(supplierContract, { productId: record.id })
+    : null;
   const primaryMedia = record.media[0];
   return {
     productId: record.id,
@@ -284,7 +291,9 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       isDefault: variant.isDefault,
       stableRank: variant.position || index + 1,
     })),
-    compatibilityPolicies: record.catalogPolicies?.length && !supplierFitmentIsAuthoritative
+    compatibilityPolicies: supplierV2Policy
+      ? [supplierV2Policy]
+      : record.catalogPolicies?.length && !supplierFitmentIsAuthoritative
       ? canonicalPoliciesToProjectionV2(record.catalogPolicies)
       : [
           compatibilityPolicyFromNormalizedFitment(

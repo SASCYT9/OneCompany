@@ -5,6 +5,7 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 
 import type { NormalizedFitment } from "../../../src/lib/shopFitmentQuality";
+import type { SupplierFitmentV2Contract } from "../../../src/lib/shopImportFitment";
 
 const serverOnlyStub = pathToFileURL(
   path.resolve("tests/shop/unit/fixtures/server-only-stub.cjs")
@@ -17,6 +18,41 @@ registerHooks({
 });
 
 const snapshotModule = import("../../../src/lib/shopCatalogAdminSnapshot.server");
+
+test("supplier V2 projection preserves verified model clauses and unknown constraints", async () => {
+  const { buildShopCatalogProjectionSourceFromAdminRecord } = await snapshotModule;
+  const { SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS, strictMatchShopCatalogV2Compatibility } =
+    await import("../../../src/lib/shopCatalogV2Compatibility");
+  const sourceRef = "https://www.do88performance.eu/en/artiklar/do88-vag-ea888-sai-air-filter.html";
+  const contract: SupplierFitmentV2Contract = {
+    version: 2, mode: "vehicle_specific", scope: "auto", parentSku: null,
+    policy: { requiredDimensions: [], clauses: [{
+      id: "passat-b8", verification: "VERIFIED",
+      constraints: SHOP_CATALOG_V2_COMPATIBILITY_DIMENSIONS.map((dimension) => {
+        if (dimension === "scope") return { dimension, state: "EXACT", values: ["auto"] };
+        if (dimension === "make") return { dimension, state: "EXACT", values: ["Volkswagen"] };
+        if (dimension === "model") return { dimension, state: "EXACT", values: ["Passat"] };
+        if (dimension === "generation") return { dimension, state: "EXACT", values: ["B8"] };
+        return { dimension, state: "UNKNOWN" };
+      }),
+      provenance: { sourceRef, sourceRecordKey: "LF-190-SAI-KIT", rawPaths: ["Fits model"], evidenceRefs: [sourceRef] },
+    }] },
+    source: { supplier: "do88", sourceKey: "do88", sourceRef, sourceRecordKey: "LF-190-SAI-KIT", sourceUpdatedAt: null, sourceRevision: null, payloadHash: null, mapperVersion: "test/1" },
+    note: "SAI-equipped cars with a do88 V2 intake only",
+  };
+  const record = {
+    id: "sai-product", brand: "DO88", scope: "auto", sku: "LF-190-SAI-KIT", slug: "do88-lf-190-sai-kit",
+    metafields: [{ namespace: "onecompany", key: "supplier_fitment", value: JSON.stringify(contract) }],
+    variants: [], options: [], media: [], tags: [], collections: [],
+  } as unknown as Parameters<typeof buildShopCatalogProjectionSourceFromAdminRecord>[0];
+  const source = buildShopCatalogProjectionSourceFromAdminRecord(record, "2", 0);
+  const policy = source.compatibilityPolicies![0];
+  assert.equal(policy.clauses[0].verification, "VERIFIED");
+  assert.equal(policy.clauses[0].constraints.find((item) => item.dimension === "fuel")?.state, "UNKNOWN");
+  assert.equal(strictMatchShopCatalogV2Compatibility(policy, { make: "Volkswagen", model: "Passat", generation: "B8" }).status, "exact");
+  assert.notEqual(strictMatchShopCatalogV2Compatibility(policy, { make: "Volkswagen", model: "Passat", fuel: "diesel" }).status, "exact");
+  assert.notEqual(strictMatchShopCatalogV2Compatibility(policy, { make: "BMW", model: "M3" }).status, "exact");
+});
 
 function fitment(status: "verified" | "inferred" = "verified"): NormalizedFitment {
   return {
