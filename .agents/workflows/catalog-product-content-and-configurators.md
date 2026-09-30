@@ -45,6 +45,9 @@ or adding supplier options to existing product pages.
 
 ## do88 manufacturer scope
 
+- Show the complete published do88 manufacturer assortment. Do not hide valid
+  do88 products by price, vehicle make, platform age, or an editorial shortlist.
+  Vehicle filters still require the reviewed, source-supported application rules.
 - Include products manufactured by do88 only. The do88performance.eu shop also
   sells third-party brands; retailer ownership and a structured-data `brand`
   field are not proof that do88 made the product.

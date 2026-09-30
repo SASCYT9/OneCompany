@@ -164,6 +164,7 @@ export const CAR_DATA: Record<string, readonly ModelEntry[]> = {
     { model: "2 / 3 / 4 Series", chassis: "F / G · B46 / B48", categoryTokens: ["F & G Chassiss, B48 B46"] },
   ],
   Audi: [
+    do88SaiApplication("A3 / S3", "8Y · 2020+ · 2.0 TSI EA888 Gen4"),
     { model: "RS6 / RS7", chassis: "C8", categoryTokens: ["RS6 RS7, 4.0 V8 TFSI (C8)"] },
     { model: "RS3 / TTRS", chassis: "8V 8Y", categoryTokens: ["RS3 TT RS, 2.5 TFSI (8V 8Y 8S)"] },
     {
