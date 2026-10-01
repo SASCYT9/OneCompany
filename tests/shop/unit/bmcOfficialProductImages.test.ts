@@ -19,10 +19,11 @@ test("BMC media preserves known generic status and rejects unknown codes", () =>
   assert.equal(getBmcOfficialProductImage(null), null);
 });
 
-test("MUSCLE uses the verified full-size supplier photo instead of a generic filter", () => {
+test("MUSCLE uses the reviewed product photo and construction diagram", () => {
   const media = getBmcOfficialProductImage("ACCDA120-260MUSCLE");
   assert.ok(media);
-  assert.match(media.image, /1e177b31a0dc30b4498f24ae11772b40\.JPG$/);
-  assert.equal(media.gallery.length, 1);
-  assert.match(media.sourceUrl, /bmcACCDA120-260MUSCLE/);
+  assert.match(media.image, /ACCDA120-260Muscle_3\.jpg$/);
+  assert.equal(media.gallery.length, 2);
+  assert.match(media.gallery[1], /ACCDA120-260Muscle_2\.jpg$/);
+  assert.match(media.sourceUrl, /ACCDA120-260Muscle/);
 });
