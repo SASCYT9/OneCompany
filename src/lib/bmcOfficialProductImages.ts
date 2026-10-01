@@ -9,11 +9,12 @@ export type BmcOfficialProductImage = {
 const BMC_OFFICIAL_PRODUCT_IMAGES: Record<string, BmcOfficialProductImage> = {
   ACCDA120260MUSCLE: {
     image:
-      "https://d32vzsop7y1h3k.cloudfront.net/1e177b31a0dc30b4498f24ae11772b40.JPG",
+      "https://www.bmc-sportluftfilter.de/items/jpg/090@ACCDA120-260Muscle_3.jpg",
     gallery: [
-      "https://d32vzsop7y1h3k.cloudfront.net/1e177b31a0dc30b4498f24ae11772b40.JPG",
+      "https://www.bmc-sportluftfilter.de/items/jpg/090@ACCDA120-260Muscle_3.jpg",
+      "https://www.bmc-sportluftfilter.de/items/jpg/090@ACCDA120-260Muscle_2.jpg",
     ],
-    sourceUrl: "https://www.turn14.com/search/index.php?vmmPart=bmcACCDA120-260MUSCLE",
+    sourceUrl: "https://www.bmc-sportluftfilter.de/090%40ACCDA120-260Muscle/BMC-Carbon-Dynamic-Airbox-Nr.-ACCDA120-260Muscle.htm",
     status: "supplier_exact",
   },
   ACCDA10022001: {
