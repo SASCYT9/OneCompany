@@ -1,18 +1,20 @@
-/** Official BMC product media sourced from bmcairfilters.com. Generic entries are used only where BMC has no exact product photo/page. */
+/** Verified BMC manufacturer media and exact-SKU supplier photos. Generic entries are used only where no exact product photo is available. */
 export type BmcOfficialProductImage = {
   image: string;
   gallery: string[];
   sourceUrl: string;
-  status: "exact" | "official_generic" | "unconfirmed_code";
+  status: "exact" | "supplier_exact" | "official_generic" | "unconfirmed_code";
 };
 
 const BMC_OFFICIAL_PRODUCT_IMAGES: Record<string, BmcOfficialProductImage> = {
   ACCDA120260MUSCLE: {
     image:
-      "https://www.bmcairfilters.com/sites/default/files/styles/product_slider/public/default_images/bmc-air-filter-fallback_0.jpg?itok=vGFuXQ9a",
-    gallery: [],
-    sourceUrl: "https://www.bmcairfilters.com/en/search_by_code",
-    status: "unconfirmed_code",
+      "https://d32vzsop7y1h3k.cloudfront.net/1e177b31a0dc30b4498f24ae11772b40.JPG",
+    gallery: [
+      "https://d32vzsop7y1h3k.cloudfront.net/1e177b31a0dc30b4498f24ae11772b40.JPG",
+    ],
+    sourceUrl: "https://www.turn14.com/search/index.php?vmmPart=bmcACCDA120-260MUSCLE",
+    status: "supplier_exact",
   },
   ACCDA10022001: {
     image:
