@@ -28,6 +28,7 @@ import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
+import { buildShopVariantGallery } from "@/lib/shopVariantGallery";
 
 type Props = {
   locale: string;
@@ -445,13 +446,11 @@ export function BurgerShopProductDetailLayout({
   const descriptionRaw = localizeShopDescription(resolvedLocale, product.longDescription);
 
   // Build gallery: filter out empty/duplicate URLs, dedupe with main image first
-  const rawGallery = (product.gallery || []).filter(
-    (g): g is string => !!g && typeof g === "string" && g.trim().length > 0
+  const gallery = buildShopVariantGallery(
+    product.image,
+    product.gallery,
+    canChooseVariant ? selectedVariant?.image : null,
   );
-  const galleryUnique = canChooseVariant && selectedVariant?.image
-    ? [selectedVariant.image]
-    : Array.from(new Set([...(product.image ? [product.image] : []), ...rawGallery]));
-  const gallery = galleryUnique.length ? galleryUnique : product.image ? [product.image] : [];
   const visibleGallery = gallery.filter((_, i) => !brokenIdx.has(i));
   // activeImageIdx indexes the ORIGINAL gallery array (kept in sync with thumb
   // click via realIdx). If that image is broken or out of range, fall back to
@@ -561,7 +560,7 @@ export function BurgerShopProductDetailLayout({
                   gap: 10,
                 }}
               >
-                {visibleGallery.slice(0, 5).map((img) => {
+                {visibleGallery.map((img) => {
                   const realIdx = gallery.indexOf(img);
                   const isActive = realIdx === activeImageIdx;
                   return (
