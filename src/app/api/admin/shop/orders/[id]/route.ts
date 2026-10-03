@@ -99,10 +99,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const shippingChanged = shippingCost !== currentOrder.shippingCost.toNumber();
       if (
         shippingChanged &&
-        (currentOrder.paymentMethod === "MONOBANK" || currentOrder.monobankPayment)
+        (["MONOBANK", "WHITEPAY_FIAT", "WHITEPAY_CRYPTO"].includes(currentOrder.paymentMethod) || currentOrder.monobankPayment)
       ) {
         return NextResponse.json(
-          { error: "Суму доставки не можна змінити після підготовки платежу mono." },
+          { error: "Суму доставки не можна змінити після підготовки платіжного посилання." },
           { status: 409 }
         );
       }

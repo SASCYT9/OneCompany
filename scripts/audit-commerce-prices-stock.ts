@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse } from "dotenv";
 import { PrismaClient } from "@prisma/client";
@@ -35,6 +35,7 @@ async function main() {
     }
     const settings = await prisma.shopSettings.findUnique({ where: { key: "shop" }, select: { currencyRates: true, defaultCurrency: true } });
     const directory = resolve("outputs/site-commerce-2026-10-03");
+    mkdirSync(directory, { recursive: true });
     const columns = Object.keys(rows[0] ?? {});
     writeFileSync(resolve(directory, "price-stock-audit.csv"), columns.join(",") + "\n" + rows.map((row) => columns.map((column) => `"${String(row[column] ?? "").replace(/"/g, '""')}"`).join(",")).join("\n"));
     writeFileSync(resolve(directory, "price-stock-audit-summary.json"), JSON.stringify({ readAt: new Date().toISOString(), counts, settings, note: "Compare<=price is a raw-data review flag, not evidence that the current UI renders a false discount. InventoryQty is catalog evidence, not physical stock confirmation. Multiple currencies need provenance before automatic repricing." }, null, 2));

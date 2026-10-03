@@ -107,9 +107,13 @@ export function AddToCartButton({
 
   if (requiresUrbanBodyKitQuote({ slug })) {
     return (
-      <Link href={buildProductInquiryHref(locale, slug!, variantId)} className={className}>
+      <button type="button" className={className} onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        router.push(buildProductInquiryHref(locale, slug!, variantId));
+      }}>
         {isUa ? "Запитати комплект з обвісом" : "Request a package with a body kit"}
-      </Link>
+      </button>
     );
   }
   if (variant === "minimal" || variant === "inline") {

@@ -50,6 +50,11 @@ not been ordered or paid. Before-images and operation results are retained.
   order-version checks reject concurrent edits. Whitepay fiat/crypto and mono
   buttons/API calls require the exact international agreement; a prepared mono
   payment cannot receive a second Whitepay provider link.
+  Whitepay fiat/crypto claims an eligible unpaid order atomically before calling
+  the provider. Existing attempts, partial payments, refunds, closed orders and
+  stale amount/version reads reject. Ambiguous provider responses retain the
+  claim for merchant reconciliation, preventing another full-total link.
+  Prepared Whitepay amounts also block later manual shipping changes.
   The admin form has since been moved into the main Payment section. It shows
   delivery calculation, client agreement and payment-link preparation as three
   steps, with a visible total and explanatory disabled states.
@@ -102,10 +107,16 @@ A labeled disposable local pgvector PostgreSQL 17 container uses
 `127.0.0.1:55543`, database `monobank_test_site_commerce`; all 47 migrations passed.
 Existing mono persistence tests passed creation races, atomic settlement,
 stale/replayed statuses, refunds and unknown-response recovery. Never point
-checkout tests at production. Latest run: 109 passed, 0 failed, 0 skipped — 96
-targeted unit/route/proforma tests plus 13 payment persistence tests. TypeScript
+checkout tests at production. Latest run: 117 passed, 0 failed, 0 skipped — 100
+targeted unit/route/proforma tests plus 17 payment persistence tests. TypeScript
 passed. Final source/test ESLint has 0 errors; warnings remain and are recorded
 in the validation artifact. No live bank charge or production checkout E2E ran.
+Review fixes also preserve canonical inquiry text and encode it at output sinks,
+use atomic local operation manifests, remove the local runtime installer from
+the release, create ignored evidence directories when absent and require explicit
+portable Vercel CLI/project arguments for publication recovery. Decal inquiry
+buttons no longer introduce nested anchors. Google availability and date both
+derive from the same resolved warehouse/storefront availability.
 
 Browser checks covered UA/EN checkout, required consent outside Ukraine, manual
 currency persistence, product inquiry title/SKU, Urban package inquiry button,

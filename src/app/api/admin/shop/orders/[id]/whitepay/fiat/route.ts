@@ -5,6 +5,7 @@ import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
 import { createWhitepayFiatOrder, isWhitepayEnabled } from "@/lib/shopWhitepay";
 import { isInternationalDelivery, internationalDeliveryAgreementMatches } from "@/lib/shopInternationalCheckout";
+import { claimAdminWhitepayOrder, whitepayOrderEligibilityError } from "@/lib/shopAdminWhitepay";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,6 +28,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         viewToken: true,
         paymentStatus: true,
         paymentMethod: true,
+        amountPaid: true,
+        status: true,
+        updatedAt: true,
+        isDraft: true,
+        stripeCheckoutSessionId: true,
         shippingAddress: true,
         pricingSnapshot: true,
         monobankPayment: { select: { id: true } },
@@ -42,6 +48,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "OTHER_PAYMENT_PROVIDER_REVIEW_REQUIRED" }, { status: 409 });
     if (order.paymentStatus === "PAID")
       return NextResponse.json({ error: "Order already paid" }, { status: 400 });
+    const eligibilityError = whitepayOrderEligibilityError(order);
+    if (eligibilityError) return NextResponse.json({ error: eligibilityError }, { status: 409 });
+    if (!await claimAdminWhitepayOrder(prisma, order, "WHITEPAY_FIAT"))
+      return NextResponse.json({ error: "WHITEPAY_CONCURRENT_UPDATE" }, { status: 409 });
 
     // Amount as float string e.g. "100.50"
     const amountStr = Number(order.total).toFixed(2);
@@ -56,7 +66,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     const whitepayResult = await createWhitepayFiatOrder({
       amount: amountStr,
       currency: currency,
-      external_order_id: `${order.orderNumber}_${Date.now()}`, // unique per generation
+      external_order_id: `${order.orderNumber}_${Date.now()}`, // only the successful atomic claim reaches the provider
     });
 
     if (!whitepayResult.success) {
@@ -66,14 +76,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         { status: 502 }
       );
     }
-
-    await prisma.shopOrder.update({
-      where: { id: order.id },
-      data: {
-        paymentMethod: "WHITEPAY_FIAT",
-        status: "PENDING_PAYMENT",
-      },
-    });
 
     return NextResponse.json({ url: whitepayResult.url, paymentId: whitepayResult.orderId });
   } catch (e: any) {

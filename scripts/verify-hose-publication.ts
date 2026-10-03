@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { parse } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 
 async function main() {
   const envPath = process.argv.find((arg) => arg.startsWith("--env-path="))?.slice(11);
@@ -23,12 +24,16 @@ async function main() {
     if (result.retained !== plan.entries.length || result.hidden !== plan.entries.length) throw new Error("Visibility post-check failed");
     if (process.argv.includes("--drain") || process.argv.includes("--drain-via-vercel")) {
       const viaVercel = process.argv.includes("--drain-via-vercel");
+      const vercelCli = process.argv.find((arg) => arg.startsWith("--vercel-cli="))?.slice(13);
+      const vercelProject = process.argv.find((arg) => arg.startsWith("--vercel-project="))?.slice(17);
+      if (viaVercel && (!vercelCli || !vercelProject)) throw new Error("Explicit --vercel-cli and --vercel-project are required for Vercel publication recovery");
+      const cliPath = viaVercel ? createRequire(resolve("package.json")).resolve(resolve(vercelCli!)) : "";
       if (!viaVercel && !env.CRON_SECRET) throw new Error("No locally configured cron secret; keep publication pending for scheduled worker");
       for (let call = 0; call < 50 && (result.publication.COMPLETED ?? 0) < plan.entries.length; call++) {
         if ((result.publication.DEAD_LETTER ?? 0) > 0) throw new Error("Publication has dead-letter events; stop");
         if (viaVercel) {
           await new Promise<void>((finish, reject) => {
-            const child = spawn(process.execPath, ["C:/Users/Admin/AppData/Roaming/npm/node_modules/vercel/dist/index.js", "crons", "run", "/api/cron/shop-catalog", "--project", "prj_8aQFqLxL8ML2AQNBMF0iP2M2V1NT"], { cwd: "C:/Users/Admin/OneDrive/Documents/ChatGPT/One Company/OneCompany", env: { ...process.env, NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1" }, windowsHide: true, stdio: "ignore" });
+            const child = spawn(process.execPath, [cliPath, "crons", "run", "/api/cron/shop-catalog", "--project", vercelProject!], { cwd: process.cwd(), env: { ...process.env, NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1" }, windowsHide: true, stdio: "ignore" });
             child.on("error", reject);
             child.on("exit", (code) => code === 0 ? finish() : reject(new Error(`Vercel cron trigger failed (${code})`)));
           });

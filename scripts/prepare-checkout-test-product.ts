@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse } from "dotenv";
 import { PrismaClient } from "@prisma/client";
@@ -12,6 +12,7 @@ async function main() {
   const prisma = new PrismaClient({ datasources: { db: { url } } });
   const sku = "OC-CHECKOUT-TEST-10USD";
   const slug = "onecompany-checkout-test-10usd";
+  mkdirSync(resolve("outputs/site-commerce-2026-10-03"), { recursive: true });
   try {
     const existing = await prisma.shopProduct.findMany({ where: { OR: [{ sku }, { slug }] }, select: { id: true, sku: true, slug: true, isPublished: true, priceUsd: true } });
     if (existing.length) {

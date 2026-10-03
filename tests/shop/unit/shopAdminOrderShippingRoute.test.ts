@@ -71,7 +71,7 @@ async function fixture(options: { method?: string; payment?: boolean; concurrent
 }
 
 test("shipping amount cannot diverge from an existing or prepared mono invoice", async () => {
-  for (const options of [{ method: "MONOBANK" }, { method: "FOP", payment: true }]) {
+  for (const options of [{ method: "MONOBANK" }, { method: "WHITEPAY_FIAT" }, { method: "WHITEPAY_CRYPTO" }, { method: "FOP", payment: true }]) {
     const f = await fixture(options);
     assert.equal((await f.patch({ shippingCalculatedCost: 20 })).status, 409);
     assert.equal(f.writes.length, 0);
