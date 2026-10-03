@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync } from "node:fs";
 import { resolve } from "node:path";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { parse } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { classifySmallHoseProduct } from "../src/lib/shopHoseVisibility";
@@ -27,7 +27,12 @@ async function main() {
     const rates = settings.currencyRates as Record<ShopCurrencyCode, number>;
     if (["EUR", "USD", "UAH"].some((key) => rates[key as ShopCurrencyCode] !== plan.currencyRates[key])) throw new Error("Currency rates changed; prepare a fresh plan");
     const resultsPath = resolve(directory, "hide-results.json");
-    const prior = existsSync(resultsPath) ? JSON.parse(readFileSync(resultsPath, "utf8")) : null;
+    let prior = null;
+    try {
+      prior = JSON.parse(readFileSync(resultsPath, "utf8"));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
     if (prior && prior.sourceSha256 !== plan.sourceSha256) throw new Error("Previous results belong to a different before-image");
     const results: Array<{ id: string; sku: string; canonicalVersion: string; outboxId: string }> = prior?.results ?? [];
     const previousChanges = results.length;
@@ -51,7 +56,9 @@ async function main() {
           },
         });
         results.push({ id: row.id, sku: row.sku ?? "", canonicalVersion: mutation.canonicalVersion, outboxId: mutation.outboxId });
-        writeFileSync(resultsPath, JSON.stringify({ planReadAt: plan.readAt, sourceSha256: plan.sourceSha256, results }, null, 2));
+        const temporaryResultsPath = resolve(directory, `hide-results-${randomUUID()}.tmp.json`);
+        writeFileSync(temporaryResultsPath, JSON.stringify({ planReadAt: plan.readAt, sourceSha256: plan.sourceSha256, results }, null, 2), { flag: "wx" });
+        renameSync(temporaryResultsPath, resultsPath);
       }
       if (commit) {
         const stillPublished = await prisma.shopProduct.count({ where: { id: { in: batch.map((entry: { id: string }) => entry.id) }, isPublished: true } });

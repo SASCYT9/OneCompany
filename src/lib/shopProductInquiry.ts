@@ -10,7 +10,10 @@ export function buildProductInquiryHref(locale: string, slug: string, variantId?
 export function resolveProductInquiry(product: ShopProduct, locale: "ua" | "en", variantId?: string | null) {
   const variant = variantId ? product.variants?.find((item) => item.id === variantId) : null;
   if (variantId && !variant) throw new Error("INQUIRY_VARIANT_NOT_FOUND");
-  const clean = (value: string | null | undefined) => (value ?? "").replace(/<[^>]*>/g, "").replace(/[\r\n\t]+/g, " ").trim();
+  // These are canonical text fields, not HTML. Preserve their text and let
+  // React/email/Telegram encode it at the output boundary; regex tag removal
+  // can reconstruct a tag from nested input.
+  const clean = (value: string | null | undefined) => (value ?? "").replace(/[\r\n\t]+/g, " ").trim();
   return {
     productId: product.id ?? null,
     slug: product.slug,
