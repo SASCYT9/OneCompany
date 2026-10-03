@@ -33,6 +33,8 @@ import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline"
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminMobileBottomBar } from "@/components/admin/AdminMobileCard";
+import { AdminInternationalDeliveryQuote } from "@/components/admin/AdminInternationalDeliveryQuote";
+import { isInternationalDelivery, internationalDeliveryAgreementMatches, getAgreedInternationalShippingSource } from "@/lib/shopInternationalCheckout";
 
 import styles from "./orderDetail.module.css";
 import { buildOrderPaymentUpdate } from "@/lib/admin/orderPaymentDraft";
@@ -244,6 +246,7 @@ export default function AdminOrderDetailPage() {
   const [deliveryMethod, setDeliveryMethod] = useState("");
   const [ttnNumber, setTtnNumber] = useState("");
   const [shippingCalculatedCost, setShippingCalculatedCost] = useState("");
+  const [monoPaymentUrl, setMonoPaymentUrl] = useState("");
   const [statusNote, setStatusNote] = useState("");
   const [copyState, setCopyState] = useState("");
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
@@ -464,6 +467,46 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  async function handleGenerateMonobankLink() {
+    if (!id || updating) return;
+    setUpdating(true);
+    setError("");
+    setSuccess("");
+    setMonoPaymentUrl("");
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/monobank`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: "ua" }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const errors: Record<string, string> = {
+          MONOBANK_ORDER_NOT_PAYABLE: "Замовлення вже оплачене або не допускає повторної оплати.",
+          MONOBANK_REQUIRES_UAH_QUOTE: "Спочатку погодьте суму у гривні.",
+          INTERNATIONAL_DELIVERY_NOT_AGREED:
+            "Спочатку погодьте доставку та загальну суму з клієнтом.",
+          MONOBANK_INVOICE_CLOSED:
+            "Рахунок mono закритий. Перевірте його в бізнес-кабінеті перед заміною.",
+          OTHER_PAYMENT_PROVIDER_REVIEW_REQUIRED:
+            "Перевірте платіж у попередній платіжній системі перед переходом на mono.",
+        };
+        setError(
+          errors[data.error] ||
+            "Не вдалося підготувати mono-посилання. Повторіть перевірку статусу."
+        );
+        return;
+      }
+      setMonoPaymentUrl(data.url);
+      await load();
+      setSuccess("Статус перевірено. Посилання mono готове.");
+    } catch {
+      setError("Не вдалося перевірити оплату. Спробуйте ще раз.");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   async function handleGenerateWhitepayFiatLink() {
     if (!id) return;
     setUpdating(true);
@@ -539,6 +582,8 @@ export default function AdminOrderDetailPage() {
   }
 
   if (!order) return null;
+  const paymentNeedsAgreement = isInternationalDelivery(String(order.shippingAddress?.country ?? "")) &&
+    !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total);
 
   const outstanding = Math.max(0, order.total - order.amountPaid);
   const paymentDirty =
@@ -548,6 +593,32 @@ export default function AdminOrderDetailPage() {
     ttnNumber !== (order.ttnNumber || "") ||
     shippingCalculatedCost !==
       (order.shippingCalculatedCost == null ? "" : String(order.shippingCalculatedCost));
+
+  function renderPaymentActions(blocked = false) {
+    return (
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => void handleGenerateMonobankLink()}
+          disabled={blocked || updating || paymentNeedsAgreement || order!.amountPaid > 0 ||
+            ["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order!.paymentStatus) ||
+            !["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order!.status)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-zinc-400 sm:col-span-2">
+          Створити / відновити mono-посилання
+        </button>
+        {monoPaymentUrl ? <a href={monoPaymentUrl} target="_blank" rel="noreferrer"
+          className="break-all rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-xs text-blue-200 sm:col-span-2">{monoPaymentUrl}</a> : null}
+        <button type="button" onClick={() => void handleGenerateWhitepayFiatLink()}
+          disabled={blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400">
+          <DollarSign className="h-4 w-4" /> Whitepay Fiat
+        </button>
+        <button type="button" onClick={() => void handleGenerateWhitepayCryptoLink()}
+          disabled={blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"}
+          className="inline-flex w-full items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400">
+          Whitepay Crypto
+        </button>
+      </div>
+    );
+  }
 
   return (
     <AdminPage wide className={`space-y-5 ${styles.page}`}>
@@ -640,6 +711,16 @@ export default function AdminOrderDetailPage() {
                   {orderPaymentLabel(order.paymentStatus)}
                 </AdminStatusBadge>
               </div>
+              {order.paymentMethod === "MANAGER_QUOTE" ? (
+                <AdminInternationalDeliveryQuote
+                  key={order.updatedAt} orderId={order.id}
+                  shippingCostUah={order.currency === "UAH" ? order.shippingCost : undefined}
+                  shippingSource={getAgreedInternationalShippingSource(order.pricingSnapshot)}
+                  savedTotalUah={order.currency === "UAH" ? order.total : undefined}
+                  isAgreed={internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total)}
+                  onSaved={load} paymentActions={(ready) => renderPaymentActions(!ready)}
+                />
+              ) : <>
               <p className="mb-4 text-xs text-zinc-400">
                 {orderPaymentMethodLabel(order.paymentMethod)}
               </p>
@@ -669,6 +750,11 @@ export default function AdminOrderDetailPage() {
                   <dd>{formatMoney(outstanding, order.currency)}</dd>
                 </div>
               </dl>
+              <div className="mt-5 border-t border-white/10 pt-5">
+                <h3 className="mb-3 text-sm font-semibold">Платіжні посилання</h3>
+                {renderPaymentActions()}
+              </div>
+              </>}
               <details className={styles.editPanel}>
                 <summary>Редагувати оплату й умови доставки</summary>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -707,6 +793,12 @@ export default function AdminOrderDetailPage() {
                     onChange={setShippingCalculatedCost}
                     type="number"
                     step="0.01"
+                    disabled={["MONOBANK", "MANAGER_QUOTE"].includes(order.paymentMethod ?? "")}
+                    helper={order.paymentMethod === "MONOBANK"
+                      ? "Суму доставки зафіксовано для платежу mono."
+                      : order.paymentMethod === "MANAGER_QUOTE"
+                        ? "Погодьте суму через блок міжнародної доставки."
+                        : undefined}
                   />
                   <button
                     type="button"
@@ -1147,23 +1239,6 @@ export default function AdminOrderDetailPage() {
                   <ExternalLink className="h-4 w-4" />
                   Відкрити сторінку покупця
                 </a>
-                <button
-                  type="button"
-                  onClick={() => void handleGenerateWhitepayFiatLink()}
-                  disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm text-red-200 transition hover:bg-blue-500/15 disabled:opacity-50"
-                >
-                  <DollarSign className="h-4 w-4" />
-                  Whitepay Fiat
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleGenerateWhitepayCryptoLink()}
-                  disabled={updating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-blue-500/25 bg-blue-500/6 px-4 py-2 text-sm font-bold uppercase tracking-wider text-red-200 transition hover:border-blue-500/40 hover:bg-blue-500/10 disabled:opacity-50"
-                >
-                  Whitepay Crypto
-                </button>
               </div>
             </AdminInspectorCard>
           </>

@@ -94,11 +94,15 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       vehiclePlan.constraints.generation ||
       vehiclePlan.constraints.year
   );
-  // BMC supplier applications are stored as validated product-owned fitment
-  // contracts. Until those policies are complete in the V2 search projection,
-  // use the existing bounded legacy bridge for BMC vehicle selections so the
-  // customer still gets the official SKU fitment results.
-  if (firstBrand(params)?.toLowerCase() === "bmc" && hasVehicleIdentity) {
+  // Basic model search needs the complete product-owned fitment bridge while
+  // verified policy migration is partial. Engine/fuel/emissions requests still
+  // require one canonical clause, so they cannot combine unrelated evidence.
+  if (hasVehicleIdentity && (
+    firstBrand(params)?.toLowerCase() === "bmc" ||
+    (Boolean(params.get("q")) && !params.get("make") && !params.get("model") &&
+      !params.get("chassis") && !params.get("year") &&
+      !params.get("engine") && !params.get("fuel") && !params.get("opfGpf"))
+  )) {
     vehiclePlan = buildShopCatalogVehicleSearchPlan(params, { readerMode: "legacy" });
   }
   let minPrice = nonNegativeAmount(params.get("minPrice"));

@@ -107,6 +107,8 @@ docs/operations/*
 !docs/operations/production-rollout-runbook.md
 !docs/operations/monobank-acquiring.md
 !docs/operations/catalog-search-audit-2026-09-14.md
+!docs/operations/site-commerce-fixes-2026-10-03.md
+!docs/operations/mono-installments-readiness-2026-10-03.md
 __pycache__/
 *.part
 *.rar
@@ -166,3 +168,5 @@ wiki/.obsidian/cache
 wiki/.obsidian/plugins/*/main.js
 wiki/.obsidian/plugins/*/styles.css
 wiki/.obsidian/plugins/*/manifest.json
+# Local catalog before-images and mutation manifests may contain supplier prices.
+/outputs/site-commerce-2026-10-03/

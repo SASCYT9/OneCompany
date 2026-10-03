@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
@@ -17,7 +18,12 @@ function hasValidAmount(value?: number | null) {
 }
 
 export function ShopInlinePriceText({ locale, price, className, requestLabel }: Props) {
-  const { currency, rates } = useShopCurrency();
+  const { currency: selectedCurrency, initialCurrency, rates } = useShopCurrency();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => { setHydrated(true); }, []);
+  // A streamed card can hydrate after the provider restored a manual currency.
+  // Match its server price first, then render the current selected currency.
+  const currency = hydrated ? selectedCurrency : initialCurrency;
 
   let computedUah = price.uah || 0;
   let computedEur = price.eur || 0;

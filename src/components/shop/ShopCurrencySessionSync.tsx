@@ -12,14 +12,19 @@ function isShopCurrencyCode(value: unknown): value is ShopCurrencyCode {
 
 export function ShopCurrencySessionSync() {
   const { data: session, status } = useSession();
-  const { setCurrency } = useShopCurrency();
+  const { setCurrency, hasExplicitCurrency, preferencesLoaded } = useShopCurrency();
 
   useEffect(() => {
     const preference = session?.user?.currencyPref;
-    if (status === "authenticated" && isShopCurrencyCode(preference)) {
+    if (
+      preferencesLoaded &&
+      !hasExplicitCurrency &&
+      status === "authenticated" &&
+      isShopCurrencyCode(preference)
+    ) {
       setCurrency(preference);
     }
-  }, [session?.user?.currencyPref, setCurrency, status]);
+  }, [session?.user?.currencyPref, setCurrency, status, hasExplicitCurrency, preferencesLoaded]);
 
   return null;
 }

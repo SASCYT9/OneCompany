@@ -318,10 +318,14 @@ export function vehicleModelAliases(make: string, value: string) {
     ...new Set([
       value.trim(),
       value.trim().replace(/\s+/g, "-"),
-      ...(canonicalLabel ? [canonicalLabel, canonicalLabel.replace(/\s+/g, "-")] : []),
+      value.trim().replace(/[\s-]+/g, ""),
+      ...(canonicalLabel ? [canonicalLabel, canonicalLabel.replace(/\s+/g, "-"), canonicalLabel.replace(/[\s-]+/g, "")] : []),
       ...manufacturerModelAliases(make, value),
       ...labels.flatMap((label) => modelAliasGroups(make)[label] ?? [label]),
       ...baseModelAliases,
+      ...(canonicalVehicleMakeLabel(make) === "Land Rover" && vehicleModelKey(value) === "defender"
+        ? ["Defender 90", "Defender 110", "Defender 130", "Defender OCTA"]
+        : []),
     ]),
   ];
 }

@@ -152,13 +152,13 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
 }
 
 /** DB-backed rate limit also covers multiple tabs / serverless instances. */
-export async function refreshMonobankPayment(prisma: PrismaClient, payment: ShopMonobankPayment) {
+export async function refreshMonobankPayment(prisma: PrismaClient, payment: ShopMonobankPayment, force = false) {
   if (!payment.invoiceId) return false;
   const now = new Date();
   const claim = await prisma.shopMonobankPayment.updateMany({
     where: {
       id: payment.id,
-      OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - 15_000) } }],
+      ...(force ? {} : { OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - 15_000) } }] }),
     },
     data: { lastSyncedAt: now },
   });

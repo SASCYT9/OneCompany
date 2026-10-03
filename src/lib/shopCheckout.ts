@@ -1,4 +1,6 @@
 import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
+import { requiresUrbanBodyKitQuote, URBAN_BODYKIT_QUOTE_ERROR } from "@/lib/shopProductPurchasePolicy";
+import { calculateTaxAmount, calculateProportionalAmount } from "@/lib/shopCheckoutTax";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import {
   getOrCreateShopSettings,
@@ -529,17 +531,6 @@ function calculateShippingCost(
   };
 }
 
-function calculateTaxAmount(
-  region: ShopTaxRegion | null,
-  taxableSubtotal: number,
-  taxableShippingCost: number
-) {
-  if (!region || region.rate <= 0) return 0;
-  const base = taxableSubtotal + (region.appliesToShipping ? taxableShippingCost : 0);
-  if (base <= 0) return 0;
-  return roundMoney(base * region.rate);
-}
-
 async function loadShopLandedCostRules(prisma: PrismaClient): Promise<ShopLandedCostRule[]> {
   try {
     const records = await prisma.shopTaxRegionRule.findMany({
@@ -583,12 +574,6 @@ function calculateEuropeTaxableSubtotal(items: ResolvedCheckoutItem[], subtotal:
   );
 
   return roundMoney(Math.min(Math.max(0, taxableSubtotal), subtotal));
-}
-
-function calculateProportionalAmount(amount: number, numerator: number, denominator: number) {
-  if (amount <= 0 || numerator <= 0 || denominator <= 0) return 0;
-  const ratio = Math.min(1, numerator / denominator);
-  return roundMoney(amount * ratio);
 }
 
 function calculateRegionalAdjustmentAmount(
@@ -994,6 +979,7 @@ export async function buildCheckoutQuote(
     const quantity = Math.max(1, Math.floor(Number(rawItem.quantity) || 1));
     const product = await getShopProductBySlugServer(rawItem.slug);
     if (!product) continue;
+    if (requiresUrbanBodyKitQuote(product)) throw new Error(URBAN_BODYKIT_QUOTE_ERROR);
     if (isWheelForceWheel(product) && quantity % WHEELFORCE_WHEEL_SET_SIZE !== 0) {
       throw new Error("WHEELFORCE_SET_OF_FOUR_REQUIRED");
     }

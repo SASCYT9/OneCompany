@@ -1,0 +1,35 @@
+name: Daily NBU Currency Rates
+
+on:
+  schedule:
+    - cron: "10 5 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview NBU rates without applying them"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nbu-currency-rates
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refresh storefront currency rates
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          url="https://onecompany.global/api/admin/cron/currency-rates"
+          if [ "$DRY_RUN" = "true" ]; then
+            url="${url}?dryRun=1"
+          fi
+          curl --fail-with-body --silent --show-error --retry 2 --max-time 60 \
+            --header "Authorization: Bearer ${CRON_SECRET}" "$url"

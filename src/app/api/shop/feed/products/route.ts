@@ -16,6 +16,7 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { siteConfig } from "@/lib/seo";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
+import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
 
 function escapeXml(text: string): string {
   return text
@@ -42,17 +43,13 @@ function formatPrice(amount: number, currency: string): string {
   return `${Number(amount).toFixed(2)} ${currency}`;
 }
 
-function getAvailability(product: ShopProduct): string {
-  if (product.stock === "preOrder") return "preorder";
-  return "in stock";
-}
-
 function buildItemXml(
   product: ShopProduct,
   locale: "ua" | "en",
   currency: "EUR" | "USD" | "UAH",
   rates: Record<"EUR" | "USD" | "UAH", number>
 ): string {
+  if (product.tags?.includes("internal-test")) return "";
   const id =
     (product.sku || product.slug).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50) || product.slug;
   const { title, description } = localize(product, locale);
@@ -82,7 +79,7 @@ function buildItemXml(
   const salePrice =
     compareValue && compareValue > priceValue ? formatPrice(priceValue, currency) : null;
   const listPrice = salePrice ? formatPrice(compareValue!, currency) : null;
-  const availability = getAvailability(product);
+  const { availability, availabilityDate } = googleProductAvailability(product.stock, product.availabilityDate);
 
   return [
     "<item>",
@@ -92,6 +89,7 @@ function buildItemXml(
     `<description>${escapeXml(description)}</description>`,
     `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
     `<g:availability>${availability}</g:availability>`,
+    availabilityDate ? `<g:availability_date>${escapeXml(availabilityDate)}</g:availability_date>` : "",
     listPrice
       ? `<g:price>${escapeXml(listPrice)}</g:price>`
       : `<g:price>${escapeXml(price)}</g:price>`,

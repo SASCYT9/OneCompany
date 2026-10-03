@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useCatalogOverlay } from "@/components/shop/useCatalogOverlay";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { buildShopStorefrontBrandPath } from "@/lib/shopStorefrontRouting";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { DEFAULT_CURRENCY_RATES } from "@/lib/shopCurrencyDefaults";
@@ -3495,7 +3496,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f6f24] dark:text-[#c6a657]">
-                      {activeHeroProduct.brand}
+                      <Link href={buildShopStorefrontBrandPath(isUa ? "ua" : "en", activeHeroProduct.brand)} className="hover:underline underline-offset-4">{activeHeroProduct.brand}</Link>
                       <span className="mx-2 text-black/20 dark:text-white/20">·</span>
                       {activeHeroProduct.partNumber}
                     </p>

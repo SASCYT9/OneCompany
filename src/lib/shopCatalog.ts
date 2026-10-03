@@ -131,6 +131,8 @@ export interface ShopProduct {
   longDescription: LocalizedText;
   leadTime: LocalizedText;
   stock: ShopStock;
+  /** Explicit supplier/manager shipment date; never inferred from generic lead time. */
+  availabilityDate?: string | null;
   storefrontDisplay?: ShopStorefrontDisplay;
   collection: LocalizedText;
   price: ShopMoneySet;

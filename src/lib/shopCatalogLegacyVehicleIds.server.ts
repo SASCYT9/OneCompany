@@ -243,6 +243,11 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
   const modelText = productTextAlternatives(textFields, modelValues);
   const generationText = productTextAlternatives(textFields, generationValues);
   const alternatives: Record<string, unknown>[] = [];
+  // A valid make tag can pair with a model in the product title even when an
+  // old importer produced an incomplete model tag (notably Urban Defender).
+  if (input.make && modelText.length > 0) {
+    alternatives.push({ AND: [{ tags: { has: `fits-make:${makeKey}` } }, { OR: modelText }] });
+  }
   if (tagValues.size > 0) alternatives.push({ tags: { hasSome: [...tagValues] } });
   if (input.make && (input.model || input.generation)) {
     const makeTag = `fits-make:${makeKey}`;

@@ -1,4 +1,5 @@
 "use client";
+import { isInternationalDelivery } from "@/lib/shopInternationalCheckout";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -190,6 +191,7 @@ export default function ShopCheckoutClient({
   const [quoteError, setQuoteError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [internationalConsent, setInternationalConsent] = useState(false);
   const [error, setError] = useState("");
   const [accountLoaded, setAccountLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -416,6 +418,7 @@ export default function ShopCheckoutClient({
       return;
     }
     if (submittingRef.current || quoteLoading || !quote || quoteError) return;
+    if (isInternationalDelivery(form.country) && !internationalConsent) return;
     submittingRef.current = true;
     setError("");
     setSubmitting(true);
@@ -443,13 +446,16 @@ export default function ShopCheckoutClient({
         },
         currency: form.currency,
         locale,
-        paymentMethod: form.paymentMethod,
-        ...(form.paymentMethod === "MONOBANK"
+        paymentMethod: isInternationalDelivery(form.country) ? "MANAGER_QUOTE" : form.paymentMethod,
+        internationalDeliveryConsent: isInternationalDelivery(form.country)
+          ? internationalConsent
+          : undefined,
+        ...(!isInternationalDelivery(form.country) && form.paymentMethod === "MONOBANK"
           ? { expectedAmount: Math.round((quote.total + Number.EPSILON) * 100) }
           : {}),
       };
       let checkoutKey: string | undefined;
-      if (form.paymentMethod === "MONOBANK") {
+      if (!isInternationalDelivery(form.country) && form.paymentMethod === "MONOBANK") {
         const digest = await crypto.subtle.digest(
           "SHA-256",
           new TextEncoder().encode(JSON.stringify(payload))
@@ -528,16 +534,26 @@ export default function ShopCheckoutClient({
     );
   }
 
+  const internationalDelivery = isInternationalDelivery(form.country);
   const monoAvailable = paymentOptions?.methods.includes("MONOBANK");
-  const totalText = quote ? formatShopMoney(locale, quote.total, quoteCurrency) : "—";
-  const paymentIsOnline = form.paymentMethod !== "FOP";
+  const totalText = quote
+    ? formatShopMoney(
+        locale,
+        internationalDelivery
+          ? quote.subtotal + (quote.regionalAdjustmentAmount ?? 0)
+          : quote.total,
+        quoteCurrency
+      )
+    : "—";
+  const paymentIsOnline = !internationalDelivery && form.paymentMethod !== "FOP";
   const submitDisabled =
     submitting ||
     quoteLoading ||
     !quote ||
     Boolean(quoteError) ||
-    quote.requiresQuote === true ||
-    (form.paymentMethod === "MONOBANK" && quote.currency !== "UAH");
+    (!internationalDelivery && quote.requiresQuote === true) ||
+    (internationalDelivery && !internationalConsent) ||
+    (!internationalDelivery && form.paymentMethod === "MONOBANK" && quote.currency !== "UAH");
   const otherPaymentOptions = (
     <div className={styles.paymentList}>
       <label className={styles.paymentOption}>
@@ -758,142 +774,167 @@ export default function ShopCheckoutClient({
             </div>
           </section>
 
-          <section className={styles.section} aria-labelledby="checkout-payment">
-            <div className={styles.sectionHead}>
-              <h2 id="checkout-payment">{isUa ? "Оплата" : "Payment"}</h2>
-              {monoAvailable && (
-                <span className={styles.monoProviderLogo} aria-label="plata by mono">
-                  <Image
-                    src="/images/payments/plata-by-mono-light.svg"
-                    alt="plata by mono"
-                    width={136}
-                    height={28}
-                    className={styles.monoProviderLogoLight}
-                  />
-                  <Image
-                    src="/images/payments/plata-by-mono-dark.svg"
-                    alt=""
-                    width={136}
-                    height={28}
-                    className={styles.monoProviderLogoDark}
-                  />
+          {internationalDelivery ? (
+            <section className={styles.section} aria-labelledby="checkout-international-delivery">
+              <h2 id="checkout-international-delivery">
+                {isUa ? "Міжнародна доставка" : "International delivery"}
+              </h2>
+              <p className="mt-3 text-sm">
+                {isUa
+                  ? "Менеджер розрахує доставку та погодить із вами загальну суму перед оплатою."
+                  : "A manager will calculate shipping and agree the final total with you before payment."}
+              </p>
+              <label className="mt-4 flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={internationalConsent}
+                  onChange={(event) => setInternationalConsent(event.target.checked)}
+                  required
+                />
+                <span>
+                  {isUa
+                    ? "Погоджуюся, що менеджер зв’яжеться зі мною протягом 24 годин для узгодження вартості доставки"
+                    : "I agree that a manager will contact me within 24 hours to confirm the shipping cost"}
                 </span>
-              )}
-            </div>
-            {monoAvailable ? (
-              <>
-                <div className={styles.paymentList}>
-                  <label className={styles.paymentOption}>
-                    <div className={styles.paymentTop}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="MONOBANK"
-                        checked={form.paymentMethod === "MONOBANK"}
-                        onChange={() => {
-                          setForm((current) => ({
-                            ...current,
-                            paymentMethod: "MONOBANK",
-                            currency: "UAH",
-                          }));
-                          setSelectedShopCurrency("UAH");
-                        }}
-                      />
-                      <span className={styles.paymentName}>
-                        {isUa ? "Оплата карткою" : "Card payment"}
-                      </span>
-                      <span className={styles.cardLogos}>
-                        <Image
-                          src="/images/payments/mono-visa-light.svg"
-                          alt="Visa"
-                          width={37}
-                          height={12}
-                          className={`${styles.paymentLogoLight} ${styles.cardLogoVisa}`}
+              </label>
+            </section>
+          ) : (
+            <section className={styles.section} aria-labelledby="checkout-payment">
+              <div className={styles.sectionHead}>
+                <h2 id="checkout-payment">{isUa ? "Оплата" : "Payment"}</h2>
+                {monoAvailable && (
+                  <span className={styles.monoProviderLogo} aria-label="plata by mono">
+                    <Image
+                      src="/images/payments/plata-by-mono-light.svg"
+                      alt="plata by mono"
+                      width={136}
+                      height={28}
+                      className={styles.monoProviderLogoLight}
+                    />
+                    <Image
+                      src="/images/payments/plata-by-mono-dark.svg"
+                      alt=""
+                      width={136}
+                      height={28}
+                      className={styles.monoProviderLogoDark}
+                    />
+                  </span>
+                )}
+              </div>
+              {monoAvailable ? (
+                <>
+                  <div className={styles.paymentList}>
+                    <label className={styles.paymentOption}>
+                      <div className={styles.paymentTop}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="MONOBANK"
+                          checked={form.paymentMethod === "MONOBANK"}
+                          onChange={() => {
+                            setForm((current) => ({
+                              ...current,
+                              paymentMethod: "MONOBANK",
+                              currency: "UAH",
+                            }));
+                            setSelectedShopCurrency("UAH");
+                          }}
                         />
-                        <Image
-                          src="/images/payments/mono-visa-dark.svg"
-                          alt=""
-                          width={37}
-                          height={12}
-                          className={`${styles.paymentLogoDark} ${styles.cardLogoVisa}`}
-                        />
-                        <Image
-                          src="/images/payments/mono-mastercard-light.svg"
-                          alt="Mastercard"
-                          width={26}
-                          height={16}
-                          className={`${styles.paymentLogoLight} ${styles.cardLogoMastercard}`}
-                        />
-                        <Image
-                          src="/images/payments/mono-mastercard-dark.svg"
-                          alt=""
-                          width={26}
-                          height={16}
-                          className={`${styles.paymentLogoDark} ${styles.cardLogoMastercard}`}
-                        />
-                      </span>
-                    </div>
-                    <p className={styles.paymentDetail}>
-                      {isUa
-                        ? "Visa та Mastercard українських і закордонних банків."
-                        : "Visa and Mastercard from Ukrainian and international banks."}
-                    </p>
-                    <div className={styles.walletNames}>
-                      <span aria-label="Apple Pay">
-                        <Image
-                          src="/images/payments/mono-apple-pay-light.svg"
-                          alt="Apple Pay"
-                          width={57}
-                          height={24}
-                          className={styles.paymentLogoLight}
-                        />
-                        <Image
-                          src="/images/payments/mono-apple-pay-dark.svg"
-                          alt=""
-                          width={57}
-                          height={24}
-                          className={styles.paymentLogoDark}
-                        />
-                      </span>
-                      <span aria-label="Google Pay">
-                        <Image
-                          src="/images/payments/mono-google-pay-light.svg"
-                          alt="Google Pay"
-                          width={62}
-                          height={24}
-                          className={styles.paymentLogoLight}
-                        />
-                        <Image
-                          src="/images/payments/mono-google-pay-dark.svg"
-                          alt=""
-                          width={62}
-                          height={24}
-                          className={styles.paymentLogoDark}
-                        />
-                      </span>
-                    </div>
-                    {form.paymentMethod === "MONOBANK" && (
+                        <span className={styles.paymentName}>
+                          {isUa ? "Оплата карткою" : "Card payment"}
+                        </span>
+                        <span className={styles.cardLogos}>
+                          <Image
+                            src="/images/payments/mono-visa-light.svg"
+                            alt="Visa"
+                            width={37}
+                            height={12}
+                            className={`${styles.paymentLogoLight} ${styles.cardLogoVisa}`}
+                          />
+                          <Image
+                            src="/images/payments/mono-visa-dark.svg"
+                            alt=""
+                            width={37}
+                            height={12}
+                            className={`${styles.paymentLogoDark} ${styles.cardLogoVisa}`}
+                          />
+                          <Image
+                            src="/images/payments/mono-mastercard-light.svg"
+                            alt="Mastercard"
+                            width={26}
+                            height={16}
+                            className={`${styles.paymentLogoLight} ${styles.cardLogoMastercard}`}
+                          />
+                          <Image
+                            src="/images/payments/mono-mastercard-dark.svg"
+                            alt=""
+                            width={26}
+                            height={16}
+                            className={`${styles.paymentLogoDark} ${styles.cardLogoMastercard}`}
+                          />
+                        </span>
+                      </div>
                       <p className={styles.paymentDetail}>
                         {isUa
-                          ? "Оплата у гривні на захищеній сторінці mono."
-                          : "Pay in UAH on mono’s secure payment page."}
+                          ? "Visa та Mastercard українських і закордонних банків."
+                          : "Visa and Mastercard from Ukrainian and international banks."}
                       </p>
-                    )}
-                  </label>
-                </div>
-                <div className={styles.otherPayments}>
-                  <p className={styles.otherPaymentsTitle}>
-                    {isUa ? "Інші способи оплати" : "Other payment methods"}
-                  </p>
-                  {otherPaymentOptions}
-                </div>
-              </>
-            ) : (
-              otherPaymentOptions
-            )}
-          </section>
-
-          {quote?.requiresQuote && (
+                      <div className={styles.walletNames}>
+                        <span aria-label="Apple Pay">
+                          <Image
+                            src="/images/payments/mono-apple-pay-light.svg"
+                            alt="Apple Pay"
+                            width={57}
+                            height={24}
+                            className={styles.paymentLogoLight}
+                          />
+                          <Image
+                            src="/images/payments/mono-apple-pay-dark.svg"
+                            alt=""
+                            width={57}
+                            height={24}
+                            className={styles.paymentLogoDark}
+                          />
+                        </span>
+                        <span aria-label="Google Pay">
+                          <Image
+                            src="/images/payments/mono-google-pay-light.svg"
+                            alt="Google Pay"
+                            width={62}
+                            height={24}
+                            className={styles.paymentLogoLight}
+                          />
+                          <Image
+                            src="/images/payments/mono-google-pay-dark.svg"
+                            alt=""
+                            width={62}
+                            height={24}
+                            className={styles.paymentLogoDark}
+                          />
+                        </span>
+                      </div>
+                      {form.paymentMethod === "MONOBANK" && (
+                        <p className={styles.paymentDetail}>
+                          {isUa
+                            ? "Оплата у гривні на захищеній сторінці mono."
+                            : "Pay in UAH on mono’s secure payment page."}
+                        </p>
+                      )}
+                    </label>
+                  </div>
+                  <div className={styles.otherPayments}>
+                    <p className={styles.otherPaymentsTitle}>
+                      {isUa ? "Інші способи оплати" : "Other payment methods"}
+                    </p>
+                    {otherPaymentOptions}
+                  </div>
+                </>
+              ) : (
+                otherPaymentOptions
+              )}
+            </section>
+          )}
+          {quote?.requiresQuote && !internationalDelivery && (
             <div className={styles.quoteNotice} role="status">
               <strong>{isUa ? "Потрібне підтвердження вартості" : "A quote is required"}</strong>
               {isUa
@@ -926,15 +967,19 @@ export default function ShopCheckoutClient({
                 ? isUa
                   ? "Оновлюємо суму…"
                   : "Updating total…"
-                : quote?.requiresQuote
+                : internationalDelivery
                   ? isUa
-                    ? "Очікуємо прорахунок"
-                    : "Awaiting a quote"
-                  : paymentIsOnline
-                    ? (isUa ? "Перейти до оплати · " : "Continue to payment · ") + totalText
-                    : isUa
-                      ? "Оформити замовлення"
-                      : "Place order"}
+                    ? "Надіслати запит менеджеру"
+                    : "Send request to manager"
+                  : quote?.requiresQuote
+                    ? isUa
+                      ? "Очікуємо прорахунок"
+                      : "Awaiting a quote"
+                    : paymentIsOnline
+                      ? (isUa ? "Перейти до оплати · " : "Continue to payment · ") + totalText
+                      : isUa
+                        ? "Оформити замовлення"
+                        : "Place order"}
             {!submitting && <ArrowRight size={16} aria-hidden="true" />}
           </button>
           <p className={styles.terms}>
@@ -1065,20 +1110,24 @@ export default function ShopCheckoutClient({
                 <div className={styles.totalRow}>
                   <span>{isUa ? "Доставка" : "Shipping"}</span>
                   <span className={styles.totalRowMuted}>
-                    {!quote
-                      ? "—"
-                      : quote.shippingIncludedInPrice
-                        ? isUa
-                          ? "Включена у ціну"
-                          : "Included in price"
-                        : quote.shippingCost === 0
+                    {internationalDelivery
+                      ? isUa
+                        ? "Узгоджує менеджер"
+                        : "To be agreed with a manager"
+                      : !quote
+                        ? "—"
+                        : quote.shippingIncludedInPrice
                           ? isUa
-                            ? "За тарифами перевізника"
-                            : "Calculated by carrier"
-                          : formatShopMoney(locale, quote.shippingCost, quoteCurrency)}
+                            ? "Включена у ціну"
+                            : "Included in price"
+                          : quote.shippingCost === 0
+                            ? isUa
+                              ? "За тарифами перевізника"
+                              : "Calculated by carrier"
+                            : formatShopMoney(locale, quote.shippingCost, quoteCurrency)}
                   </span>
                 </div>
-                {showVatLine && (
+                {showVatLine && !internationalDelivery && (
                   <div className={styles.totalRow}>
                     <span>{vatSummaryLabel(quote)}</span>
                     <span>
@@ -1092,7 +1141,7 @@ export default function ShopCheckoutClient({
                     </span>
                   </div>
                 )}
-                {quote?.landedCost && (
+                {quote?.landedCost && !internationalDelivery && (
                   <div className={styles.totalRow}>
                     <span>
                       {quote.landedCost.mode === "DDP"
@@ -1120,7 +1169,15 @@ export default function ShopCheckoutClient({
                 )}
               </div>
               <div className={styles.grandTotal}>
-                <span>{isUa ? "Разом" : "Total"}</span>
+                <span>
+                  {internationalDelivery
+                    ? isUa
+                      ? "Попередня сума товарів"
+                      : "Estimated items total"
+                    : isUa
+                      ? "Разом"
+                      : "Total"}
+                </span>
                 <span className={styles.totalAmount}>{totalText}</span>
               </div>
               {quoteLoading && (

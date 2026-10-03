@@ -1,4 +1,5 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
+import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   localizeShopProductTitle,
@@ -188,6 +189,7 @@ interface OfferLike {
   compareAtPrice?: number;
   availability: Availability;
   validFrom?: string;
+  availabilityStarts?: string;
   priceValidUntil?: string;
 }
 
@@ -204,7 +206,7 @@ interface ProductSchemaProps {
 
 const SCHEMA_AVAILABILITY: Record<Availability, string> = {
   inStock: "https://schema.org/InStock",
-  preOrder: "https://schema.org/PreOrder",
+  preOrder: "https://schema.org/BackOrder",
   outOfStock: "https://schema.org/OutOfStock",
 };
 
@@ -226,6 +228,7 @@ function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
     entry.image = primaryImage;
   }
   if (offer.validFrom) entry.validFrom = offer.validFrom;
+  if (offer.availabilityStarts) entry.availabilityStarts = offer.availabilityStarts;
   if (offer.priceValidUntil) entry.priceValidUntil = offer.priceValidUntil;
   if (offer.compareAtPrice && offer.compareAtPrice > offer.price) {
     entry.priceSpecification = [
@@ -291,6 +294,7 @@ export function ProductSchema({
           highPrice: Math.max(...allPrices).toFixed(2),
           offerCount: offers.length,
           availability: SCHEMA_AVAILABILITY[primary.availability],
+          ...(primary.availabilityStarts ? { availabilityStarts: primary.availabilityStarts } : {}),
           offers: offers.map((o) => buildOfferEntry(o, url, primaryImage)),
         };
       } else {
@@ -346,6 +350,8 @@ export function ShopProductStructuredData({
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
     primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];
+  const resolvedStock = resolveShopConfirmedStock(product.sku, product.slug, product.stock, product.storefrontDisplay);
+  const availabilityDate = googleProductAvailability(resolvedStock, product.availabilityDate).availabilityDate;
   const offers = currencyOrder
     .map((c) => {
       const key = c.toLowerCase() as "usd" | "eur" | "uah";
@@ -355,13 +361,9 @@ export function ShopProductStructuredData({
       return {
         price,
         priceCurrency: c,
-        availability: resolveShopConfirmedStock(
-          product.sku,
-          product.slug,
-          product.stock,
-          product.storefrontDisplay
-        ),
+        availability: resolvedStock,
         ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
+        ...(availabilityDate ? { availabilityStarts: availabilityDate } : {}),
       };
     })
     .filter((o): o is NonNullable<typeof o> => Boolean(o));

@@ -10,6 +10,9 @@ import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
+import { requiresUrbanBodyKitQuote } from "@/lib/shopProductPurchasePolicy";
+import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import type {
   ShopProduct,
@@ -24,7 +27,11 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopAvailabilityBadge } from "@/components/shop/ShopAvailabilityBadge";
 import type { SupportedLocale } from "@/lib/seo";
-import { isWheelForceWheel, isWheelForceWheelSet, wheelForceSetPricing } from "@/lib/wheelforceFamily";
+import {
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  wheelForceSetPricing,
+} from "@/lib/wheelforceFamily";
 import { useShopVariantImage } from "./ShopVariantImageContext";
 
 type Props = {
@@ -202,8 +209,8 @@ export function ShopProductVariantPurchaseSection({
   useEffect(() => {
     const requestedSku = new URLSearchParams(window.location.search).get("variantSku")?.trim();
     if (!requestedSku) return;
-    const requestedVariant = variants.find((variant) =>
-      variant.sku?.toLowerCase() === requestedSku.toLowerCase()
+    const requestedVariant = variants.find(
+      (variant) => variant.sku?.toLowerCase() === requestedSku.toLowerCase()
     );
     if (requestedVariant) setSelected(optionValuesOf(requestedVariant));
   }, [variants]);
@@ -216,7 +223,14 @@ export function ShopProductVariantPurchaseSection({
   useEffect(() => {
     setSelectedVariantImage?.(currentVariant?.image ?? null);
     setSelectedVariantSku?.(currentVariant?.sku?.trim() || product.sku || null);
-  }, [currentVariant?.id, currentVariant?.image, currentVariant?.sku, product.sku, setSelectedVariantImage, setSelectedVariantSku]);
+  }, [
+    currentVariant?.id,
+    currentVariant?.image,
+    currentVariant?.sku,
+    product.sku,
+    setSelectedVariantImage,
+    setSelectedVariantSku,
+  ]);
 
   const currentProduct = useMemo<ShopProduct>(() => {
     if (!currentVariant) return product;
@@ -237,7 +251,7 @@ export function ShopProductVariantPurchaseSection({
   const isVehicleWheelSet = isWheelForceWheelSet(product);
   const isWheelSet = isSingleWheelProduct || isVehicleWheelSet;
   const displayPricing = useMemo(
-    () => isSingleWheelProduct ? wheelForceSetPricing(pricing) : pricing,
+    () => (isSingleWheelProduct ? wheelForceSetPricing(pricing) : pricing),
     [isSingleWheelProduct, pricing]
   );
 
@@ -266,9 +280,10 @@ export function ShopProductVariantPurchaseSection({
     product.storefrontDisplay
   );
   const accessoryOptions = useMemo(
-    () => (product.accessoryOptions ?? []).filter(
-      (option) => !option.variantSkus?.length || option.variantSkus.includes(selectedWheelSku)
-    ),
+    () =>
+      (product.accessoryOptions ?? []).filter(
+        (option) => !option.variantSkus?.length || option.variantSkus.includes(selectedWheelSku)
+      ),
     [product.accessoryOptions, selectedWheelSku]
   );
   useEffect(() => {
@@ -281,8 +296,10 @@ export function ShopProductVariantPurchaseSection({
   const selectedAccessoryOptions = accessoryOptions.filter((option) =>
     selectedAccessorySkus.includes(option.sku)
   );
-  const selectedAccessoryItems = selectedAccessoryOptions
-    .map((option) => ({ slug: option.slug, quantity: option.quantity ?? 1 }));
+  const selectedAccessoryItems = selectedAccessoryOptions.map((option) => ({
+    slug: option.slug,
+    quantity: option.quantity ?? 1,
+  }));
   const configuredPrice = selectedAccessoryOptions.reduce((total, option) => {
     const addOn = resolveShopProductPricing(
       { ...product, price: option.price, europePrice: option.europePrice },
@@ -310,12 +327,22 @@ export function ShopProductVariantPurchaseSection({
                   {isWheelSet
                     ? selectedAccessoryOptions.length
                       ? isVehicleWheelSet
-                        ? isUa ? "Комплект дисків для авто і вибрані аксесуари" : "Vehicle wheel set and selected accessories"
-                        : isUa ? "Комплект 4 дисків і вибрані аксесуари" : "Set of 4 wheels and selected accessories"
+                        ? isUa
+                          ? "Комплект дисків для авто і вибрані аксесуари"
+                          : "Vehicle wheel set and selected accessories"
+                        : isUa
+                          ? "Комплект 4 дисків і вибрані аксесуари"
+                          : "Set of 4 wheels and selected accessories"
                       : isVehicleWheelSet
-                        ? isUa ? "Комплект: 2 передні + 2 задні диски" : "Set: 2 front + 2 rear wheels"
-                        : isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"
-                    : isUa ? "Диск і вибрані аксесуари" : "Wheel and selected accessories"}
+                        ? isUa
+                          ? "Комплект: 2 передні + 2 задні диски"
+                          : "Set: 2 front + 2 rear wheels"
+                        : isUa
+                          ? "Комплект із 4 дисків"
+                          : "Set of 4 wheels"
+                    : isUa
+                      ? "Диск і вибрані аксесуари"
+                      : "Wheel and selected accessories"}
                 </p>
               ) : null}
             </div>
@@ -326,16 +353,37 @@ export function ShopProductVariantPurchaseSection({
         <ShopB2BPricingBand pricing={displayPricing} locale={locale} />
 
         {isVehicleWheelSet && product.wheelForceSet ? (
-          <section className="mt-5 space-y-3 border-t border-foreground/10 pt-5" aria-label={isUa ? "Склад комплекту дисків" : "Wheel set composition"}>
+          <section
+            className="mt-5 space-y-3 border-t border-foreground/10 pt-5"
+            aria-label={isUa ? "Склад комплекту дисків" : "Wheel set composition"}
+          >
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/60 dark:text-foreground/45">
               {isUa ? "Комплект для обраного авто" : "Vehicle-specific wheel set"}
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
-              {[{ key: "front", axle: isUa ? "Передня вісь" : "Front axle", component: product.wheelForceSet.front }, { key: "rear", axle: isUa ? "Задня вісь" : "Rear axle", component: product.wheelForceSet.rear }].map(({ key, axle, component }) => (
-                <div key={key} className="rounded-xl border border-foreground/10 bg-foreground/[0.02] px-3 py-2.5">
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-foreground/55">{axle} · 2 {isUa ? "диски" : "wheels"}</p>
+              {[
+                {
+                  key: "front",
+                  axle: isUa ? "Передня вісь" : "Front axle",
+                  component: product.wheelForceSet.front,
+                },
+                {
+                  key: "rear",
+                  axle: isUa ? "Задня вісь" : "Rear axle",
+                  component: product.wheelForceSet.rear,
+                },
+              ].map(({ key, axle, component }) => (
+                <div
+                  key={key}
+                  className="rounded-xl border border-foreground/10 bg-foreground/[0.02] px-3 py-2.5"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-foreground/55">
+                    {axle} · 2 {isUa ? "диски" : "wheels"}
+                  </p>
                   <p className="mt-1 text-sm font-medium">{component.sizeSpec}</p>
-                  <p className="mt-1 text-[10px] text-foreground/45">{isUa ? "Артикул" : "SKU"} {component.sku}</p>
+                  <p className="mt-1 text-[10px] text-foreground/45">
+                    {isUa ? "Артикул" : "SKU"} {component.sku}
+                  </p>
                 </div>
               ))}
             </div>
@@ -354,8 +402,12 @@ export function ShopProductVariantPurchaseSection({
           >
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/55 dark:text-foreground/40">
               {isWheelForce
-                ? isUa ? "1. Оберіть розмір і посадку" : "1. Choose size and fitment"
-                : isUa ? "Виберіть варіант" : "Choose your variant"}
+                ? isUa
+                  ? "1. Оберіть розмір і посадку"
+                  : "1. Choose size and fitment"
+                : isUa
+                  ? "Виберіть варіант"
+                  : "Choose your variant"}
             </p>
             {optionAxes.map((axis) => (
               <fieldset key={axis.index} className="space-y-2">
@@ -395,8 +447,12 @@ export function ShopProductVariantPurchaseSection({
           <fieldset className="mt-5 space-y-3 border-t border-foreground/10 pt-5">
             <legend className="mb-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground/60 dark:text-foreground/45">
               {isWheelForce && optionAxes.length > 0
-                ? isUa ? "2. Аксесуари для цього розміру" : "2. Accessories for this size"
-                : isUa ? "Опції аксесуарів" : "Accessory options"}
+                ? isUa
+                  ? "2. Аксесуари для цього розміру"
+                  : "2. Accessories for this size"
+                : isUa
+                  ? "Опції аксесуарів"
+                  : "Accessory options"}
             </legend>
             {accessoryOptions.map((option) => {
               const checked = selectedAccessorySkus.includes(option.sku);
@@ -467,8 +523,18 @@ export function ShopProductVariantPurchaseSection({
       </div>
 
       {children}
+      {googleProductAvailability(product.stock, product.availabilityDate).availabilityDate && (
+        <p className="text-sm text-foreground/70">
+          {isUa ? "Очікувана дата відправлення: " : "Expected shipping date: "}
+          {product.availabilityDate?.slice(0, 10)}
+        </p>
+      )}
 
-      <div className={isDo88Product ? styles.actions : "flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap"}>
+      <div
+        className={
+          isDo88Product ? styles.actions : "flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap"
+        }
+      >
         <AddToCartButton
           slug={currentVariant?.purchaseSlug ?? product.slug}
           locale={locale}
@@ -476,35 +542,59 @@ export function ShopProductVariantPurchaseSection({
           variantId={currentVariant?.id ?? null}
           productName={productTitle}
           additionalItems={selectedAccessoryItems}
-          label={isWheelSet
-            ? selectedAccessoryItems.length
-              ? isUa ? "Додати комплект і аксесуари" : "Add wheel set and accessories"
-              : isVehicleWheelSet
-                ? isUa ? "Додати комплект дисків" : "Add wheel set"
-                : isUa ? "Додати комплект (4 диски)" : "Add set (4 wheels)"
-            : selectedAccessoryItems.length
-              ? isUa ? "Додати диск і аксесуари" : "Add wheel and accessories"
-              : undefined}
+          label={
+            isWheelSet
+              ? selectedAccessoryItems.length
+                ? isUa
+                  ? "Додати комплект і аксесуари"
+                  : "Add wheel set and accessories"
+                : isVehicleWheelSet
+                  ? isUa
+                    ? "Додати комплект дисків"
+                    : "Add wheel set"
+                  : isUa
+                    ? "Додати комплект (4 диски)"
+                    : "Add set (4 wheels)"
+              : selectedAccessoryItems.length
+                ? isUa
+                  ? "Додати диск і аксесуари"
+                  : "Add wheel and accessories"
+                : undefined
+          }
           variant="minimal"
-          className={isDo88Product ? styles.primaryAction : "inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-primary bg-primary px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_18px_40px_-24px_rgba(213,0,28,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 disabled:translate-y-0 disabled:opacity-50 dark:shadow-[0_18px_40px_-24px_rgba(194,157,89,0.55)] dark:hover:shadow-[0_22px_46px_-24px_rgba(194,157,89,0.65)]"}
+          className={
+            isDo88Product
+              ? styles.primaryAction
+              : "inline-flex min-h-[54px] min-w-[220px] items-center justify-center rounded-full border border-primary bg-primary px-10 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary-foreground shadow-[0_18px_40px_-24px_rgba(213,0,28,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary/90 disabled:translate-y-0 disabled:opacity-50 dark:shadow-[0_18px_40px_-24px_rgba(194,157,89,0.55)] dark:hover:shadow-[0_22px_46px_-24px_rgba(194,157,89,0.65)]"
+          }
         />
-        <Link
-          href={`/${locale}/contact`}
-          className={isDo88Product ? styles.secondaryAction : "group relative overflow-hidden rounded-full border border-foreground/12 bg-foreground/[0.03] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/12 hover:text-foreground dark:text-foreground/80"}
-        >
-          {pricing.requestQuote
-            ? isUa
-              ? "Запитати B2B ціну"
-              : "Request B2B pricing"
-            : isUa
-              ? "Запит по товару"
-              : "Request product"}
-        </Link>
+        {!requiresUrbanBodyKitQuote(product) && (
+          <Link
+            href={buildProductInquiryHref(locale, product.slug, currentVariant?.id)}
+            className={
+              isDo88Product
+                ? styles.secondaryAction
+                : "group relative overflow-hidden rounded-full border border-foreground/12 bg-foreground/[0.03] px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] text-foreground/95 transition-all duration-500 hover:border-foreground/30 hover:bg-foreground/12 hover:text-foreground dark:text-foreground/80"
+            }
+          >
+            {pricing.requestQuote
+              ? isUa
+                ? "Запитати B2B ціну"
+                : "Request B2B pricing"
+              : isUa
+                ? "Запит по товару"
+                : "Request product"}
+          </Link>
+        )}
         <ShopBackToCatalogLink
           fallbackHref={continueShoppingHref}
           label={isUa ? "Продовжити покупки" : "Continue shopping"}
           disableHistoryBack
-          className={isDo88Product ? styles.backAction : "rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-foreground/60 transition-all duration-500 hover:text-foreground/95 dark:text-foreground/40 dark:hover:text-foreground/80"}
+          className={
+            isDo88Product
+              ? styles.backAction
+              : "rounded-full border border-transparent bg-transparent px-6 py-3.5 text-[10px] font-light uppercase tracking-[0.15em] text-foreground/60 transition-all duration-500 hover:text-foreground/95 dark:text-foreground/40 dark:hover:text-foreground/80"
+          }
         />
       </div>
 
@@ -523,4 +613,3 @@ export function ShopProductVariantPurchaseSection({
     </div>
   );
 }
-

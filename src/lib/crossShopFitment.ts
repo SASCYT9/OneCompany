@@ -3113,6 +3113,13 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     make = fitment.make;
     models = fitment.models;
     chassis = fitment.chassisCodes;
+  } else if (brand.includes("urban")) {
+    const title = [product.title?.en, product.title?.ua].filter(Boolean).join(" | ");
+    make = extractDedicatedTagMake(product) || detectMakeGeneric(title);
+    if (make?.toLowerCase().replace(/[\s-]+/g, "") === "landrover" && /\bdefender\b/i.test(title)) {
+      const body = title.match(/\bdefender\s*((?:90|110|130|octa)(?:\s*[\/,]\s*(?:90|110|130|octa))*)/i)?.[1];
+      models = body ? body.split(/[\/,]/).map((value) => `Defender ${value.trim().toUpperCase()}`) : ["Defender"];
+    }
   } else if (brand.includes("brabus")) {
     const brabusTitle = [product.title?.en, product.title?.ua].filter(Boolean).join(" | ");
     if (/\b(?:based on|for)\s+porsche\b/i.test(brabusTitle)) {

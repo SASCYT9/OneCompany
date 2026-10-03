@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
 import { resolveShopCountry } from "@/lib/shopCountries";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
+import { defaultCurrencyForShopCountry } from "@/lib/shopCountryCurrency";
 
 type CurrencyCode = ShopCurrencyCode;
 export type ShopRegionCode = "UA" | "EU" | "US";
@@ -20,6 +21,9 @@ type ShopCurrencyContextValue = {
   region: ShopRegionCode;
   country: string;
   currency: CurrencyCode;
+  initialCurrency: CurrencyCode;
+  hasExplicitCurrency: boolean;
+  preferencesLoaded: boolean;
   rates: Rates | null;
   setRegion: (region: ShopRegionCode) => void;
   setCountry: (country: string) => void;
@@ -30,6 +34,9 @@ const DEFAULT_VALUE: ShopCurrencyContextValue = {
   region: "UA",
   country: DEFAULT_COUNTRY,
   currency: "UAH",
+  initialCurrency: "UAH",
+  hasExplicitCurrency: false,
+  preferencesLoaded: false,
   rates: null,
   setRegion: () => {},
   setCountry: () => {},
@@ -120,7 +127,10 @@ export function ShopCurrencyProvider({
 }: ShopCurrencyProviderProps) {
   const normalizedDefaultCurrency = normalizeCurrency(defaultCurrency, "UAH");
   const normalizedDefaultCountry = defaultCountry
-    ? normalizeCountry(defaultCountry, defaultCountryForRegion(currencyToRegion(normalizedDefaultCurrency)))
+    ? normalizeCountry(
+        defaultCountry,
+        defaultCountryForRegion(currencyToRegion(normalizedDefaultCurrency))
+      )
     : defaultCountryForRegion(currencyToRegion(normalizedDefaultCurrency));
   const initialRegion = defaultCountry
     ? countryToRegion(normalizedDefaultCountry)
@@ -128,7 +138,9 @@ export function ShopCurrencyProvider({
   const [region, setRegionState] = useState<ShopRegionCode>(initialRegion);
   const [country, setCountryState] = useState<string>(normalizedDefaultCountry);
   const [currency, setCurrencyState] = useState<CurrencyCode>(normalizedDefaultCurrency);
-  const [rates] = useState<Rates | null>(normalizeRates(initialRates));
+  const [hasExplicitCurrency, setHasExplicitCurrency] = useState(false);
+  const [storageLoaded, setStorageLoaded] = useState(false);
+  const [rates, setRates] = useState<Rates | null>(normalizeRates(initialRates));
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -139,6 +151,7 @@ export function ShopCurrencyProvider({
         region?: ShopRegionCode;
         country?: string;
         currency?: CurrencyCode;
+        currencyExplicit?: boolean;
       };
       const nextCurrency = normalizeCurrency(parsed.currency, normalizedDefaultCurrency);
       const nextRegion = normalizeRegion(parsed.region, currencyToRegion(nextCurrency));
@@ -146,38 +159,88 @@ export function ShopCurrencyProvider({
       setRegionState(nextRegion);
       setCountryState(nextCountry);
       setCurrencyState(nextCurrency);
+      setHasExplicitCurrency(parsed.currencyExplicit ?? Boolean(parsed.currency));
     } catch {
       // ignore
+    } finally {
+      setStorageLoaded(true);
     }
   }, [normalizedDefaultCurrency]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        region,
-        country,
-        currency,
-      })
-    );
-  }, [region, country, currency]);
+    if (typeof window === "undefined" || !storageLoaded) return;
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          region,
+          country,
+          currency,
+          currencyExplicit: hasExplicitCurrency,
+        })
+      );
+    } catch {
+      /* Currency still works when browser storage is unavailable. */
+    }
+  }, [region, country, currency, hasExplicitCurrency, storageLoaded]);
 
-  const setRegion = useCallback((next: ShopRegionCode) => {
-    setRegionState(next);
-    setCountryState(defaultCountryForRegion(next));
+  useEffect(() => {
+    const controller = new AbortController();
+    const refresh = () => {
+      fetch("/api/shop/currency-rates", { signal: controller.signal, cache: "no-store" })
+        .then(async (response) => {
+          if (!response.ok) throw new Error();
+          return response.json();
+        })
+        .then((data) => {
+          if (
+            !controller.signal.aborted &&
+            ["EUR", "USD", "UAH"].every(
+              (key) =>
+                typeof data.currencyRates?.[key] === "number" &&
+                Number.isFinite(data.currencyRates[key]) &&
+                data.currencyRates[key] > 0
+            )
+          )
+            setRates(normalizeRates(data.currencyRates));
+        })
+        .catch(() => {
+          /* Preserve the last valid rates. Checkout verifies a fresh quote. */
+        });
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    const timer = window.setInterval(refresh, 10 * 60 * 1000);
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", refresh);
+      window.clearInterval(timer);
+    };
   }, []);
 
-  const setCountry = useCallback((next: string) => {
-    setCountryState((current) => {
-      const normalized = normalizeCountry(next, current);
+  const setRegion = useCallback(
+    (next: ShopRegionCode) => {
+      setRegionState(next);
+      setCountryState(defaultCountryForRegion(next));
+      if (!hasExplicitCurrency)
+        setCurrencyState(defaultCurrencyForShopCountry(defaultCountryForRegion(next)));
+    },
+    [hasExplicitCurrency]
+  );
+
+  const setCountry = useCallback(
+    (next: string) => {
+      const normalized = normalizeCountry(next, country);
+      setCountryState(normalized);
       setRegionState(countryToRegion(normalized));
-      return normalized;
-    });
-  }, []);
+      if (!hasExplicitCurrency) setCurrencyState(defaultCurrencyForShopCountry(normalized));
+    },
+    [country, hasExplicitCurrency]
+  );
 
   const setCurrency = useCallback((next: CurrencyCode) => {
     setCurrencyState(next);
+    setHasExplicitCurrency(true);
   }, []);
 
   return (
@@ -186,6 +249,9 @@ export function ShopCurrencyProvider({
         region,
         country,
         currency,
+        initialCurrency: normalizedDefaultCurrency,
+        hasExplicitCurrency,
+        preferencesLoaded: storageLoaded,
         rates,
         setRegion,
         setCountry,

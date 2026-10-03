@@ -32,6 +32,7 @@ type CheckoutFixtureBody = {
   paymentMethod: string;
   checkoutKey: string;
   expectedAmount: number;
+  internationalDeliveryConsent?: unknown;
 };
 
 async function fixture() {
@@ -40,6 +41,7 @@ async function fixture() {
   let notifications = 0;
   let cartClears = 0;
   let invoiceUnavailable = false;
+  let providerCalls = 0;
   const quote = {
     currency: "UAH",
     items: [
@@ -74,6 +76,7 @@ async function fixture() {
             data: StoredOrder & { monobankPayment?: { create: PaymentCreate } };
           }) => {
             const order = { ...data, id: `order-${orders.length + 1}` };
+            order.paymentStatus ??= "UNPAID"; // Prisma's default for non-provider requests.
             orders.push(order);
             const payment = data.monobankPayment?.create;
             if (payment)
@@ -111,11 +114,12 @@ async function fixture() {
       getShopSettingsRuntime: () => ({ defaultCurrency: "UAH" }),
     },
     "@/lib/shopWhitepay": {
-      createWhitepayCryptoOrder: async () => {},
-      createWhitepayFiatOrder: async () => {},
+      createWhitepayCryptoOrder: async () => { providerCalls++; },
+      createWhitepayFiatOrder: async () => { providerCalls++; },
     },
     "@/lib/shopMonobankPayments": {
       prepareMonobankPayment: async () => {
+        providerCalls++;
         if (invoiceUnavailable) throw new Error("Provider offline");
         return "https://pay.mbnk.biz/qa";
       },
@@ -167,6 +171,7 @@ async function fixture() {
         })
       ),
     counts: () => ({ notifications, cartClears }),
+    providerCalls: () => providerCalls,
     failInvoice: () => {
       invoiceUnavailable = true;
     },
@@ -281,4 +286,40 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       assert.equal(f.orders[0].status, "PENDING_REVIEW");
     }
   );
+  await t.test("international requests preserve explicit consent and never create a provider payment", async () => {
+    const f = await fixture();
+    f.quote.currency = "USD";
+    f.quote.requiresQuote = true;
+    const body = {
+      ...f.body, currency: "USD", paymentMethod: "MANAGER_QUOTE",
+      shipping: { ...f.body.shipping, country: "United States" },
+      internationalDeliveryConsent: true,
+    };
+    const response = await f.post(body);
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.redirectUrl, undefined);
+    const order = f.orders[0] as StoredOrder & { pricingSnapshot: { internationalDelivery: Record<string, unknown> } };
+    assert.equal(order.status, "PENDING_REVIEW");
+    assert.equal(order.paymentStatus, "UNPAID");
+    assert.equal(order.paymentMethod, "MANAGER_QUOTE");
+    assert.equal(order.pricingSnapshot.internationalDelivery.status, "awaiting_agreement");
+    assert.equal(order.pricingSnapshot.internationalDelivery.country, "United States");
+    assert.equal(order.pricingSnapshot.internationalDelivery.quotedCurrency, "USD");
+    assert.equal(order.pricingSnapshot.internationalDelivery.consentVersion, "international-delivery-24h-v1");
+    assert.ok(Number.isFinite(Date.parse(String(order.pricingSnapshot.internationalDelivery.consentAt))));
+    assert.equal(f.providerCalls(), 0);
+    assert.deepEqual(f.counts(), { notifications: 1, cartClears: 1 });
+  });
+  await t.test("international bypasses reject before persistence, notifications or provider calls", async () => {
+    for (const [method, consent] of [["MANAGER_QUOTE", false], ["MANAGER_QUOTE", "true"], ["MONOBANK", true], ["FOP", true], ["WHITEBIT", true]] as const) {
+      const f = await fixture();
+      const response = await f.post({ ...f.body, paymentMethod: method,
+        shipping: { ...f.body.shipping, country: "United States" }, internationalDeliveryConsent: consent });
+      assert.equal(response.status, 400);
+      assert.equal(f.orders.length, 0);
+      assert.equal(f.providerCalls(), 0);
+      assert.deepEqual(f.counts(), { notifications: 0, cartClears: 0 });
+    }
+  });
 });
