@@ -53,8 +53,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                   {l === "ua" ? "Оплата картою онлайн:" : "Online Payment via Card:"}
                 </strong>{" "}
                 {l === "ua"
-                  ? "Ми приймаємо платежі через захищену платіжну систему онлайн. Оплата можлива картами Visa та Mastercard. Передача даних здійснюється через захищене з'єднання."
-                  : "We accept payments through a secure online payment system. We support Visa and Mastercard. Data transmission is handled via secure connection."}
+                  ? "Оплата через plata by mono картами Visa та Mastercard, Apple Pay або Google Pay, якщо спосіб доступний на вашому пристрої. Сума списання вказується у гривні перед переходом до оплати."
+                  : "Pay through plata by mono with Visa or Mastercard, Apple Pay or Google Pay where available on your device. The amount charged in UAH is shown before you proceed to payment."}
               </li>
               <li>
                 <strong className="text-foreground">
@@ -67,8 +67,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
             </ul>
             <p className="mt-4">
               {l === "ua"
-                ? "Всі ціни вказані та оплачуються у національній валюті (Гривня, UAH) відповідно до чинного законодавства."
-                : "All prices are listed and paid in the national currency (Ukrainian Hryvnia, UAH) in accordance with applicable laws."}
+                ? "У каталозі можна вибрати UAH, EUR або USD; для України за замовчуванням показуємо гривню. Онлайн-оплата через mono відбувається у гривні. Якщо картка відкрита в іншій валюті, конвертацію та можливі комісії визначає банк, що випустив картку. Для банківського переказу валюта й сума зазначаються у погодженому інвойсі."
+                : "You can select UAH, EUR or USD in the catalog; UAH is the default for Ukraine. Online payment through mono is charged in UAH. If your card uses another currency, conversion and any fees are determined by your card issuer. For a bank transfer, the currency and amount are specified in the agreed invoice."}
             </p>
           </section>
 
@@ -98,8 +98,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                     : "DHL Express (international delivery):"}
                 </strong>{" "}
                 {l === "ua"
-                  ? "Міжнародна експрес-доставка в будь-яку точку світу. Терміни та вартість — згідно з тарифами перевізника та залежать від країни призначення."
-                  : "International express delivery anywhere in the world. Timelines and costs are according to the carrier's rates and depend on the destination country."}
+                  ? "Для доставки за межі України спочатку залиште замовлення-запит. Менеджер зв’яжеться з вами протягом 24 годин, вручну розрахує доставку й погодить загальну суму перед оплатою. Під час оформлення потрібна згода на цей порядок."
+                  : "For delivery outside Ukraine, submit an order request first. A manager will contact you within 24 hours, calculate shipping manually and agree the final total before payment. Your agreement to this process is required at checkout."}
               </li>
             </ul>
             <p className="mt-4">

@@ -112,6 +112,7 @@ export function orderPaymentMethodLabel(method: string | null | undefined) {
         WHITEBIT: "Криптовалюта · Whitepay",
         WHITEPAY_FIAT: "Картка · Whitepay",
         MONOBANK: "plata by mono · картка, Apple Pay, Google Pay",
+        MANAGER_QUOTE: "Погодження міжнародної доставки з менеджером",
       } as Record<string, string>
     )[method || ""] ||
     method ||

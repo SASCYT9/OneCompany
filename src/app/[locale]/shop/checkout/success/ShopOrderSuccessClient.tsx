@@ -207,6 +207,11 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
           <p className="mt-4 text-sm text-foreground/75 dark:text-foreground/60">
             {isUa ? "Ми надішлемо підтвердження на" : "We will send confirmation to"} {order.email}
           </p>
+          {order.paymentMethod === "MANAGER_QUOTE" && (
+            <p className="mt-6 rounded-2xl border border-foreground/10 p-5 text-sm" role="status">
+              {isUa ? "Менеджер зв’яжеться з вами протягом 24 годин, щоб погодити вартість доставки та загальну суму перед оплатою." : "A manager will contact you within 24 hours to agree shipping and the final total before payment."}
+            </p>
+          )}
           {order.paymentMethod === "MONOBANK" && (
             <div className="mt-6 rounded-2xl border border-foreground/10 bg-card/40 p-5 text-left" aria-live="polite">
               <p className="text-sm font-medium">

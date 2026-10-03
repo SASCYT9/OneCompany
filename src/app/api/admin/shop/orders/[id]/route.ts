@@ -66,6 +66,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const status = body.status as string | undefined;
     const note = typeof body.note === "string" ? body.note.trim() : "";
 
+    const currentOrder = await prisma.shopOrder.findUnique({
+      where: { id },
+      select: {
+        id: true, status: true, updatedAt: true, subtotal: true, taxAmount: true,
+        shippingCost: true, paymentMethod: true, monobankPayment: { select: { id: true } },
+      },
+    });
+    if (!currentOrder) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
     const updateData: any = {};
     if (status) {
       if (!ALLOWED_STATUSES.includes(status as OrderStatus))
@@ -78,16 +89,32 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.deliveryMethod !== undefined) updateData.deliveryMethod = body.deliveryMethod || null;
     if (body.ttnNumber !== undefined) updateData.ttnNumber = body.ttnNumber || null;
     if (body.shippingCalculatedCost !== undefined) {
-      updateData.shippingCalculatedCost = body.shippingCalculatedCost
+      const shippingCalculatedCost = body.shippingCalculatedCost
         ? Number(body.shippingCalculatedCost)
         : null;
-      updateData.shippingCost = updateData.shippingCalculatedCost || 0;
-
-      const currentOrder = await prisma.shopOrder.findUnique({
-        where: { id },
-        select: { id: true, subtotal: true, taxAmount: true },
-      });
-      if (currentOrder) {
+      const shippingCost = shippingCalculatedCost ?? 0;
+      if (!Number.isFinite(shippingCost) || shippingCost < 0) {
+        return NextResponse.json({ error: "Valid shipping cost required" }, { status: 400 });
+      }
+      const shippingChanged = shippingCost !== currentOrder.shippingCost.toNumber();
+      if (
+        shippingChanged &&
+        (currentOrder.paymentMethod === "MONOBANK" || currentOrder.monobankPayment)
+      ) {
+        return NextResponse.json(
+          { error: "Суму доставки не можна змінити після підготовки платежу mono." },
+          { status: 409 }
+        );
+      }
+      if (shippingChanged && currentOrder.paymentMethod === "MANAGER_QUOTE") {
+        return NextResponse.json(
+          { error: "Погодьте міжнародну доставку через блок «Міжнародна доставка та оплата»." },
+          { status: 409 }
+        );
+      }
+      updateData.shippingCalculatedCost = shippingCalculatedCost;
+      if (shippingChanged) {
+        updateData.shippingCost = shippingCost;
         updateData.total = Number(
           (
             currentOrder.subtotal.toNumber() +
@@ -101,13 +128,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: "No valid fields provided" }, { status: 400 });
     }
-    const currentOrder = await prisma.shopOrder.findUnique({
-      where: { id },
-      select: { id: true, status: true },
-    });
-    if (!currentOrder) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
     if (
       updateData.status &&
       !canTransitionOrderStatus(currentOrder.status, updateData.status as OrderStatus)
@@ -119,10 +139,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const order = await prisma.$transaction(async (tx) => {
-      const updatedOrder = await tx.shopOrder.update({
-        where: { id },
+      const claimed = await tx.shopOrder.updateMany({
+        where: { id, updatedAt: currentOrder.updatedAt },
         data: updateData,
       });
+      if (claimed.count !== 1) throw new Error("ORDER_CHANGED");
+      const updatedOrder = await tx.shopOrder.findUniqueOrThrow({ where: { id } });
 
       if (updateData.status && currentOrder.status !== updateData.status) {
         await tx.shopOrderStatusEvent.create({
@@ -209,6 +231,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json({ id: order.id, status: order.status });
   } catch (e) {
+    if ((e as Error).message === "ORDER_CHANGED") {
+      return NextResponse.json(
+        { error: "Замовлення вже змінилося. Оновіть сторінку та перевірте поточну суму." },
+        { status: 409 }
+      );
+    }
     if ((e as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

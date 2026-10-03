@@ -1,0 +1,52 @@
+.panel {
+  container: deliveryquote / inline-size;
+  color: #eef1f6;
+  scroll-margin-top: 90px;
+}
+.header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+.header h3 { font-size: 18px; font-weight: 600; margin: 0; }
+.header p { color: #b0b7c3; font-size: 13px; line-height: 1.6; max-width: 440px; margin-top: 7px; }
+.pendingBadge, .agreedBadge { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; white-space: nowrap; padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+.pendingBadge { color: #f5d798; background: #b7831b14; border: 1px solid #bd8b3338; }
+.agreedBadge { color: #a9edc7; background: #27a96012; border: 1px solid #27a96035; }
+.quoteGrid { display: grid; gap: 20px; }
+.delivery h4, .agreement h4, .payment h4 { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; margin: 0 0 16px; }
+.delivery h4 span, .agreement h4 span, .payment h4 span { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 24px; height: 24px; border: 1px solid #ffffff24; border-radius: 6px; color: #b6c1d2; font-size: 12px; }
+.delivery input { font-size: 18px; min-height: 48px; background: #111318; border-color: #ffffff26; border-radius: 7px; }
+.delivery label > span { color: #bdc5d1; }
+.shippingFields { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 10px; }
+.shippingFields select { min-height: 48px; background: #111318; border-color: #ffffff26; border-radius: 7px; }
+.inputHint, .exchangeRate, .sourceAmount { color: #b3bdcc; font-size: 12px; line-height: 1.6; margin-top: 9px; }
+.sourceAmount { padding-top: 9px; border-top: 1px solid #ffffff10; }
+.notice { color: #f5d798; font-size: 13px; line-height: 1.6; margin-top: 16px; }
+.calculationStatus { display: flex; align-items: center; gap: 6px; min-height: 38px; margin: 10px 0 0; color: #adb7c6; font-size: 12px; line-height: 1.6; }
+.summary { background: #0d0f13; border: 1px solid #ffffff14; padding: 19px; border-radius: 10px; }
+.summaryTitle { color: #a6b1c1; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 16px; }
+.summary dl { display: grid; gap: 10px; margin: 0; }
+.summary dl > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.summary dt { color: #b5becc; }
+.summary dd { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0; }
+.total { margin-top: 17px; padding-top: 17px; border-top: 1px solid #ffffff16; }
+.total > span { display: block; color: #b5becc; font-size: 12px; margin-bottom: 6px; }
+.total strong { display: block; font-size: clamp(23px, 4cqw, 30px); line-height: 1.25; font-weight: 600; font-variant-numeric: tabular-nums; }
+.agreement, .payment { margin-top: 24px; padding-top: 22px; border-top: 1px solid #ffffff16; }
+.checkbox { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #d3dae5; line-height: 1.6; cursor: pointer; }
+.checkbox input { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; accent-color: #3b82f6; }
+.checkbox input:focus-visible { outline: 2px solid #77b4ff; outline-offset: 3px; }
+.saveRow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 16px; }
+.saveRow p { flex: 1; min-width: 170px; color: #afb9c8; font-size: 12px; line-height: 1.6; margin: 0; }
+.saveButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #5c9aff; border-radius: 7px; padding: 11px 16px; background: #2367d6; color: white; font-size: 13px; font-weight: 600; transition: background 0.15s; }
+.saveButton:hover:not(:disabled) { background: #3479e6; }
+.saveButton:disabled { background: #1d2430; border-color: #ffffff18; color: #a9b3c3; cursor: not-allowed; }
+.saveButton:focus-visible { outline: 2px solid #77b4ff; outline-offset: 3px; }
+.paymentHint { display: flex; align-items: center; gap: 7px; color: #b0bac9; font-size: 12px; line-height: 1.6; margin: 0 0 13px; }
+.error { color: #ffb4b4; font-size: 13px; line-height: 1.6; margin-top: 14px; }
+@container deliveryquote (min-width: 540px) {
+  .quoteGrid { grid-template-columns: minmax(0, 1fr) minmax(230px, 0.95fr); gap: 24px; }
+}
+@container deliveryquote (max-width: 420px) {
+  .saveButton { width: 100%; }
+  .saveRow p { min-width: 0; }
+  .summary { padding: 16px; }
+  .shippingFields { grid-template-columns: minmax(0, 1fr) 100px; }
+}

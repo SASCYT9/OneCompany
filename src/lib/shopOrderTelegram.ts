@@ -73,7 +73,7 @@ export function buildShopOrderTelegram(
     `<b>Спосіб оплати:</b> ${text(orderPaymentMethodLabel(params.paymentMethod), 80)}`,
     `<b>Оплата:</b> ${text(orderPaymentLabel(params.paymentStatus || "UNPAID"), 60)}`,
     "",
-    `<b>Разом: ${money(params.total)}</b>`,
+    `<b>${params.paymentMethod === "MANAGER_QUOTE" ? "Попередня сума" : "Разом"}: ${money(params.total)}</b>`,
     `Доставка: ${params.requiresQuote ? "потребує уточнення менеджером" : money(params.shippingCost || 0)} · Податок: ${money(params.taxAmount || 0)}`,
     "",
     `<b>Товари · ${params.itemCount} шт.</b>`,

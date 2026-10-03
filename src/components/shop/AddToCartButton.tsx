@@ -1,4 +1,6 @@
 "use client";
+import { requiresUrbanBodyKitQuote } from "@/lib/shopProductPurchasePolicy";
+import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -70,7 +72,10 @@ export function AddToCartButton({
             variantId: item.variantId ?? null,
             quantity: Math.max(
               1,
-              Math.min(99, Math.floor(Number(item.quantity ?? normalizedQuantity) || normalizedQuantity))
+              Math.min(
+                99,
+                Math.floor(Number(item.quantity ?? normalizedQuantity) || normalizedQuantity)
+              )
             ),
           })),
         ];
@@ -100,6 +105,13 @@ export function AddToCartButton({
     }
   };
 
+  if (requiresUrbanBodyKitQuote({ slug })) {
+    return (
+      <Link href={buildProductInquiryHref(locale, slug!, variantId)} className={className}>
+        {isUa ? "Запитати комплект з обвісом" : "Request a package with a body kit"}
+      </Link>
+    );
+  }
   if (variant === "minimal" || variant === "inline") {
     const adding_label = isUa ? "Додаємо…" : "Adding…";
     return (

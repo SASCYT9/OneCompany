@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { ShopMoneySet } from "@/lib/shopCatalog";
@@ -24,7 +25,10 @@ function formatPrice(locale: "ua" | "en", amount: number, currency: "EUR" | "USD
 }
 
 export function ShopPrimaryPriceBox({ locale, isUa, price }: Props) {
-  const { currency, rates } = useShopCurrency();
+  const { currency: selectedCurrency, initialCurrency, rates } = useShopCurrency();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => { setHydrated(true); }, []);
+  const currency = hydrated ? selectedCurrency : initialCurrency;
 
   const hasValid = (value?: number | null) => typeof value === "number" && value > 0;
 

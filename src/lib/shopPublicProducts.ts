@@ -31,6 +31,7 @@ export function serializePublicShopProduct(
     longDescription: product.longDescription,
     leadTime: product.leadTime,
     stock: product.stock,
+    availabilityDate: product.availabilityDate ?? null,
     collection: product.collection,
     collections: product.collections ?? [],
     bundle: product.bundle

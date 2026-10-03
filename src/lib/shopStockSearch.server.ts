@@ -94,6 +94,7 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
+import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
   getShopConfirmedAvailability,
   isShopInStockProduct,
@@ -1079,7 +1080,12 @@ export async function searchShopStock(request: { url: string }) {
         // settings routes. This removes one live DB read from every search.
         getPublicShopSettingsRuntime(),
         getCurrentShopCustomerSession(),
-        resolveCanonicalVehicleProductIds({
+        !queryVehiclePlan.canonical && !isLocalStorefrontMode() && resolvedVehicleMake
+          ? resolveLegacyVehicleProductIds({
+              ...queryVehiclePlan.constraints,
+              modelAlternates: queryVehiclePlan.modelAlternates,
+            })
+          : resolveCanonicalVehicleProductIds({
           make: resolvedVehicleMake,
           model: resolvedVehicleModel,
           chassis: resolvedVehicleChassis,

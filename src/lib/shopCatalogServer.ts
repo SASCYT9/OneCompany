@@ -1892,6 +1892,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     slug: row.slug,
     sku: rowSku || variantSku || fallbackAkrapovicSku || "",
     scope: row.scope as ShopScope,
+    availabilityDate: row.metafields?.find((field) => field.namespace === "onecompany" && field.key === "availability_date")?.value ?? null,
     brand: resolveShopProductBrand(row),
     vendor: row.vendor ?? undefined,
     productType: row.productType ?? undefined,

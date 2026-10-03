@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
       customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
     });
   } catch (error) {
+    if ((error as Error).message === "URBAN_DECALS_REQUIRE_BODY_KIT_QUOTE") return NextResponse.json({ error: "This decal pack is available only with an Urban body kit. Request a package from the manager.", code: "URBAN_DECALS_REQUIRE_BODY_KIT_QUOTE" }, { status: 400 });
     if ((error as Error).message === "WHEELFORCE_SET_OF_FOUR_REQUIRED") {
       return NextResponse.json({ error: "WheelForce wheels are sold in sets of four", code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
     }

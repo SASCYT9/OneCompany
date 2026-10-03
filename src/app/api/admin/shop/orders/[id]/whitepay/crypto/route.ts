@@ -4,6 +4,7 @@ import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
 import { createWhitepayCryptoOrder, isWhitepayEnabled } from "@/lib/shopWhitepay";
+import { isInternationalDelivery, internationalDeliveryAgreementMatches } from "@/lib/shopInternationalCheckout";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -25,10 +26,20 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
         email: true,
         viewToken: true,
         paymentStatus: true,
+        paymentMethod: true,
+        shippingAddress: true,
+        pricingSnapshot: true,
+        monobankPayment: { select: { id: true } },
       },
     });
 
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    const address = order.shippingAddress as Record<string, unknown> | null;
+    if (isInternationalDelivery(String(address?.country ?? "")) &&
+      !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total))
+      return NextResponse.json({ error: "INTERNATIONAL_DELIVERY_NOT_AGREED" }, { status: 409 });
+    if (order.paymentMethod === "MONOBANK" || order.monobankPayment)
+      return NextResponse.json({ error: "OTHER_PAYMENT_PROVIDER_REVIEW_REQUIRED" }, { status: 409 });
     if (order.paymentStatus === "PAID")
       return NextResponse.json({ error: "Order already paid" }, { status: 400 });
 

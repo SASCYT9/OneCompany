@@ -12,6 +12,8 @@ import {
 } from "@/lib/telegramNotifications";
 import { consumeRateLimit, getRequestIp } from "@/lib/shopPublicRateLimit";
 import { prisma } from "@/lib/prisma";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { resolveProductInquiry, productInquiryMessage } from "@/lib/shopProductInquiry";
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 10;
 
@@ -29,6 +31,9 @@ type ContactRequestBody = {
   phone?: string;
   contactMethod?: "telegram" | "whatsapp";
   telegramUsername?: string;
+  productSlug?: string;
+  variantId?: string | null;
+  locale?: string;
 };
 
 type ContactFormData = {
@@ -158,7 +163,23 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = (await req.json()) as ContactRequestBody;
-    const type: ContactType = body.type === "moto" ? "moto" : "auto";
+    let type: ContactType = body.type === "moto" ? "moto" : "auto";
+    const locale = body.locale === "ua" ? "ua" : "en";
+    let productInquiry: ReturnType<typeof resolveProductInquiry> | null = null;
+    if (body.productSlug) {
+      if (typeof body.productSlug !== "string" || body.productSlug.length > 320 || (body.variantId != null && typeof body.variantId !== "string")) {
+        return Response.json({ error: "Invalid product inquiry" }, { status: 400 });
+      }
+      const product = await getShopProductBySlugServer(body.productSlug);
+      if (!product) return Response.json({ error: "Product not found" }, { status: 404 });
+      try {
+        productInquiry = resolveProductInquiry(product, locale, body.variantId);
+        type = productInquiry.scope === "moto" ? "moto" : "auto";
+      } catch {
+        return Response.json({ error: "Product variant not found" }, { status: 400 });
+      }
+    }
+    const wishes = [productInquiry ? productInquiryMessage(productInquiry, locale) : "", sanitize(body.wishes)].filter(Boolean).join("\n\n");
 
     let message: string;
     let model = "";
@@ -168,7 +189,7 @@ export async function POST(req: NextRequest) {
       const autoFormData: AutoFormData = {
         carModel: sanitize(body.carModel),
         vin: sanitize(body.vin),
-        wishes: sanitize(body.wishes),
+        wishes,
         budget: sanitize(body.budget),
         email: sanitize(body.email),
         name: sanitize(body.name),
@@ -178,7 +199,7 @@ export async function POST(req: NextRequest) {
       };
       if (
         !autoFormData.name ||
-        !autoFormData.carModel ||
+        (!autoFormData.carModel && !productInquiry) ||
         !autoFormData.email ||
         !autoFormData.phone
       ) {
@@ -194,7 +215,7 @@ export async function POST(req: NextRequest) {
       const motoFormData: MotoFormData = {
         motoModel: sanitize(body.motoModel),
         vin: sanitize(body.vin),
-        wishes: sanitize(body.wishes),
+        wishes,
         budget: sanitize(body.budget),
         email: sanitize(body.email),
         name: sanitize(body.name),
@@ -204,7 +225,7 @@ export async function POST(req: NextRequest) {
       };
       if (
         !motoFormData.name ||
-        !motoFormData.motoModel ||
+        (!motoFormData.motoModel && !productInquiry) ||
         !motoFormData.email ||
         !motoFormData.phone
       ) {
@@ -237,6 +258,7 @@ export async function POST(req: NextRequest) {
           phone: formData.phone,
           contactMethod: formData.contactMethod,
           telegramUsername: formData.telegramUsername,
+          ...(productInquiry ? { productInquiry } : {}),
         },
       },
     });

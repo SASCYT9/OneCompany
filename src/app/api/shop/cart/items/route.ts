@@ -24,6 +24,7 @@ import { importTurn14ItemToDb } from "@/lib/turn14Sync";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
+import { requiresUrbanBodyKitQuote, URBAN_BODYKIT_QUOTE_ERROR } from "@/lib/shopProductPurchasePolicy";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 const WHEELFORCE_SET_ERROR = "WheelForce wheels are sold in sets of four";
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
     if (isLocalStorefrontMode()) {
       const products = await Promise.all(requestedSlugs.map((slug) => getShopProductBySlugServer(slug)));
       for (const product of products) {
+        if (product && requiresUrbanBodyKitQuote(product)) return NextResponse.json({ error: "This decal pack is sold only with a body kit. Request a package from the manager.", code: URBAN_BODYKIT_QUOTE_ERROR }, { status: 400 });
         if (product && isWheelForceWheel(product)) wheelForceWheelSlugs.add(product.slug);
       }
     } else if (requestedSlugs.length) {
@@ -163,6 +165,7 @@ export async function POST(request: NextRequest) {
         select: { slug: true, brand: true, tags: true, productType: true, sku: true },
       });
       for (const product of products) {
+        if (requiresUrbanBodyKitQuote(product)) return NextResponse.json({ error: "This decal pack is sold only with a body kit. Request a package from the manager.", code: URBAN_BODYKIT_QUOTE_ERROR }, { status: 400 });
         if (isWheelForceWheel(product)) wheelForceWheelSlugs.add(product.slug);
       }
     }

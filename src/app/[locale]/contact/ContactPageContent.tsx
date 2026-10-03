@@ -8,6 +8,8 @@ import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
 import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
 import type { ShopAiManagerContext } from "@/lib/shopAiAssistantTypes";
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { resolveProductInquiry } from "@/lib/shopProductInquiry";
 
 type FormType = "auto" | "moto";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -163,6 +165,32 @@ export default function ContactPageContent() {
   const searchParams = useSearchParams();
   const inquiry = searchParams.get("inquiry");
   const aiSource = searchParams.get("source") === "one-ai";
+  const inquirySlug = searchParams.get("product");
+  const inquiryVariant = searchParams.get("variant");
+  const [productInquiry, setProductInquiry] = useState<ReturnType<typeof resolveProductInquiry> | null>(null);
+  const [productInquiryError, setProductInquiryError] = useState("");
+
+  useEffect(() => {
+    setProductInquiry(null);
+    setProductInquiryError("");
+    if (!inquirySlug) return;
+    const controller = new AbortController();
+    fetch(`/api/shop/products/${encodeURIComponent(inquirySlug)}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Product unavailable");
+        return response.json() as Promise<ShopProduct>;
+      })
+      .then((product) => {
+        if (controller.signal.aborted) return;
+        const context = resolveProductInquiry(product, locale === "ua" ? "ua" : "en", inquiryVariant);
+        setProductInquiry(context);
+        setType(context.scope === "moto" ? "moto" : "auto");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setProductInquiryError(locale === "ua" ? "Не вдалося завантажити товар. Поверніться до картки та повторіть запит." : "Could not load the product. Return to its page and try again.");
+      });
+    return () => controller.abort();
+  }, [inquirySlug, inquiryVariant, locale]);
   const [type, setType] = useState<FormType>("auto");
   const [formData, setFormData] = useState(() => {
     const base = {
@@ -324,6 +352,7 @@ export default function ContactPageContent() {
       phone: formData.phone,
       telegramUsername: formData.telegramUsername,
       contactMethod: formData.contactMethod,
+      ...(productInquiry ? { productSlug: productInquiry.slug, variantId: productInquiry.variantId, locale } : {}),
     };
 
     try {
@@ -397,6 +426,16 @@ export default function ContactPageContent() {
               className="mx-auto w-full max-w-6xl scroll-mt-24 rounded-2xl border border-foreground/10 bg-foreground/[0.02] dark:bg-white/[0.02] p-8 backdrop-blur-3xl sm:rounded-3xl sm:p-12 md:rounded-[32px] md:p-16 shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
             >
               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 md:space-y-12">
+                {inquirySlug && (
+                  <div className="rounded-xl border border-foreground/15 p-4" role="status">
+                    {productInquiry ? (
+                      <>
+                        <p className="text-sm font-medium">{productInquiry.title}</p>
+                        <p className="mt-1 text-xs text-foreground/65">SKU: {productInquiry.sku || "—"}{productInquiry.variantTitle ? ` · ${productInquiry.variantTitle}` : ""}</p>
+                      </>
+                    ) : productInquiryError || (locale === "ua" ? "Завантажуємо товар…" : "Loading product…")}
+                  </div>
+                )}
                 {/* Progress bar */}
                 <div className="space-y-1.5">
                   <div
@@ -473,7 +512,7 @@ export default function ContactPageContent() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 sm:py-4 bg-transparent border-b border-foreground/20 text-foreground text-sm placeholder:text-foreground/45 focus:outline-hidden focus:border-foreground focus:border-b-2 transition-all font-light"
                         placeholder={modelPlaceholder}
-                        required
+                        required={!productInquiry}
                       />
                     </div>
                     <div>
@@ -602,7 +641,7 @@ export default function ContactPageContent() {
                 <div className="pt-3 sm:pt-4">
                   <motion.button
                     type="submit"
-                    disabled={status === "loading"}
+                    disabled={status === "loading" || Boolean(inquirySlug && !productInquiry)}
                     whileHover={{ scale: status === "loading" ? 1 : 1.01 }}
                     whileTap={{ scale: status === "loading" ? 1 : 0.98 }}
                     className="flex w-full items-center justify-center gap-2 rounded-full border border-primary bg-primary px-6 py-2.5 sm:py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:bg-transparent hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
