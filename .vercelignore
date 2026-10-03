@@ -54,3 +54,7 @@ tmp
 /archive/
 /.codex-artifacts/
 /wiki/
+/archive/**
+/.codex-artifacts/**
+/wiki/**
+/outputs/**
