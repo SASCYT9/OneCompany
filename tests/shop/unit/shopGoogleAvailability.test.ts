@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { googleProductAvailability } from "../../../src/lib/shopGoogleAvailability";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { load } from "cheerio";
 import type { ShopProduct } from "../../../src/lib/shopCatalog";
 import { ShopProductStructuredData } from "../../../src/components/seo/StructuredData";
 
@@ -20,7 +21,9 @@ test("Google structured data uses confirmed stock for both availability and deli
       price: { uah: 100 }, availabilityDate: "2026-11-03",
       storefrontDisplay: { availability: resolvedStock, showInStock: resolvedStock === "inStock", showInCarousel: false } } as unknown as ShopProduct;
     const rendered = renderToStaticMarkup(createElement(ShopProductStructuredData, { product, locale: "ua" }));
-    const schema = JSON.parse(rendered.match(/<script[^>]*>([\s\S]*?)<\/script>/i)![1]);
+    const productScripts = load(rendered)('script[type="application/ld+json"][id^="product-schema-"]');
+    assert.equal(productScripts.length, 1);
+    const schema = JSON.parse(productScripts.text());
     for (const offer of Array.isArray(schema.offers) ? schema.offers : [schema.offers]) {
       assert.equal(offer.availability, resolvedStock === "inStock" ? "https://schema.org/InStock" : "https://schema.org/BackOrder");
       assert.equal(offer.availabilityStarts, resolvedStock === "inStock" ? undefined : "2026-11-03T00:00:00Z");
