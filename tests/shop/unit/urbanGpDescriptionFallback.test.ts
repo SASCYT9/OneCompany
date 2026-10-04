@@ -24,6 +24,8 @@ test('isUnsafeUrbanGpDescription detects internal GP Portal fallback copy', () =
   assert.equal(isUnsafeUrbanGpDescription('Urban Automotive product listing for Defender 110.'), false);
   assert.equal(isUnsafeUrbanGpDescription('За GP-даними ця позиція стосується Defender 90/110.'), true);
   assert.equal(isUnsafeUrbanGpDescription('According to GP data, this product fits Defender 90/110.'), true);
+  assert.equal(isUnsafeUrbanGpDescription('This is a specific GP-products item, not a complete bodykit.'), true);
+  assert.equal(isUnsafeUrbanGpDescription('The product configuration follows the GP products naming.'), true);
 });
 
 test('the Defender decal copy keeps the fitment and sale restriction without naming the supplier', () => {
