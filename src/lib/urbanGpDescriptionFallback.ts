@@ -1,5 +1,5 @@
 const GP_PORTAL_FALLBACK_PATTERN =
-  /\bGP Portal\b|портал[і]? GP|Price on GP Portal|Ціна на (?:порталі )?GP|Ціна на GP|Портал загальної практики/i;
+  /\bGP Portal\b|портал[і]? GP|Price on GP Portal|Ціна на (?:порталі )?GP|Ціна на GP|Портал загальної практики|According to GP data|\bGP data\b|За GP[-\s]?даними|за даними GP/i;
 const POOR_URBAN_UA_COPY_PATTERN =
   /передня\s+передня|задн(ій|я)\s+час\b|плаваюч[а-яіїєґ]*\s+вушк|з\s+чотирма\s+заготовками|OEM-якісн|змінити\s+зовнішній\s+вигляд|перетворити\s+зовнішн[а-яіїєґ]*\s+вигляд|естетичн[а-яіїєґ]*\s+приваблив|візуальн[а-яіїєґ]*\s+(видимість|ефект|приваблив)|продуктивного позашляховика|попередньо оновлен|широкофюзеляжн|міськ[а-яіїєґ]*\s+емблем|программн|вутк|деталі позиції|позиція Urban Automotive для|обвіси Visual Carbon Fibre|специфікація побудована|розроблен[а-яіїєґ]*,?\s+щоб|створен[а-яіїєґ]*,?\s+щоб|покращеною зовнішністю|зміни положення|змінити естетику|набір арки|вибагливого|вуглецевого волокна[^.]{0,120}вуглецевого волокна/i;
 
@@ -219,6 +219,30 @@ export function buildUrbanGpSafeFallbackDescription(input: UrbanGpFallbackProduc
 export function getUrbanCuratedDescriptionOverride(
   input: Pick<UrbanGpFallbackProductInput, 'slug'>
 ): UrbanGpFallbackDescription | null {
+  if (input.slug === 'urb-dec-26009343-v1') {
+    const bodyHtmlEn = [
+      '<p><strong>This decal pack is available only together with an Urban body kit for the Defender 90/110. Contact a manager to order the package.</strong></p>',
+      '<p>The Urban decal and lettering pack for Defender 90/110 adds distinctive graphics while preserving the vehicle’s utility-led character.</p>',
+      '<p>Designed for Defender 90/110. Part number: 050-0099. This page lists the decal and lettering pack only; the bodykit is not included.</p>',
+      '<h3>What Is Included</h3><ul><li>Urban decal and lettering pack for Defender 90/110.</li></ul>',
+      '<h3>Important</h3><ul><li>Bumpers, grille, spare wheel cover, wheels, roof light bar and other Urban components are not included with this product.</li></ul>',
+    ].join('');
+    const bodyHtmlUa = [
+      '<p><strong>Цей комплект декалей доступний лише разом з обвісом Urban для Defender 90/110. Для замовлення комплекту зверніться до менеджера.</strong></p>',
+      '<p>Декалі та летеринг Urban для Defender 90/110 додають фірмову графіку, зберігаючи утилітарний характер автомобіля.</p>',
+      '<p>Комплект призначений для Defender 90/110. Артикул: 050-0099. На цій сторінці пропонується лише комплект декалей та летерингу; обвіс до нього не входить.</p>',
+      '<h3>Що входить до комплекту</h3><ul><li>Комплект декалей та летерингу Urban для Defender 90/110.</li></ul>',
+      '<h3>Важливо</h3><ul><li>Бампери, решітка, чохол запасного колеса, колеса, roof light bar та інші елементи Urban не входять до цього товару.</li></ul>',
+    ].join('');
+
+    return {
+      bodyHtml: { en: bodyHtmlEn, ua: bodyHtmlUa },
+      longDescription: { en: stripHtml(bodyHtmlEn), ua: stripHtml(bodyHtmlUa) },
+      shortDescription: { en: excerpt(bodyHtmlEn, 220), ua: excerpt(bodyHtmlUa, 220) },
+      seoDescription: { en: excerpt(bodyHtmlEn, 155), ua: excerpt(bodyHtmlUa, 155) },
+    };
+  }
+
   if (input.slug === 'urb-dif-25358211-v1') {
     const bodyHtmlEn = [
       '<p>The Urban Visual Carbon Fibre rear diffuser gives the Audi RS3 8Y Hatchback a much stronger rear profile. It replaces the standard lower visual language with a more technical carbon finish, integrated bumper sill treatment, and the signature Urban emblem.</p>',

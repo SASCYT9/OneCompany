@@ -1914,7 +1914,18 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || "",
     },
     seoTitle: { ua: row.seoTitleUa ?? "", en: row.seoTitleEn ?? "" },
-    seoDescription: { ua: row.seoDescriptionUa ?? "", en: row.seoDescriptionEn ?? "" },
+    seoDescription: {
+      ua:
+        curatedUrbanDescription?.seoDescription.ua ??
+        safeGpDescription?.seoDescription.ua ??
+        row.seoDescriptionUa ??
+        "",
+      en:
+        curatedUrbanDescription?.seoDescription.en ??
+        safeGpDescription?.seoDescription.en ??
+        row.seoDescriptionEn ??
+        "",
+    },
     shortDescription: {
       ua:
         curatedUrbanDescription?.shortDescription.ua ??
