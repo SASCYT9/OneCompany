@@ -6,6 +6,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { coordinateShopCatalogProductMutationInTransaction } from "../src/lib/shopCatalogMutationCoordinator.server";
 import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
 import { shopPriceSourceReadiness } from "../src/lib/shopPriceSourceReadiness.server";
+import { retrySerializablePriceBatch } from "../src/lib/shopPriceBookBatchRetry";
 
 type RecordChange = {
   id: string;
@@ -162,7 +163,7 @@ async function main() {
   const remaining = plan.changes.filter((row) => !done.has(row.product.id));
   for (let offset = 0; offset < remaining.length; offset += batchSize) {
     const batch = remaining.slice(offset, offset + batchSize);
-    const results = await db.$transaction(
+    const results = await retrySerializablePriceBatch(() => db.$transaction(
       async (tx) => {
         const completed = [];
         for (const entry of batch) {
@@ -208,7 +209,7 @@ async function main() {
         timeout: 120000,
         maxWait: 10000,
       }
-    );
+    ), (attempt) => console.log(JSON.stringify({ retryingPriceBatch: offset, attempt, reason: "P2034" })));
     receipt.applied.push(...results);
     writeFileSync(checkpointPath, JSON.stringify(receipt, null, 2));
     if (receipt.applied.length % 100 === 0 || receipt.applied.length === plan.changes.length)
