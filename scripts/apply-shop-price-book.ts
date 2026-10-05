@@ -165,6 +165,8 @@ async function main() {
     const batch = remaining.slice(offset, offset + batchSize);
     const results = await retrySerializablePriceBatch(() => db.$transaction(
       async (tx) => {
+        // A disconnected TCP proxy must not leave a transaction holding locks.
+        await tx.$executeRawUnsafe("SET LOCAL idle_in_transaction_session_timeout = '15s'");
         const completed = [];
         for (const entry of batch) {
           await tx.$queryRaw`SELECT id FROM "ShopProduct" WHERE id=${entry.product.id} FOR UPDATE`;
