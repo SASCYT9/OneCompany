@@ -177,6 +177,10 @@ export const adminProductListSelect = {
   stock: true,
   status: true,
   priceUah: true,
+  priceSourceCurrency: true,
+  compareAtSourceCurrency: true,
+  b2bPriceSourceCurrency: true,
+  b2bCompareAtSourceCurrency: true,
   priceEur: true,
   priceEurEurope: true,
   priceUsd: true,
@@ -197,6 +201,10 @@ export const adminProductListSelect = {
     select: {
       image: true,
       priceUah: true,
+      priceSourceCurrency: true,
+      compareAtSourceCurrency: true,
+      b2bPriceSourceCurrency: true,
+      b2bCompareAtSourceCurrency: true,
       priceEur: true,
       priceEurEurope: true,
       priceUsd: true,
@@ -330,6 +338,10 @@ export const adminProductFitmentSourceSelect = {
       option1Value: true,
       option2Value: true,
       option3Value: true,
+      priceSourceCurrency: true,
+      compareAtSourceCurrency: true,
+      b2bPriceSourceCurrency: true,
+      b2bCompareAtSourceCurrency: true,
       priceEur: true,
       priceUsd: true,
       priceUah: true,
@@ -377,6 +389,10 @@ export type AdminShopProductVariantInput = {
   inventoryQty?: number | null;
   inventoryPolicy?: "DENY" | "CONTINUE";
   fulfillmentService?: string | null;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur?: number | null;
   priceEurEurope?: number | null;
   priceUsd?: number | null;
@@ -442,6 +458,10 @@ export type AdminShopProductPayload = {
   stock: string;
   collectionUa?: string | null;
   collectionEn?: string | null;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur?: number | null;
   priceEurEurope?: number | null;
   priceUsd?: number | null;
@@ -508,6 +528,10 @@ const adminProductImportProductScalarFields = [
   "stock",
   "collectionUa",
   "collectionEn",
+  "priceSourceCurrency",
+  "compareAtSourceCurrency",
+  "b2bPriceSourceCurrency",
+  "b2bCompareAtSourceCurrency",
   "priceEur",
   "priceEurEurope",
   "priceUsd",
@@ -552,6 +576,10 @@ const adminProductImportVariantScalarFields = [
   "inventoryQty",
   "inventoryPolicy",
   "fulfillmentService",
+  "priceSourceCurrency",
+  "compareAtSourceCurrency",
+  "b2bPriceSourceCurrency",
+  "b2bCompareAtSourceCurrency",
   "priceEur",
   "priceEurEurope",
   "priceUsd",
@@ -761,6 +789,10 @@ function normalizeVariants(value: unknown): AdminShopProductVariantInput[] {
         inventoryQty: intValue(item.inventoryQty) ?? 0,
         inventoryPolicy: normalizedInventoryPolicy === "DENY" ? "DENY" : "CONTINUE",
         fulfillmentService: nullableString(item.fulfillmentService),
+        ...(Object.prototype.hasOwnProperty.call(item, 'priceSourceCurrency') ? { priceSourceCurrency: nullableString(item.priceSourceCurrency) } : {}),
+        ...(Object.prototype.hasOwnProperty.call(item, 'compareAtSourceCurrency') ? { compareAtSourceCurrency: nullableString(item.compareAtSourceCurrency) } : {}),
+        ...(Object.prototype.hasOwnProperty.call(item, 'b2bPriceSourceCurrency') ? { b2bPriceSourceCurrency: nullableString(item.b2bPriceSourceCurrency) } : {}),
+        ...(Object.prototype.hasOwnProperty.call(item, 'b2bCompareAtSourceCurrency') ? { b2bCompareAtSourceCurrency: nullableString(item.b2bCompareAtSourceCurrency) } : {}),
         priceEur: decimalValue(item.priceEur),
         priceEurEurope: decimalValue(item.priceEurEurope),
         priceUsd: decimalValue(item.priceUsd),
@@ -826,6 +858,14 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
   const media = normalizeMedia(source.media);
   const variants = ensureSingleDefaultVariant(normalizeVariants(source.variants));
   const errors: string[] = [];
+  for (const [index, entry] of [source, ...ensureObjectArray<Record<string, unknown>>(source.variants)].entries()) {
+    for (const [code, eur, usd, uah] of [["priceSourceCurrency","priceEur","priceUsd","priceUah"],["compareAtSourceCurrency","compareAtEur","compareAtUsd","compareAtUah"],["b2bPriceSourceCurrency","priceEurB2b","priceUsdB2b","priceUahB2b"],["b2bCompareAtSourceCurrency","compareAtEurB2b","compareAtUsdB2b","compareAtUahB2b"]]) {
+      const currency = entry[code];
+      if (currency == null || currency === "") continue;
+      const field = ({EUR:eur,USD:usd,UAH:uah} as Record<string,string>)[String(currency)];
+      if (!field || !(Number(entry[field]) > 0)) errors.push(`Вихідна валюта ${code} для запису ${index} має відповідати додатній ціні.`);
+    }
+  }
   let metafields = normalizeMetafields(source.metafields);
   const displayField = metafields.find(isShopStorefrontDisplayMetafield);
   if (Object.prototype.hasOwnProperty.call(source, "storefrontDisplay") || displayField) {
@@ -920,6 +960,10 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
       : "inStock",
     collectionUa: nullableString(source.collectionUa),
     collectionEn: nullableString(source.collectionEn),
+    ...(Object.prototype.hasOwnProperty.call(source, 'priceSourceCurrency') ? { priceSourceCurrency: nullableString(source.priceSourceCurrency) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(source, 'compareAtSourceCurrency') ? { compareAtSourceCurrency: nullableString(source.compareAtSourceCurrency) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(source, 'b2bPriceSourceCurrency') ? { b2bPriceSourceCurrency: nullableString(source.b2bPriceSourceCurrency) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(source, 'b2bCompareAtSourceCurrency') ? { b2bCompareAtSourceCurrency: nullableString(source.b2bCompareAtSourceCurrency) } : {}),
     priceEur: decimalValue(source.priceEur),
     priceEurEurope: decimalValue(source.priceEurEurope),
     priceUsd: decimalValue(source.priceUsd),
@@ -965,6 +1009,10 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
         position: 1,
         inventoryQty: 0,
         inventoryPolicy: "CONTINUE",
+        priceSourceCurrency: data.priceSourceCurrency,
+        compareAtSourceCurrency: data.compareAtSourceCurrency,
+        b2bPriceSourceCurrency: data.b2bPriceSourceCurrency,
+        b2bCompareAtSourceCurrency: data.b2bCompareAtSourceCurrency,
         priceEur: data.priceEur,
         priceEurEurope: data.priceEurEurope,
         priceUsd: data.priceUsd,
@@ -1032,6 +1080,10 @@ function nestedVariantCreate(variants: AdminShopProductVariantInput[]) {
     inventoryQty: item.inventoryQty ?? 0,
     inventoryPolicy: item.inventoryPolicy ?? "CONTINUE",
     fulfillmentService: item.fulfillmentService ?? null,
+    priceSourceCurrency: item.priceSourceCurrency,
+    compareAtSourceCurrency: item.compareAtSourceCurrency,
+    b2bPriceSourceCurrency: item.b2bPriceSourceCurrency,
+    b2bCompareAtSourceCurrency: item.b2bCompareAtSourceCurrency,
     priceEur: item.priceEur ?? null,
     priceEurEurope: item.priceEurEurope ?? null,
     priceUsd: item.priceUsd ?? null,
@@ -1105,6 +1157,10 @@ function buildAdminProductScalarMutationData(data: AdminShopProductPayload) {
     stock: data.stock,
     collectionUa: data.collectionUa ?? null,
     collectionEn: data.collectionEn ?? null,
+    priceSourceCurrency: data.priceSourceCurrency,
+    compareAtSourceCurrency: data.compareAtSourceCurrency,
+    b2bPriceSourceCurrency: data.b2bPriceSourceCurrency,
+    b2bCompareAtSourceCurrency: data.b2bCompareAtSourceCurrency,
     priceEur: data.priceEur ?? null,
     priceEurEurope: data.priceEurEurope ?? null,
     priceUsd: data.priceUsd ?? null,
@@ -1807,6 +1863,10 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     stock: record.stock,
     collectionUa: record.collectionUa,
     collectionEn: record.collectionEn,
+    priceSourceCurrency: record.priceSourceCurrency,
+    compareAtSourceCurrency: record.compareAtSourceCurrency,
+    b2bPriceSourceCurrency: record.b2bPriceSourceCurrency,
+    b2bCompareAtSourceCurrency: record.b2bCompareAtSourceCurrency,
     priceEur: decimalToNumber(record.priceEur),
     priceEurEurope: decimalToNumber(record.priceEurEurope),
     priceUsd: decimalToNumber(record.priceUsd),
@@ -1865,6 +1925,10 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
       inventoryQty: item.inventoryQty,
       inventoryPolicy: item.inventoryPolicy,
       fulfillmentService: item.fulfillmentService,
+      priceSourceCurrency: item.priceSourceCurrency,
+      compareAtSourceCurrency: item.compareAtSourceCurrency,
+      b2bPriceSourceCurrency: item.b2bPriceSourceCurrency,
+      b2bCompareAtSourceCurrency: item.b2bCompareAtSourceCurrency,
       priceEur: decimalToNumber(item.priceEur),
       priceEurEurope: decimalToNumber(item.priceEurEurope),
       priceUsd: decimalToNumber(item.priceUsd),

@@ -53,12 +53,13 @@ export function isWheelForceWheel(product: {
   return Boolean((product.sku ?? product.partNumber)?.includes("-"));
 }
 
-export function wheelForceSetMoney<T extends { eur: number; usd: number; uah: number }>(price: T): T {
+export function wheelForceSetMoney<T extends { eur: number; usd: number; uah: number; sourceCurrency?: "EUR" | "USD" | "UAH"; sourceUnitAmount?: number; sourceQuantity?: number }>(price: T): T {
   return {
     ...price,
     eur: price.eur * WHEELFORCE_WHEEL_SET_SIZE,
     usd: price.usd * WHEELFORCE_WHEEL_SET_SIZE,
     uah: price.uah * WHEELFORCE_WHEEL_SET_SIZE,
+    ...(price.sourceCurrency ? { sourceQuantity: (price.sourceQuantity ?? 1) * WHEELFORCE_WHEEL_SET_SIZE, sourceUnitAmount: price.sourceUnitAmount ?? price[price.sourceCurrency.toLowerCase() as "eur" | "usd" | "uah"] / (price.sourceQuantity ?? 1) } : {}),
   };
 }
 

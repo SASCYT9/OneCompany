@@ -3,6 +3,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
+import type { ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 export { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES };
 export type { ShopCurrencyCode };
@@ -98,7 +99,8 @@ export type ShopSettingsRuntime = {
   defaultB2bDiscountPercent: number | null;
   defaultCurrency: ShopCurrencyCode;
   enabledCurrencies: ShopCurrencyCode[];
-  currencyRates: Record<ShopCurrencyCode, number>;
+  currencyRates: ShopPriceBookRates;
+  currencyRatesDate?: string | null;
   shippingZones: ShopShippingZone[];
   brandShippingRules: ShopBrandShippingRule[];
   taxRegions: ShopTaxRegion[];
@@ -518,7 +520,7 @@ export function normalizeShopSettingsPayload(input: unknown) {
     enabledCurrencies: stringArray(source.enabledCurrencies).map((c) =>
       normalizeCurrencyCode(c, "EUR")
     ),
-    currencyRates: asNumberRecord(source.currencyRates),
+    currencyRates: Object.fromEntries(Object.entries(asNumberRecord(source.currencyRates)).map(([key, value]) => [({ _UAHRESERVE: "_uahReserve", _RAWUSDTOUAH: "_rawUsdToUah" } as Record<string, string>)[key] ?? key, value])),
     shippingZones: asObjectArray(source.shippingZones),
     brandShippingRules: asObjectArray(source.brandShippingRules),
     taxRegions: asObjectArray(source.taxRegions),
@@ -541,7 +543,7 @@ export function normalizeShopSettingsPayload(input: unknown) {
   return payload;
 }
 
-export function normalizeShopCurrencyRates(value: unknown): Record<ShopCurrencyCode, number> {
+export function normalizeShopCurrencyRates(value: unknown): ShopPriceBookRates {
   const raw = asNumberRecord(value);
   if ((raw.EUR ?? 1) === 1 && (raw.USD ?? 1) === 1 && (raw.UAH ?? 1) === 1) {
     return { ...DEFAULT_CURRENCY_RATES };
@@ -556,6 +558,7 @@ export function normalizeShopCurrencyRates(value: unknown): Record<ShopCurrencyC
     EUR: rates.EUR > 0 ? rates.EUR : DEFAULT_CURRENCY_RATES.EUR,
     USD: rates.USD > 0 ? rates.USD : DEFAULT_CURRENCY_RATES.USD,
     UAH: rates.UAH > 0 ? rates.UAH : DEFAULT_CURRENCY_RATES.UAH,
+    ...(raw._UAHRESERVE === 1 ? { _uahReserve: 1, ...(raw._RAWUSDTOUAH > 0 ? { _rawUsdToUah: raw._RAWUSDTOUAH } : {}) } : {}),
   };
 }
 
@@ -565,6 +568,7 @@ export function buildShopSettingsRuntimeFromPayload(
     key?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    currencyRatesDate?: string | null;
   }
 ): ShopSettingsRuntime {
   const defaultCurrency = normalizeCurrencyCode(payload.defaultCurrency, "EUR");
@@ -577,6 +581,7 @@ export function buildShopSettingsRuntimeFromPayload(
     defaultCurrency,
     enabledCurrencies,
     currencyRates: normalizeShopCurrencyRates(payload.currencyRates),
+    currencyRatesDate: overrides?.currencyRatesDate ?? null,
     shippingZones: normalizeShopShippingZones(payload.shippingZones),
     brandShippingRules: normalizeShopBrandShippingRules(payload.brandShippingRules),
     taxRegions: normalizeShopTaxRegions(payload.taxRegions),
@@ -621,6 +626,8 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       key: record.key,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
+      currencyRatesDate: typeof (record.currencyRates as Record<string, unknown>)?._exchangedAt === 'string'
+        ? String((record.currencyRates as Record<string, unknown>)._exchangedAt) : null,
     }
   );
 }
@@ -634,6 +641,7 @@ export function serializeShopSettings(record: ShopSettingsRecord) {
     defaultCurrency: runtime.defaultCurrency,
     enabledCurrencies: runtime.enabledCurrencies,
     currencyRates: runtime.currencyRates,
+    currencyRatesDate: runtime.currencyRatesDate ?? null,
     shippingZones: runtime.shippingZones,
     brandShippingRules: runtime.brandShippingRules,
     taxRegions: runtime.taxRegions,

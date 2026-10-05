@@ -1,7 +1,8 @@
 import type { ShopMoneySet } from "@/lib/shopCatalog";
 import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
 
-type Rates = Record<ShopCurrencyCode, number>;
+type Rates = ShopPriceBookRates;
 
 /**
  * Expand a partially-populated ShopMoneySet into a fully populated set by
@@ -14,6 +15,8 @@ type Rates = Record<ShopCurrencyCode, number>;
  * If all three are zero, returns zeros (caller decides what to do).
  */
 export function expandShopPrices(price: ShopMoneySet | null | undefined, rates: Rates): ShopMoneySet {
+  if (rates?._uahReserve === 1 && price && [price.eur, price.usd, price.uah].some(value => value > 0))
+    return repriceShopSourceMoney(price, rates);
   const usd = price?.usd ?? 0;
   const eur = price?.eur ?? 0;
   const uah = price?.uah ?? 0;

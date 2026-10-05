@@ -13,6 +13,8 @@ import {
   snapshotRecord,
 } from "@/lib/shopInternationalDeliveryQuote";
 import { isInternationalDelivery } from "@/lib/shopInternationalCheckout";
+import { adminMonobankBlockReason } from "./shopMonobankEligibility";
+import { renewExpiredMonobankPayment } from "./shopMonobankPayments";
 
 export async function prepareAdminMonobankPayment(
   prisma: PrismaClient,
@@ -26,6 +28,8 @@ export async function prepareAdminMonobankPayment(
     include: { monobankPayment: true },
   });
   if (!current) throw new MonobankError("ORDER_NOT_FOUND", true);
+  const blocked = adminMonobankBlockReason(current);
+  if (blocked) throw new MonobankError(blocked, true);
   if (current.monobankPayment?.invoiceId) {
     // An explicit admin retry must read the bank even if the buyer just polled.
     // A failed status read stops the operation before a payment URL is returned.
@@ -36,12 +40,8 @@ export async function prepareAdminMonobankPayment(
       where: { id: orderId },
       include: { monobankPayment: true },
     });
-    if (
-      order.amountPaid > 0 ||
-      ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order.paymentStatus) ||
-      !["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order.status)
-    )
-      throw new MonobankError("MONOBANK_ORDER_NOT_PAYABLE", true);
+    const reason = adminMonobankBlockReason(order);
+    if (reason) throw new MonobankError(reason, true);
     if (order.currency !== "UAH") throw new MonobankError("MONOBANK_REQUIRES_UAH_QUOTE", true);
     const country = String(snapshotRecord(order.shippingAddress).country ?? "");
     if (
@@ -49,11 +49,6 @@ export async function prepareAdminMonobankPayment(
       !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total)
     )
       throw new MonobankError("INTERNATIONAL_DELIVERY_NOT_AGREED", true);
-    if (
-      !["FOP", "MANAGER_QUOTE", "MONOBANK"].includes(order.paymentMethod) ||
-      order.stripeCheckoutSessionId
-    )
-      throw new MonobankError("OTHER_PAYMENT_PROVIDER_REVIEW_REQUIRED", true);
     if (order.monobankPayment) return;
     const amount = monobankMinorUnits(order.total);
     if (amount <= 0 || amount > 2_147_483_647)
@@ -76,6 +71,7 @@ export async function prepareAdminMonobankPayment(
         paymentStatus: order.paymentStatus,
         amountPaid: 0,
         total: order.total,
+        status: order.status,
       },
       data: { paymentMethod: "MONOBANK", paymentStatus: "PENDING", status: "PENDING_PAYMENT" },
     });
@@ -91,5 +87,6 @@ export async function prepareAdminMonobankPayment(
       },
     });
   });
+  await renewExpiredMonobankPayment(prisma, orderId, actorName);
   return prepareMonobankPayment(prisma, orderId, locale);
 }

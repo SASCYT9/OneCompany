@@ -105,6 +105,8 @@ type OrderDetail = {
   total: number;
   paymentStatus: string;
   paymentMethod?: string;
+  monobankBlockReason?: string | null;
+  isDraft?: boolean;
   amountPaid: number;
   deliveryMethod: string | null;
   ttnNumber: string | null;
@@ -477,23 +479,38 @@ export default function AdminOrderDetailPage() {
       const response = await fetch(`/api/admin/shop/orders/${id}/monobank`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: "ua" }),
+        body: JSON.stringify({
+          locale: "ua",
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
         const errors: Record<string, string> = {
           MONOBANK_ORDER_NOT_PAYABLE: "Замовлення вже оплачене або не допускає повторної оплати.",
+          PREVIOUS_PAYMENT_UNVERIFIED:
+            "Стан попередньої оплати іншої платіжної системи не підтверджений. Новий mono-рахунок заблоковано.",
+          MONOBANK_DRAFT_NOT_ACCEPTED:
+            "Спочатку погодьте пропозицію та перетворіть чернетку на замовлення.",
+          MONOBANK_RECONCILIATION_REQUIRED:
+            "Є фінансова зміна старого mono-рахунку. Потрібна звірка оплат у бізнес-кабінеті.",
           MONOBANK_REQUIRES_UAH_QUOTE: "Спочатку погодьте суму у гривні.",
           INTERNATIONAL_DELIVERY_NOT_AGREED:
             "Спочатку погодьте доставку та загальну суму з клієнтом.",
           MONOBANK_INVOICE_CLOSED:
             "Рахунок mono закритий. Перевірте його в бізнес-кабінеті перед заміною.",
-          OTHER_PAYMENT_PROVIDER_REVIEW_REQUIRED:
-            "Перевірте платіж у попередній платіжній системі перед переходом на mono.",
+          MONOBANK_NOT_CONFIGURED:
+            "Підключення mono не налаштоване для цього середовища сайту.",
+          MONOBANK_REQUEST_UNCERTAIN:
+            "Mono не підтвердив результат запиту. Перевірте бізнес-кабінет mono перед повтором.",
+          MONOBANK_PAYMENT_UNAVAILABLE:
+            "Сервер не зміг підготувати платіж. Перевірте код помилки та журнали.",
         };
+        const errorCode = typeof data.error === "string" ? data.error : "";
         setError(
-          errors[data.error] ||
-            "Не вдалося підготувати mono-посилання. Повторіть перевірку статусу."
+          errors[errorCode] ||
+            (errorCode && /^[A-Z0-9_]+$/.test(errorCode)
+              ? `Не вдалося підготувати mono-посилання. Код: ${errorCode}. Перевірте журнал запиту.`
+              : "Не вдалося підготувати mono-посилання. Повторіть перевірку статусу.")
         );
         return;
       }
@@ -586,6 +603,7 @@ export default function AdminOrderDetailPage() {
     !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total);
 
   const outstanding = Math.max(0, order.total - order.amountPaid);
+  const monoBlockReason = order.monobankBlockReason;
   const paymentDirty =
     paymentStatus !== order.paymentStatus ||
     amountPaid !== String(order.amountPaid) ||
@@ -597,9 +615,17 @@ export default function AdminOrderDetailPage() {
   function renderPaymentActions(blocked = false) {
     return (
       <div className="grid gap-2 sm:grid-cols-2">
+        {monoBlockReason === "PREVIOUS_PAYMENT_UNVERIFIED" ? (
+          <div className="space-y-2 rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-100 sm:col-span-2">
+            <p>
+              Стан попередньої оплати іншої платіжної системи не підтверджений. Створення mono-рахунку заблоковано.
+            </p>
+          </div>
+        ) : null}
         <button type="button" onClick={() => void handleGenerateMonobankLink()}
           disabled={blocked || updating || paymentNeedsAgreement || order!.amountPaid > 0 ||
-            ["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order!.paymentStatus) ||
+            ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order!.paymentStatus) ||
+            Boolean(monoBlockReason) || order!.isDraft ||
             !["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order!.status)}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-zinc-400 sm:col-span-2">
           Створити / відновити mono-посилання

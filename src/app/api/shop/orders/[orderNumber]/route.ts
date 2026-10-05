@@ -49,7 +49,7 @@ export async function GET(
       if (refreshed) order = refreshed;
       payment = await prisma.shopMonobankPayment.findUnique({ where: { orderId: order.id } });
     }
-    monobankPayment = publicMonobankPayment(payment, order.status, order.paymentStatus);
+    monobankPayment = publicMonobankPayment(payment, order.status, order.paymentStatus, Number(order.amountPaid));
   }
 
   const itemsList = order.items.map((i) => {

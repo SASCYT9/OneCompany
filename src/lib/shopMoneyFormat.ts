@@ -1,4 +1,5 @@
 import type { SupportedLocale } from "@/lib/seo";
+import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 export type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
@@ -6,17 +7,16 @@ export type ShopPriceSet = {
   eur: number;
   usd: number;
   uah: number;
+  sourceCurrency?: ShopCurrencyCode;
+  sourceUnitAmount?: number;
+  sourceQuantity?: number;
 };
 
 /**
  * EUR-based currency rates: rates.X = how many X per 1 EUR.
  * rates.EUR is always 1; rates.USD ≈ 1.08; rates.UAH ≈ 45.
  */
-export type ShopCurrencyRates = {
-  EUR: number;
-  USD: number;
-  UAH: number;
-};
+export type ShopCurrencyRates = ShopPriceBookRates;
 
 export function convertShopCurrencyAmount(
   amount: number,
@@ -49,6 +49,10 @@ export function convertShopMoney(
   rates: ShopCurrencyRates | null | undefined
 ): number {
   if (!price) return 0;
+  if (rates?._uahReserve === 1 && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+    const priced = repriceShopSourceMoney(price, rates);
+    return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * 100) / 100;
+  }
 
   const direct = target === "USD" ? price.usd : target === "UAH" ? price.uah : price.eur;
   if (direct > 0) return direct;

@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { assertManagedShopProductSourcesReady } from "./shopPriceSourceReadiness.server";
 
 import { canonicalizeCatalogBaselineValue, hashCatalogBaselineValue } from "./shopCatalogBaseline";
 import {
@@ -110,6 +111,7 @@ export async function coordinateShopCatalogProductMutationInTransaction(
         data: { catalogVersion: nextVersion },
       });
       const snapshotInput = await input.mutateAndSnapshot(tx, nextVersion.toString());
+      await assertManagedShopProductSourcesReady(tx, product.id);
       const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
       const projectionSource = {
         ...snapshotInput.projectionSource,
@@ -244,6 +246,7 @@ export async function coordinateShopCatalogProductCreationWithClient(
         throw new Error(`New catalog product ${productId} must start at version 0`);
       }
       const snapshotInput = await input.snapshot(tx, productId, initialVersion.toString());
+      await assertManagedShopProductSourcesReady(tx, productId);
       const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
       const projectionSource = {
         ...snapshotInput.projectionSource,

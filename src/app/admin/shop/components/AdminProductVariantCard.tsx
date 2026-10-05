@@ -1,4 +1,5 @@
 "use client";
+import { managedAdminPriceChange, managedAdminSourceSelection } from '@/lib/shopAdminPriceConversion';
 
 import { useState } from "react";
 import { ChevronDown, Star, Trash2 } from "lucide-react";
@@ -28,6 +29,10 @@ export type VariantCardData = {
   inventoryQty: string;
   inventoryPolicy: InventoryPolicy;
   fulfillmentService: string;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: string;
   priceEurEurope: string;
   priceUsd: string;
@@ -344,14 +349,14 @@ export function AdminProductVariantCard({
 
           {/* Pricing — grouped */}
           {tab === "pricing" ? (
-            <div className="space-y-5">
+            <div className="space-y-5"><div className="mb-4 grid gap-3 sm:grid-cols-2">{([['priceSourceCurrency','Вихідна валюта B2C'],['compareAtSourceCurrency','Вихідна валюта ціни до знижки'],['b2bPriceSourceCurrency','Вихідна валюта B2B'],['b2bCompareAtSourceCurrency','Вихідна валюта B2B до знижки']] as const).map(([field,label]) => <SelectField key={field} label={label} value={variant[field] ?? ''} onChange={(value) => onUpdate({ [field]: value, ...managedAdminSourceSelection(variant,field,value,rates) })} options={[{value:'',label:'Не підтверджена'},{value:'EUR',label:'EUR'},{value:'USD',label:'USD'},{value:'UAH',label:'UAH · фіксована ціна'}]} />)}</div>
               <PricingGroup
                 title="B2C — Retail"
                 description="Customer-facing storefront pricing"
                 eur={variant.priceEur}
                 usd={variant.priceUsd}
                 uah={variant.priceUah}
-                onChange={(p) => onUpdate({ priceEur: p.eur, priceUsd: p.usd, priceUah: p.uah })}
+                onChange={(p) => onUpdate({ priceEur: p.eur, priceUsd: p.usd, priceUah: p.uah, priceSourceCurrency:p.sourceCurrency??variant.priceSourceCurrency })}
                 rates={rates}
                 autoConvert={autoConvert}
               />
@@ -375,7 +380,7 @@ export function AdminProductVariantCard({
                 usd={variant.priceUsdB2b}
                 uah={variant.priceUahB2b}
                 onChange={(p) =>
-                  onUpdate({ priceEurB2b: p.eur, priceUsdB2b: p.usd, priceUahB2b: p.uah })
+                  onUpdate({ priceEurB2b: p.eur, priceUsdB2b: p.usd, priceUahB2b: p.uah, b2bPriceSourceCurrency:p.sourceCurrency??variant.b2bPriceSourceCurrency })
                 }
                 rates={rates}
                 autoConvert={autoConvert}
@@ -387,7 +392,7 @@ export function AdminProductVariantCard({
                 usd={variant.compareAtUsd}
                 uah={variant.compareAtUah}
                 onChange={(p) =>
-                  onUpdate({ compareAtEur: p.eur, compareAtUsd: p.usd, compareAtUah: p.uah })
+                  onUpdate({ compareAtEur: p.eur, compareAtUsd: p.usd, compareAtUah: p.uah, compareAtSourceCurrency:p.sourceCurrency??variant.compareAtSourceCurrency })
                 }
                 rates={rates}
                 autoConvert={autoConvert}
@@ -403,6 +408,7 @@ export function AdminProductVariantCard({
                     compareAtEurB2b: p.eur,
                     compareAtUsdB2b: p.usd,
                     compareAtUahB2b: p.uah,
+                    b2bCompareAtSourceCurrency: p.sourceCurrency ?? variant.b2bCompareAtSourceCurrency,
                   })
                 }
                 rates={rates}
@@ -559,11 +565,13 @@ function PricingGroup({
   eur: string;
   usd: string;
   uah: string;
-  onChange: (p: { eur: string; usd: string; uah: string }) => void;
+  onChange: (p: { eur: string; usd: string; uah: string; sourceCurrency?:string }) => void;
   rates?: Record<string, number>;
   autoConvert?: boolean;
 }) {
   const handleEurChange = (v: string) => {
+    const managed = autoConvert && managedAdminPriceChange(Number(v), 'EUR', rates);
+    if (managed) { onChange(managed); return; }
     if (!autoConvert) {
       onChange({ eur: v, usd, uah });
       return;
@@ -579,6 +587,8 @@ function PricingGroup({
   };
 
   const handleUsdChange = (v: string) => {
+    const managed = autoConvert && managedAdminPriceChange(Number(v), 'USD', rates);
+    if (managed) { onChange(managed); return; }
     if (!autoConvert) {
       onChange({ eur, usd: v, uah });
       return;
@@ -594,6 +604,8 @@ function PricingGroup({
   };
 
   const handleUahChange = (v: string) => {
+    const managed = autoConvert && managedAdminPriceChange(Number(v), 'UAH', rates);
+    if (managed) { onChange(managed); return; }
     if (!autoConvert) {
       onChange({ eur, usd, uah: v });
       return;

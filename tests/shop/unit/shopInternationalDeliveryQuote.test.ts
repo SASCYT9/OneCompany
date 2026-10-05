@@ -4,6 +4,18 @@ import { calculateInternationalDeliveryQuote, internationalDeliveryAgreementMatc
 
 const rates = { EUR: 1, USD: 1.1, UAH: 49 };
 const order = { currency: "USD", pricingSnapshot: {}, items: [{ id: "i1", quantity: 3, price: 10.01, total: 30.03 }] };
+
+test("native quote source preserves UAH across EUR/USD display choices and a repeated agreement", () => {
+  const fx = { EUR: 1, USD: 50.6975 / 44.8333, UAH: 50.6975, _rawUsdToUah: 44.8333, _uahReserve: 1, _mixedSourceCurrency: 1 };
+  const snapshot = { currency: "EUR", currencyRates: fx, items: [{ slug: "native-usd", variantId: "v1", unitPrice: 88.43, sourceCurrency: "USD", sourceAmount: 100, pricingBaseRegion: "default" }] };
+  const quoted = { currency: "EUR", pricingSnapshot: snapshot, items: [{ id: "line", productSlug: "native-usd", variantId: "v1", quantity: 2, price: 88.43, total: 176.86 }] };
+  const quote = calculateInternationalDeliveryQuote(quoted, fx, "20", undefined, "USD");
+  assert.equal(quote.items[0].price, 4583.33);
+  assert.equal(quote.subtotal, 9166.66);
+  assert.equal(quote.shippingCost, 916.67);
+  const repeated = calculateInternationalDeliveryQuote({ ...quoted, currency: "UAH", items: quote.items.map(item => ({ ...item, productSlug: "native-usd", variantId: "v1" })), pricingSnapshot: { currency: "UAH", originalPricingSnapshot: snapshot } }, fx, "20", undefined, "USD");
+  assert.equal(repeated.total, quote.total);
+});
 test("quote converts original unit prices once and keeps bank basket integer kopecks consistent", () => {
   const quote = calculateInternationalDeliveryQuote(order, rates, "100.50", "0");
   assert.equal(quote.items[0].price, 445.9);

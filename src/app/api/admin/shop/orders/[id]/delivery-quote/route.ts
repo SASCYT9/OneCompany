@@ -31,6 +31,7 @@ async function loadQuote(id: string, shipping: unknown, shippingCurrency: unknow
   const storedRates = snapshotRecord(snapshotRecord(order.pricingSnapshot).currencyRates);
   const savedRates: ShopCurrencyRates = {
     EUR: Number(storedRates.EUR), USD: Number(storedRates.USD), UAH: Number(storedRates.UAH),
+    ...(storedRates._uahReserve === 1 ? { _uahReserve: 1, ...(Number(storedRates._rawUsdToUah) > 0 ? { _rawUsdToUah: Number(storedRates._rawUsdToUah) } : {}) } : {}),
   };
   // An unchanged agreed amount keeps its saved rate. Editing the source amount
   // or currency starts a fresh calculation and requires a new agreement.

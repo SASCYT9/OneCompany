@@ -8,17 +8,15 @@
  * legacy products that do not yet have a usable shipping weight.
  */
 
+import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+
 export const REVOZPORT_LOGISTICS_NAMESPACE = "revozport_logistics";
 export const REVOZPORT_SEA_SHIPPING_KEY = "sea_shipping_usd";
 export const REVOZPORT_AIR_SHIPPING_KEY = "air_shipping_usd";
 export const REVOZPORT_SHIPPING_RATE_USD_PER_KG = 25;
 export const REVOZPORT_USD_TO_UAH_RATE = 46;
 
-export type RevozportCurrencyRates = {
-  EUR: number;
-  USD: number;
-  UAH: number;
-};
+export type RevozportCurrencyRates = ShopPriceBookRates;
 
 export type RevozportShippingQuotes = {
   seaUsd: number | null;
@@ -99,6 +97,13 @@ export function addRevozportUkraineShippingToPriceSet(
   if (!isRevozportBrand(brandName) || !isUkraineCountry(country)) return price;
   const shippingUsd = resolveRevozportUkraineShippingUsd(weightKg, supplierQuoteUsd);
   if (shippingUsd == null) return price;
+  if (rates._uahReserve === 1) {
+    if (!(price.usd > 0)) {
+      if ([price.eur, price.uah].some(value => value > 0)) throw new Error("REVOZPORT_PRICE_SOURCE_REVIEW_REQUIRED");
+      return price;
+    }
+    return repriceShopSourceMoney({ eur: 0, usd: price.usd + shippingUsd, uah: 0, sourceCurrency: "USD" }, rates);
+  }
 
   const hasValue = (value: number | null | undefined) =>
     typeof value === "number" && Number.isFinite(value) && value > 0;

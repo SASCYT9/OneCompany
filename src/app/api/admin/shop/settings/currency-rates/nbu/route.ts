@@ -22,6 +22,7 @@ export async function POST() {
     }
     return NextResponse.json({ settings: serializeShopSettings(result.settings), nbu: result.nbu, changed: result.changed, catalogPublication: result.publications });
   } catch (error) {
+    if ((error as Error).message.startsWith("SHOP_PRICE_SOURCE_REQUIRED")) return NextResponse.json({ error: "Спочатку підтвердьте вихідну валюту для всіх цін товарів і варіантів.", code: "SHOP_PRICE_SOURCE_REQUIRED" }, { status: 409 });
     if ((error as Error).message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if ((error as Error).message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     console.error("Admin shop settings NBU refresh", error);

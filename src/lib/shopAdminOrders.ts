@@ -1,6 +1,7 @@
 import { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
 import { serializeAdminShipment } from "@/lib/shopAdminShipments";
 import { orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
+import { adminMonobankBlockReason } from "./shopMonobankEligibility";
 
 export const ALL_ORDER_STATUSES: OrderStatus[] = [
   "PENDING_PAYMENT",
@@ -33,6 +34,7 @@ export const adminOrderInclude = {
   events: {
     orderBy: [{ createdAt: "desc" }],
   },
+  monobankPayment: { select: { id: true } },
 } satisfies Prisma.ShopOrderInclude;
 
 export type AdminShopOrderRecord = Prisma.ShopOrderGetPayload<{
@@ -148,6 +150,7 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     customerId: record.customerId,
     companyName: record.customer?.companyName ?? null,
     paymentMethod: record.paymentMethod,
+    monobankBlockReason: adminMonobankBlockReason(record),
     phone: record.phone,
     customerGroupSnapshot: record.customerGroupSnapshot,
     b2bDiscountPercent: record.customer?.b2bDiscountPercent || null,

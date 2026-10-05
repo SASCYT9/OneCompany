@@ -1,10 +1,14 @@
 import type { ShopMoneySet } from '@/lib/shopCatalog';
 import type { ShopCurrencyCode } from '@/lib/shopMoneyFormat';
+import { repriceShopSourceMoney } from "./shopPriceBookCurrency";
 
 type DisplayRates = {
   EUR: number;
   USD: number;
   UAH?: number;
+  _uahReserve?: number;
+  _rawUsdToUah?: number;
+
 } | null | undefined;
 
 function normalizeAmount(value: unknown) {
@@ -23,6 +27,10 @@ export function computeShopDisplayPrices(
   let eur = normalizeAmount(price?.eur);
   let usd = normalizeAmount(price?.usd);
   let uah = normalizeAmount(price?.uah);
+  if (rates?._uahReserve === 1 && (eur > 0 || usd > 0 || uah > 0)) {
+    const result = repriceShopSourceMoney({ eur, usd, uah, sourceCurrency: price?.sourceCurrency, sourceUnitAmount: price?.sourceUnitAmount, sourceQuantity: price?.sourceQuantity }, { ...rates, EUR: rates.EUR, USD: rates.USD, UAH: Number(rates.UAH) });
+    return { ...result, eur: roundAmount(result.eur), usd: roundAmount(result.usd), uah: roundAmount(result.uah) };
+  }
 
   const eurToUsd = normalizeAmount(rates?.USD);
   const eurToUah = normalizeAmount(rates?.UAH);

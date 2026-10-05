@@ -2,6 +2,7 @@ import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
 import { requiresUrbanBodyKitQuote, URBAN_BODYKIT_QUOTE_ERROR } from "@/lib/shopProductPurchasePolicy";
 import { calculateTaxAmount, calculateProportionalAmount } from "@/lib/shopCheckoutTax";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
+import { repriceShopSourceMoney, type ShopSourceMoney } from "./shopPriceBookCurrency";
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
@@ -84,6 +85,7 @@ type ResolvedCheckoutItem = {
   total: number;
   image: string | null;
   priceSourceCurrency: ShopCurrencyCode;
+  priceSourceAmount?: number;
   pricingSource: "b2c" | "b2b-explicit" | "b2b-discount";
   pricingBaseRegion: "default" | "europe";
   discountPercent: number | null;
@@ -200,10 +202,14 @@ function convertAmount(
 }
 
 function resolveUnitPrice(
-  price: { eur: number; usd: number; uah: number },
+  price: ShopSourceMoney,
   currency: ShopCurrencyCode,
   settings: ShopSettingsRuntime
 ) {
+  if (settings.currencyRates._uahReserve === 1 && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+    const priced = repriceShopSourceMoney(price, settings.currencyRates);
+    return { amount: roundMoney(priced[currency.toLowerCase() as "eur" | "usd" | "uah"]), sourceCurrency: priced.sourceCurrency!, sourceAmount: roundMoney(priced[priced.sourceCurrency!.toLowerCase() as "eur" | "usd" | "uah"]) };
+  }
   const directPrices: Record<ShopCurrencyCode, number> = {
     EUR: Number(price.eur || 0),
     USD: Number(price.usd || 0),
@@ -643,6 +649,7 @@ function buildPricingSnapshot(params: {
     defaultCurrency: settings.defaultCurrency,
     enabledCurrencies: settings.enabledCurrencies,
     currencyRates: settings.currencyRates,
+    currencyRatesDate: settings.currencyRatesDate ?? null,
     matchedAddress: {
       country: address.country,
       region: address.region ?? null,
@@ -659,6 +666,7 @@ function buildPricingSnapshot(params: {
       unitPrice: item.unitPrice,
       total: item.total,
       sourceCurrency: item.priceSourceCurrency,
+      ...(item.priceSourceAmount != null ? { sourceAmount: item.priceSourceAmount } : {}),
       pricingSource: item.pricingSource,
       pricingBaseRegion: item.pricingBaseRegion,
       discountPercent: item.discountPercent,
@@ -1007,7 +1015,7 @@ export async function buildCheckoutQuote(
         })
       : resolveShopProductPricing(product, pricingContext);
 
-    const { amount, sourceCurrency } = resolveUnitPrice(pricing.effectivePrice, currency, settings);
+    const { amount, sourceCurrency, sourceAmount } = resolveUnitPrice(pricing.effectivePrice, currency, settings);
     const total = roundMoney(amount * quantity);
     const title =
       typeof product.title === "object" && product.title !== null
@@ -1026,6 +1034,7 @@ export async function buildCheckoutQuote(
       total,
       image: product.image ?? null,
       priceSourceCurrency: sourceCurrency,
+      ...(sourceAmount != null ? { priceSourceAmount: sourceAmount } : {}),
       pricingSource: pricing.source,
       pricingBaseRegion: pricing.baseRegion,
       discountPercent: pricing.discountPercent,

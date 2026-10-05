@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { buildShopManagedPriceSql } from "./shopManagedPriceSql.server";
 import { isUkraineCountry, REVOZPORT_SHIPPING_RATE_USD_PER_KG, REVOZPORT_USD_TO_UAH_RATE } from "@/lib/revozportShipping";
 
 import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
@@ -14,6 +15,9 @@ export type ShopCatalogEffectivePriceContext = Readonly<{
     EUR: number | null;
     USD: number | null;
     UAH: number | null;
+    _uahReserve?: number;
+    _rawUsdToUah?: number;
+
   }>;
   customerB2BDiscountPercent: number | null;
   defaultB2BDiscountPercent: number | null;
@@ -21,7 +25,7 @@ export type ShopCatalogEffectivePriceContext = Readonly<{
   systemBrandDiscounts: Readonly<Record<string, number>>;
 }>;
 
-type CurrencyRates = Readonly<Record<ShopCurrencyCode, number>>;
+type CurrencyRates = Readonly<Record<ShopCurrencyCode, number> & { _uahReserve?: number; _rawUsdToUah?: number }>;
 
 function safeRate(value: unknown) {
   const number = Number(value);
@@ -65,6 +69,7 @@ export function buildShopCatalogEffectivePriceContext(input: {
       EUR: safeRate(input.currencyRates.EUR),
       USD: safeRate(input.currencyRates.USD),
       UAH: safeRate(input.currencyRates.UAH),
+      ...(input.currencyRates._uahReserve === 1 ? { _uahReserve: 1, _rawUsdToUah: input.currencyRates._rawUsdToUah } : {}),
     }),
     customerB2BDiscountPercent: input.viewer.customerB2BDiscountPercent,
     defaultB2BDiscountPercent: input.viewer.defaultB2BDiscountPercent,
@@ -122,6 +127,7 @@ export function buildShopCatalogEffectivePriceSql(
        LIMIT 1)
     ) ELSE NULL END`;
   const deliveryEurRate = eurRate ?? 1;
+  if (context.currencyRates._uahReserve === 1) return buildShopManagedPriceSql(context, deliverySql);
   const deliveryUsdRate = usdRate ?? 1.152174;
   const withDelivery = (eur: Prisma.Sql, usd: Prisma.Sql, uah: Prisma.Sql, currency: ShopCurrencyCode) => {
     if (!context.includeUkraineDelivery) return currency === "EUR" ? eur : currency === "USD" ? usd : uah;

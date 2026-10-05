@@ -4,6 +4,7 @@ import { writeAdminAuditLog } from "@/lib/adminRbac";
 import { fetchShopCurrencyRatesFromNbu } from "@/lib/shopCurrencyNbu";
 import { getOrCreateShopSettings } from "@/lib/shopAdminSettings";
 import { coordinateShopCatalogGlobalMutationWithClient } from "@/lib/shopCatalogGlobalMutationCoordinator.server";
+import { assertShopPriceSourcesReady } from "./shopPriceSourceReadiness.server";
 
 export async function syncShopNbuCurrencyRates(
   prisma: PrismaClient,
@@ -13,6 +14,7 @@ export async function syncShopNbuCurrencyRates(
   const nbu = await fetchShopCurrencyRatesFromNbu();
   const current = await getOrCreateShopSettings(prisma);
   const previous = current.currencyRates as Record<string, unknown>;
+  if (!dryRun) await assertShopPriceSourcesReady(prisma);
   const dateKey = (date: string) => {
     const match = date.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
     if (!match) throw new Error("Invalid NBU exchange date");
@@ -27,7 +29,7 @@ export async function syncShopNbuCurrencyRates(
     throw new Error("NBU returned older rates; retain current rates");
   const unchanged =
     previous._exchangedAt === nbu.exchangedAt &&
-    ["EUR", "USD", "UAH"].every(
+    ["EUR", "USD", "UAH", "_uahReserve", "_rawUsdToUah"].every(
       (key) => previous[key] === nbu.currencyRates[key as keyof typeof nbu.currencyRates]
     );
   if (dryRun || unchanged)
@@ -50,6 +52,7 @@ export async function syncShopNbuCurrencyRates(
     mutate: async (tx) => {
       const latest = await tx.shopSettings.findUniqueOrThrow({ where: { key: current.key } });
       const latestRates = latest.currencyRates as Record<string, unknown>;
+      await assertShopPriceSourcesReady(tx);
       if (
         typeof latestRates._exchangedAt === "string" &&
         nextDateKey < dateKey(latestRates._exchangedAt)
@@ -62,7 +65,7 @@ export async function syncShopNbuCurrencyRates(
             ...nbu.currencyRates,
             _source: "nbu",
             _exchangedAt: nbu.exchangedAt,
-            _rounding: "ceil_eur_uah",
+            _rounding: "uah_reserve_per_source_unit",
             _rawEurToUah: nbu.eurToUah,
             _rawUsdToUah: nbu.usdToUah,
           },
@@ -79,7 +82,9 @@ export async function syncShopNbuCurrencyRates(
           eurToUah: nbu.eurToUah,
           usdToUah: nbu.usdToUah,
           usdPerEur: nbu.usdPerEur,
-          roundedEurToUah: nbu.currencyRates.UAH,
+          eurSaleToUah: nbu.eurToUah + 1,
+          usdSaleToUah: nbu.usdToUah + 1,
+          reserveUahPerForeignUnit: 1,
           usdSpecial: nbu.usdSpecial,
         },
       });

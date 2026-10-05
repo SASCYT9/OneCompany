@@ -13,6 +13,7 @@ export interface ExchangeRates {
   USD: number; // e.g. 41.5
   EUR: number; // e.g. 45.2
   updatedAt: string;
+  rateDate?: string | null;
 }
 
 interface CurrencyContextValue {
@@ -44,9 +45,9 @@ interface CurrencyContextValue {
 
 const DEFAULT_RATES: ExchangeRates = {
   UAH: 1,
-  USD: 41.35,
-  EUR: 46.85,
-  updatedAt: new Date().toISOString(),
+  USD: 0,
+  EUR: 0,
+  updatedAt: '',
 };
 
 const SYMBOLS: Record<AdminCurrency, string> = {
@@ -56,7 +57,7 @@ const SYMBOLS: Record<AdminCurrency, string> = {
 };
 
 const STORAGE_KEY = 'admin_currency';
-const RATES_CACHE_KEY = 'admin_exchange_rates';
+const RATES_CACHE_KEY = 'admin_shop_price_book_rates_v2';
 
 // ═══════════════════════════════
 // Context
@@ -77,7 +78,7 @@ export function useAdminCurrency() {
 export function AdminCurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<AdminCurrency>('UAH');
   const [rates, setRates] = useState<ExchangeRates>(DEFAULT_RATES);
-  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesLoading, setRatesLoading] = useState(true);
 
   // Load saved currency from localStorage
   useEffect(() => {
@@ -95,30 +96,33 @@ export function AdminCurrencyProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
-  // Fetch exchange rates from NBU
+  // Financial display uses the same saved raw cross-rate/date as the shop.
   useEffect(() => {
     const fetchRates = async () => {
       setRatesLoading(true);
       try {
-        const res = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json');
+        const res = await fetch('/api/shop/currency-rates', {cache:'no-store'});
         if (!res.ok) throw new Error('NBU API error');
         const data = await res.json();
 
-        const usdRate = data.find((r: any) => r.cc === 'USD')?.rate || DEFAULT_RATES.USD;
-        const eurRate = data.find((r: any) => r.cc === 'EUR')?.rate || DEFAULT_RATES.EUR;
+        const book = data.currencyRates;
+        if (![book?.EUR,book?.USD,book?.UAH].every(value=>Number.isFinite(value)&&value>0)) throw new Error('Invalid saved price-book rates');
+        const usdRate = Number(book._rawUsdToUah)>0 ? Number(book._rawUsdToUah) : book.UAH / book.USD;
+        const eurRate = book.UAH / book.EUR;
 
         const newRates: ExchangeRates = {
           UAH: 1,
           USD: usdRate,
           EUR: eurRate,
-          updatedAt: new Date().toISOString(),
+          updatedAt: String(data.updatedAt),
+          rateDate: typeof data.currencyRatesDate === 'string' ? data.currencyRatesDate : null,
         };
 
         setRates(newRates);
         localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(newRates));
       } catch {
         // Keep defaults or cached rates
-        console.warn('Failed to fetch NBU rates, using cached/defaults');
+        console.warn('Saved shop exchange rates unavailable');
       } finally {
         setRatesLoading(false);
       }
@@ -137,6 +141,7 @@ export function AdminCurrencyProvider({ children }: { children: ReactNode }) {
 
   const convert = useCallback((amount: number, from: AdminCurrency, to: AdminCurrency): number => {
     if (from === to) return amount;
+    if (!(rates[from]>0 && rates[to]>0)) return Number.NaN;
     // Convert from source to UAH first, then to target
     const inUAH = from === 'UAH' ? amount : amount * rates[from];
     const result = to === 'UAH' ? inUAH : inUAH / rates[to];
@@ -149,6 +154,7 @@ export function AdminCurrencyProvider({ children }: { children: ReactNode }) {
 
   const formatMoney = useCallback((amount: number, source: AdminCurrency): string => {
     const converted = convert(amount, source, currency);
+    if (!Number.isFinite(converted)) return '—';
     const sym = SYMBOLS[currency];
 
     // Format number with locale-aware separators

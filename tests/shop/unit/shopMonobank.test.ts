@@ -241,6 +241,8 @@ test("duplicate and out-of-order events cannot roll back payment", () => {
     providerModifiedAt: new Date(event.modifiedDate),
   };
   const paidOrder = { ...storedOrder, paymentStatus: "PAID" };
+  assert.equal(resolveMonobankStatusUpdate(payment, { ...storedOrder, paymentStatus: 'PARTIALLY_PAID' }, {...event,status:'processing'}),null);
+  assert.equal(resolveMonobankStatusUpdate(payment, { ...storedOrder, amountPaid: 20 }, {...event,status:'failure'}),null);
   assert.equal(resolveMonobankStatusUpdate(settled, paidOrder, event), null);
   assert.equal(
     resolveMonobankStatusUpdate(settled, paidOrder, {

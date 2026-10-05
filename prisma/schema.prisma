@@ -200,6 +200,10 @@ model RequestRateLimit {
 }
 
 model ShopProduct {
+  priceSourceCurrency             String?
+  compareAtSourceCurrency         String?
+  b2bPriceSourceCurrency          String?
+  b2bCompareAtSourceCurrency      String?
   id                              String                            @id @default(cuid())
   slug                            String                            @unique
   sku                             String?
@@ -1069,6 +1073,10 @@ model ShopProductOption {
 }
 
 model ShopProductVariant {
+  priceSourceCurrency             String?
+  compareAtSourceCurrency         String?
+  b2bPriceSourceCurrency          String?
+  b2bCompareAtSourceCurrency      String?
   id                              String                            @id @default(cuid())
   productId                       String
   title                           String?
@@ -1434,6 +1442,7 @@ model ShopOrder {
   shipments           ShopShipment[]
   returns             ShopOrderReturn[]
   monobankPayment     ShopMonobankPayment?
+  monobankPaymentHistory ShopMonobankPaymentHistory[]
   opsTasks            OpsTask[]
   opsComments         OpsComment[]
   opsTelegramContexts OpsTelegramContext[]
@@ -1462,6 +1471,21 @@ model ShopMonobankPayment {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+}
+
+model ShopMonobankPaymentHistory {
+  id                 String @id
+  orderId            String
+  invoiceId          String @unique
+  amount             Int
+  ccy                Int
+  status             String
+  providerModifiedAt DateTime?
+  finalAmount        Int @default(0)
+  retiredAt          DateTime @default(now())
+  order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
 }
 
 model ShopOrderItem {
