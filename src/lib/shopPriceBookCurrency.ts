@@ -7,6 +7,7 @@ export const ATOMIC_SOURCE_PRICE_ROUNDING_TOLERANCE_UAH = 0.27;
 export type ShopPriceBookRates = Record<ShopCurrencyCode, number> & {
   _uahReserve?: number;
   _rawUsdToUah?: number;
+  _rawUsdPerEur?: number;
 };
 
 export type ShopSourceMoney = {
@@ -34,6 +35,12 @@ export function shopUahSaleRate(currency: ShopCurrencyCode, rates: ShopPriceBook
   return raw + reserve;
 }
 
+export function shopSaleUsdPerEur(rates: ShopPriceBookRates) {
+  return rates._uahReserve === 1
+    ? shopUahSaleRate("EUR", rates) / shopUahSaleRate("USD", rates)
+    : rates.USD;
+}
+
 export function repriceShopSourceMoney(
   price: ShopSourceMoney,
   rates: ShopPriceBookRates
@@ -52,12 +59,16 @@ export function repriceShopSourceMoney(
   if (!positive(amount)) throw new Error("INVALID_PRICE_SOURCE_AMOUNT");
   if (![rates.EUR, rates.USD, rates.UAH].every(positive))
     throw new Error("INVALID_SHOP_PRICE_BOOK_RATE");
-  const eur =
-    source === "EUR" ? amount : source === "USD" ? amount / rates.USD : amount / rates.UAH;
+  const cross = shopSaleUsdPerEur(rates);
+  const eur = source === "EUR"
+    ? amount
+    : source === "USD"
+      ? amount / cross
+      : amount / shopUahSaleRate("EUR", rates);
   const total = (unit: number) => roundMoney(unit) * quantity;
   return {
     eur: total(eur),
-    usd: total(source === "USD" ? amount : eur * rates.USD),
+    usd: total(source === "USD" ? amount : eur * cross),
     uah: total(source === "UAH" ? amount : amount * shopUahSaleRate(source, rates)),
     sourceCurrency: source,
     ...(quantity > 1 ? { sourceUnitAmount: amount, sourceQuantity: quantity } : {}),

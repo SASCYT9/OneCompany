@@ -96,7 +96,7 @@ export function AdminCurrencyProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
-  // Financial display uses the same saved raw cross-rate/date as the shop.
+  // Financial cost display uses the saved raw NBU evidence/date from the shop.
   useEffect(() => {
     const fetchRates = async () => {
       setRatesLoading(true);

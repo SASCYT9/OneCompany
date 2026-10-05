@@ -29,7 +29,7 @@ export async function syncShopNbuCurrencyRates(
     throw new Error("NBU returned older rates; retain current rates");
   const unchanged =
     previous._exchangedAt === nbu.exchangedAt &&
-    ["EUR", "USD", "UAH", "_uahReserve", "_rawUsdToUah"].every(
+    ["EUR", "USD", "UAH", "_uahReserve", "_rawUsdToUah", "_rawUsdPerEur"].every(
       (key) => previous[key] === nbu.currencyRates[key as keyof typeof nbu.currencyRates]
     );
   if (dryRun || unchanged)
@@ -82,6 +82,7 @@ export async function syncShopNbuCurrencyRates(
           eurToUah: nbu.eurToUah,
           usdToUah: nbu.usdToUah,
           usdPerEur: nbu.usdPerEur,
+          rawUsdPerEur: nbu.rawUsdPerEur,
           eurSaleToUah: nbu.eurToUah + 1,
           usdSaleToUah: nbu.usdToUah + 1,
           reserveUahPerForeignUnit: 1,

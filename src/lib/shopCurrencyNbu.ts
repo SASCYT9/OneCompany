@@ -14,6 +14,7 @@ export type ShopNbuCurrencyRates = {
   eurToUah: number;
   usdToUah: number;
   usdPerEur: number;
+  rawUsdPerEur: number;
   usdSpecial: boolean;
 };
 
@@ -94,7 +95,8 @@ export function buildShopCurrencyRatesFromNbu(
   const usdToUah = usd.rate as number;
   if (![eurToUah, usdToUah].every((rate) => Number.isFinite(rate) && rate > 0) || !eur.exchangedate)
     throw new Error("Invalid NBU rates");
-  const usdPerEur = eurToUah / usdToUah;
+  const rawUsdPerEur = eurToUah / usdToUah;
+  const usdPerEur = (eurToUah + 1) / (usdToUah + 1);
 
   return {
     currencyRates: {
@@ -102,6 +104,7 @@ export function buildShopCurrencyRatesFromNbu(
       USD: roundRate(usdPerEur, 12),
       UAH: eurToUah,
       _rawUsdToUah: usdToUah,
+      _rawUsdPerEur: roundRate(rawUsdPerEur, 12),
       _uahReserve: 1,
     },
     source: "nbu",
@@ -109,6 +112,7 @@ export function buildShopCurrencyRatesFromNbu(
     eurToUah: roundRate(eurToUah, 4),
     usdToUah: roundRate(usdToUah, 4),
     usdPerEur: roundRate(usdPerEur, 12),
+    rawUsdPerEur: roundRate(rawUsdPerEur, 12),
     usdSpecial: usd.special === "Y",
   };
 }

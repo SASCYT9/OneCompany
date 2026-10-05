@@ -520,7 +520,7 @@ export function normalizeShopSettingsPayload(input: unknown) {
     enabledCurrencies: stringArray(source.enabledCurrencies).map((c) =>
       normalizeCurrencyCode(c, "EUR")
     ),
-    currencyRates: Object.fromEntries(Object.entries(asNumberRecord(source.currencyRates)).map(([key, value]) => [({ _UAHRESERVE: "_uahReserve", _RAWUSDTOUAH: "_rawUsdToUah" } as Record<string, string>)[key] ?? key, value])),
+    currencyRates: Object.fromEntries(Object.entries(asNumberRecord(source.currencyRates)).map(([key, value]) => [({ _UAHRESERVE: "_uahReserve", _RAWUSDTOUAH: "_rawUsdToUah", _RAWUSDPEREUR: "_rawUsdPerEur" } as Record<string, string>)[key] ?? key, value])),
     shippingZones: asObjectArray(source.shippingZones),
     brandShippingRules: asObjectArray(source.brandShippingRules),
     taxRegions: asObjectArray(source.taxRegions),
@@ -558,7 +558,7 @@ export function normalizeShopCurrencyRates(value: unknown): ShopPriceBookRates {
     EUR: rates.EUR > 0 ? rates.EUR : DEFAULT_CURRENCY_RATES.EUR,
     USD: rates.USD > 0 ? rates.USD : DEFAULT_CURRENCY_RATES.USD,
     UAH: rates.UAH > 0 ? rates.UAH : DEFAULT_CURRENCY_RATES.UAH,
-    ...(raw._UAHRESERVE === 1 ? { _uahReserve: 1, ...(raw._RAWUSDTOUAH > 0 ? { _rawUsdToUah: raw._RAWUSDTOUAH } : {}) } : {}),
+    ...(raw._UAHRESERVE === 1 ? { _uahReserve: 1, ...(raw._RAWUSDTOUAH > 0 ? { _rawUsdToUah: raw._RAWUSDTOUAH } : {}), ...(raw._RAWUSDPEREUR > 0 ? { _rawUsdPerEur: raw._RAWUSDPEREUR } : {}) } : {}),
   };
 }
 

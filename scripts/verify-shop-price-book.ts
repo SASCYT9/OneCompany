@@ -11,6 +11,11 @@ if (!envPath) throw new Error("Explicit env-path required");
 const env = parse(readFileSync(resolve(envPath)));
 const directory = resolve(arg("dir") ?? "outputs/price-source-completion-2026-10-05/all-active");
 const plan = JSON.parse(readFileSync(resolve(directory, "price-book-plan.json"), "utf8"));
+const ratesFile = arg("effective-rates");
+const effectiveRates = ratesFile
+  ? JSON.parse(readFileSync(resolve(ratesFile), "utf8")).currencyRates
+  : null;
+const storedPlanOnly = process.argv.includes("--stored-plan-only");
 const db = new PrismaClient({ datasources: { db: { url: env.DIRECT_URL || env.DATABASE_URL } } });
 const bands = [
   ["priceSourceCurrency", "priceEur", "priceUsd", "priceUah"],
@@ -23,6 +28,7 @@ async function main() {
     checkedVariants = 0,
     checkedBands = 0;
   const mismatches: string[] = [];
+  let effectiveBandsChecked = 0;
   function check(
     current: Record<string, unknown>,
     expected: { id: string; after: Record<string, unknown> }
@@ -40,11 +46,33 @@ async function main() {
         uah: Number(current[uah] ?? 0),
         sourceCurrency: current[source] as "EUR" | "USD" | "UAH",
       };
-      const expanded = repriceShopSourceMoney(money, plan.nbu.currencyRates as ShopPriceBookRates);
-      for (const key of ["eur", "usd", "uah"] as const) {
-        const field = { eur, usd, uah }[key];
-        if (Math.abs(expanded[key] - Number(expected.after[field])) > 0.000001)
-          mismatches.push(`${expected.id}/${source}/${key}`);
+      if (!storedPlanOnly) {
+        const expanded = repriceShopSourceMoney(money, plan.nbu.currencyRates as ShopPriceBookRates);
+        for (const key of ["eur", "usd", "uah"] as const) {
+          const field = { eur, usd, uah }[key];
+          if (Math.abs(expanded[key] - Number(expected.after[field])) > 0.000001)
+            mismatches.push(`${expected.id}/${source}/${key}`);
+        }
+      }
+      if (effectiveRates) {
+        const euroSale = Number(effectiveRates.UAH) / Number(effectiveRates.EUR) + 1;
+        const dollarSale = Number(effectiveRates._rawUsdToUah) + 1;
+        const currency = money.sourceCurrency;
+        const amount = Number(current[{ EUR: eur, USD: usd, UAH: uah }[currency]]);
+        const rounded = (n: number) => {
+          const cents = n * 100;
+          return Math.round(cents + Number.EPSILON * Math.max(1, Math.abs(cents))) / 100;
+        };
+        const direct = {
+          eur: rounded(currency === "EUR" ? amount : amount * (currency === "USD" ? dollarSale : 1) / euroSale),
+          usd: rounded(currency === "USD" ? amount : amount * (currency === "EUR" ? euroSale : 1) / dollarSale),
+          uah: rounded(currency === "UAH" ? amount : amount * (currency === "EUR" ? euroSale : dollarSale)),
+        };
+        const effective = repriceShopSourceMoney(money, effectiveRates);
+        for (const currency of ["eur", "usd", "uah"] as const)
+          if (Math.abs(effective[currency] - direct[currency]) > 0.000001)
+            mismatches.push(`${expected.id}/${source}/effective/${currency}`);
+        effectiveBandsChecked++;
       }
       checkedBands++;
     }
@@ -80,10 +108,13 @@ async function main() {
     checkedProducts,
     checkedVariants,
     checkedBands,
+    effectiveBandsChecked,
+    storedPlanOnly,
     mismatchCount: mismatches.length,
     mismatches: mismatches.slice(0, 30),
     readiness,
     nbuDate: plan.nbu.exchangedAt,
+    effectivePolicy: effectiveRates ? "Cross from both NBU +1 sale rates; fixed UAH stays fixed" : null,
   };
   writeFileSync(
     resolve(directory, arg("receipt") ?? "verification.json"),

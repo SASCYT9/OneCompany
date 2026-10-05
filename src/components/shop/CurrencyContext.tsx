@@ -17,6 +17,7 @@ type Rates = {
   USD: number;
   _uahReserve?: number;
   _rawUsdToUah?: number;
+  _rawUsdPerEur?: number;
 };
 
 type ShopCurrencyContextValue = {
@@ -111,7 +112,7 @@ function normalizeRates(value: Partial<Rates> | null | undefined): Rates {
     EUR: eur > 0 ? eur : DEFAULT_CURRENCY_RATES.EUR,
     USD: usd > 0 ? usd : DEFAULT_CURRENCY_RATES.USD,
     UAH: uah > 0 ? uah : DEFAULT_CURRENCY_RATES.UAH,
-    ...(value?._uahReserve === 1 ? { _uahReserve: 1, ...(Number(value._rawUsdToUah) > 0 ? { _rawUsdToUah: Number(value._rawUsdToUah) } : {}) } : {}),
+    ...(value?._uahReserve === 1 ? { _uahReserve: 1, ...(Number(value._rawUsdToUah) > 0 ? { _rawUsdToUah: Number(value._rawUsdToUah) } : {}), ...(Number(value._rawUsdPerEur) > 0 ? { _rawUsdPerEur: Number(value._rawUsdPerEur) } : {}) } : {}),
   };
 }
 

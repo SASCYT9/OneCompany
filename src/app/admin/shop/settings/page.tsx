@@ -1003,7 +1003,7 @@ export default function AdminShopSettingsPage() {
       setUpdatedAt(settings.updatedAt);
       setCurrencySyncMeta(nbu);
       setSuccess(
-        `Курси НБУ на ${nbu.exchangedAt}: EUR ${nbu.eurToUah} грн, USD ${nbu.usdToUah} грн; кроскурс ${nbu.usdPerEur} USD/EUR. Для гривневої ціни додається +1 грн за одиницю базової валюти товару.`
+        `Курси НБУ на ${nbu.exchangedAt}: EUR ${nbu.eurToUah} грн, USD ${nbu.usdToUah} грн. До обох додається +1 грн; узгоджений крос продажу ${nbu.usdPerEur} USD/EUR.`
       );
     } catch (refreshError) {
       setError((refreshError as Error).message);

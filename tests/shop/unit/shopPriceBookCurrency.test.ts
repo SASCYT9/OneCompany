@@ -38,7 +38,7 @@ test('an explicit product currency wins over unrelated variant fallback columns'
   assert.equal(changed.sourceCurrency,'USD');
 });
 
-test("EUR and USD each receive exactly one hryvnia reserve while foreign prices preserve the raw NBU cross rate", () => {
+test("EUR and USD each receive one hryvnia reserve and the sale cross closes the same UAH conversion paths", () => {
   for (const sourceCurrency of ["EUR", "USD"] as const) {
     const source = {
       eur: sourceCurrency === "EUR" ? 100 : 0,
@@ -48,7 +48,9 @@ test("EUR and USD each receive exactly one hryvnia reserve while foreign prices 
     };
     const result = repriceShopSourceMoney(source, rates);
     assert.equal(result.uah, 100 * ((sourceCurrency === "EUR" ? 50.6975 : 44.8333) + 1));
-    assert.ok(Math.abs(result.usd / result.eur - rates.USD) < 1e-4);
+    assert.ok(Math.abs(result.usd / result.eur - (51.6975 / 45.8333)) < 1e-4);
+    assert.ok(Math.abs(result.eur * 51.6975 - result.uah) <= 0.26);
+    assert.ok(Math.abs(result.usd * 45.8333 - result.uah) <= 0.24);
     assert.equal(source.uah, 0);
   }
   assert.equal(shopUahSaleRate("EUR", rates), 51.6975);
@@ -118,7 +120,10 @@ test("repeated expansion and a daily rate change always use the saved source cur
 });
 
 test("fixed UAH sources stay fixed and ambiguous multi-currency input cannot silently select a different base", () => {
-  assert.equal(repriceShopSourceMoney({ eur: 0, usd: 0, uah: 1000 }, rates).uah, 1000);
+  const fixed = repriceShopSourceMoney({ eur: 0, usd: 0, uah: 1000 }, rates);
+  assert.equal(fixed.uah, 1000);
+  assert.ok(Math.abs(fixed.eur * 51.6975 - 1000) <= 0.26);
+  assert.ok(Math.abs(fixed.usd * 45.8333 - 1000) <= 0.24);
   assert.throws(
     () => repriceShopSourceMoney({ eur: 100, usd: 120, uah: 5300 }, rates),
     /SOURCE_REQUIRED/

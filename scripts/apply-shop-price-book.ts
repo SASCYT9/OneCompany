@@ -192,7 +192,7 @@ async function main() {
                 type: "system",
                 id: "price-book-source-initialization",
                 reason:
-                  "Owner-confirmed source currencies; NBU raw EUR/USD cross; +1 UAH per source foreign unit",
+                  "Owner-confirmed source currencies; +1 UAH to USD and EUR; sale cross derived from both buffered rates",
               });
             },
           });

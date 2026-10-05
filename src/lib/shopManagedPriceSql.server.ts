@@ -1,11 +1,16 @@
 import { Prisma } from "@prisma/client";
 import type { ShopCatalogEffectivePriceContext } from "./shopCatalogEffectivePrice.server";
+import { shopSaleUsdPerEur, shopUahSaleRate } from "./shopPriceBookCurrency";
 
 export function buildShopManagedPriceSql(
   context: ShopCatalogEffectivePriceContext,
   delivery: Prisma.Sql
 ): Prisma.Sql {
   const rates = context.currencyRates;
+  const book = { ...rates, EUR: Number(rates.EUR), USD: Number(rates.USD), UAH: Number(rates.UAH) };
+  const cross = shopSaleUsdPerEur(book);
+  const euroSale = shopUahSaleRate("EUR", book);
+  const dollarSale = shopUahSaleRate("USD", book);
   const selectSource = (
     eur: Prisma.Sql,
     usd: Prisma.Sql,
@@ -44,10 +49,10 @@ export function buildShopManagedPriceSql(
   );
   const selected =
     context.currency === "EUR"
-      ? Prisma.sql`CASE WHEN source.currency = 'EUR' THEN source.amount WHEN source.currency = 'USD' THEN source.amount / ${rates.USD} ELSE source.amount / ${rates.UAH} END`
+      ? Prisma.sql`CASE WHEN source.currency = 'EUR' THEN source.amount WHEN source.currency = 'USD' THEN source.amount / ${cross} ELSE source.amount / ${euroSale} END`
       : context.currency === "USD"
-        ? Prisma.sql`CASE WHEN source.currency = 'USD' THEN source.amount WHEN source.currency = 'EUR' THEN source.amount * ${rates.USD} ELSE source.amount / ${rates.UAH} * ${rates.USD} END`
-        : Prisma.sql`CASE WHEN source.currency = 'UAH' THEN source.amount WHEN source.currency = 'USD' THEN source.amount * ${Number(rates._rawUsdToUah ?? Number(rates.UAH) / Number(rates.USD)) + 1} ELSE source.amount * ${Number(rates.UAH) + 1} END`;
+        ? Prisma.sql`CASE WHEN source.currency = 'USD' THEN source.amount WHEN source.currency = 'EUR' THEN source.amount * ${cross} ELSE source.amount / ${dollarSale} END`
+        : Prisma.sql`CASE WHEN source.currency = 'UAH' THEN source.amount WHEN source.currency = 'USD' THEN source.amount * ${dollarSale} ELSE source.amount * ${euroSale} END`;
   return Prisma.sql`(
     SELECT CASE WHEN source.amount > 0 THEN round((${selected})::numeric, 2) *
       CASE WHEN lower(trim(COALESCE(canonical_product."brand", ''))) = 'wheelforce' AND (canonical_product."tags" @> ARRAY['wheels']::text[] OR lower(trim(COALESCE(canonical_product."productType", ''))) IN ('wheel','wheels')) THEN 4 ELSE 1 END ELSE NULL END
