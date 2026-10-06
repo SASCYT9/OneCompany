@@ -7,7 +7,7 @@ import { buildShopCatalogAdminSnapshot } from "../../../src/lib/shopCatalogAdmin
 import { coordinateShopCatalogProductMutationInTransaction } from "../../../src/lib/shopCatalogMutationCoordinator.server";
 import { projectionSourceFromRevision } from "../../../src/lib/shopCatalogProjectionSource.server";
 import { buildShopCatalogProjection } from "../../../src/lib/shopCatalogProjection.server";
-import { persistShopCatalogProjectionBuild } from "../../../src/lib/shopCatalogProjectionPersistence.server";
+import { persistShopCatalogPriceProjectionBuild, persistShopCatalogProjectionBuild } from "../../../src/lib/shopCatalogProjectionPersistence.server";
 import { publishShopCatalogPriceBatch } from "../../../src/lib/shopCatalogPricePublicationBatch.server";
 import { claimShopCatalogOutbox, processShopCatalogOutboxJob } from "../../../src/lib/shopCatalogOutboxWorker.server";
 
@@ -87,22 +87,25 @@ test("price batch preserves complete canonical state, rolls back stale input, an
     const jobs = await db.shopCatalogOutbox.findMany({ where: { productId: { in: ids }, canonicalVersion: BigInt(2) }, select: { id: true } });
     const worker = "synthetic-ten-price-publication";
     const claimed = await claimShopCatalogOutbox({ workerId: worker, outboxIds: jobs.map(job => job.id), limit: 10 });
-    await db.shopCatalogProjection.deleteMany({ where: { productId: ids[0], locale: "en" } });
+    await db.shopCatalogProjection.deleteMany({ where: { productId: { in: [ids[0], ids[5]] }, locale: "en" } });
     const parallel = await Promise.all([
       publishShopCatalogPriceBatch(claimed.slice(0, 5), worker),
       publishShopCatalogPriceBatch(claimed.slice(5), worker),
     ]);
     const published = parallel.flatMap(batch => batch ?? []);
-    assert.equal(published?.length, 9);
+    assert.equal(published?.length, 8);
     assert.ok(published?.every(row => row.status === "COMPLETED"));
-    const fallback = claimed.find(job => job.productId === ids[0])!;
-    assert.equal((await db.shopCatalogOutbox.findUniqueOrThrow({ where: { id: fallback.id } })).status, "PROCESSING");
-    assert.equal((await processShopCatalogOutboxJob({ job: fallback, workerId: worker, handlers: { PRICE: async ({ job }) => {
+    const fallbacks = claimed.filter(job => [ids[0], ids[5]].some(id => id === job.productId));
+    const recovered = await Promise.all(fallbacks.map(async fallback => {
+      assert.equal((await db.shopCatalogOutbox.findUniqueOrThrow({ where: { id: fallback.id } })).status, "PROCESSING");
+      return processShopCatalogOutboxJob({ job: fallback, workerId: worker, handlers: { PRICE: async ({ job }) => {
       const revision = job.revision!;
-      await persistShopCatalogProjectionBuild(buildShopCatalogProjection(projectionSourceFromRevision({ productId: revision.productId,
+      await persistShopCatalogPriceProjectionBuild(buildShopCatalogProjection(projectionSourceFromRevision({ productId: revision.productId,
         catalogVersion: revision.version, revisionId: revision.id, revisionVersion: revision.version, contentHash: revision.contentHash,
         createdAt: revision.createdAt, snapshot: revision.snapshot })));
-    } } })).status, "COMPLETED");
+      } } });
+    }));
+    assert.ok(recovered.every(result => result.status === "COMPLETED"));
     assert.equal(await db.shopCatalogOutbox.count({ where: { id: { in: jobs.map(job => job.id) }, status: "COMPLETED" } }), 10);
     assert.equal(await db.shopCatalogPublicationReceipt.count({ where: { productId: { in: ids }, target: "PRICE", status: "PUBLISHED", appliedVersion: BigInt(2) } }), 10);
     await assert.rejects(db.$transaction(tx => coordinateShopCatalogPriceBatchInTransaction(tx, entries, actor), { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }), /version changed/);

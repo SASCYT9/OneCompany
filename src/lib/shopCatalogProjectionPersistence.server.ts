@@ -615,6 +615,16 @@ export async function persistShopCatalogPriceProjectionBuild(
   incoming: ShopCatalogProjectionBuild
 ): Promise<ShopCatalogProjectionPersistResult> {
   return prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<Array<{ id: string; catalogVersion: bigint }>>(Prisma.sql`
+      SELECT id,"catalogVersion" FROM "ShopProduct" WHERE id=${incoming.productId} FOR UPDATE
+    `);
+    if (locked.length !== 1) throw new Error(`Cannot project missing product ${incoming.productId}`);
+    if (locked[0].catalogVersion > BigInt(incoming.catalogVersion)) {
+      return { productId: incoming.productId, projectionVersion: incoming.projectionVersion,
+        decision: "STALE_VERSION", applied: false, rowCount: 0 };
+    }
+    if (locked[0].catalogVersion !== BigInt(incoming.catalogVersion))
+      throw new Error(`Price projection exceeds canonical version: ${incoming.productId}`);
     const current = await tx.shopCatalogProjection.findMany({
       where: { productId: incoming.productId },
       select: { locale: true, projectionVersion: true, contentHash: true },
@@ -674,7 +684,7 @@ export async function persistShopCatalogPriceProjectionBuild(
     await tx.shopCatalogProjectionConstraint.updateMany({ where, data });
     return { productId: plan.productId, projectionVersion: plan.projectionVersion.toString(),
       decision: plan.decision, applied: true, rowCount: plan.projectionRows.length };
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 });
 }
 
 /** Processes exactly one bounded keyset page so a caller can checkpoint after every page. */
