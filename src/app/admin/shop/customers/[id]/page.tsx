@@ -675,7 +675,7 @@ export default function AdminShopCustomerDetailPage() {
                     <div className="mt-3 space-y-2">
                       <div className="text-2xl font-semibold text-emerald-300">{customerMarkup.markupPct}%</div>
                       <div className="text-sm text-zinc-400">
-                        Персональне ціноутворення{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
+                        Довідково, на ціни зараз не впливає{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
                       </div>
                     </div>
                   ) : (
