@@ -7,7 +7,7 @@ test("admin users and roles APIs use the dedicated user-management permission", 
   const root = process.cwd();
   const sources = [
     "src/app/api/admin/users/route.ts",
-    "src/app/api/admin/users/[id]/route.ts",
+    "src/app/api/admin/users/[id]/handler.ts",
     "src/app/api/admin/roles/route.ts",
   ].map((file) => fs.readFileSync(path.join(root, file), "utf8"));
 

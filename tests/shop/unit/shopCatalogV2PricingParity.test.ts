@@ -9,7 +9,8 @@ const read = (path: string) => readFileSync(join(root, path), "utf8");
 test("Catalog V2 hydrates only the visible page from fresh canonical product pricing", () => {
   const adapter = read("src/lib/shopCatalogPremiumProjection.server.ts");
   assert.match(adapter, /items\.map\(\(item\) => item\.productId\)/);
-  assert.match(adapter, /getShopCatalogCardPricingByIds\(items\.map/);
+  // The visible page's IDs (plus one exact WheelForce match) are hydrated in one read.
+  assert.match(adapter, /getShopCatalogCardPricingByIds\(\[\s*\.\.\.items\.map/);
   assert.match(adapter, /cardPrice\?\.primaryMediaUrl \?\? item\.primaryMediaUrl/);
   assert.match(adapter, /cardPrice\?\.defaultVariantId/);
   assert.doesNotMatch(adapter, /getShopProductsServer\(/);
