@@ -407,7 +407,6 @@ const ADMIN_NAV_PERMISSION_BY_HREF: Readonly<Record<string, readonly string[]>> 
   "/admin/shop/import": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
   "/admin/shop/stock": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
   "/admin/shop/feed": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
-  "/admin/shop/turn14": [ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE],
   "/admin/shop/audit": [ADMIN_PERMISSIONS.SHOP_AUDIT_READ],
   "/admin/shop/logistics": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],
   "/admin/shop/logistics/taxes": [ADMIN_PERMISSIONS.SHOP_SETTINGS_READ],

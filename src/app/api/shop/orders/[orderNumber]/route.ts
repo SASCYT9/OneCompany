@@ -102,13 +102,6 @@ export async function GET(
     };
   });
 
-  for (const item of itemsList) {
-    if (!item.image && item.sku) {
-      const t14 = await prisma.turn14Item.findFirst({ where: { partNumber: item.sku } });
-      if (t14?.thumbnail) item.image = t14.thumbnail;
-    }
-  }
-
   const pricingSnapshot = order.pricingSnapshot as Record<string, unknown> | null;
 
   return NextResponse.json({

@@ -37,7 +37,7 @@ interface CustomerOption {
 interface OrderItem {
   key: string;
   entryMode: "search" | "manual";
-  sourceType: "empty" | "local" | "turn14" | "manual";
+  sourceType: "empty" | "local" | "manual";
   title: string;
   partNumber: string;
   brand: string;
@@ -53,7 +53,6 @@ interface OrderItem {
   unitPrice: number;
   lineTotal: number;
   thumbnail: string;
-  turn14Id: string;
   isAILoading: boolean;
   aiReasoning?: string;
 }
@@ -93,7 +92,6 @@ function newItem(): OrderItem {
     unitPrice: 0,
     lineTotal: 0,
     thumbnail: "",
-    turn14Id: "",
     isAILoading: false,
   };
 }
@@ -114,10 +112,10 @@ export default function AdminCreateOrderPage() {
   // Items
   const [items, setItems] = useState<OrderItem[]>([newItem()]);
 
-  // Turn14 search
-  const [turn14Query, setTurn14Query] = useState("");
-  const [turn14Results, setTurn14Results] = useState<any[]>([]);
-  const [turn14Loading, setTurn14Loading] = useState(false);
+  // Catalog search
+  const [itemQuery, setItemQuery] = useState("");
+  const [itemResults, setItemResults] = useState<any[]>([]);
+  const [itemLoading, setItemLoading] = useState(false);
   const [addingToItemIdx, setAddingToItemIdx] = useState<number | null>(null);
   // Shipping
   const [zone, setZone] = useState<ShippingZone>("KZ");
@@ -189,13 +187,13 @@ export default function AdminCreateOrderPage() {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape" && addingToItemIdx !== null) {
         setAddingToItemIdx(null);
-        setTurn14Results([]);
+        setItemResults([]);
       }
     }
     function onClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setAddingToItemIdx(null);
-        setTurn14Results([]);
+        setItemResults([]);
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -281,41 +279,39 @@ export default function AdminCreateOrderPage() {
     updateItem(index, {
       entryMode,
       sourceType: entryMode === "manual" ? "manual" : "empty",
-      turn14Id: entryMode === "manual" ? "" : items[index]?.turn14Id || "",
     });
     if (entryMode === "manual") {
       setAddingToItemIdx(null);
-      setTurn14Results([]);
+      setItemResults([]);
     }
   }
 
   function createManualItemFromQuery(index: number) {
-    const title = turn14Query.trim() || items[index]?.title || "";
+    const title = itemQuery.trim() || items[index]?.title || "";
     updateItem(index, {
       entryMode: "manual",
       sourceType: "manual",
       title,
-      turn14Id: "",
     });
     setAddingToItemIdx(null);
-    setTurn14Results([]);
+    setItemResults([]);
   }
 
-  // ─── Turn14 search ─────────────────────────────────────────
+  // ─── Catalog search ────────────────────────────────────────
 
-  async function searchTurn14(nextQuery = turn14Query) {
+  async function searchCatalogItems(nextQuery = itemQuery) {
     if (!nextQuery.trim()) return;
-    setTurn14Loading(true);
+    setItemLoading(true);
     try {
       const res = await fetch(
         `/api/admin/shop/orders/search-items?q=${encodeURIComponent(nextQuery.trim())}`
       );
       const data = await res.json();
-      setTurn14Results(data.items || data.data || []);
+      setItemResults(data.items || data.data || []);
     } catch {
-      setTurn14Results([]);
+      setItemResults([]);
     }
-    setTurn14Loading(false);
+    setItemLoading(false);
   }
 
   // ─── AI Dimensional Estimation ─────────────────────────────
@@ -353,38 +349,34 @@ export default function AdminCreateOrderPage() {
     }
   }
 
-  function addTurn14Item(t14Item: any, targetIdx: number) {
-    // Our enriched API returns flattened fields at top level + raw attributes backup
-    const a = t14Item.attributes || {};
-    const isLocal = t14Item.source === "local";
+  function addCatalogItem(result: any, targetIdx: number) {
+    // The search API returns flattened fields at top level + raw attributes backup
+    const a = result.attributes || {};
+    const weightKg = Number(result.weight || a.weight || 0) || 0;
     const patch: Partial<OrderItem> = {
-      title: t14Item.product_name || a.product_name || a.item_name || "",
+      title: result.product_name || a.product_name || a.item_name || "",
       entryMode: "search",
-      sourceType: isLocal ? "local" : "turn14",
+      sourceType: "local",
       partNumber:
-        t14Item.internal_part_number ||
+        result.internal_part_number ||
         a.internal_part_number ||
-        t14Item.part_number ||
+        result.part_number ||
         a.part_number ||
         "",
-      brand: t14Item.brand || a.brand_short_description || a.brand || "",
-      baseCostUsd: t14Item.dealer_price || t14Item.jobber_price || a.dealer_price || 0,
-      weightLbs: t14Item.weight || a.weight || 0,
-      weightKg: lbsToKg(t14Item.weight || a.weight || 0),
-      thumbnail: t14Item.primary_image || a.primary_image || "",
-      turn14Id: isLocal ? "" : String(t14Item.id || ""),
+      brand: result.brand || a.brand_short_description || a.brand || "",
+      baseCostUsd: result.dealer_price || result.jobber_price || a.dealer_price || 0,
+      weightKg,
+      weightLbs: Math.round(weightKg * 2.20462 * 100) / 100,
+      thumbnail: result.primary_image || a.primary_image || "",
       discountPct: selectedCustomer?.b2bDiscountPercent ?? 0,
+      // Catalog items already carry a retail price in baseCostUsd; lock the
+      // markup to 0% so they sell at exactly that retail price.
+      markupPct: 0,
     };
 
-    // For local items that already have a retail price in baseCostUsd,
-    // we want to lock the markup to 0% so it sells at exactly that retail price.
-    if (isLocal) {
-      patch.markupPct = 0;
-    }
-
     updateItem(targetIdx, patch);
-    setTurn14Results([]);
-    setTurn14Query(patch.title || "");
+    setItemResults([]);
+    setItemQuery(patch.title || "");
     setAddingToItemIdx(null);
 
     // After setting the basic item details, if this item lacks dimensions, prompt the AI.
@@ -511,7 +503,6 @@ export default function AdminCreateOrderPage() {
               lineTotal: item.lineTotal,
               weightKg: item.weightKg,
               thumbnail: item.thumbnail,
-              turn14Id: item.turn14Id,
             })),
         }),
       });
@@ -548,7 +539,7 @@ export default function AdminCreateOrderPage() {
     {
       id: "items",
       label: "Items & sourcing",
-      description: "Позиції замовлення та пошук у Local + Turn14.",
+      description: "Позиції замовлення та пошук у локальному каталозі.",
     },
     { id: "shipping", label: "Shipping", description: "Розрахунок логістики по зоні та override." },
     {
@@ -730,7 +721,7 @@ export default function AdminCreateOrderPage() {
       <AdminEditorSection
         id="items"
         title="Позиції та sourcing"
-        description="Додавайте локальні або Turn14 позиції, розраховуйте markup/discount і формуйте логістичні параметри прямо в draft."
+        description="Додавайте позиції з каталогу або вручну, розраховуйте markup/discount і формуйте логістичні параметри прямо в draft."
       >
         {items.map((item, idx) => (
           <div key={item.key} className="mb-4 rounded-none border border-white/10 bg-black/20 p-4">
@@ -777,26 +768,26 @@ export default function AdminCreateOrderPage() {
                 <div className="relative" ref={addingToItemIdx === idx ? dropdownRef : undefined}>
                   <label className="block">
                     <span className="mb-1 flex items-center gap-1 text-[10px] text-blue-400 uppercase tracking-wider">
-                      <Search className="h-3 w-3" /> Local + Turn14 search
+                      <Search className="h-3 w-3" /> Catalog search
                     </span>
                     <input
-                      value={addingToItemIdx === idx ? turn14Query : item.title}
+                      value={addingToItemIdx === idx ? itemQuery : item.title}
                       onChange={(e) => {
                         const v = e.target.value;
                         if (addingToItemIdx !== idx) setAddingToItemIdx(idx);
-                        setTurn14Query(v);
+                        setItemQuery(v);
                         updateItem(idx, { title: v, sourceType: "empty" });
-                        clearTimeout((window as any).__t14Timer);
-                        (window as any).__t14Timer = setTimeout(() => {
-                          if (v.trim().length >= 2) searchTurn14(v);
-                          else setTurn14Results([]);
+                        clearTimeout((window as any).__itemSearchTimer);
+                        (window as any).__itemSearchTimer = setTimeout(() => {
+                          if (v.trim().length >= 2) searchCatalogItems(v);
+                          else setItemResults([]);
                         }, 350);
                       }}
                       onFocus={() => {
                         if (addingToItemIdx !== idx) {
                           setAddingToItemIdx(idx);
-                          setTurn14Query(item.title);
-                          setTurn14Results([]);
+                          setItemQuery(item.title);
+                          setItemResults([]);
                         }
                       }}
                       placeholder="SKU, part number, brand, product name..."
@@ -805,23 +796,23 @@ export default function AdminCreateOrderPage() {
                   </label>
 
                   {addingToItemIdx === idx &&
-                  (turn14Results.length > 0 || turn14Loading || turn14Query.trim().length >= 2) ? (
+                  (itemResults.length > 0 || itemLoading || itemQuery.trim().length >= 2) ? (
                     <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-[420px] overflow-y-auto rounded-none border border-blue-500/25 bg-zinc-950 p-2 shadow-2xl shadow-black/60">
-                      {turn14Loading ? (
+                      {itemLoading ? (
                         <div className="px-3 py-2 text-center text-xs text-zinc-400/70">
                           Searching catalogs...
                         </div>
                       ) : null}
 
-                      {turn14Results.slice(0, 12).map((t14, i) => (
+                      {itemResults.slice(0, 12).map((result, i) => (
                         <SearchItemResult
-                          key={`${t14.source || "item"}-${t14.id || i}`}
-                          item={t14}
-                          onSelect={() => addTurn14Item(t14, idx)}
+                          key={`${result.source || "item"}-${result.id || i}`}
+                          item={result}
+                          onSelect={() => addCatalogItem(result, idx)}
                         />
                       ))}
 
-                      {!turn14Loading && turn14Results.length === 0 ? (
+                      {!itemLoading && itemResults.length === 0 ? (
                         <div className="rounded-none border border-dashed border-white/10 bg-black/30 p-3">
                           <div className="text-sm font-medium text-zinc-100">No catalog match</div>
                           <div className="mt-1 text-xs leading-5 text-zinc-500">
@@ -847,7 +838,7 @@ export default function AdminCreateOrderPage() {
                     <div>
                       <div className="text-sm font-medium text-zinc-100">Manual line item</div>
                       <div className="mt-1 text-xs text-zinc-500">
-                        Use this when the product is not in local catalog or Turn14 mirror.
+                        Use this when the product is not in the local catalog.
                       </div>
                     </div>
                     <AdminStatusBadge tone="warning">not linked</AdminStatusBadge>
@@ -1118,14 +1109,12 @@ export default function AdminCreateOrderPage() {
 
 function SourceBadge({ source }: { source: OrderItem["sourceType"] }) {
   if (source === "local") return <AdminStatusBadge tone="success">LOCAL</AdminStatusBadge>;
-  if (source === "turn14") return <AdminStatusBadge tone="default">TURN14</AdminStatusBadge>;
   if (source === "manual") return <AdminStatusBadge tone="warning">MANUAL</AdminStatusBadge>;
   return <AdminStatusBadge tone="default">UNSELECTED</AdminStatusBadge>;
 }
 
 function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void }) {
   const attrs = item.attributes || {};
-  const source = item.source === "local" ? "local" : "turn14";
   const name = compactText(
     item.product_name || attrs.product_name || attrs.item_name,
     "Unnamed item"
@@ -1148,16 +1137,16 @@ function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void 
         {image ? (
           <img src={image} alt="" className="h-full w-full object-contain" />
         ) : (
-          <PackageIconFallback label={source === "local" ? "L" : "T"} />
+          <PackageIconFallback label="L" />
         )}
       </div>
 
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
           <span
-            className={`shrink-0 rounded-[3px] border px-2 py-0.5 font-mono text-[9px] font-bold uppercase ${source === "local" ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-zinc-500/30 bg-stone-500/10 text-zinc-300"}`}
+            className="shrink-0 rounded-[3px] border border-green-500/30 bg-green-500/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase text-green-300"
           >
-            {source === "local" ? "LOCAL" : "TURN14"}
+            LOCAL
           </span>
           <span className="truncate text-sm font-medium text-zinc-100">{name}</span>
         </div>
@@ -1165,7 +1154,7 @@ function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void 
           <span className="truncate font-mono text-zinc-400">{partNumber}</span>
           <span className="truncate">{brand}</span>
           <span className="truncate text-right">
-            {weight ? `${weight} ${source === "local" ? "kg" : "lb"}` : "no weight"}
+            {weight ? `${weight} kg` : "no weight"}
           </span>
         </div>
       </div>

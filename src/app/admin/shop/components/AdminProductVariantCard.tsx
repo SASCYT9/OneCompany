@@ -449,7 +449,7 @@ export function AdminProductVariantCard({
                   label="Облік залишків"
                   value={variant.inventoryTracker}
                   onChange={(v) => onUpdate({ inventoryTracker: v })}
-                  helper="e.g. shopify, manual, turn14"
+                  helper="e.g. shopify, manual"
                 />
               </div>
               <div className="grid gap-3 md:grid-cols-2">

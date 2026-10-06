@@ -542,7 +542,6 @@ async function getCrmMetrics(period: RevenuePeriod) {
 
 async function getSystemMetrics() {
   const [
-    turn14Brands,
     lastSync,
     dataQuality,
     catalogQuality,
@@ -551,9 +550,6 @@ async function getSystemMetrics() {
     highValueUnpaid,
     lastImportJob,
   ] = await Promise.all([
-    prisma.turn14BrandMarkup.findMany({
-      select: { syncStatus: true, syncMessage: true, updatedAt: true, brandName: true },
-    }),
     prisma.crmOrder.findFirst({
       orderBy: { syncedAt: "desc" },
       select: { syncedAt: true },
@@ -579,11 +575,6 @@ async function getSystemMetrics() {
       select: { createdAt: true },
     }),
   ]);
-
-  const turn14Errors = turn14Brands.filter(
-    (b) => b.syncStatus === "error" || b.syncStatus === "failed"
-  ).length;
-  const turn14Syncing = turn14Brands.filter((b) => b.syncStatus === "syncing").length;
 
   const operationalRisks = [
     {
@@ -631,8 +622,10 @@ async function getSystemMetrics() {
   // Operations health lights — green/amber/red
   const pipelineHealth: "green" | "amber" | "red" =
     highValueUnpaid > 5 ? "red" : highValueUnpaid > 0 ? "amber" : "green";
+  // Supplier sync now means the CRM order sync; stale data after a week needs attention.
+  const crmSyncAgeMs = lastSync?.syncedAt ? Date.now() - lastSync.syncedAt.getTime() : null;
   const syncHealth: "green" | "amber" | "red" =
-    turn14Errors > 0 ? "red" : turn14Syncing > 0 ? "amber" : "green";
+    crmSyncAgeMs == null || crmSyncAgeMs > 7 * 24 * 60 * 60 * 1000 ? "amber" : "green";
   const stockHealth: "green" | "amber" | "red" =
     catalogQuality.issueCounts.ACTIVE_WITHOUT_STOCK > 10
       ? "red"
@@ -646,16 +639,6 @@ async function getSystemMetrics() {
   const importsHealth: "green" | "amber" | "red" = failedImports > 0 ? "red" : "green";
 
   return {
-    turn14Stats: {
-      total: turn14Brands.length,
-      syncing: turn14Syncing,
-      idle: turn14Brands.filter((b) => b.syncStatus === "idle").length,
-      errors: turn14Errors,
-      latestSync:
-        turn14Brands.length > 0
-          ? new Date(Math.max(...turn14Brands.map((b) => b.updatedAt.getTime()))).toISOString()
-          : null,
-    },
     lastCrmSyncAt: lastSync?.syncedAt?.toISOString() || null,
     lastImportAt: lastImportJob?.createdAt?.toISOString() || null,
     dataQuality,

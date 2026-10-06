@@ -14,7 +14,6 @@ import {
 
 type Props = {
   slug?: string;
-  turn14Id?: string;
   locale: string;
   variantId?: string | null;
   variant?: "default" | "minimal" | "inline";
@@ -31,7 +30,6 @@ type Props = {
 
 export function AddToCartButton({
   slug,
-  turn14Id,
   locale,
   variantId,
   variant = "default",
@@ -53,7 +51,7 @@ export function AddToCartButton({
 
   useEffect(() => {
     setAdded(false);
-  }, [additionalItemsKey, quantity, slug, turn14Id, variantId]);
+  }, [additionalItemsKey, quantity, slug, variantId]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,7 +62,6 @@ export function AddToCartButton({
       const normalizedQuantity = Math.max(1, Math.min(99, Math.floor(Number(quantity) || 1)));
       const payload: any = { quantity: normalizedQuantity, variantId };
       if (slug) payload.slug = slug;
-      if (turn14Id) payload.turn14Id = turn14Id;
       if (additionalItems.length) {
         payload.items = [
           ...(slug ? [{ slug, quantity: normalizedQuantity, variantId }] : []),

@@ -420,7 +420,6 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}`
         : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
-      turn14Id: "",
       source: "catalog_v2_projection" as const,
     };
   });

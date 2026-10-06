@@ -17,7 +17,7 @@ test("allows the admin auth endpoint without an existing session", async () => {
 
 test("rejects unauthenticated admin api requests by default", async () => {
   const result = await shouldAllowAdminApiRequest({
-    pathname: "/api/admin/turn14-sync",
+    pathname: "/api/admin/shop/products",
     method: "POST",
     cookieToken: null,
   });
