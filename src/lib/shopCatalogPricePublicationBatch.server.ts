@@ -19,12 +19,13 @@ export async function publishShopCatalogPriceBatch(
       job.changeDomains.length !== 1 || job.changeDomains[0] !== "PRICE" ||
       !payload || JSON.stringify(payload.projectionTargets) !== '["PRICE"]';
   })) return null;
-  const builds = jobs.map(job => buildShopCatalogProjection(projectionSourceFromRevision({
+  const sources = jobs.map(job => projectionSourceFromRevision({
     productId: job.productId!, catalogVersion: job.canonicalVersion,
     revisionId: job.revision?.id ?? null, revisionVersion: job.revision?.version ?? null,
     contentHash: job.revision?.contentHash ?? null, createdAt: job.revision?.createdAt ?? null,
     snapshot: job.revision?.snapshot ?? null,
-  })));
+  }));
+  const builds = sources.map(buildShopCatalogProjection);
   return retrySerializablePriceBatch(() => prisma.$transaction(async tx => {
     await tx.$executeRawUnsafe("SET LOCAL idle_in_transaction_session_timeout = '15s'");
     const leased = await tx.shopCatalogOutbox.findMany({ where: {
@@ -44,10 +45,11 @@ export async function publishShopCatalogPriceBatch(
     }, select: { entityId: true, appliedVersion: true } });
     if (receipts.length !== jobs.length || jobs.some(job => receipts.find(row => row.entityId === job.productId)!.appliedVersion >= job.canonicalVersion)) return null;
     const projections = await tx.shopCatalogProjection.findMany({ where: { productId: { in: ids } },
-      select: { productId: true, locale: true, projectionVersion: true, contentHash: true } });
-    const previousRevisions = await tx.shopCatalogProductRevision.findMany({ where: { OR: projections.map(row => ({
-      productId: row.productId, version: row.projectionVersion,
-    })) } });
+      select: { productId: true, locale: true, projectionVersion: true, contentHash: true,
+        sourceContentHash: true, sourceUpdatedAt: true } });
+    const currentSkus = await tx.shopCatalogProjectionSku.findMany({ where: { productId: { in: ids } },
+      select: { productId: true, skuKey: true, variantId: true, sourceVersion: true, sku: true,
+        normalizedSku: true, isDefault: true, stableRank: true } });
     const advances: Array<{ productId: string; previousVersion: string; nextVersion: string }> = [];
     const rows: Array<Record<string, unknown>> = [];
     for (const incoming of builds) {
@@ -55,16 +57,21 @@ export async function publishShopCatalogPriceBatch(
       const plan = planShopCatalogProjectionPersistence(current, incoming);
       if (plan.decision !== "NEWER_VERSION" || current.length !== incoming.projections.length) continue;
       const previousVersion = current[0].projectionVersion;
-      const revision = previousRevisions.find(row => row.productId === incoming.productId && row.version === previousVersion);
-      if (!revision) continue;
-      const previousSource = projectionSourceFromRevision({ productId: revision.productId,
-        catalogVersion: revision.version, revisionId: revision.id, revisionVersion: revision.version,
-        contentHash: revision.contentHash, createdAt: revision.createdAt, snapshot: revision.snapshot });
-      if (planShopCatalogProjectionPersistence(current, buildShopCatalogProjection(previousSource)).decision !== "IDEMPOTENT") continue;
-      const advanced = buildShopCatalogProjection({ ...previousSource, sourceVersion: incoming.sourceVersion,
-        catalogVersion: incoming.catalogVersion, sourceUpdatedAt: incoming.sourceUpdatedAt,
-        canonicalContentHash: incoming.sourceContentHash });
-      if (advanced.contentHash !== incoming.contentHash) continue;
+      // Reconstruct the expected old envelope from the new immutable source.
+      // Matching both stored hashes proves every search/media/stock/fitment field
+      // agrees, even for legacy projections whose old revision is unavailable.
+      const previous = buildShopCatalogProjection({ ...sources.find(source => source.productId === incoming.productId)!,
+        sourceVersion: previousVersion.toString(), catalogVersion: previousVersion.toString(),
+        sourceUpdatedAt: current[0].sourceUpdatedAt?.toISOString() ?? null,
+        canonicalContentHash: current[0].sourceContentHash });
+      const previousPlan = planShopCatalogProjectionPersistence(current, previous);
+      if (previousPlan.decision !== "IDEMPOTENT") continue;
+      const actualSkus = currentSkus.filter(row => row.productId === incoming.productId);
+      if (actualSkus.length !== previousPlan.skuRows.length || previousPlan.skuRows.some(expected => {
+        const actual = actualSkus.find(row => row.skuKey === expected.skuKey) as Record<string, unknown> | undefined;
+        return !actual || Object.entries(expected).some(([field, value]) => field === "stableRank"
+          ? Number(actual[field]) !== Number(value) : actual[field] !== value);
+      })) continue;
       advances.push({ productId: incoming.productId, previousVersion: previousVersion.toString(), nextVersion: incoming.projectionVersion });
       rows.push(...plan.projectionRows);
     }

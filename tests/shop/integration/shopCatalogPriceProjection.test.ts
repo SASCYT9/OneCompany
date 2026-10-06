@@ -56,7 +56,14 @@ test("price publication preserves SKU and fitment rows and rebuilds missed conte
   try {
     await prisma.shopProduct.create({ data: { id, slug: id, sku: id, titleUa: "Synthetic", titleEn: "Synthetic", isPublished: false,
       variants: { create: { id: variantId, sku: variantId } } } });
-    const first = await mutate("Synthetic", "CONTENT");
+    // Legacy baseline has no immutable revision at version zero.
+    await persistShopCatalogProjectionBuild(buildShopCatalogProjection(source("Synthetic")));
+    const baselineIds = (await children()).sku.map(row => row.id);
+    const first = await mutate("Synthetic", "PRICE");
+    const firstJob = await prisma.shopCatalogOutbox.findFirstOrThrow({ where: { productId: id, canonicalVersion: BigInt(1) } });
+    const firstClaim = await claimShopCatalogOutbox({ workerId: "synthetic-baseline", outboxIds: [firstJob.id], limit: 1 });
+    assert.equal((await publishShopCatalogPriceBatch(firstClaim, "synthetic-baseline"))?.length, 1);
+    assert.deepEqual((await children()).sku.map(row => row.id), baselineIds);
     await persistShopCatalogProjectionBuild(first);
     const before = await children();
     assert.ok(before.constraints.length > 0);
@@ -78,6 +85,11 @@ test("price publication preserves SKU and fitment rows and rebuilds missed conte
     const worker = "synthetic-price-publication";
     const claimed = await claimShopCatalogOutbox({ workerId: worker, outboxIds: [job.id], limit: 1 });
     await assert.rejects(publishShopCatalogPriceBatch(claimed, "wrong-worker"), /lease/);
+    const defaultSku = (await children()).sku.find(row => row.isDefault)!;
+    await prisma.shopCatalogProjectionSku.update({ where: { id: defaultSku.id }, data: { isDefault: false } });
+    assert.equal(await publishShopCatalogPriceBatch(claimed, worker), null, "SKU default mismatch requires a full rebuild");
+    assert.equal((await prisma.shopCatalogOutbox.findUniqueOrThrow({ where: { id: job.id } })).status, "PROCESSING");
+    await prisma.shopCatalogProjectionSku.update({ where: { id: defaultSku.id }, data: { isDefault: true } });
     const originalTransaction = prisma.$transaction;
     const transaction = originalTransaction.bind(prisma);
     prisma.$transaction = ((
@@ -94,8 +106,8 @@ test("price publication preserves SKU and fitment rows and rebuilds missed conte
     finally { prisma.$transaction = originalTransaction; }
     assert.ok((await prisma.shopCatalogProjection.findMany({ where: { productId: id } })).every(row => row.projectionVersion === BigInt(2)));
     assert.ok((await children()).constraints.every(row => row.sourceVersion === BigInt(2)));
-    assert.equal((await prisma.shopProduct.findUniqueOrThrow({ where: { id } })).publishedCatalogVersion, BigInt(0));
-    assert.equal((await prisma.shopCatalogPublicationReceipt.findFirstOrThrow({ where: { productId: id, target: "PRICE" } })).appliedVersion, BigInt(0));
+    assert.equal((await prisma.shopProduct.findUniqueOrThrow({ where: { id } })).publishedCatalogVersion, BigInt(1));
+    assert.equal((await prisma.shopCatalogPublicationReceipt.findFirstOrThrow({ where: { productId: id, target: "PRICE" } })).appliedVersion, BigInt(1));
     assert.equal((await publishShopCatalogPriceBatch(claimed, worker))?.[0].status, "COMPLETED");
     const batchChildren = await children();
     for (const key of ["sku", "policies", "clauses", "constraints"] as const) {
