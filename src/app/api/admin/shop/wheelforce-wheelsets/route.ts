@@ -494,10 +494,6 @@ function payloadForSet(
   const sourceGrossEur = Number(set.sourcePriceEurGross);
   if (!Number.isFinite(sourceGrossEur) || sourceGrossEur <= 0)
     throw new Error(`Invalid source wheel-only price for ${set.sku}`);
-  const { ukraine: localPrice, europe: europePrice } = calculateWheelForcePrices(
-    sourceGrossEur,
-    currencyRates
-  );
   const front = wheelModelAndFinish(set.front);
   const rear = wheelModelAndFinish(set.rear);
   const model = front.model === rear.model ? front.model : `${front.model} / ${rear.model}`;
