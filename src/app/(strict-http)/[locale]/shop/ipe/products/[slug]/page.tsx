@@ -1,8 +1,7 @@
 import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
-import { prisma } from "@/lib/prisma";
 import { resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { getTopProductSlugsByBrand } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
@@ -48,9 +47,9 @@ export default async function IpeProductPage({ params }: Props) {
   // Cross-shop suggestions load separately when the visitor approaches them.
   const [product, settingsRecord] = await Promise.all([
     requireCanonicalStorefrontProduct({ locale: resolvedLocale, slug, mode: "ipe" }),
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
   ]);
-  const settings = getShopSettingsRuntime(settingsRecord);
+  const settings = settingsRecord;
   const rates = settings.currencyRates;
   // ISR-cached: anonymous viewer context. Logged-in B2B sees their discount via
   // `useShopViewerContext` on the client side; this ensures the price band

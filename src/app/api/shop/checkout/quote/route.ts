@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { buildCheckoutQuote, type CheckoutShippingAddress } from "@/lib/shopCheckout";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { resolveShopCart, SHOP_CART_COOKIE } from "@/lib/shopCart";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { prisma } from "@/lib/prisma";
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   const session = await getCurrentShopCustomerSession();
-  const settingsRecord = await getOrCreateShopSettings(prisma);
-  const settings = getShopSettingsRuntime(settingsRecord);
+  const settings = await getPublicShopSettingsRuntime();
   const activeCart = await resolveShopCart(prisma, {
     cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
     customerId: session?.customerId ?? null,

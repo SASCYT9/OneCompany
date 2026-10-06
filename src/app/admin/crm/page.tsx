@@ -57,7 +57,9 @@ type CrmDbAnalytics = {
   lastSyncAt: string | null;
 } | null;
 
-const AUTO_REFRESH_INTERVAL = 30_000;
+// Each refresh reads Airtable and the database; a tab left open used to poll
+// every 30 seconds around the clock.
+const AUTO_REFRESH_INTERVAL = 120_000;
 
 function fmtUsd(value: number): string {
   return value.toLocaleString("en-US", {
@@ -129,7 +131,7 @@ export default function CrmDashboardPage() {
     void fetchData(true);
 
     intervalRef.current = setInterval(() => {
-      void fetchData(false);
+      if (document.visibilityState === "visible") void fetchData(false);
     }, AUTO_REFRESH_INTERVAL);
 
     return () => {

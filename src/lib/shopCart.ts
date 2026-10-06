@@ -1,6 +1,8 @@
 import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import crypto from "crypto";
 import { Prisma, PrismaClient } from "@prisma/client";
+import type { NextResponse } from "next/server";
+import { SHOP_CART_COUNT_COOKIE } from "@/lib/shopCartCountCookie";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
@@ -13,6 +15,27 @@ export const SHOP_CART_COOKIE = "oc_cart_token";
 export const SHOP_CART_MAX_ITEMS = 40;
 export const SHOP_CART_MAX_QUANTITY = 20;
 const SHOP_CART_TTL_DAYS = 30;
+// A read extends the expiry only when it is this close; otherwise every
+// storefront request that loads the cart would also be a database write.
+const SHOP_CART_TOUCH_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+const SHOP_CART_COOKIE_MAX_AGE = 60 * 60 * 24 * SHOP_CART_TTL_DAYS;
+
+export function setShopCartCookies(response: NextResponse, token: string | null, totalItems: number) {
+  const options = {
+    path: "/",
+    maxAge: SHOP_CART_COOKIE_MAX_AGE,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+  };
+  if (token) response.cookies.set(SHOP_CART_COOKIE, token, { ...options, httpOnly: true });
+  const count = Math.min(9999, Math.max(0, Math.floor(Number(totalItems) || 0)));
+  response.cookies.set(SHOP_CART_COUNT_COOKIE, String(count), { ...options, httpOnly: false });
+}
+
+/** A guest without a cart token has an empty cart; do not create a row to say so. */
+export function emptyShopCartPayload(currency: string, locale: string) {
+  return { id: null, token: null, currency, locale, items: [], totalItems: 0 };
+}
 
 const cartWithItemsInclude = {
   items: {
@@ -138,12 +161,23 @@ async function touchCart(
     locale?: string | null;
   }
 ) {
+  const customerId = input.customerId ?? cart.customerId ?? null;
+  const currency = String(input.currency ?? cart.currency).toUpperCase();
+  const locale = normalizeLocale(input.locale ?? cart.locale);
+  if (
+    customerId === cart.customerId &&
+    currency === cart.currency &&
+    locale === cart.locale &&
+    cart.expiresAt.getTime() - Date.now() > SHOP_CART_TOUCH_THRESHOLD_MS
+  ) {
+    return cart;
+  }
   return prisma.shopCart.update({
     where: { id: cart.id },
     data: {
-      customerId: input.customerId ?? cart.customerId ?? null,
-      currency: String(input.currency ?? cart.currency).toUpperCase(),
-      locale: normalizeLocale(input.locale ?? cart.locale),
+      customerId,
+      currency,
+      locale,
       expiresAt: addDays(SHOP_CART_TTL_DAYS),
     },
     include: cartWithItemsInclude,

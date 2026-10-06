@@ -12,6 +12,7 @@ import {
   useShopCurrency,
 } from "@/components/shop/CurrencyContext";
 import { convertShopMoney } from "@/lib/shopMoneyFormat";
+import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 
 type CartItem = {
   id: string;
@@ -92,6 +93,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
       const res = await fetch(`/api/shop/cart${query}`);
       const data = await res.json();
       setCart(data);
+      notifyShopCartChanged();
     } catch {
       setCart({ items: [], totalItems: 0 });
     } finally {

@@ -7,8 +7,9 @@ import {
   resolveShopCart,
   replaceEntireShopCart,
   mergeShopCartItemInputs,
+  setShopCartCookies,
 } from "@/lib/shopCart";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
@@ -23,18 +24,7 @@ import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import { requiresUrbanBodyKitQuote, URBAN_BODYKIT_QUOTE_ERROR } from "@/lib/shopProductPurchasePolicy";
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 const WHEELFORCE_SET_ERROR = "WheelForce wheels are sold in sets of four";
-
-function setCartCookie(response: NextResponse, token: string) {
-  response.cookies.set(SHOP_CART_COOKIE, token, {
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-}
 
 export async function POST(request: NextRequest) {
   let body: {
@@ -106,11 +96,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: WHEELFORCE_SET_ERROR, code: "WHEELFORCE_SET_OF_FOUR_REQUIRED" }, { status: 400 });
     }
 
-    const [session, settingsRecord] = await Promise.all([
+    const [session, settings] = await Promise.all([
       getCurrentShopCustomerSession(),
-      getOrCreateShopSettings(prisma),
+      getPublicShopSettingsRuntime(),
     ]);
-    const settings = getShopSettingsRuntime(settingsRecord);
     const country =
       String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
     const context = await buildShopViewerPricingContextServer({
@@ -148,7 +137,7 @@ export async function POST(request: NextRequest) {
       );
       const payload = await serializeLocalShopCart(refreshed, context);
       const response = NextResponse.json(payload);
-      setCartCookie(response, token);
+      setShopCartCookies(response, token, payload.totalItems);
       return response;
     }
 
@@ -180,7 +169,7 @@ export async function POST(request: NextRequest) {
 
     const payload = await serializeResolvedShopCart(refreshed, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, finalToken);
+    setShopCartCookies(response, finalToken, payload.totalItems);
     return response;
   } catch (error) {
     console.error("Shop cart item add", error);

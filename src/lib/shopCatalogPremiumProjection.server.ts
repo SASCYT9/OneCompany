@@ -17,7 +17,12 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { buildShopStorefrontProductPath } from "@/lib/shopStorefrontRouting";
-import { isExactWheelForceSkuSearch, isWheelForceWheel, isWheelForceWheelSet, wheelForceSetMoney } from "@/lib/wheelforceFamily";
+import {
+  isExactWheelForceSkuSearch,
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  wheelForceSetMoney,
+} from "@/lib/wheelforceFamily";
 import { prisma } from "@/lib/prisma";
 import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
@@ -97,12 +102,18 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // Basic model search needs the complete product-owned fitment bridge while
   // verified policy migration is partial. Engine/fuel/emissions requests still
   // require one canonical clause, so they cannot combine unrelated evidence.
-  if (hasVehicleIdentity && (
-    firstBrand(params)?.toLowerCase() === "bmc" ||
-    (Boolean(params.get("q")) && !params.get("make") && !params.get("model") &&
-      !params.get("chassis") && !params.get("year") &&
-      !params.get("engine") && !params.get("fuel") && !params.get("opfGpf"))
-  )) {
+  if (
+    hasVehicleIdentity &&
+    (firstBrand(params)?.toLowerCase() === "bmc" ||
+      (Boolean(params.get("q")) &&
+        !params.get("make") &&
+        !params.get("model") &&
+        !params.get("chassis") &&
+        !params.get("year") &&
+        !params.get("engine") &&
+        !params.get("fuel") &&
+        !params.get("opfGpf")))
+  ) {
     vehiclePlan = buildShopCatalogVehicleSearchPlan(params, { readerMode: "legacy" });
   }
   let minPrice = nonNegativeAmount(params.get("minPrice"));
@@ -170,6 +181,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     // constraints already keep auto searches precise. Moto is an actual
     // catalog partition and must remain strict.
     scope: params.get("scope")?.trim().toLowerCase() === "moto" ? "moto" : null,
+    // ...but the Auto tab must not list motorcycle-only products.
+    excludeScope: params.get("scope")?.trim().toLowerCase() === "moto" ? null : "moto",
     brand: firstBrand(params),
     category: clean(params.get("category")),
     ...vehiclePlan.constraints,
@@ -262,10 +275,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const totalItems = stockSummary.totalItems;
   const items = result.items;
   const rawSearch = params.get("q")?.trim();
-  const requestedWheelSku = isExactWheelForceSkuSearch(rawSearch) &&
+  const requestedWheelSku =
+    isExactWheelForceSkuSearch(rawSearch) &&
     items.some((item) => item.brandKey.toLowerCase() === "wheelforce")
-    ? rawSearch
-    : null;
+      ? rawSearch
+      : null;
   const matchingWheelProduct = requestedWheelSku
     ? await prisma.shopProduct.findFirst({
         where: {
@@ -289,9 +303,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const data = items.map((item) => {
     const warehouseProduct = warehouseProductById.get(item.productId);
     const displayBrand = getProductDisplayBrand(item.brandLabel || item.brandKey);
-    const cardPrice = displayBrand.toLowerCase() === "wheelforce" && matchingWheelProduct
-      ? priceByProduct.get(matchingWheelProduct.id)
-      : priceByProduct.get(item.productId);
+    const cardPrice =
+      displayBrand.toLowerCase() === "wheelforce" && matchingWheelProduct
+        ? priceByProduct.get(matchingWheelProduct.id)
+        : priceByProduct.get(item.productId);
     const isWheelSetProduct =
       item.slug.toLowerCase().startsWith("wheelforce-set-") ||
       isWheelForceWheelSet({
@@ -317,7 +332,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
       : null;
     const compareAtSet = unitCompareAtSet
-      ? wheelForceWheel ? wheelForceSetMoney(unitCompareAtSet) : unitCompareAtSet
+      ? wheelForceWheel
+        ? wheelForceSetMoney(unitCompareAtSet)
+        : unitCompareAtSet
       : null;
     const usdRate = settings.currencyRates.USD || 1.152174;
     const uahRate = settings.currencyRates.UAH || 53;
@@ -340,8 +357,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         bmcOfficialMedia
           ? [bmcOfficialMedia.image, ...bmcOfficialMedia.gallery]
           : [cardPrice?.primaryMediaUrl, item.primaryMediaUrl, ...(cardPrice?.imageSources ?? [])]
-          .map((value) => String(value ?? "").trim())
-          .filter(Boolean)
+              .map((value) => String(value ?? "").trim())
+              .filter(Boolean)
       )
     );
     const productHref = buildShopStorefrontProductPath(locale, {
@@ -357,9 +374,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         locale,
       }),
       brand: displayBrand,
-      partNumber: displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
-        ? requestedWheelSku
-        : (item.normalizedSku ?? ""),
+      partNumber:
+        displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
+          ? requestedWheelSku
+          : (item.normalizedSku ?? ""),
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       imageSources,
@@ -398,7 +416,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       basePrice: displayPrice,
       markupPct: pricing?.discountPercent ?? 0,
       slug: item.slug,
-      href: cardWheelSku ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}` : productHref,
+      href: cardWheelSku
+        ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}`
+        : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
       source: "catalog_v2_projection" as const,
     };
@@ -409,13 +429,14 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     const displayBrand = getProductDisplayBrand(label);
     brandCounts.set(displayBrand, (brandCounts.get(displayBrand) ?? 0) + count);
   }
-  const exactWheelPrice = matchingWheelProduct && data.length === 1
-    ? priceCurrency === "EUR"
-      ? data[0].priceEur
-      : priceCurrency === "UAH"
-        ? data[0].priceUah
-        : data[0].priceUsd
-    : null;
+  const exactWheelPrice =
+    matchingWheelProduct && data.length === 1
+      ? priceCurrency === "EUR"
+        ? data[0].priceEur
+        : priceCurrency === "UAH"
+          ? data[0].priceUah
+          : data[0].priceUsd
+      : null;
   const filterStats = {
     brands: [...brandCounts.entries()]
       .map(([label, count]) => ({ label, count }))
@@ -426,9 +447,10 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       inStock: stockSummary.inStock,
       preOrder: stockSummary.preOrder,
     },
-    price: exactWheelPrice && exactWheelPrice > 0
-      ? { min: exactWheelPrice, max: exactWheelPrice, currency: priceCurrency }
-      : (stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency }),
+    price:
+      exactWheelPrice && exactWheelPrice > 0
+        ? { min: exactWheelPrice, max: exactWheelPrice, currency: priceCurrency }
+        : (stockSummary.price ?? { min: 0, max: 0, currency: priceCurrency }),
   };
   const response = NextResponse.json({
     data,

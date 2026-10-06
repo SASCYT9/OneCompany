@@ -60,8 +60,21 @@ test("fitment selectors skip canonical Prisma coverage in local snapshot mode", 
 test("fitment responses are browser-cacheable for repeated mobile filter opens", () => {
   assert.match(
     fitmentRoute,
-    /Cache-Control[\s\S]*public, max-age=30, s-maxage=60, stale-while-revalidate=60/
+    /Cache-Control[\s\S]*public, max-age=60, s-maxage=\$\{SHOP_CATALOG_SELECTOR_CACHE_SECONDS\}, stale-while-revalidate=86400/
   );
+});
+
+test("fitment selector options are shared across requests and invalidated with the storefront", () => {
+  const revalidation = readFileSync("src/lib/shopStorefrontRevalidation.ts", "utf8");
+  const adminReset = readFileSync("src/app/api/admin/revalidate/route.ts", "utf8");
+  assert.match(fitmentRoute, /unstable_cache\(/);
+  // The reader-gated legacy fallback keeps the short shared lifetime.
+  const legacy = fitmentRoute.slice(fitmentRoute.indexOf("await getShopProductsWithFitments()"));
+  assert.doesNotMatch(legacy, /return cachedJson\(/);
+  assert.match(fitmentRoute, /legacyFallbackJson[\s\S]*s-maxage=60, stale-while-revalidate=60/);
+  assert.match(fitmentRoute, /tags: \[SHOP_CATALOG_SELECTOR_CACHE_TAG\]/);
+  assert.match(revalidation, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);
+  assert.match(adminReset, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);
 });
 
 test("initial search remains immediate across React Strict Mode effect replay", () => {

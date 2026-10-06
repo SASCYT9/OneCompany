@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import {
   SHOP_CART_COOKIE,
+  emptyShopCartPayload,
   replaceEntireShopCart,
   resolveShopCart,
   serializeResolvedShopCart,
+  setShopCartCookies,
 } from "@/lib/shopCart";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
@@ -16,25 +18,20 @@ import {
   serializeLocalShopCart,
 } from "@/lib/shopLocalCart";
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
-
-function setCartCookie(response: NextResponse, token: string) {
-  response.cookies.set(SHOP_CART_COOKIE, token, {
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const [session, settingsRecord] = await Promise.all([
+    const [session, settings] = await Promise.all([
       getCurrentShopCustomerSession(),
-      getOrCreateShopSettings(prisma),
+      getPublicShopSettingsRuntime(),
     ]);
-    const settings = getShopSettingsRuntime(settingsRecord);
+    const cartToken = request.cookies.get(SHOP_CART_COOKIE)?.value;
+    if (!isLocalStorefrontMode() && !cartToken && !session?.customerId) {
+      const response = NextResponse.json(
+        emptyShopCartPayload(settings.defaultCurrency, session?.preferredLocale ?? "en")
+      );
+      setShopCartCookies(response, null, 0);
+      return response;
+    }
     const country = request.nextUrl.searchParams.get("country");
     const context = await buildShopViewerPricingContextServer({
       prisma,
@@ -47,24 +44,24 @@ export async function GET(request: NextRequest) {
     });
     if (isLocalStorefrontMode()) {
       const { cart, token } = resolveLocalShopCart({
-        token: request.cookies.get(SHOP_CART_COOKIE)?.value,
+        token: cartToken,
         currency: settings.defaultCurrency,
         locale: session?.preferredLocale ?? "en",
       });
       const payload = await serializeLocalShopCart(cart, context);
       const response = NextResponse.json(payload);
-      setCartCookie(response, token);
+      setShopCartCookies(response, token, payload.totalItems);
       return response;
     }
     const { cart, token } = await resolveShopCart(prisma, {
-      cartToken: request.cookies.get(SHOP_CART_COOKIE)?.value,
+      cartToken,
       customerId: session?.customerId ?? null,
       locale: session?.preferredLocale ?? "en",
       currency: settings.defaultCurrency,
     });
     const payload = await serializeResolvedShopCart(cart, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, token);
+    setShopCartCookies(response, token, payload.totalItems);
     return response;
   } catch (error) {
     console.error("Shop cart get", error);
@@ -90,11 +87,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const [session, settingsRecord] = await Promise.all([
+    const [session, settings] = await Promise.all([
       getCurrentShopCustomerSession(),
-      getOrCreateShopSettings(prisma),
+      getPublicShopSettingsRuntime(),
     ]);
-    const settings = getShopSettingsRuntime(settingsRecord);
     const country =
       String(body.country ?? request.nextUrl.searchParams.get("country") ?? "").trim() || null;
     const context = await buildShopViewerPricingContextServer({
@@ -123,7 +119,7 @@ export async function POST(request: NextRequest) {
       );
       const payload = await serializeLocalShopCart(cart, context);
       const response = NextResponse.json(payload);
-      setCartCookie(response, token);
+      setShopCartCookies(response, token, payload.totalItems);
       return response;
     }
     const { cart, token } = await replaceEntireShopCart(prisma, {
@@ -135,7 +131,7 @@ export async function POST(request: NextRequest) {
     });
     const payload = await serializeResolvedShopCart(cart, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, token);
+    setShopCartCookies(response, token, payload.totalItems);
     return response;
   } catch (error) {
     console.error("Shop cart replace", error);

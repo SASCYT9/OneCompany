@@ -10,8 +10,9 @@ registerTestModuleHooks({
 });
 
 test("available product lookup applies saved manager controls and refreshes after editing", async () => {
-  const { getShopInStockProducts, invalidateShopWarehouseProductsCache } =
-    await import("../../../src/lib/shopWarehouseInventory.server");
+  const { getShopInStockProducts, invalidateShopWarehouseProductsCache } = await import(
+    "../../../src/lib/shopWarehouseInventory.server"
+  );
   const { state } = await import("./fixtures/warehouse-cache-mocks.mjs");
   const metadata = (showInStock: boolean) => [
     {
@@ -37,8 +38,9 @@ test("available product lookup applies saved manager controls and refreshes afte
 });
 
 test("warehouse reads coalesce, refresh after expiry, and recover after rejection", async (t) => {
-  const { getShopInStockProducts, invalidateShopWarehouseProductsCache } =
-    await import("../../../src/lib/shopWarehouseInventory.server");
+  const { getShopInStockProducts, invalidateShopWarehouseProductsCache } = await import(
+    "../../../src/lib/shopWarehouseInventory.server"
+  );
   const { state } = await import("./fixtures/warehouse-cache-mocks.mjs");
   let now = Date.now();
   state.calls.length = 0;

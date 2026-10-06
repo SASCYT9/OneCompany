@@ -69,12 +69,18 @@ test("CSV builder preserves the third do88 option axis and exact variant IDs", (
   const product = result.products[0];
   assert.equal(result.products.length, 1);
   assert.equal(result.variantsCount, 2);
-  assert.deepEqual(product.options.map((option) => option.position), [1, 2, 3]);
+  assert.deepEqual(
+    product.options.map((option) => option.position),
+    [1, 2, 3]
+  );
   assert.deepEqual(product.options[2].values, ["Blue", "Red"]);
-  assert.deepEqual(product.variants.map((variant) => [variant.id, variant.sku, variant.option3Value]), [
-    ["v-blue", "LF-120-B-F-OEM", "Blue"],
-    ["v-red", "LF-120-R-F-OEM", "Red"],
-  ]);
+  assert.deepEqual(
+    product.variants.map((variant) => [variant.id, variant.sku, variant.option3Value]),
+    [
+      ["v-blue", "LF-120-B-F-OEM", "Blue"],
+      ["v-red", "LF-120-R-F-OEM", "Red"],
+    ]
+  );
   assert.notEqual(product.variants[0].title, product.variants[1].title);
 });
 

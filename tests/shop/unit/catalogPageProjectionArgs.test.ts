@@ -10,6 +10,7 @@ const aliases = [
   "@/lib/shopCatalogCardPricing.server",
   "@/lib/shopCustomerSession",
   "@/lib/shopAdminSettings",
+  "@/lib/shopPublicSettings",
   "@/lib/prisma",
   "@/lib/shopPricingContext.server",
   "@/lib/shopWarehouseInventory",

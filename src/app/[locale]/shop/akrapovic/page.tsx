@@ -1,8 +1,7 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
-import { prisma } from "@/lib/prisma";
 import { getAkrapovicProductsServer } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import AkrapovicHomeSignature from "../components/AkrapovicHomeSignature";
 
@@ -35,12 +34,12 @@ export default async function ShopAkrapovicPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const [settingsRecord, akrapovicProducts] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getAkrapovicProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null

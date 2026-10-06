@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { serializePublicShopProduct } from "@/lib/shopPublicProducts";
@@ -9,8 +9,8 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
-    const [settingsRecord, session, product] = await Promise.all([
-      getOrCreateShopSettings(prisma),
+    const [settings, session, product] = await Promise.all([
+      getPublicShopSettingsRuntime(),
       getCurrentShopCustomerSession(),
       getShopProductBySlugServer(slug),
     ]);
@@ -19,7 +19,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    const settings = getShopSettingsRuntime(settingsRecord);
     const country = new URL(request.url).searchParams.get("country");
     const pricingContext = await buildShopViewerPricingContextServer({
       prisma,

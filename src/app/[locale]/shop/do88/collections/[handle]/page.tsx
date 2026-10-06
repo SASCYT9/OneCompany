@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getDo88ProductsServer } from "@/lib/shopCatalogServer";
 import { getProductsForDo88Collection } from "@/lib/do88CollectionMatcher";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { DO88_COLLECTION_CARDS } from "../../../data/do88CollectionsList";
 import Do88CollectionProductGrid from "../../../components/Do88CollectionProductGrid";
@@ -156,12 +155,12 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
   }
 
   const [settingsRecord, products] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getDo88ProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null
