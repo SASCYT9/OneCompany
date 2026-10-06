@@ -44,7 +44,10 @@ export async function runShopStorageRetention(
       complete = true;
       break;
     }
-    deletedCarts += (await prisma.shopCart.deleteMany({ where: { id: { in: ids } } })).count;
+    // Re-apply the predicate: a cart reactivated after selection must survive.
+    deletedCarts += (
+      await prisma.shopCart.deleteMany({ where: { AND: [{ id: { in: ids } }, cartWhere] } })
+    ).count;
     if (ids.length < batchSize) {
       complete = true;
       break;

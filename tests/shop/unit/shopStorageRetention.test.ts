@@ -23,11 +23,12 @@ function fakePrisma(carts: Cart[], expiredBuckets: number) {
         cartWhere = where;
         return remaining.filter(matches).slice(0, take).map(({ id }) => ({ id }));
       },
-      deleteMany: async ({ where }: { where: { id: { in: string[] } } }) => {
-        const ids = new Set(where.id.in);
+      deleteMany: async ({ where }: { where: { AND: [{ id: { in: string[] } }, typeof cartWhere] } }) => {
+        cartWhere = where.AND[1];
+        const ids = new Set(where.AND[0].id.in);
         const before = remaining.length;
         for (let index = remaining.length - 1; index >= 0; index--)
-          if (ids.has(remaining[index].id)) remaining.splice(index, 1);
+          if (ids.has(remaining[index].id) && matches(remaining[index])) remaining.splice(index, 1);
         return { count: before - remaining.length };
       },
     },

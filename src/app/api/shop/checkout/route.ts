@@ -87,6 +87,23 @@ async function monobankCheckoutResponse(
   return { orderNumber: order.orderNumber, viewToken: order.viewToken, redirectUrl };
 }
 
+async function withCurrentCustomerPricingState(
+  session: Awaited<ReturnType<typeof getCurrentShopCustomerSession>>
+) {
+  if (!session?.customerId) return session;
+  const customer = await prisma.shopCustomer.findUnique({
+    where: { id: session.customerId },
+    select: { group: true, b2bDiscountPercent: true, isActive: true },
+  });
+  if (!customer?.isActive) return null;
+  return {
+    ...session,
+    group: customer.group,
+    b2bDiscountPercent:
+      customer.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null,
+  };
+}
+
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
   try {
@@ -99,7 +116,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid checkout" }, { status: 400 });
   }
 
-  const session = await getCurrentShopCustomerSession();
+  // Session tokens refresh customer state every few minutes; price the order from
+  // the current record so a revoked B2B group or discount cannot be used here.
+  const session = await withCurrentCustomerPricingState(await getCurrentShopCustomerSession());
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
   let monoKeyHash: string | undefined;
   let monoRequestHash: string | undefined;
