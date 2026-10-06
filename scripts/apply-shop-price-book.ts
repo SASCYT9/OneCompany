@@ -1,10 +1,9 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync } from "node:fs";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { parse } from "dotenv";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { coordinateShopCatalogProductMutationInTransaction } from "../src/lib/shopCatalogMutationCoordinator.server";
-import { buildShopCatalogAdminSnapshot } from "../src/lib/shopCatalogAdminSnapshot.server";
+import { coordinateShopCatalogPriceBatchInTransaction, SHOP_PRICE_BATCH_FIELDS } from "../src/lib/shopCatalogPriceBatch.server";
 import { shopPriceSourceReadiness } from "../src/lib/shopPriceSourceReadiness.server";
 import { retrySerializablePriceBatch } from "../src/lib/shopPriceBookBatchRetry";
 
@@ -55,6 +54,9 @@ if (plan.exceptions.length) throw new Error("Unresolved source prices: no apply"
 const batchSize = Number(arg("batch-size") ?? 10);
 if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 10)
   throw new Error("Batch size must be 1..10");
+const maxBatches = arg("max-batches") ? Number(arg("max-batches")) : null;
+if (maxBatches != null && (!Number.isSafeInteger(maxBatches) || maxBatches < 1))
+  throw new Error("max-batches must be a positive integer");
 const checkpointPath = resolve(
   directory,
   local ? "local-apply-receipt.json" : "production-apply-receipt.json"
@@ -68,7 +70,7 @@ const receipt = {
   applied: [] as Array<{ id: string; version: string; outboxId: string }>,
   completedAt: null as string | null,
 };
-if (mode === "APPLY" && process.argv.includes("--resume")) {
+if (process.argv.includes("--resume")) {
   const previous = JSON.parse(readFileSync(checkpointPath, "utf8"));
   if (previous.identityHash !== identityHash || previous.planHash !== planHash)
     throw new Error("Resume receipt differs from target or plan");
@@ -140,7 +142,7 @@ async function main() {
       .filter((row) => !done.has(row.product.id));
     const rows = await db.shopProduct.findMany({
       where: { id: { in: entries.map((e) => e.product.id) } },
-      include: { variants: true },
+      select: { id: true, sku: true, catalogVersion: true, ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map(field=>[field,true])), variants: { select: { id: true, sku: true, ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map(field=>[field,true])) } } },
     });
     for (const entry of entries) {
       const current = rows.find((r) => r.id === entry.product.id);
@@ -162,58 +164,24 @@ async function main() {
   if (mode === "DRY_RUN") return;
   const remaining = plan.changes.filter((row) => !done.has(row.product.id));
   for (let offset = 0; offset < remaining.length; offset += batchSize) {
+    if (maxBatches != null && offset / batchSize >= maxBatches) {
+      console.log(JSON.stringify({ boundedRunComplete: true, applied: receipt.applied.length, total: plan.changes.length }));
+      return;
+    }
     const batch = remaining.slice(offset, offset + batchSize);
+    const batchStartedAt = Date.now();
     const results = await retrySerializablePriceBatch(() => db.$transaction(
-      async (tx) => {
-        // A disconnected TCP proxy must not leave a transaction holding locks.
-        await tx.$executeRawUnsafe("SET LOCAL idle_in_transaction_session_timeout = '15s'");
-        const completed = [];
-        for (const entry of batch) {
-          await tx.$queryRaw`SELECT id FROM "ShopProduct" WHERE id=${entry.product.id} FOR UPDATE`;
-          const current = await tx.shopProduct.findUniqueOrThrow({
-            where: { id: entry.product.id },
-            include: { variants: true },
-          });
-          check(current, entry);
-          const publication = await coordinateShopCatalogProductMutationInTransaction(tx, {
-            productId: entry.product.id,
-            expectedCatalogVersion: entry.catalogVersion,
-            changeDomains: ["PRICE"],
-            mutateAndSnapshot: async (client, nextVersion) => {
-              await client.shopProduct.update({
-                where: { id: entry.product.id },
-                data: entry.product.after as Prisma.ShopProductUncheckedUpdateInput,
-              });
-              for (const variant of entry.variants)
-                if (Object.keys(variant.after).length)
-                  await client.shopProductVariant.update({
-                    where: { id: variant.id },
-                    data: variant.after as Prisma.ShopProductVariantUncheckedUpdateInput,
-                  });
-              return buildShopCatalogAdminSnapshot(client, entry.product.id, nextVersion, {
-                type: "system",
-                id: "price-book-source-initialization",
-                reason:
-                  "Owner-confirmed source currencies; +1 UAH to USD and EUR; sale cross derived from both buffered rates",
-              });
-            },
-          });
-          completed.push({
-            id: entry.product.id,
-            version: publication.canonicalVersion,
-            outboxId: publication.outboxId,
-          });
-        }
-        return completed;
-      },
-      {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        timeout: 120000,
-        maxWait: 10000,
-      }
-    ), (attempt) => console.log(JSON.stringify({ retryingPriceBatch: offset, attempt, reason: "P2034" })));
+      tx => coordinateShopCatalogPriceBatchInTransaction(tx, batch, {
+        type: 'system', id: 'price-book-source-initialization',
+        reason: 'Owner-confirmed source currencies; +1 UAH to USD and EUR; sale cross derived from both buffered rates',
+      }),
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 120000, maxWait: 10000 }
+    ), attempt => console.log(JSON.stringify({ retryingPriceBatch: offset, attempt, reason: 'P2034' })));
     receipt.applied.push(...results);
-    writeFileSync(checkpointPath, JSON.stringify(receipt, null, 2));
+    writeFileSync(checkpointPath + ".next", JSON.stringify(receipt, null, 2));
+    renameSync(checkpointPath + ".next", checkpointPath);
+    if (maxBatches != null)
+      console.log(JSON.stringify({ batchProducts: batch.length, batchDurationMs: Date.now() - batchStartedAt }));
     if (receipt.applied.length % 100 === 0 || receipt.applied.length === plan.changes.length)
       console.log(JSON.stringify({ applied: receipt.applied.length, total: plan.changes.length }));
   }

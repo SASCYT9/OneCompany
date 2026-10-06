@@ -5,6 +5,21 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { retrySerializablePriceBatch } from "../../../src/lib/shopPriceBookBatchRetry";
 
 const url = process.env.MONOBANK_TEST_DATABASE_URL;
+test("raw SQL retries only rolled-back serialization and deadlock SQLSTATEs", async () => {
+  for (const code of ["40001", "40P01"]) {
+    let attempts = 0;
+    assert.equal(await retrySerializablePriceBatch(async () => {
+      if (++attempts === 1) throw { code: "P2010", meta: { code } };
+      return "ok";
+    }), "ok");
+    assert.equal(attempts, 2);
+  }
+  for (const error of [{ code: "P2010", meta: { code: "23505" } }, { code: "P1017" }]) {
+    let attempts = 0;
+    await assert.rejects(retrySerializablePriceBatch(async () => { attempts++; throw error; }));
+    assert.equal(attempts, 1);
+  }
+});
 test("concurrent price writes recover from real Serializable conflicts without double applying", { skip: !url }, async () => {
   const target = new URL(url!);
   assert.ok(["localhost", "127.0.0.1"].includes(target.hostname) && target.pathname.startsWith("/monobank_test"));
