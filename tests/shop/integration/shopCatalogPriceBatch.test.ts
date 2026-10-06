@@ -88,7 +88,11 @@ test("price batch preserves complete canonical state, rolls back stale input, an
     const worker = "synthetic-ten-price-publication";
     const claimed = await claimShopCatalogOutbox({ workerId: worker, outboxIds: jobs.map(job => job.id), limit: 10 });
     await db.shopCatalogProjection.deleteMany({ where: { productId: ids[0], locale: "en" } });
-    const published = await publishShopCatalogPriceBatch(claimed, worker);
+    const parallel = await Promise.all([
+      publishShopCatalogPriceBatch(claimed.slice(0, 5), worker),
+      publishShopCatalogPriceBatch(claimed.slice(5), worker),
+    ]);
+    const published = parallel.flatMap(batch => batch ?? []);
     assert.equal(published?.length, 9);
     assert.ok(published?.every(row => row.status === "COMPLETED"));
     const fallback = claimed.find(job => job.productId === ids[0])!;

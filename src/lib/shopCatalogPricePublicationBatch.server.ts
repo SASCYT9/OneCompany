@@ -73,7 +73,8 @@ export async function publishShopCatalogPriceBatch(
           ? Number(actual[field]) !== Number(value) : actual[field] !== value);
       })) continue;
       advances.push({ productId: incoming.productId, previousVersion: previousVersion.toString(), nextVersion: incoming.projectionVersion });
-      rows.push(...plan.projectionRows);
+      rows.push(...plan.projectionRows.map(row => ({ ...row, previousVersion,
+        previousContentHash: current.find(saved => saved.locale === row.locale)!.contentHash })));
     }
     if (!advances.length) return null;
     const completionJobs = jobs.filter(job => advances.some(row => row.productId === job.productId));
@@ -97,8 +98,10 @@ export async function publishShopCatalogPriceBatch(
         "compatibilityHash"=i."compatibilityHash","contentHash"=i."contentHash","updatedAt"=NOW()
       FROM jsonb_to_recordset(${projectionRows}::jsonb) i("productId" text,locale text,"sourceVersion" bigint,
         "catalogVersion" bigint,"projectionVersion" bigint,"sourceUpdatedAt" timestamp,"sourceContentHash" text,
-        "canonicalRelationHash" text,"compatibilityHash" text,"contentHash" text)
+        "canonicalRelationHash" text,"compatibilityHash" text,"contentHash" text,
+        "previousVersion" bigint,"previousContentHash" text)
       WHERE p."productId"=i."productId" AND p.locale=i.locale
+        AND p."projectionVersion"=i."previousVersion" AND p."contentHash"=i."previousContentHash"
     `);
     if (updatedProjections !== rows.length) throw new Error("Price projection batch incomplete");
     // Identifiers are a closed internal list, never job or request input. FK updates cascade.
@@ -127,5 +130,8 @@ export async function publishShopCatalogPriceBatch(
       data: { status: "COMPLETED", processedAt: new Date(), lockedBy: null, lockedAt: null, leaseExpiresAt: null, lastError: null } });
     if (completed.count !== completionJobs.length) throw new Error("Price publication batch lease expired");
     return completionJobs.map(job => ({ jobId: job.id, status: "COMPLETED" as const, targets: ["PRICE"] as const, error: null }));
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000, maxWait: 10_000 }));
+  // Sorted product row locks stabilize canonical state; projection version/hash
+  // CAS and the final lease check roll back concurrent publication conflicts.
+  // ReadCommitted avoids unrelated predicate conflicts between disjoint products.
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000, maxWait: 10_000 }));
 }
