@@ -85,8 +85,7 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     engine: null,
     fuel: null,
     opfGpf: null,
-    // The G-Class family is the catalog constraint; the typed G63 identity is
-    // kept as an alternate so model-specific fitment rows still qualify.
+    // G63 narrows the broad G-Class constraint for free-text matching (#124).
     modelAlternates: ["G63"],
   });
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("BMW M3 G80 Eventuri"), {
