@@ -163,3 +163,30 @@ test("Fi BMW model and chassis combinations retain every product word", () => {
   assert.equal(matchesShopSearchQuery("Fi exhaust BMW M4 G82", "fi m3"), false);
   assert.equal(matchesShopSearchQuery("Fi exhaust BMW M340i G20", "fi m3"), false);
 });
+
+test("Ukrainian and Russian brake, pad and spring words match both catalog languages", () => {
+  for (const [text, query] of [
+    ["GiroDisc Brake Kit Porsche 911", "гальма porsche 911"],
+    ["Комплект гальмівних дисків GiroDisc", "brakes girodisc"],
+    ["GIRODISC Тормозные колодки GP20 Racing", "гальмівні колодки girodisc"],
+    ["KW HAS lowering springs BMW M3", "пружини bmw m3"],
+    ["Регульовані пружини KW HAS", "kw springs"],
+    // Masculine forms contain "й", which normalization turns into "и".
+    ["GiroDisc front brake kit", "гальмівний girodisc"],
+    ["Передній гальмівний диск GiroDisc", "тормозной диск girodisc"],
+  ])
+    assert.equal(matchesShopSearchQuery(buildShopSearchText([text]), query), true, query);
+  // Pads are narrower than brakes: a disc kit is not a pad match.
+  assert.equal(
+    matchesShopSearchQuery(buildShopSearchText(["Комплект гальмівних дисків"]), "колодки"),
+    false
+  );
+  // "диски" stays ambiguous (wheels vs brake discs) and is not mapped.
+  assert.equal(matchesShopSearchQuery("alloy wheels", "гальмівні диски"), false);
+});
+
+test("common Cyrillic model names canonicalize to catalog spellings", () => {
+  assert.equal(canonicalizeShopSearchQuery("гольф 8 R"), "golf 8 r");
+  assert.equal(canonicalizeShopSearchQuery("порше кайєн"), "porsche cayenne");
+  assert.equal(canonicalizeShopSearchQuery("тойота супра"), "toyota supra");
+});

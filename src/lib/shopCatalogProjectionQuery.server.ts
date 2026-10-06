@@ -18,7 +18,11 @@ import {
   vehicleMakeAliases,
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
-import { normalizeShopSearchText, tokenizeShopSearchQuery } from "./shopSearch";
+import {
+  isShopSearchBrandToken,
+  normalizeShopSearchText,
+  tokenizeShopSearchQuery,
+} from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 import { isExactWheelForceSkuSearch } from "./wheelforceFamily";
@@ -36,6 +40,12 @@ export type ShopCatalogProjectionQueryInput = {
   after?: { stableRank: string; productId: string } | null;
   text?: string | null;
   scope?: string | null;
+  /**
+   * Partition to leave out when no strict scope is requested. The storefront
+   * "Auto" tab is unpartitioned (many automotive rows carry no explicit auto
+   * scope) but must not list motorcycle-only products.
+   */
+  excludeScope?: string | null;
   brand?: string | null;
   category?: string | null;
   make?: string | null;
@@ -270,6 +280,14 @@ export function normalizeShopCatalogProjectionQuery(
     after: input.after ?? null,
     text: optionalBounded(input.text, "text", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.text),
     scope: optionalBounded(input.scope, "scope", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
+    // A strict scope already selects exactly one partition.
+    excludeScope: input.scope
+      ? null
+      : optionalBounded(
+          input.excludeScope,
+          "excludeScope",
+          SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
+        ),
     brand: optionalBounded(input.brand, "brand", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     category: optionalBounded(
       input.category,
@@ -386,7 +404,11 @@ function textConstraint(
   modelAlternates?: readonly string[] | null
 ): Prisma.ShopCatalogProjectionConstraintWhereInput {
   const modelValues = make
-    ? [...new Set([value, ...(modelAlternates ?? [])].flatMap((model) => vehicleModelAliases(make, model)))]
+    ? [
+        ...new Set(
+          [value, ...(modelAlternates ?? [])].flatMap((model) => vehicleModelAliases(make, model))
+        ),
+      ]
     : [value];
   return {
     dimension,
@@ -482,7 +504,21 @@ function projectionSearchConditionSql(text: string) {
  * intentionally broad for recall, while title/brand/SKU weights keep buyer
  * intent ahead of incidental mentions in descriptions and fitment metadata.
  */
+/**
+ * Identity fields must outweigh incidental mentions. `searchText` also carries
+ * fitment lists and descriptions (for example "kW" power figures), so its
+ * full-text rank is a tie-breaker, not a signal that can outrank a product
+ * whose own title or brand matches the query.
+ */
+export const SHOP_CATALOG_SEARCH_RELEVANCE_WEIGHTS = Object.freeze({
+  titleToken: 120,
+  brandToken: 35,
+  namedBrandToken: 400,
+  searchTextRank: 100,
+});
+
 function projectionSearchRelevanceSql(text: string) {
+  const weights = SHOP_CATALOG_SEARCH_RELEVANCE_WEIGHTS;
   const normalized = normalizeShopSearchText(text);
   const compact = compactSearchCode(text);
   const tokens = tokenizeShopSearchQuery(text);
@@ -490,7 +526,7 @@ function projectionSearchRelevanceSql(text: string) {
     ? Prisma.sql`(${Prisma.join(
         tokens.map(
           (token) =>
-            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(projection."title")`, token)} THEN 60 ELSE 0 END`
+            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(projection."title")`, token)} THEN ${Prisma.raw(String(weights.titleToken))} ELSE 0 END`
         ),
         " + "
       )})`
@@ -499,7 +535,7 @@ function projectionSearchRelevanceSql(text: string) {
     ? Prisma.sql`(${Prisma.join(
         tokens.map(
           (token) =>
-            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(coalesce(projection."brandLabel", projection."brandKey"))`, token)} THEN 35 ELSE 0 END`
+            Prisma.sql`CASE WHEN ${shopSearchTokenConditionSql(Prisma.sql`lower(coalesce(projection."brandLabel", projection."brandKey"))`, token)} THEN ${Prisma.raw(String(isShopSearchBrandToken(token) ? weights.namedBrandToken : weights.brandToken))} ELSE 0 END`
         ),
         " + "
       )})`
@@ -530,7 +566,7 @@ function projectionSearchRelevanceSql(text: string) {
         to_tsvector('simple', projection."searchText"),
         plainto_tsquery('simple', ${normalized}),
         32
-      ) * 1000
+      ) * ${Prisma.raw(String(weights.searchTextRank))}
     + similarity(lower(projection."title"), lower(${normalized})) * 100
   )`;
 }
@@ -627,6 +663,9 @@ function projectionFacetBaseConditions(
   if (input.minPrice != null) conditions.push(Prisma.sql`${price} >= ${input.minPrice}`);
   if (input.maxPrice != null) conditions.push(Prisma.sql`${price} <= ${input.maxPrice}`);
   if (input.scope) conditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  if (input.excludeScope) {
+    conditions.push(Prisma.sql`projection."scopeKey" <> ${input.excludeScope}`);
+  }
   if (includeBrand && input.brand) {
     conditions.push(projectionBrandConditionSql(input.brand));
   }
@@ -872,7 +911,26 @@ export function buildShopCatalogProjectionFacetQuerySql(
            ORDER BY "count" DESC, "label" ASC
            LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
         })()
-      : Prisma.sql`
+      : input.excludeScope
+        ? // Unpartitioned counters minus the excluded partition: still one
+          // indexed read of the maintained counters, no projection scan.
+          Prisma.sql`
+        (SELECT
+           'brand'::text AS "dimension",
+           facet."valueKey" AS "key",
+           min(facet."valueLabel") AS "label",
+           sum(CASE WHEN facet."prefixKey" = '' THEN facet."productCount" ELSE -facet."productCount" END)::bigint AS "count",
+           NULL::integer AS "yearFrom",
+           NULL::integer AS "yearTo"
+         FROM "ShopCatalogProjectionFacetCount" facet
+         WHERE facet."locale" = ${input.locale}
+           AND facet."dimension" = 'BRAND'
+           AND facet."prefixKey" IN ('', ${`scope:${input.excludeScope}`})
+         GROUP BY facet."valueKey"
+         HAVING sum(CASE WHEN facet."prefixKey" = '' THEN facet."productCount" ELSE -facet."productCount" END) > 0
+         ORDER BY "count" DESC, "label" ASC
+         LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
+        : Prisma.sql`
         (SELECT
            'brand'::text AS "dimension",
            facet."valueKey" AS "key",
@@ -910,13 +968,13 @@ export function buildShopCatalogProjectionFacetQuerySql(
   // scanning every policy just to show the initial make dropdown.
   const liveMakeCounts = Boolean(
     input.text ||
-    input.opfGpf ||
-    input.productIds ||
-    input.excludeProductIds?.length ||
-    input.category ||
-    input.minPrice != null ||
-    input.maxPrice != null ||
-    isUrbanProductBrand(input.brand ?? "")
+      input.opfGpf ||
+      input.productIds ||
+      input.excludeProductIds?.length ||
+      input.category ||
+      input.minPrice != null ||
+      input.maxPrice != null ||
+      isUrbanProductBrand(input.brand ?? "")
   );
   if (!input.brand && !liveMakeCounts) {
     branches.push(Prisma.sql`
@@ -925,7 +983,8 @@ export function buildShopCatalogProjectionFacetQuerySql(
          NULL::integer AS "yearFrom", NULL::integer AS "yearTo"
        FROM "ShopCatalogProjectionFacetCount" facet
        WHERE facet."locale" = ${input.locale} AND facet."dimension" = 'MAKE'
-         AND facet."prefixKey" LIKE ${input.scope ? `scope:${escapeLike(input.scope)}|brand:%` : "brand:%"} ESCAPE '\\'
+         AND facet."prefixKey" LIKE ${input.scope ? `scope:${escapeLike(input.scope)}|brand:%` : input.excludeScope ? "scope:%|brand:%" : "brand:%"} ESCAPE '\\'
+         ${input.excludeScope ? Prisma.sql`AND facet."prefixKey" NOT LIKE ${`scope:${escapeLike(input.excludeScope)}|%`} ESCAPE '\\'` : Prisma.empty}
          AND facet."productCount" > 0
        GROUP BY facet."valueKey"
        ORDER BY "count" DESC, "label" ASC
@@ -936,17 +995,21 @@ export function buildShopCatalogProjectionFacetQuerySql(
         ? vehicleFacetBranch(input, "make", source)
         : Prisma.sql`
       (SELECT 'make'::text AS "dimension", facet."valueKey" AS "key",
-         facet."valueLabel" AS "label", facet."productCount"::bigint AS "count",
+         min(facet."valueLabel") AS "label", sum(facet."productCount")::bigint AS "count",
          NULL::integer AS "yearFrom", NULL::integer AS "yearTo"
        FROM "ShopCatalogProjectionFacetCount" facet
        WHERE facet."locale" = ${input.locale} AND facet."dimension" = 'MAKE'
-         AND facet."prefixKey" = ${
+         AND ${
            input.scope
-             ? `scope:${input.scope}|brand:${input.brand!.toLowerCase()}`
-             : `brand:${input.brand!.toLowerCase()}`
+             ? Prisma.sql`facet."prefixKey" = ${`scope:${input.scope}|brand:${input.brand!.toLowerCase()}`}`
+             : input.excludeScope
+               ? Prisma.sql`facet."prefixKey" LIKE ${`scope:%|brand:${escapeLike(input.brand!.toLowerCase())}`} ESCAPE '\\'
+                   AND facet."prefixKey" NOT LIKE ${`scope:${escapeLike(input.excludeScope)}|%`} ESCAPE '\\'`
+               : Prisma.sql`facet."prefixKey" = ${`brand:${input.brand!.toLowerCase()}`}`
          }
          AND facet."productCount" > 0
-       ORDER BY facet."productCount" DESC, facet."valueLabel" ASC
+       GROUP BY facet."valueKey"
+       ORDER BY "count" DESC, "label" ASC
        LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`
     );
   }
@@ -1083,11 +1146,11 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     return null;
   const reuseEffectivePrice = Boolean(
     input.effectivePriceContext &&
-    (input.minPrice != null ||
-      input.maxPrice != null ||
-      input.order === "price_asc" ||
-      input.order === "price_desc" ||
-      input.order === "brand_interleave")
+      (input.minPrice != null ||
+        input.maxPrice != null ||
+        input.order === "price_asc" ||
+        input.order === "price_desc" ||
+        input.order === "brand_interleave")
   );
   const price = reuseEffectivePrice ? Prisma.sql`ordered_price.amount` : projectionPriceSql(input);
   // Keep one canonical/default-variant lookup per candidate even when both
@@ -1227,9 +1290,15 @@ export function buildShopCatalogProjectionWhere(
   return {
     locale: input.locale,
     isPublished: true,
-    statusKey: isExactWheelForceSkuSearch(input.text) ? { in: ["ACTIVE", "FAMILY_CHILD"] } : "ACTIVE",
+    statusKey: isExactWheelForceSkuSearch(input.text)
+      ? { in: ["ACTIVE", "FAMILY_CHILD"] }
+      : "ACTIVE",
     ...(input.productIds ? { productId: { in: [...input.productIds] } } : {}),
-    ...(input.scope ? { scopeKey: input.scope } : {}),
+    ...(input.scope
+      ? { scopeKey: input.scope }
+      : input.excludeScope
+        ? { scopeKey: { not: input.excludeScope } }
+        : {}),
     ...(and.length ? { AND: and } : {}),
     ...(constraints.length
       ? {

@@ -75,10 +75,8 @@ test("projection suggestions canonicalize brand and model spelling combinations"
 });
 
 test("structured vehicle suggestions reuse specific verified fitment constraints", async () => {
-  const {
-    getShopCatalogSuggestionTextQuery,
-    getShopCatalogSuggestionVehicleConstraints,
-  } = await suggestionModule;
+  const { getShopCatalogSuggestionTextQuery, getShopCatalogSuggestionVehicleConstraints } =
+    await suggestionModule;
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("AMG G63 W465"), {
     make: "Mercedes-Benz",
     model: "G-Class",
@@ -167,6 +165,62 @@ test("vehicle suggestions accept reordered normalized query tokens", async () =>
     suggestions.map((item) => item.label),
     ["BMW M5"]
   );
+});
+
+test("Cyrillic-only queries never turn the empty compact SKU into a catch-all match", async () => {
+  const {
+    buildShopCatalogSuggestionLexicalSql,
+    buildShopCatalogSuggestionSkuRankSql,
+    normalizeShopCatalogSuggestionInput,
+  } = await suggestionModule;
+  // Production returned the same six SKU-less products for queries such as
+  // `гальм`, `пружини` or `щось` because `coalesce(normalizedSku, '') = ''`
+  // matched them all. (Brake/spring words now also canonicalize to Latin
+  // catalog terms, so test words that stay Cyrillic.)
+  for (const query of ["щось", "шумоізоляція", "дзеркала", "обвіс"]) {
+    const input = normalizeShopCatalogSuggestionInput({ locale: "ua", query });
+    const lexical = buildShopCatalogSuggestionLexicalSql(
+      input.normalizedQuery,
+      input.normalizedSku
+    );
+    assert.doesNotMatch(lexical.sql, /normalizedSku/, query);
+    assert.ok(!lexical.values.includes(""), query);
+    assert.ok(
+      lexical.values.some((value) => typeof value === "string" && value.length > 2),
+      query
+    );
+    assert.equal(buildShopCatalogSuggestionSkuRankSql(input.normalizedSku).sql, "", query);
+  }
+  const mixed = normalizeShopCatalogSuggestionInput({ locale: "ua", query: "бмв м3" });
+  assert.equal(buildShopCatalogSuggestionSkuRankSql(mixed.normalizedSku).sql, "");
+});
+
+test("part numbers keep exact SKU matching and ranking in suggestions", async () => {
+  const {
+    buildShopCatalogSuggestionLexicalSql,
+    buildShopCatalogSuggestionSkuRankSql,
+    normalizeShopCatalogSuggestionInput,
+    usableShopCatalogSuggestionSku,
+  } = await suggestionModule;
+  for (const [query, sku] of [
+    ["S-BM/T/38", "sbmt38"],
+    ["85600", "85600"],
+    ["BMS 6W00", "bms6w00"],
+  ]) {
+    const input = normalizeShopCatalogSuggestionInput({ locale: "ua", query });
+    const lexical = buildShopCatalogSuggestionLexicalSql(
+      input.normalizedQuery,
+      input.normalizedSku
+    );
+    assert.match(lexical.sql, /lower\(coalesce\(projection\."normalizedSku", ''\)\) IN \(/, query);
+    assert.ok(lexical.values.includes(sku), query);
+    const rank = buildShopCatalogSuggestionSkuRankSql(input.normalizedSku);
+    assert.match(rank.sql, /THEN 0/, query);
+    assert.deepEqual(rank.values, [sku], query);
+  }
+  assert.equal(usableShopCatalogSuggestionSku(""), null);
+  assert.equal(usableShopCatalogSuggestionSku("3"), null);
+  assert.equal(usableShopCatalogSuggestionSku("s58"), "s58");
 });
 
 test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached", () => {
