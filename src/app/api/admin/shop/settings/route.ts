@@ -8,11 +8,14 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import {
   getOrCreateShopSettings,
   normalizeShopSettingsPayload,
+  normalizeShopCurrencyRates,
   serializeShopSettings,
 } from "@/lib/shopAdminSettings";
 import { prisma } from "@/lib/prisma";
 import { coordinateShopCatalogGlobalMutationWithClient } from "@/lib/shopCatalogGlobalMutationCoordinator.server";
 import { runShopCatalogOutboxRuntime } from "@/lib/shopCatalogOutboxRuntime.server";
+import { assertShopPriceSourcesReady } from "@/lib/shopPriceSourceReadiness.server";
+import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
 
 export async function GET() {
   try {
@@ -55,6 +58,37 @@ export async function PATCH(request: NextRequest) {
         },
       ],
       mutate: async (tx) => {
+        const previousSettings = await tx.shopSettings.findUnique({ where: { key: "shop" } });
+        const previousRates = normalizeShopCurrencyRates(previousSettings?.currencyRates);
+        let currencyRatesToSave = payload.currencyRates as Prisma.InputJsonValue;
+        if (previousRates._uahReserve !== 1 && payload.currencyRates._uahReserve === 1)
+          throw new Error("NBU_ACTIVATION_REQUIRED");
+        if (isShopSourcePriceBook(previousRates)) {
+          const incomingRates = normalizeShopCurrencyRates(payload.currencyRates);
+          const manualChange = (["EUR", "USD", "UAH"] as const).some(
+            (key) => incomingRates[key] !== previousRates[key]
+          );
+          if (previousRates._uahReserve === 1 && manualChange)
+            throw new Error("MANAGED_NBU_RATE_EDIT_BLOCKED");
+          payload.currencyRates = {
+            ...payload.currencyRates,
+            _uahReserve: previousRates._uahReserve!,
+            ...(previousRates._manualCross === 1 ? { _manualCross: 1 } : {}),
+            _rawUsdToUah:
+              previousRates._manualCross === 1
+                ? (incomingRates._rawUsdToUah ??
+                  previousRates._rawUsdToUah ??
+                  incomingRates.UAH / incomingRates.USD)
+                : manualChange
+                  ? incomingRates.UAH / incomingRates.USD
+                  : (previousRates._rawUsdToUah ?? incomingRates.UAH / incomingRates.USD),
+          };
+          currencyRatesToSave = {
+            ...(previousSettings?.currencyRates as Prisma.InputJsonObject),
+            ...payload.currencyRates,
+          };
+        }
+        if (isShopSourcePriceBook(payload.currencyRates)) await assertShopPriceSourcesReady(tx);
         const settings = await tx.shopSettings.upsert({
           where: { key: "shop" },
           create: {
@@ -63,7 +97,7 @@ export async function PATCH(request: NextRequest) {
             defaultB2bDiscountPercent: payload.defaultB2bDiscountPercent,
             defaultCurrency: payload.defaultCurrency,
             enabledCurrencies: payload.enabledCurrencies,
-            currencyRates: payload.currencyRates as Prisma.InputJsonValue,
+            currencyRates: currencyRatesToSave,
             shippingZones: payload.shippingZones as Prisma.InputJsonValue,
             taxRegions: payload.taxRegions as Prisma.InputJsonValue,
             regionalPricingRules: payload.regionalPricingRules as Prisma.InputJsonValue,
@@ -83,7 +117,7 @@ export async function PATCH(request: NextRequest) {
             defaultB2bDiscountPercent: payload.defaultB2bDiscountPercent,
             defaultCurrency: payload.defaultCurrency,
             enabledCurrencies: payload.enabledCurrencies,
-            currencyRates: payload.currencyRates as Prisma.InputJsonValue,
+            currencyRates: currencyRatesToSave,
             shippingZones: payload.shippingZones as Prisma.InputJsonValue,
             taxRegions: payload.taxRegions as Prisma.InputJsonValue,
             regionalPricingRules: payload.regionalPricingRules as Prisma.InputJsonValue,
@@ -142,6 +176,24 @@ export async function PATCH(request: NextRequest) {
       catalogPublication: mutation.publications,
     });
   } catch (error) {
+    if ((error as Error).message === "NBU_ACTIVATION_REQUIRED")
+      return NextResponse.json(
+        { error: "Активуйте правило курсів через кнопку НБУ після перевірки джерел цін." },
+        { status: 409 }
+      );
+    if ((error as Error).message.startsWith("SHOP_PRICE_SOURCE_REQUIRED"))
+      return NextResponse.json(
+        {
+          error: "Потрібні підтверджені вихідні валюти всіх цін.",
+          code: "SHOP_PRICE_SOURCE_REQUIRED",
+        },
+        { status: 409 }
+      );
+    if ((error as Error).message === "MANAGED_NBU_RATE_EDIT_BLOCKED")
+      return NextResponse.json(
+        { error: "У режимі НБУ оновлюйте курси кнопкою НБУ, щоб зберегти кроскурс." },
+        { status: 409 }
+      );
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

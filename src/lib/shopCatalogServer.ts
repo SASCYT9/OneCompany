@@ -3,6 +3,7 @@
  * Use for [slug] page and sitemap. When DATABASE_URL is set and migration applied,
  * products from admin appear; otherwise only static catalog is used.
  */
+import { tagShopProductMoneySources, withShopPriceSource, shopDbPriceSource } from "./shopPriceBookCurrency";
 
 import fs from "fs";
 import path from "path";
@@ -1273,6 +1274,10 @@ function normalizeShopifyImageUrl(url: string | null | undefined): string {
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
+  return applyShopProductImageOverridesOnly(tagShopProductMoneySources(product));
+}
+
+function applyShopProductImageOverridesOnly(product: ShopProduct): ShopProduct {
   const isBmcProduct =
     String(product.brand ?? "").trim().toUpperCase() === "BMC" ||
     String(product.vendor ?? "").trim().toUpperCase() === "BMC";
@@ -1546,6 +1551,7 @@ function resolveCatalogAssetUrl(input: string | null | undefined, fallbackSrc?: 
 
 function moneySet(input: Partial<ShopMoneySet> | null | undefined): ShopMoneySet {
   return {
+    ...(input?.sourceCurrency ? { sourceCurrency: input.sourceCurrency } : {}),
     eur: Number(input?.eur ?? 0) || 0,
     usd: Number(input?.usd ?? 0) || 0,
     uah: Number(input?.uah ?? 0) || 0,
@@ -1816,12 +1822,12 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const generatedUaDescription =
     generatedAkrapovicUaDescription ?? generatedUrbanUaDescription ?? generatedGenericUaDescription;
   const productB2BPrice = moneySet({
-    eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
+    ...withShopPriceSource({ eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b), usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b), uah: num(row.priceUahB2b ?? primaryVariant?.priceUahB2b) }, shopDbPriceSource(row, primaryVariant, 'b2bPrice')),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
     uah: num(row.priceUahB2b ?? primaryVariant?.priceUahB2b),
   });
   const productB2BCompareAt = moneySet({
-    eur: num(row.compareAtEurB2b ?? primaryVariant?.compareAtEurB2b),
+    ...withShopPriceSource({ eur: num(row.compareAtEurB2b ?? primaryVariant?.compareAtEurB2b), usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b), uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b) }, shopDbPriceSource(row, primaryVariant, 'b2bCompareAt')),
     usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b),
     uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b),
   });
@@ -1914,7 +1920,18 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       en: resolveEnglishCategory(row.categoryEn, row.categoryUa) || row.category?.titleEn || "",
     },
     seoTitle: { ua: row.seoTitleUa ?? "", en: row.seoTitleEn ?? "" },
-    seoDescription: { ua: row.seoDescriptionUa ?? "", en: row.seoDescriptionEn ?? "" },
+    seoDescription: {
+      ua:
+        curatedUrbanDescription?.seoDescription.ua ??
+        safeGpDescription?.seoDescription.ua ??
+        row.seoDescriptionUa ??
+        "",
+      en:
+        curatedUrbanDescription?.seoDescription.en ??
+        safeGpDescription?.seoDescription.en ??
+        row.seoDescriptionEn ??
+        "",
+    },
     shortDescription: {
       ua:
         curatedUrbanDescription?.shortDescription.ua ??
@@ -1958,7 +1975,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     adminMediaOverride: hasShopProductAdminMediaOverride(row.metafields),
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
     price: {
-      eur: num(row.priceEur ?? primaryVariant?.priceEur),
+      ...withShopPriceSource({ eur: num(row.priceEur ?? primaryVariant?.priceEur), usd: num(row.priceUsd ?? primaryVariant?.priceUsd), uah: num(row.priceUah ?? primaryVariant?.priceUah) }, shopDbPriceSource(row, primaryVariant, 'price')),
       usd: num(row.priceUsd ?? primaryVariant?.priceUsd),
       uah: num(row.priceUah ?? primaryVariant?.priceUah),
     },
@@ -1975,7 +1992,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       primaryVariant?.compareAtUsd != null ||
       primaryVariant?.compareAtUah != null
         ? {
-            eur: num(row.compareAtEur ?? primaryVariant?.compareAtEur),
+            ...withShopPriceSource({ eur: num(row.compareAtEur ?? primaryVariant?.compareAtEur), usd: num(row.compareAtUsd ?? primaryVariant?.compareAtUsd), uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah) }, shopDbPriceSource(row, primaryVariant, 'compareAt')),
             usd: num(row.compareAtUsd ?? primaryVariant?.compareAtUsd),
             uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah),
           }
@@ -2027,12 +2044,12 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     wheelForceFamily,
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
-        eur: num(variant.priceEurB2b),
+        ...withShopPriceSource({ eur: num(variant.priceEurB2b), usd: num(variant.priceUsdB2b), uah: num(variant.priceUahB2b) }, variant.b2bPriceSourceCurrency),
         usd: num(variant.priceUsdB2b),
         uah: num(variant.priceUahB2b),
       });
       const variantB2BCompareAt = moneySet({
-        eur: num(variant.compareAtEurB2b),
+        ...withShopPriceSource({ eur: num(variant.compareAtEurB2b), usd: num(variant.compareAtUsdB2b), uah: num(variant.compareAtUahB2b) }, variant.b2bCompareAtSourceCurrency),
         usd: num(variant.compareAtUsdB2b),
         uah: num(variant.compareAtUahB2b),
       });
@@ -2049,7 +2066,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         image: variant.image ? resolveCatalogAssetUrl(variant.image, catalogFallbackImage) : null,
         isDefault: variant.isDefault,
         price: moneySet({
-          eur: num(variant.priceEur),
+          ...withShopPriceSource({ eur: num(variant.priceEur), usd: num(variant.priceUsd), uah: num(variant.priceUah) }, variant.priceSourceCurrency),
           usd: num(variant.priceUsd),
           uah: num(variant.priceUah),
         }),
@@ -2076,7 +2093,7 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
           variant.compareAtUsd != null ||
           variant.compareAtUah != null
             ? moneySet({
-                eur: num(variant.compareAtEur),
+                ...withShopPriceSource({ eur: num(variant.compareAtEur), usd: num(variant.compareAtUsd), uah: num(variant.compareAtUah) }, variant.compareAtSourceCurrency),
                 usd: num(variant.compareAtUsd),
                 uah: num(variant.compareAtUah),
               })
@@ -2559,6 +2576,10 @@ export async function getShopProductsByBrandServer(
             collectionUa: true,
             collectionEn: true,
             stock: true,
+            priceSourceCurrency: true,
+            compareAtSourceCurrency: true,
+            b2bPriceSourceCurrency: true,
+            b2bCompareAtSourceCurrency: true,
             priceEur: true,
             priceEurEurope: true,
             priceUsd: true,
@@ -2608,6 +2629,10 @@ export async function getShopProductsByBrandServer(
                 option2Value: true,
                 option3Value: true,
                 inventoryQty: true,
+                priceSourceCurrency: true,
+                compareAtSourceCurrency: true,
+                b2bPriceSourceCurrency: true,
+                b2bCompareAtSourceCurrency: true,
                 priceEur: true,
                 priceEurEurope: true,
                 priceUsd: true,
@@ -2775,6 +2800,10 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
           collectionUa: true,
           collectionEn: true,
           stock: true,
+          priceSourceCurrency: true,
+          compareAtSourceCurrency: true,
+          b2bPriceSourceCurrency: true,
+          b2bCompareAtSourceCurrency: true,
           priceEur: true,
           priceEurEurope: true,
           priceUsd: true,
@@ -2887,6 +2916,10 @@ export const getRacechipProductBySlugLightServer = cache(
           categoryEn: true,
           stock: true,
           image: true,
+          priceSourceCurrency: true,
+          compareAtSourceCurrency: true,
+          b2bPriceSourceCurrency: true,
+          b2bCompareAtSourceCurrency: true,
           priceEur: true,
           priceEurEurope: true,
           priceUsd: true,
@@ -2910,6 +2943,10 @@ export const getRacechipProductBySlugLightServer = cache(
               inventoryQty: true,
               image: true,
               isDefault: true,
+              priceSourceCurrency: true,
+              compareAtSourceCurrency: true,
+              b2bPriceSourceCurrency: true,
+              b2bCompareAtSourceCurrency: true,
               priceEur: true,
               priceEurEurope: true,
               priceUsd: true,
@@ -2948,15 +2985,11 @@ export const getRacechipProductBySlugLightServer = cache(
         inventoryQty: variant.inventoryQty,
         image: variant.image ?? null,
         isDefault: variant.isDefault,
-        price: money(variant.priceEur, variant.priceUsd, variant.priceUah),
+        price: withShopPriceSource(money(variant.priceEur, variant.priceUsd, variant.priceUah), variant.priceSourceCurrency),
         europePrice: money(variant.priceEurEurope, null, null),
-        b2bPrice: money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b),
-        compareAt: money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah),
-        b2bCompareAt: money(
-          variant.compareAtEurB2b,
-          variant.compareAtUsdB2b,
-          variant.compareAtUahB2b
-        ),
+        b2bPrice: withShopPriceSource(money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b), variant.b2bPriceSourceCurrency),
+        compareAt: withShopPriceSource(money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah), variant.compareAtSourceCurrency),
+        b2bCompareAt: withShopPriceSource(money(variant.compareAtEurB2b, variant.compareAtUsdB2b, variant.compareAtUahB2b), variant.b2bCompareAtSourceCurrency),
       }));
       const primaryVariant = variants.find((variant: any) => variant.isDefault) ?? variants[0];
       const product: ShopProduct = {
@@ -2978,11 +3011,11 @@ export const getRacechipProductBySlugLightServer = cache(
         leadTime: empty,
         stock: row.stock === "preOrder" ? "preOrder" : "inStock",
         collection: empty,
-        price: money(row.priceEur, row.priceUsd, row.priceUah),
+        price: withShopPriceSource(money(row.priceEur, row.priceUsd, row.priceUah), row.priceSourceCurrency),
         europePrice: money(row.priceEurEurope, null, null),
-        b2bPrice: money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b),
-        compareAt: money(row.compareAtEur, row.compareAtUsd, row.compareAtUah),
-        b2bCompareAt: money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
+        b2bPrice: withShopPriceSource(money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b), row.b2bPriceSourceCurrency),
+        compareAt: withShopPriceSource(money(row.compareAtEur, row.compareAtUsd, row.compareAtUah), row.compareAtSourceCurrency),
+        b2bCompareAt: withShopPriceSource(money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b), row.b2bCompareAtSourceCurrency),
         image: row.image ?? primaryVariant?.image ?? "",
         highlights: [],
         variants,
@@ -3050,6 +3083,10 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
     // - omit `vendor` (always 'RaceChip' on racechip rows → ~120 KB redundant)
     // - omit `sku`    (master projection sets sku: "" anyway → ~260 KB saved)
     type LightRow = {
+      priceSourceCurrency: string | null;
+      compareAtSourceCurrency: string | null;
+      b2bPriceSourceCurrency: string | null;
+      b2bCompareAtSourceCurrency: string | null;
       slug: string;
       scope: string;
       brand: string | null;
@@ -3095,6 +3132,10 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
           image: true,
           stock: true,
           priceUah: true,
+          priceSourceCurrency: true,
+          compareAtSourceCurrency: true,
+          b2bPriceSourceCurrency: true,
+          b2bCompareAtSourceCurrency: true,
           priceEur: true,
           priceEurEurope: true,
           priceUsd: true,
@@ -3154,10 +3195,10 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       // car_make:*, car_model:*, car_engine:*. Saves ~470 KB across 5 k rows.
       const carTags = (row.tags ?? []).filter((t) => t.startsWith("car_"));
 
-      const b2bPrice = toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b);
+      const b2bPrice = withShopPriceSource(toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b), row.b2bPriceSourceCurrency);
       const europePrice = toMoney(row.priceEurEurope, null, null);
-      const compareAt = toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah);
-      const b2bCompareAt = toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b);
+      const compareAt = withShopPriceSource(toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah), row.compareAtSourceCurrency);
+      const b2bCompareAt = withShopPriceSource(toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b), row.b2bCompareAtSourceCurrency);
 
       return {
         slug: row.slug,
@@ -3177,7 +3218,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         leadTime: empty,
         stock: (row.stock === "preOrder" ? "preOrder" : "inStock") as ShopStock,
         collection: empty,
-        price: toMoney(row.priceEur, row.priceUsd, row.priceUah),
+        price: withShopPriceSource(toMoney(row.priceEur, row.priceUsd, row.priceUah), row.priceSourceCurrency),
         europePrice: anyPositive(europePrice) ? europePrice : undefined,
         // Only attach optional B2B/compare bundles when they have non-zero
         // values; matches existing convention in `mapDbToCatalog` and lets
@@ -3719,6 +3760,10 @@ const storefrontProductInclude = {
       inventoryQty: true,
       image: true,
       isDefault: true,
+      priceSourceCurrency: true,
+      compareAtSourceCurrency: true,
+      b2bPriceSourceCurrency: true,
+      b2bCompareAtSourceCurrency: true,
       priceEur: true,
       priceEurEurope: true,
       priceUsd: true,

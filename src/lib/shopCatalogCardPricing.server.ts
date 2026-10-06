@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { isWheelForceWheelSet } from "@/lib/wheelforceFamily";
+import { shopDbPriceSource, withShopPriceSource } from "./shopPriceBookCurrency";
 import {
   parseShopStorefrontDisplay,
   SHOP_STOREFRONT_DISPLAY_NAMESPACE,
@@ -29,11 +30,11 @@ export type ShopCatalogCardPricing = Readonly<{
   storefrontDisplay?: ShopStorefrontDisplay;
 }>;
 
-const money = (eur: unknown, usd: unknown, uah: unknown): ShopMoneySet => ({
+const money = (eur: unknown, usd: unknown, uah: unknown, sourceCurrency?: unknown): ShopMoneySet => withShopPriceSource({
   eur: Number(eur ?? 0) || 0,
   usd: Number(usd ?? 0) || 0,
   uah: Number(uah ?? 0) || 0,
-});
+}, sourceCurrency);
 
 const present = (value: ShopMoneySet) =>
   value.eur > 0 || value.usd > 0 || value.uah > 0 ? value : null;
@@ -53,6 +54,10 @@ type ShopCatalogCardPricingRow = {
   pricingWeightKg: string | null;
   image: string | null;
   sku: string | null;
+  priceSourceCurrency: string | null;
+  compareAtSourceCurrency: string | null;
+  b2bPriceSourceCurrency: string | null;
+  b2bCompareAtSourceCurrency: string | null;
   priceEur: unknown;
   priceEurEurope: unknown;
   priceUsd: unknown;
@@ -67,6 +72,10 @@ type ShopCatalogCardPricingRow = {
   compareAtUsdB2b: unknown;
   compareAtUahB2b: unknown;
   variantId: string | null;
+  variantPriceSourceCurrency: string | null;
+  variantCompareAtSourceCurrency: string | null;
+  variantB2bPriceSourceCurrency: string | null;
+  variantB2bCompareAtSourceCurrency: string | null;
   variantSku: string | null;
   variantImage: string | null;
   variantPriceEur: unknown;
@@ -116,6 +125,8 @@ async function readShopCatalogCardPricingRows(
        LIMIT 1) AS "seaShippingUsd",
       product."image",
       product."sku",
+      product."priceSourceCurrency", product."compareAtSourceCurrency",
+      product."b2bPriceSourceCurrency", product."b2bCompareAtSourceCurrency",
       product."priceEur",
       product."priceEurEurope",
       product."priceUsd",
@@ -130,6 +141,10 @@ async function readShopCatalogCardPricingRows(
       product."compareAtUsdB2b",
       product."compareAtUahB2b",
       variant."id" AS "variantId",
+      variant."priceSourceCurrency" AS "variantPriceSourceCurrency",
+      variant."compareAtSourceCurrency" AS "variantCompareAtSourceCurrency",
+      variant."b2bPriceSourceCurrency" AS "variantB2bPriceSourceCurrency",
+      variant."b2bCompareAtSourceCurrency" AS "variantB2bCompareAtSourceCurrency",
       variant."sku" AS "variantSku",
       variant."image" AS "variantImage",
       variant."priceEur" AS "variantPriceEur",
@@ -151,6 +166,8 @@ async function readShopCatalogCardPricingRows(
     LEFT JOIN LATERAL (
       SELECT
         candidate."id", candidate."sku", candidate."image",
+        candidate."priceSourceCurrency", candidate."compareAtSourceCurrency",
+        candidate."b2bPriceSourceCurrency", candidate."b2bCompareAtSourceCurrency",
         candidate."priceEur", candidate."priceEurEurope", candidate."priceUsd", candidate."priceUah",
         candidate."priceEurB2b", candidate."priceUsdB2b", candidate."priceUahB2b",
         candidate."weight",
@@ -216,6 +233,10 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
         id: row.variantId,
         sku: row.variantSku,
         image: row.variantImage,
+        priceSourceCurrency: row.variantPriceSourceCurrency,
+        compareAtSourceCurrency: row.variantCompareAtSourceCurrency,
+        b2bPriceSourceCurrency: row.variantB2bPriceSourceCurrency,
+        b2bCompareAtSourceCurrency: row.variantB2bCompareAtSourceCurrency,
         priceEur: row.variantPriceEur,
         priceEurEurope: row.variantPriceEurEurope,
         priceUsd: row.variantPriceUsd,
@@ -243,28 +264,32 @@ async function readShopCatalogCardPricing(uniqueIds: readonly string[]) {
         price: money(
           preferredPrice(row.priceEur, variant.priceEur),
           preferredPrice(row.priceUsd, variant.priceUsd),
-          preferredPrice(row.priceUah, variant.priceUah)
+          preferredPrice(row.priceUah, variant.priceUah),
+          shopDbPriceSource(wheelSet ? variant : row, wheelSet ? row : variant, "price")
         ),
-        europePrice: present(money(preferredPrice(row.priceEurEurope, variant.priceEurEurope), 0, 0)),
+        europePrice: present(money(preferredPrice(row.priceEurEurope, variant.priceEurEurope), 0, 0, "EUR")),
         b2bPrice: present(
           money(
             row.priceEurB2b ?? variant.priceEurB2b,
             row.priceUsdB2b ?? variant.priceUsdB2b,
-            row.priceUahB2b ?? variant.priceUahB2b
+            row.priceUahB2b ?? variant.priceUahB2b,
+            shopDbPriceSource(row, variant, "b2bPrice")
           )
         ),
         compareAt: present(
           money(
             row.compareAtEur ?? variant.compareAtEur,
             row.compareAtUsd ?? variant.compareAtUsd,
-            row.compareAtUah ?? variant.compareAtUah
+            row.compareAtUah ?? variant.compareAtUah,
+            shopDbPriceSource(row, variant, "compareAt")
           )
         ),
         b2bCompareAt: present(
           money(
             row.compareAtEurB2b ?? variant.compareAtEurB2b,
             row.compareAtUsdB2b ?? variant.compareAtUsdB2b,
-            row.compareAtUahB2b ?? variant.compareAtUahB2b
+            row.compareAtUahB2b ?? variant.compareAtUahB2b,
+            shopDbPriceSource(row, variant, "b2bCompareAt")
           )
         ),
         brand: resolveShopProductBrand(row) || null,

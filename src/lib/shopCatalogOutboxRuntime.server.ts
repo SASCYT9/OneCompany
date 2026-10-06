@@ -3,6 +3,7 @@ import "server-only";
 import { buildShopCatalogProjection } from "./shopCatalogProjection.server";
 import {
   persistShopCatalogMediaProjectionBuild,
+  persistShopCatalogPriceProjectionBuild,
   persistShopCatalogProjectionBuild,
 } from "./shopCatalogProjectionPersistence.server";
 import { projectionSourceFromRevision } from "./shopCatalogProjectionSource.server";
@@ -14,6 +15,8 @@ import {
   type ShopCatalogOutboxTargetHandlers,
 } from "./shopCatalogOutboxWorker.server";
 import { prisma } from "./prisma";
+import { publishShopCatalogPriceBatch } from "./shopCatalogPricePublicationBatch.server";
+import { retrySerializablePriceBatch } from "./shopPriceBookBatchRetry";
 
 export type ShopCatalogOutboxRuntimeResult = {
   claimed: number;
@@ -39,6 +42,8 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
   let persisted: Promise<void> | null = null;
   const mediaOnly =
     job.changeDomains.length > 0 && job.changeDomains.every((domain) => domain === "MEDIA");
+  const priceOnly =
+    job.changeDomains.length > 0 && job.changeDomains.every((domain) => domain === "PRICE");
   const publish = async () => {
     if (!persisted) {
       persisted = (async () => {
@@ -60,6 +65,8 @@ function projectionHandlers(job: ShopCatalogClaimedOutbox): ShopCatalogOutboxTar
         const build = buildShopCatalogProjection(source);
         if (mediaOnly) {
           await persistShopCatalogMediaProjectionBuild(build);
+        } else if (priceOnly) {
+          await retrySerializablePriceBatch(() => persistShopCatalogPriceProjectionBuild(build));
         } else {
           await persistShopCatalogProjectionBuild(build);
         }
@@ -85,14 +92,23 @@ export async function runShopCatalogOutboxRuntime(input: {
 }): Promise<ShopCatalogOutboxRuntimeResult> {
   const jobs = await claimShopCatalogOutbox(input);
   const results: ShopCatalogOutboxProcessResult[] = [];
-  for (const job of jobs) {
-    results.push(
-      await processShopCatalogOutboxJob({
-        job,
-        workerId: input.workerId,
-        handlers: projectionHandlers(job),
-      })
-    );
+  for (let offset = 0; offset < jobs.length; offset += 10) {
+    const batch = jobs.slice(offset, offset + 10);
+    let published: readonly ShopCatalogOutboxProcessResult[] | null = null;
+    try {
+      published = await publishShopCatalogPriceBatch(batch, input.workerId);
+    } catch (error) {
+      // Ordinary processing retains per-job durable error/retry and lease handling.
+      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "UNKNOWN";
+      const meta = error && typeof error === "object" && "meta" in error ? error.meta as { code?: string } | undefined : undefined;
+      console.warn("Catalog PRICE batch fell back to individual publication", code, meta?.code ?? "");
+    }
+    if (published) results.push(...published);
+    const completedIds = new Set(published?.map(result => result.jobId) ?? []);
+    for (const job of batch.filter(job => !completedIds.has(job.id))) {
+      results.push(await processShopCatalogOutboxJob({ job, workerId: input.workerId,
+        handlers: projectionHandlers(job) }));
+    }
   }
   return Object.freeze({
     claimed: jobs.length,

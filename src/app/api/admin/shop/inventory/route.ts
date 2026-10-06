@@ -45,7 +45,7 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      variants: variants.map(serializeAdminVariantSummary),
+      variants: variants.map((variant) => serializeAdminVariantSummary(variant)),
       locations,
     });
   } catch (error) {
@@ -197,10 +197,13 @@ export async function PATCH(request: NextRequest) {
           limit: Math.min(50, Math.max(10, catalogMutations.length)),
         });
       } catch (error) {
-        console.error("[shop-catalog.inventory] immediate publish failed; cron recovery remains active", {
-          outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
-          error,
-        });
+        console.error(
+          "[shop-catalog.inventory] immediate publish failed; cron recovery remains active",
+          {
+            outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
+            error,
+          }
+        );
       }
     });
 

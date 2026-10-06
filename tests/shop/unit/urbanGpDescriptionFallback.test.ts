@@ -22,6 +22,29 @@ test('isUnsafeUrbanGpDescription detects internal GP Portal fallback copy', () =
     true
   );
   assert.equal(isUnsafeUrbanGpDescription('Urban Automotive product listing for Defender 110.'), false);
+  assert.equal(isUnsafeUrbanGpDescription('За GP-даними ця позиція стосується Defender 90/110.'), true);
+  assert.equal(isUnsafeUrbanGpDescription('According to GP data, this product fits Defender 90/110.'), true);
+  assert.equal(isUnsafeUrbanGpDescription('This is a specific GP-products item, not a complete bodykit.'), true);
+  assert.equal(isUnsafeUrbanGpDescription('The product configuration follows the GP products naming.'), true);
+});
+
+test('the Defender decal copy keeps the fitment and sale restriction without naming the supplier', () => {
+  const copy = getUrbanCuratedDescriptionOverride({ slug: 'urb-dec-26009343-v1' });
+
+  assert.ok(copy);
+  const combined = [
+    copy.bodyHtml.ua,
+    copy.bodyHtml.en,
+    copy.longDescription.ua,
+    copy.longDescription.en,
+    copy.shortDescription.ua,
+    copy.shortDescription.en,
+    copy.seoDescription.ua,
+    copy.seoDescription.en,
+  ].join(' ');
+  assert.doesNotMatch(combined, /GP|portal|постачальник/i);
+  assert.match(combined, /лише разом з обвісом|only together with an Urban body kit/i);
+  assert.match(combined, /050-0099/);
 });
 
 test('buildUrbanGpSafeFallbackDescription does not expose GP Portal or prices', () => {

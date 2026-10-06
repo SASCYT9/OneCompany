@@ -1,25 +1,52 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { extractStorefrontTag, normalizeAdminProductPayload } from '../../../src/lib/shopAdminCatalog';
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  extractStorefrontTag,
+  normalizeAdminProductPayload,
+} from "../../../src/lib/shopAdminCatalog";
 
-test('normalizeAdminProductPayload keeps nested ids and dimension fields', () => {
+test("cleared optional product and variant bands can be saved with a null source", () => {
+  const clearedBand = {
+    b2bCompareAtSourceCurrency: "",
+    compareAtEurB2b: null,
+    compareAtUsdB2b: null,
+    compareAtUahB2b: null,
+  };
   const { data, errors } = normalizeAdminProductPayload({
-    slug: 'test-product',
-    titleEn: 'Test product',
-    status: 'ACTIVE',
+    slug: "managed-product",
+    titleEn: "Managed product",
+    status: "ACTIVE",
+    priceEur: 100,
+    priceSourceCurrency: "EUR",
+    ...clearedBand,
+    variants: [{ id: "variant-1", sku: "SKU-1", isDefault: true, ...clearedBand }],
+  });
+  assert.deepEqual(errors, []);
+  assert.equal(data.priceSourceCurrency, "EUR");
+  assert.equal(data.b2bCompareAtSourceCurrency, null);
+  assert.equal(data.compareAtEurB2b, null);
+  assert.equal(data.variants[0].b2bCompareAtSourceCurrency, null);
+  assert.equal(data.variants[0].compareAtUahB2b, null);
+});
+
+test("normalizeAdminProductPayload keeps nested ids and dimension fields", () => {
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: "test-product",
+    titleEn: "Test product",
+    status: "ACTIVE",
     isPublished: true,
     weight: 12.5,
     length: 120,
     width: 45,
     height: 33,
     isDimensionsEstimated: true,
-    media: [{ id: 'media-1', src: '/media/test.jpg', altText: 'Main image', mediaType: 'IMAGE' }],
-    options: [{ id: 'option-1', name: 'Size', values: ['M', 'L'] }],
+    media: [{ id: "media-1", src: "/media/test.jpg", altText: "Main image", mediaType: "IMAGE" }],
+    options: [{ id: "option-1", name: "Size", values: ["M", "L"] }],
     variants: [
       {
-        id: 'variant-1',
-        title: 'Default',
-        sku: 'SKU-001',
+        id: "variant-1",
+        title: "Default",
+        sku: "SKU-001",
         weight: 7.5,
         length: 44,
         width: 22,
@@ -28,7 +55,7 @@ test('normalizeAdminProductPayload keeps nested ids and dimension fields', () =>
         isDefault: true,
       },
     ],
-    metafields: [{ id: 'meta-1', namespace: 'custom', key: 'material', value: 'carbon' }],
+    metafields: [{ id: "meta-1", namespace: "custom", key: "material", value: "carbon" }],
   });
 
   assert.deepEqual(errors, []);
@@ -37,71 +64,71 @@ test('normalizeAdminProductPayload keeps nested ids and dimension fields', () =>
   assert.equal(data.width, 45);
   assert.equal(data.height, 33);
   assert.equal(data.isDimensionsEstimated, true);
-  assert.equal(data.media[0]?.id, 'media-1');
-  assert.equal(data.options[0]?.id, 'option-1');
-  assert.equal(data.variants[0]?.id, 'variant-1');
+  assert.equal(data.media[0]?.id, "media-1");
+  assert.equal(data.options[0]?.id, "option-1");
+  assert.equal(data.variants[0]?.id, "variant-1");
   assert.equal(data.variants[0]?.weight, 7.5);
   assert.equal(data.variants[0]?.length, 44);
   assert.equal(data.variants[0]?.width, 22);
   assert.equal(data.variants[0]?.height, 11);
   assert.equal(data.variants[0]?.isDimensionsEstimated, true);
-  assert.equal(data.metafields[0]?.id, 'meta-1');
+  assert.equal(data.metafields[0]?.id, "meta-1");
 });
 
-test('normalizeAdminProductPayload disables publish state for non-active products', () => {
+test("normalizeAdminProductPayload disables publish state for non-active products", () => {
   const { data } = normalizeAdminProductPayload({
-    slug: 'draft-product',
-    titleEn: 'Draft product',
-    status: 'DRAFT',
+    slug: "draft-product",
+    titleEn: "Draft product",
+    status: "DRAFT",
     isPublished: true,
-    publishedAt: '2026-04-19T09:30:00.000Z',
+    publishedAt: "2026-04-19T09:30:00.000Z",
   });
 
-  assert.equal(data.status, 'DRAFT');
+  assert.equal(data.status, "DRAFT");
   assert.equal(data.isPublished, false);
   assert.equal(data.publishedAt, null);
 });
 
-test('normalizeAdminProductPayload replaces existing store tags from explicit storefront input', () => {
+test("normalizeAdminProductPayload replaces existing store tags from explicit storefront input", () => {
   const { data, errors } = normalizeAdminProductPayload({
-    slug: 'urban-product',
-    titleEn: 'Urban product',
-    storefront: 'urban',
-    tags: ['exterior', 'store:brabus', 'store:main'],
+    slug: "urban-product",
+    titleEn: "Urban product",
+    storefront: "urban",
+    tags: ["exterior", "store:brabus", "store:main"],
   });
 
   assert.deepEqual(errors, []);
-  assert.equal(data.storefront, 'urban');
-  assert.equal(extractStorefrontTag(data.tags), 'urban');
-  assert.equal(data.tags.filter((tag) => tag.startsWith('store:')).length, 1);
-  assert.deepEqual(data.tags, ['exterior', 'store:urban']);
+  assert.equal(data.storefront, "urban");
+  assert.equal(extractStorefrontTag(data.tags), "urban");
+  assert.equal(data.tags.filter((tag) => tag.startsWith("store:")).length, 1);
+  assert.deepEqual(data.tags, ["exterior", "store:urban"]);
 });
 
-test('normalizeAdminProductPayload infers storefront from legacy Urban signals', () => {
+test("normalizeAdminProductPayload infers storefront from legacy Urban signals", () => {
   const { data, errors } = normalizeAdminProductPayload({
-    slug: 'urb-spo-1',
-    titleEn: 'Urban spoiler',
-    brand: 'Land Rover',
-    vendor: 'Urban Automotive',
-    tags: ['spoiler'],
+    slug: "urb-spo-1",
+    titleEn: "Urban spoiler",
+    brand: "Land Rover",
+    vendor: "Urban Automotive",
+    tags: ["spoiler"],
   });
 
   assert.deepEqual(errors, []);
-  assert.equal(data.storefront, 'urban');
-  assert.equal(extractStorefrontTag(data.tags), 'urban');
+  assert.equal(data.storefront, "urban");
+  assert.equal(extractStorefrontTag(data.tags), "urban");
 });
 
-test('normalizeAdminProductPayload defaults storefront to main when no store signal exists', () => {
+test("normalizeAdminProductPayload defaults storefront to main when no store signal exists", () => {
   const { data, errors } = normalizeAdminProductPayload({
-    slug: 'main-product',
-    titleEn: 'Main product',
-    brand: 'Akrapovic',
-    vendor: 'Akrapovic',
-    tags: ['exhaust'],
+    slug: "main-product",
+    titleEn: "Main product",
+    brand: "Akrapovic",
+    vendor: "Akrapovic",
+    tags: ["exhaust"],
   });
 
   assert.deepEqual(errors, []);
-  assert.equal(data.storefront, 'main');
-  assert.equal(extractStorefrontTag(data.tags), 'main');
-  assert.equal(data.tags.filter((tag) => tag.startsWith('store:')).length, 1);
+  assert.equal(data.storefront, "main");
+  assert.equal(extractStorefrontTag(data.tags), "main");
+  assert.equal(data.tags.filter((tag) => tag.startsWith("store:")).length, 1);
 });

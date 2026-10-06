@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { resolveShopProductPricing } from "../../../src/lib/shopPricingAudience";
 import {
   projectShopRelatedProduct,
   type ShopRelatedProductRow,
@@ -66,6 +67,22 @@ test("related projection has no heavy PDP relations", () => {
   assert.equal(product.externalVideos, undefined);
   assert.deepEqual(product.shortDescription, { ua: "", en: "" });
   assert.deepEqual(product.longDescription, { ua: "", en: "" });
+});
+
+test("related cards keep all source currencies and render under the active NBU price book", () => {
+  const product = projectShopRelatedProduct(row({ priceSourceCurrency: "EUR", compareAtSourceCurrency: "EUR",
+    b2bPriceSourceCurrency: "USD", b2bCompareAtSourceCurrency: "UAH" }));
+  assert.equal(product.price.sourceCurrency, "EUR");
+  assert.equal(product.compareAt?.sourceCurrency, "EUR");
+  assert.equal(product.b2bPrice?.sourceCurrency, "USD");
+  assert.equal(product.b2bCompareAt?.sourceCurrency, "UAH");
+  const context = { customerGroup: null, customerB2BDiscountPercent: null, isAuthenticated: false,
+    b2bVisibilityMode: "request_quote" as const, defaultB2BDiscountPercent: 0, priceCountry: "Ukraine",
+    currencyRates: { EUR: 1, USD: 51.483 / 46.0564, UAH: 50.483, _rawUsdToUah: 45.0564, _uahReserve: 1 } };
+  const pricing = resolveShopProductPricing(product, context);
+  assert.equal(pricing.effectivePrice.eur, 1200.5);
+  assert.equal(pricing.effectivePrice.uah, 61805.34);
+  assert.equal(resolveShopProductPricing(product, { ...context, customerGroup: "B2B_APPROVED" }).effectivePrice.usd, 1100);
 });
 
 test("missing brand falls back to vendor and preserves safe stock/scope enums", () => {

@@ -12,6 +12,7 @@ tmp
 .agents
 /backups/
 /output/
+/outputs/
 /artifacts/
 /.playwright-cli/
 /Design/

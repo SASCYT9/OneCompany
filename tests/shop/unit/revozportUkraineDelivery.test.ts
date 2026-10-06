@@ -38,3 +38,14 @@ test("approved pricing weight overrides the legacy quote without changing physic
   assert.equal(pricing.effectivePrice.usd, 636.23);
   assert.equal(product.weightKg, null);
 });
+
+test("managed price book adds Revozport freight only to a USD source and never fails the page", () => {
+  const managed = { EUR: 1, USD: 1.16, UAH: 48.5, _uahReserve: 1, _rawUsdToUah: 41.8 };
+  const usd = addRevozportUkraineShippingToPriceSet({ eur: 0, usd: 499, uah: 0 }, "Revozport", "UA", null, managed, 49);
+  assert.equal(usd.usd, 548);
+  assert.equal(usd.sourceCurrency, "USD");
+  const eurOnly = { eur: 430, usd: 0, uah: 0 };
+  assert.equal(addRevozportUkraineShippingToPriceSet(eurOnly, "Revozport", "UA", null, managed, 49), eurOnly);
+  const eurSource = { eur: 430, usd: 498.8, uah: 21285, sourceCurrency: "EUR" as const };
+  assert.equal(addRevozportUkraineShippingToPriceSet(eurSource, "Revozport", "UA", null, managed, 49), eurSource);
+});

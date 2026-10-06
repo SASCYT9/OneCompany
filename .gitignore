@@ -171,3 +171,6 @@ wiki/.obsidian/plugins/*/styles.css
 wiki/.obsidian/plugins/*/manifest.json
 # Local catalog before-images and mutation manifests may contain supplier prices.
 /outputs/site-commerce-2026-10-03/
+/outputs/nbu-plus-one-2026-10-04/
+/outputs/urban-gp-reference-cleanup-2026-10-04/
+/outputs/price-source-completion-2026-10-05/

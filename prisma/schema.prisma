@@ -200,6 +200,10 @@ model RequestRateLimit {
 }
 
 model ShopProduct {
+  priceSourceCurrency             String?
+  compareAtSourceCurrency         String?
+  b2bPriceSourceCurrency          String?
+  b2bCompareAtSourceCurrency      String?
   id                              String                            @id @default(cuid())
   slug                            String                            @unique
   sku                             String?
@@ -955,30 +959,30 @@ model ShopShippingZone {
 }
 
 model ShopTaxRegionRule {
-  id             String   @id @default(cuid())
-  regionCode     String   @unique
-  regionName     String
-  regionNameUa   String
-  taxType        String   @default("VAT")
-  taxRate        Float    @default(0)
-  taxLabel       String?
-  taxLabelUa     String?
-  customsDutyPct Float    @default(0)
-  landedCostEnabled Boolean @default(false)
-  appliesToShipping Boolean @default(true)
-  incoterm       String   @default("DAP")
-  brokerageFee   Float    @default(0)
-  handlingFee    Float    @default(0)
-  insurancePct   Float    @default(0)
-  riskReservePct Float    @default(0)
-  importerOfRecord String?
-  ddpGuarantee   Boolean  @default(false)
-  isInclusive    Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  notes          String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  regionCode        String   @unique
+  regionName        String
+  regionNameUa      String
+  taxType           String   @default("VAT")
+  taxRate           Float    @default(0)
+  taxLabel          String?
+  taxLabelUa        String?
+  customsDutyPct    Float    @default(0)
+  landedCostEnabled Boolean  @default(false)
+  appliesToShipping Boolean  @default(true)
+  incoterm          String   @default("DAP")
+  brokerageFee      Float    @default(0)
+  handlingFee       Float    @default(0)
+  insurancePct      Float    @default(0)
+  riskReservePct    Float    @default(0)
+  importerOfRecord  String?
+  ddpGuarantee      Boolean  @default(false)
+  isInclusive       Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  notes             String?
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([isActive, sortOrder])
 }
@@ -1069,6 +1073,10 @@ model ShopProductOption {
 }
 
 model ShopProductVariant {
+  priceSourceCurrency             String?
+  compareAtSourceCurrency         String?
+  b2bPriceSourceCurrency          String?
+  b2bCompareAtSourceCurrency      String?
   id                              String                            @id @default(cuid())
   productId                       String
   title                           String?
@@ -1428,15 +1436,16 @@ model ShopOrder {
   quoteDeclinedAt DateTime?
   internalNote    String?
 
-  customer            ShopCustomer?          @relation(fields: [customerId], references: [id])
-  items               ShopOrderItem[]
-  events              ShopOrderStatusEvent[]
-  shipments           ShopShipment[]
-  returns             ShopOrderReturn[]
-  monobankPayment     ShopMonobankPayment?
-  opsTasks            OpsTask[]
-  opsComments         OpsComment[]
-  opsTelegramContexts OpsTelegramContext[]
+  customer               ShopCustomer?                @relation(fields: [customerId], references: [id])
+  items                  ShopOrderItem[]
+  events                 ShopOrderStatusEvent[]
+  shipments              ShopShipment[]
+  returns                ShopOrderReturn[]
+  monobankPayment        ShopMonobankPayment?
+  monobankPaymentHistory ShopMonobankPaymentHistory[]
+  opsTasks               OpsTask[]
+  opsComments            OpsComment[]
+  opsTelegramContexts    OpsTelegramContext[]
 
   @@index([status])
   @@index([createdAt])
@@ -1462,6 +1471,21 @@ model ShopMonobankPayment {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+}
+
+model ShopMonobankPaymentHistory {
+  id                 String    @id
+  orderId            String
+  invoiceId          String    @unique
+  amount             Int
+  ccy                Int
+  status             String
+  providerModifiedAt DateTime?
+  finalAmount        Int       @default(0)
+  retiredAt          DateTime  @default(now())
+  order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
 }
 
 model ShopOrderItem {
@@ -3901,7 +3925,7 @@ model ShopCatalogProjectionConstraint {
   @@index([dimension, state, yearFrom, yearTo, productId])
   @@index([variantId, dimension, state])
   @@index([sourceVersion])
-  @@index([powertrainId, dimension, state])
+  @@index([powertrainId, dimension, state], map: "ShopCatalogProjectionConstraint_powertrainId_dimension_state_id")
 }
 
 model ShopCatalogState {

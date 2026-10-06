@@ -31,6 +31,7 @@ test("pricing helper applies regional and B2B multipliers then syncs the default
   ]);
   let productPrices: Record<string, unknown> | null = null;
   const tx = {
+    shopSettings: { findUnique: async () => null },
     shopProductVariant: {
       findMany: async () => [...variants.values()],
       update: async ({ where, data }: any) => {

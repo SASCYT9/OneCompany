@@ -4,11 +4,16 @@ import { buildShopCurrencyRatesFromNbu } from "../../../src/lib/shopCurrencyNbu"
 import { defaultCurrencyForShopCountry } from "../../../src/lib/shopCountryCurrency";
 import { expandShopPrices } from "../../../src/lib/shopPriceConversion";
 
-test("round the final EUR/UAH rate up, preserve exact whole rates and raw cross rate", () => {
+test("preserve raw NBU evidence and derive the sale cross from both one-hryvnia reserves", () => {
   const rounded = buildShopCurrencyRatesFromNbu({ rate: 48.2, exchangedate: "03.10.2026" }, { rate: 43, exchangedate: "03.10.2026" });
-  assert.equal(rounded.currencyRates.UAH, 49);
+  assert.equal(rounded.currencyRates.UAH, 48.2);
+  assert.equal(rounded.currencyRates._uahReserve, 1);
+  assert.equal(rounded.currencyRates._rawUsdToUah, 43);
+  assert.equal('_mixedSourceCurrency' in rounded.currencyRates, false);
   assert.equal(rounded.eurToUah, 48.2);
-  assert.equal(rounded.currencyRates.USD, Number((48.2 / 43).toFixed(6)));
+  assert.equal(rounded.currencyRates.USD, Number((49.2 / 44).toFixed(12)));
+  assert.equal(rounded.rawUsdPerEur, Number((48.2 / 43).toFixed(12)));
+  assert.equal(rounded.currencyRates._rawUsdPerEur, rounded.rawUsdPerEur);
   assert.equal(buildShopCurrencyRatesFromNbu({ rate: 48, exchangedate: "03.10.2026" }, { rate: 43, exchangedate: "03.10.2026" }).currencyRates.UAH, 48);
 });
 test("reject mismatched dates and invalid rates instead of replacing the price book", () => {

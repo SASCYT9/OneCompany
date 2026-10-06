@@ -1,4 +1,4 @@
-import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
+import type { ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 type NbuExchangeItem = {
   rate?: number;
@@ -8,12 +8,13 @@ type NbuExchangeItem = {
 };
 
 export type ShopNbuCurrencyRates = {
-  currencyRates: Record<ShopCurrencyCode, number>;
+  currencyRates: ShopPriceBookRates;
   source: "nbu";
   exchangedAt: string;
   eurToUah: number;
   usdToUah: number;
   usdPerEur: number;
+  rawUsdPerEur: number;
   usdSpecial: boolean;
 };
 
@@ -44,12 +45,12 @@ function normalizeNbuItem(raw: unknown): NbuExchangeItem | null {
   };
 }
 
-async function fetchNbuCurrency(valcode: "EUR" | "USD"): Promise<NbuExchangeItem> {
+async function fetchNbuCurrency(valcode: "EUR" | "USD", date: string): Promise<NbuExchangeItem> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const response = await fetch(`${NBU_EXCHANGE_ENDPOINT}&valcode=${valcode}`, {
+    const response = await fetch(`${NBU_EXCHANGE_ENDPOINT}&valcode=${valcode}&date=${date}`, {
       method: "GET",
       cache: "no-store",
       headers: {
@@ -94,24 +95,31 @@ export function buildShopCurrencyRatesFromNbu(
   const usdToUah = usd.rate as number;
   if (![eurToUah, usdToUah].every((rate) => Number.isFinite(rate) && rate > 0) || !eur.exchangedate)
     throw new Error("Invalid NBU rates");
-  const usdPerEur = eurToUah / usdToUah;
+  const rawUsdPerEur = eurToUah / usdToUah;
+  const usdPerEur = (eurToUah + 1) / (usdToUah + 1);
 
   return {
     currencyRates: {
       EUR: 1,
-      USD: roundRate(usdPerEur),
-      UAH: Math.ceil(eurToUah),
+      USD: roundRate(usdPerEur, 12),
+      UAH: eurToUah,
+      _rawUsdToUah: usdToUah,
+      _rawUsdPerEur: roundRate(rawUsdPerEur, 12),
+      _uahReserve: 1,
     },
     source: "nbu",
     exchangedAt: eur.exchangedate as string,
     eurToUah: roundRate(eurToUah, 4),
     usdToUah: roundRate(usdToUah, 4),
-    usdPerEur: roundRate(usdPerEur),
+    usdPerEur: roundRate(usdPerEur, 12),
+    rawUsdPerEur: roundRate(rawUsdPerEur, 12),
     usdSpecial: usd.special === "Y",
   };
 }
 
 export async function fetchShopCurrencyRatesFromNbu(): Promise<ShopNbuCurrencyRates> {
-  const [eur, usd] = await Promise.all([fetchNbuCurrency("EUR"), fetchNbuCurrency("USD")]);
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Kyiv", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const date = ["year", "month", "day"].map(type => parts.find(part => part.type === type)!.value).join("");
+  const [eur, usd] = await Promise.all([fetchNbuCurrency("EUR", date), fetchNbuCurrency("USD", date)]);
   return buildShopCurrencyRatesFromNbu(eur, usd);
 }

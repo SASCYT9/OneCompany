@@ -1,5 +1,7 @@
 "use client";
 
+import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
+
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
 import { resolveShopCountry } from "@/lib/shopCountries";
@@ -15,6 +17,10 @@ type Rates = {
   UAH: number;
   EUR: number;
   USD: number;
+  _uahReserve?: number;
+  _rawUsdToUah?: number;
+  _rawUsdPerEur?: number;
+  _manualCross?: number;
 };
 
 type ShopCurrencyContextValue = {
@@ -109,6 +115,16 @@ function normalizeRates(value: Partial<Rates> | null | undefined): Rates {
     EUR: eur > 0 ? eur : DEFAULT_CURRENCY_RATES.EUR,
     USD: usd > 0 ? usd : DEFAULT_CURRENCY_RATES.USD,
     UAH: uah > 0 ? uah : DEFAULT_CURRENCY_RATES.UAH,
+    ...(isShopSourcePriceBook(value)
+      ? {
+          _uahReserve: value?._uahReserve,
+          ...(Number(value?._rawUsdToUah) > 0 ? { _rawUsdToUah: Number(value?._rawUsdToUah) } : {}),
+          ...(Number(value?._rawUsdPerEur) > 0
+            ? { _rawUsdPerEur: Number(value?._rawUsdPerEur) }
+            : {}),
+          ...(value?._manualCross === 1 ? { _manualCross: 1 } : {}),
+        }
+      : {}),
   };
 }
 

@@ -12,6 +12,9 @@ export type ShopMoneySet = {
   eur: number;
   usd: number;
   uah: number;
+  sourceCurrency?: "EUR" | "USD" | "UAH";
+  sourceUnitAmount?: number;
+  sourceQuantity?: number;
 };
 
 export type ShopProductCollectionLink = {

@@ -366,6 +366,7 @@ type OrderSnapshot = {
   currency: string;
   total: number | { toString(): string };
   paymentStatus: string;
+  amountPaid?: number | { toString(): string };
 };
 
 export function resolveMonobankStatusUpdate(
@@ -389,7 +390,7 @@ export function resolveMonobankStatusUpdate(
   }
   const modifiedAt = new Date(event.modifiedDate);
   if (payment.providerModifiedAt && modifiedAt <= payment.providerModifiedAt) return null;
-  const financiallySettled = ["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(
+  const financiallySettled = Number(order.amountPaid ?? 0) > 0 || ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(
     order.paymentStatus
   );
   if (financiallySettled && !["success", "reversed"].includes(event.status)) return null;

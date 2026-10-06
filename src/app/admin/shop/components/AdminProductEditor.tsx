@@ -1,4 +1,12 @@
 "use client";
+
+import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
+import {
+  managedAdminPriceChange,
+  managedAdminPriceBandUpdates,
+  managedAdminSourceSelection,
+  adminPriceBookDescription,
+} from "@/lib/shopAdminPriceConversion";
 import {
   defaultShopStorefrontDisplay,
   isShopStorefrontDisplayMetafield,
@@ -72,6 +80,10 @@ type VariantFormItem = {
   inventoryQty: string;
   inventoryPolicy: InventoryPolicy;
   fulfillmentService: string;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: string;
   priceEurEurope: string;
   priceUsd: string;
@@ -164,6 +176,10 @@ type CategoryOption = {
 
 type VariantBulkState = {
   inventoryQty: string;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: string;
   priceEurEurope: string;
   priceUsd: string;
@@ -211,6 +227,10 @@ type ProductFormState = {
   showInCarousel: boolean;
   collectionUa: string;
   collectionEn: string;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: string;
   priceEurEurope: string;
   priceUsd: string;
@@ -280,6 +300,10 @@ type ProductResponse = {
   stock: "inStock" | "preOrder";
   collectionUa: string | null;
   collectionEn: string | null;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: number | null;
   priceEurEurope: number | null;
   priceUsd: number | null;
@@ -331,6 +355,10 @@ type ProductResponse = {
     inventoryQty: number;
     inventoryPolicy: InventoryPolicy;
     fulfillmentService: string | null;
+    priceSourceCurrency?: string | null;
+    compareAtSourceCurrency?: string | null;
+    b2bPriceSourceCurrency?: string | null;
+    b2bCompareAtSourceCurrency?: string | null;
     priceEur: number | null;
     priceEurEurope: number | null;
     priceUsd: number | null;
@@ -688,6 +716,10 @@ function productToForm(product: ProductResponse): ProductFormState {
     showInCarousel: display.showInCarousel,
     collectionUa: product.collectionUa ?? "",
     collectionEn: product.collectionEn ?? "",
+    priceSourceCurrency: product.priceSourceCurrency ?? "",
+    compareAtSourceCurrency: product.compareAtSourceCurrency ?? "",
+    b2bPriceSourceCurrency: product.b2bPriceSourceCurrency ?? "",
+    b2bCompareAtSourceCurrency: product.b2bCompareAtSourceCurrency ?? "",
     priceEur: stringNumber(product.priceEur),
     priceEurEurope: stringNumber(product.priceEurEurope),
     priceUsd: stringNumber(product.priceUsd),
@@ -747,6 +779,10 @@ function productToForm(product: ProductResponse): ProductFormState {
           inventoryQty: String(item.inventoryQty ?? 0),
           inventoryPolicy: item.inventoryPolicy,
           fulfillmentService: item.fulfillmentService ?? "",
+          priceSourceCurrency: item.priceSourceCurrency ?? "",
+          compareAtSourceCurrency: item.compareAtSourceCurrency ?? "",
+          b2bPriceSourceCurrency: item.b2bPriceSourceCurrency ?? "",
+          b2bCompareAtSourceCurrency: item.b2bCompareAtSourceCurrency ?? "",
           priceEur: stringNumber(item.priceEur),
           priceEurEurope: stringNumber(item.priceEurEurope),
           priceUsd: stringNumber(item.priceUsd),
@@ -848,6 +884,10 @@ function buildPayload(form: ProductFormState) {
     },
     collectionUa: form.collectionUa || null,
     collectionEn: form.collectionEn || null,
+    priceSourceCurrency: form.priceSourceCurrency ?? undefined,
+    compareAtSourceCurrency: form.compareAtSourceCurrency ?? undefined,
+    b2bPriceSourceCurrency: form.b2bPriceSourceCurrency ?? undefined,
+    b2bCompareAtSourceCurrency: form.b2bCompareAtSourceCurrency ?? undefined,
     priceEur: decimalOrNull(form.priceEur),
     priceEurEurope: decimalOrNull(form.priceEurEurope),
     priceUsd: decimalOrNull(form.priceUsd),
@@ -917,6 +957,10 @@ function buildPayload(form: ProductFormState) {
         inventoryQty: intOrNull(item.inventoryQty) ?? 0,
         inventoryPolicy: item.inventoryPolicy,
         fulfillmentService: item.fulfillmentService.trim() || null,
+        priceSourceCurrency: item.priceSourceCurrency ?? undefined,
+        compareAtSourceCurrency: item.compareAtSourceCurrency ?? undefined,
+        b2bPriceSourceCurrency: item.b2bPriceSourceCurrency ?? undefined,
+        b2bCompareAtSourceCurrency: item.b2bCompareAtSourceCurrency ?? undefined,
         priceEur: decimalOrNull(item.priceEur),
         priceEurEurope: decimalOrNull(item.priceEurEurope),
         priceUsd: decimalOrNull(item.priceUsd),
@@ -1186,8 +1230,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const updateField = <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => {
     setForm((current) => {
       const next = { ...current, [key]: value };
+      const sourceChange = managedAdminSourceSelection(current, String(key), String(value), rates);
+      if (sourceChange) Object.assign(next, sourceChange);
 
-      if (autoConvert) {
+      if (autoConvert || isShopSourcePriceBook(rates)) {
         const valStr = String(value);
         const priceTrios = [
           ["priceEur", "priceUsd", "priceUah"],
@@ -1199,6 +1245,26 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         for (const [eurKey, usdKey, uahKey] of priceTrios) {
           if (key === eurKey || key === usdKey || key === uahKey) {
             const val = parseFloat(valStr);
+            const managed = managedAdminPriceChange(
+              Number(valStr),
+              key === eurKey ? "EUR" : key === usdKey ? "USD" : "UAH",
+              rates
+            );
+            if (managed) {
+              next[eurKey] = managed.eur;
+              next[usdKey] = managed.usd;
+              next[uahKey] = managed.uah;
+              const sourceKey = (
+                {
+                  priceEur: "priceSourceCurrency",
+                  compareAtEur: "compareAtSourceCurrency",
+                  priceEurB2b: "b2bPriceSourceCurrency",
+                  compareAtEurB2b: "b2bCompareAtSourceCurrency",
+                } as const
+              )[eurKey];
+              next[sourceKey] = managed.sourceCurrency;
+              break;
+            }
             if (isNaN(val) || val <= 0) {
               next[eurKey] = valStr;
               next[usdKey] = "";
@@ -1240,7 +1306,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const updateVariantBulkField = (key: keyof VariantBulkState, value: string) => {
     setVariantBulk((current) => {
       const next = { ...current, [key]: value };
-      if (autoConvert) {
+      if (autoConvert || isShopSourcePriceBook(rates)) {
         const val = parseFloat(value);
         const priceTrios = [
           ["priceEur", "priceUsd", "priceUah"],
@@ -1251,6 +1317,26 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
 
         for (const [eurKey, usdKey, uahKey] of priceTrios) {
           if (key === eurKey || key === usdKey || key === uahKey) {
+            const managed = managedAdminPriceChange(
+              Number(value),
+              key === eurKey ? "EUR" : key === usdKey ? "USD" : "UAH",
+              rates
+            );
+            if (managed) {
+              next[eurKey] = managed.eur;
+              next[usdKey] = managed.usd;
+              next[uahKey] = managed.uah;
+              const sourceKey = (
+                {
+                  priceEur: "priceSourceCurrency",
+                  compareAtEur: "compareAtSourceCurrency",
+                  priceEurB2b: "b2bPriceSourceCurrency",
+                  compareAtEurB2b: "b2bCompareAtSourceCurrency",
+                } as const
+              )[eurKey];
+              next[sourceKey] = managed.sourceCurrency;
+              break;
+            }
             if (isNaN(val) || val <= 0) {
               next[eurKey] = value;
               next[usdKey] = "";
@@ -1531,7 +1617,10 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   };
 
   const applyBulkVariantFields = () => {
-    const hasPayload = Object.values(variantBulk).some((value) => value.trim());
+    const priceBandUpdates = managedAdminPriceBandUpdates(variantBulk);
+    const hasPayload =
+      Object.values(variantBulk).some((value) => value?.trim()) ||
+      Object.keys(priceBandUpdates).length > 0;
     if (!hasPayload) {
       setError("Fill at least one bulk field before applying it to variants.");
       return;
@@ -1544,6 +1633,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       variants: current.variants.map((item) => ({
         ...item,
         inventoryQty: variantBulk.inventoryQty.trim() || item.inventoryQty,
+        priceSourceCurrency: variantBulk.priceSourceCurrency || item.priceSourceCurrency,
+        compareAtSourceCurrency:
+          variantBulk.compareAtSourceCurrency || item.compareAtSourceCurrency,
+        b2bPriceSourceCurrency: variantBulk.b2bPriceSourceCurrency || item.b2bPriceSourceCurrency,
+        b2bCompareAtSourceCurrency:
+          variantBulk.b2bCompareAtSourceCurrency || item.b2bCompareAtSourceCurrency,
         priceEur: variantBulk.priceEur.trim() || item.priceEur,
         priceEurEurope: variantBulk.priceEurEurope.trim() || item.priceEurEurope,
         priceUsd: variantBulk.priceUsd.trim() || item.priceUsd,
@@ -1558,6 +1653,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         compareAtUsdB2b: variantBulk.compareAtUsdB2b.trim() || item.compareAtUsdB2b,
         compareAtUahB2b: variantBulk.compareAtUahB2b.trim() || item.compareAtUahB2b,
         image: variantBulk.image.trim() || item.image,
+        ...priceBandUpdates,
       })),
     }));
     setSuccess("Bulk variant fields applied.");
@@ -1566,22 +1662,31 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const applyProductPricingToVariants = () => {
     setForm((current) => ({
       ...current,
-      variants: current.variants.map((item) => ({
-        ...item,
-        priceEur: current.priceEur || item.priceEur,
-        priceEurEurope: current.priceEurEurope || item.priceEurEurope,
-        priceUsd: current.priceUsd || item.priceUsd,
-        priceUah: current.priceUah || item.priceUah,
-        priceEurB2b: current.priceEurB2b || item.priceEurB2b,
-        priceUsdB2b: current.priceUsdB2b || item.priceUsdB2b,
-        priceUahB2b: current.priceUahB2b || item.priceUahB2b,
-        compareAtEur: current.compareAtEur || item.compareAtEur,
-        compareAtUsd: current.compareAtUsd || item.compareAtUsd,
-        compareAtUah: current.compareAtUah || item.compareAtUah,
-        compareAtEurB2b: current.compareAtEurB2b || item.compareAtEurB2b,
-        compareAtUsdB2b: current.compareAtUsdB2b || item.compareAtUsdB2b,
-        compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
-      })),
+      variants: current.variants.map((item) =>
+        isShopSourcePriceBook(rates)
+          ? {
+              ...item,
+              ...managedAdminPriceBandUpdates(current, false),
+              priceEurEurope:
+                Number(current.priceEurEurope) > 0 ? current.priceEurEurope : item.priceEurEurope,
+            }
+          : {
+              ...item,
+              priceEur: current.priceEur || item.priceEur,
+              priceEurEurope: current.priceEurEurope || item.priceEurEurope,
+              priceUsd: current.priceUsd || item.priceUsd,
+              priceUah: current.priceUah || item.priceUah,
+              priceEurB2b: current.priceEurB2b || item.priceEurB2b,
+              priceUsdB2b: current.priceUsdB2b || item.priceUsdB2b,
+              priceUahB2b: current.priceUahB2b || item.priceUahB2b,
+              compareAtEur: current.compareAtEur || item.compareAtEur,
+              compareAtUsd: current.compareAtUsd || item.compareAtUsd,
+              compareAtUah: current.compareAtUah || item.compareAtUah,
+              compareAtEurB2b: current.compareAtEurB2b || item.compareAtEurB2b,
+              compareAtUsdB2b: current.compareAtUsdB2b || item.compareAtUsdB2b,
+              compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
+            }
+      ),
     }));
     setSuccess("Top-level pricing copied to variants.");
   };
@@ -1664,6 +1769,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             grams: currentDefault?.grams ?? "",
             taxCode: currentDefault?.taxCode ?? "",
             costPerItem: currentDefault?.costPerItem ?? "",
+            priceSourceCurrency: currentDefault?.priceSourceCurrency ?? form.priceSourceCurrency,
+            compareAtSourceCurrency:
+              currentDefault?.compareAtSourceCurrency ?? form.compareAtSourceCurrency,
+            b2bPriceSourceCurrency:
+              currentDefault?.b2bPriceSourceCurrency ?? form.b2bPriceSourceCurrency,
+            b2bCompareAtSourceCurrency:
+              currentDefault?.b2bCompareAtSourceCurrency ?? form.b2bCompareAtSourceCurrency,
             priceEur: currentDefault?.priceEur ?? form.priceEur,
             priceEurEurope: currentDefault?.priceEurEurope ?? form.priceEurEurope,
             priceUsd: currentDefault?.priceUsd ?? form.priceUsd,
@@ -2161,12 +2273,36 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 title="Ціни"
                 description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
               >
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                  {(
+                    [
+                      ["priceSourceCurrency", "Вихідна валюта B2C"],
+                      ["compareAtSourceCurrency", "Вихідна валюта ціни до знижки"],
+                      ["b2bPriceSourceCurrency", "Вихідна валюта B2B"],
+                      ["b2bCompareAtSourceCurrency", "Вихідна валюта B2B до знижки"],
+                    ] as const
+                  ).map(([field, label]) => (
+                    <SelectField
+                      key={field}
+                      label={label}
+                      value={form[field] ?? ""}
+                      onChange={(value) => updateField(field, value)}
+                      options={[
+                        { value: "", label: "Не підтверджена" },
+                        { value: "EUR", label: "EUR" },
+                        { value: "USD", label: "USD" },
+                        { value: "UAH", label: "UAH · фіксована ціна" },
+                      ]}
+                    />
+                  ))}
+                </div>
                 <div className="mb-4 rounded-none border border-white/10 bg-zinc-950/40 p-4">
                   <CheckboxField
                     label="Автоматичний перерахунок цін за курсом"
-                    checked={autoConvert}
+                    checked={autoConvert || isShopSourcePriceBook(rates)}
+                    disabled={isShopSourcePriceBook(rates)}
                     onChange={setAutoConvert}
-                    helper={`При зміні однієї валюти інші оновлюються автоматично. Курс: 1 EUR = ${rates.USD} USD = ${rates.UAH} UAH`}
+                    helper={adminPriceBookDescription(rates)}
                   />
                 </div>
                 <div className="mb-4 grid gap-4 sm:grid-cols-2">
@@ -2877,7 +3013,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         onRemove={() => removeListItem("variants", index)}
                         onSetDefault={() => setDefaultVariant(index)}
                         rates={rates}
-                        autoConvert={autoConvert}
+                        autoConvert={autoConvert || isShopSourcePriceBook(rates)}
                       />
                     ))}
                   </div>

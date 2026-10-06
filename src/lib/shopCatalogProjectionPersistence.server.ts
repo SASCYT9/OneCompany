@@ -7,7 +7,9 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import { projectionSourceFromRevision } from "./shopCatalogProjectionSource.server";
 import {
+  buildShopCatalogProjection,
   buildShopCatalogProjectionBatch,
   SHOP_CATALOG_PROJECTION_LIMITS,
   type ShopCatalogProjectionBatch,
@@ -601,6 +603,88 @@ export async function persistShopCatalogMediaProjectionBuild(
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 }
   );
+}
+
+/**
+ * PRICE changes can advance an unchanged projection without deleting fitment,
+ * SKU, and facet rows. Compare against the exact previous immutable revision;
+ * a missed content event or a missing projection always uses the full rebuild.
+ * Child source versions must advance too: SKU queries join on that version.
+ */
+export async function persistShopCatalogPriceProjectionBuild(
+  incoming: ShopCatalogProjectionBuild
+): Promise<ShopCatalogProjectionPersistResult> {
+  return prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<Array<{ id: string; catalogVersion: bigint }>>(Prisma.sql`
+      SELECT id,"catalogVersion" FROM "ShopProduct" WHERE id=${incoming.productId} FOR UPDATE
+    `);
+    if (locked.length !== 1) throw new Error(`Cannot project missing product ${incoming.productId}`);
+    if (locked[0].catalogVersion > BigInt(incoming.catalogVersion)) {
+      return { productId: incoming.productId, projectionVersion: incoming.projectionVersion,
+        decision: "STALE_VERSION", applied: false, rowCount: 0 };
+    }
+    if (locked[0].catalogVersion !== BigInt(incoming.catalogVersion))
+      throw new Error(`Price projection exceeds canonical version: ${incoming.productId}`);
+    const current = await tx.shopCatalogProjection.findMany({
+      where: { productId: incoming.productId },
+      select: { locale: true, projectionVersion: true, contentHash: true },
+    });
+    const plan = planShopCatalogProjectionPersistence(current, incoming);
+    if (!plan.apply && ["IDEMPOTENT", "STALE_VERSION"].includes(plan.decision)) {
+      return { productId: plan.productId, projectionVersion: plan.projectionVersion.toString(),
+        decision: plan.decision, applied: false, rowCount: 0 };
+    }
+    const previousVersion = current[0]?.projectionVersion;
+    if (plan.decision !== "NEWER_VERSION" || previousVersion == null ||
+      current.length !== incoming.projections.length) return persistInTransaction(tx, incoming);
+    const revision = await tx.shopCatalogProductRevision.findUnique({
+      where: { productId_version: { productId: incoming.productId, version: previousVersion } },
+    });
+    if (!revision) return persistInTransaction(tx, incoming);
+    const previousSource = projectionSourceFromRevision({
+      productId: revision.productId, catalogVersion: revision.version, revisionId: revision.id,
+      revisionVersion: revision.version, contentHash: revision.contentHash,
+      createdAt: revision.createdAt, snapshot: revision.snapshot,
+    });
+    const previous = buildShopCatalogProjection(previousSource);
+    if (planShopCatalogProjectionPersistence(current, previous).decision !== "IDEMPOTENT")
+      return persistInTransaction(tx, incoming);
+    const advanced = buildShopCatalogProjection({ ...previousSource,
+      sourceVersion: incoming.sourceVersion, catalogVersion: incoming.catalogVersion,
+      sourceUpdatedAt: incoming.sourceUpdatedAt, canonicalContentHash: incoming.sourceContentHash,
+    });
+    if (advanced.contentHash !== incoming.contentHash) return persistInTransaction(tx, incoming);
+
+    const expectedCounts = [incoming.skuRecords.length, incoming.compatibilityPolicies.length,
+      incoming.compatibilityClauses.length, incoming.compatibilityConstraints.length];
+    const counts = await tx.$queryRaw<Array<{ kind: number; count: bigint }>>(Prisma.sql`
+      SELECT 0 AS kind, count(*) FROM "ShopCatalogProjectionSku" WHERE "productId"=${incoming.productId} AND "sourceVersion"=${previousVersion}
+      UNION ALL SELECT 1, count(*) FROM "ShopCatalogProjectionPolicy" WHERE "productId"=${incoming.productId} AND "sourceVersion"=${previousVersion}
+      UNION ALL SELECT 2, count(*) FROM "ShopCatalogProjectionClause" WHERE "productId"=${incoming.productId} AND "sourceVersion"=${previousVersion}
+      UNION ALL SELECT 3, count(*) FROM "ShopCatalogProjectionConstraint" WHERE "productId"=${incoming.productId} AND "sourceVersion"=${previousVersion}
+    `);
+    if (counts.some(row => Number(row.count) !== expectedCounts[row.kind]))
+      return persistInTransaction(tx, incoming);
+    for (const rawRow of plan.projectionRows) {
+      const row = rawRow as Record<string, unknown>;
+      const updated = await tx.shopCatalogProjection.updateMany({
+        where: { productId: plan.productId, locale: String(row.locale), projectionVersion: previousVersion },
+        data: { sourceVersion: row.sourceVersion as bigint, catalogVersion: row.catalogVersion as bigint,
+          projectionVersion: row.projectionVersion as bigint, sourceUpdatedAt: row.sourceUpdatedAt as Date | null,
+          sourceContentHash: String(row.sourceContentHash), canonicalRelationHash: String(row.canonicalRelationHash),
+          compatibilityHash: String(row.compatibilityHash), contentHash: String(row.contentHash) },
+      });
+      if (updated.count !== 1) throw new Error(`Price projection version changed: ${plan.productId}`);
+    }
+    const where = { productId: incoming.productId, sourceVersion: previousVersion };
+    const data = { sourceVersion: plan.projectionVersion };
+    await tx.shopCatalogProjectionSku.updateMany({ where, data });
+    await tx.shopCatalogProjectionPolicy.updateMany({ where, data });
+    await tx.shopCatalogProjectionClause.updateMany({ where, data });
+    await tx.shopCatalogProjectionConstraint.updateMany({ where, data });
+    return { productId: plan.productId, projectionVersion: plan.projectionVersion.toString(),
+      decision: plan.decision, applied: true, rowCount: plan.projectionRows.length };
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 30_000 });
 }
 
 /** Processes exactly one bounded keyset page so a caller can checkpoint after every page. */

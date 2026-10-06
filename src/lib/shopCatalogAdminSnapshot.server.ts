@@ -120,10 +120,7 @@ function jsonSnapshot(record: unknown): unknown {
   );
 }
 
-async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, productId: string) {
-  const product = await tx.shopProduct.findUnique({
-    where: { id: productId },
-    include: {
+const losslessCanonicalInclude = {
       category: true,
       bundle: { include: { items: true } },
       bundleComponentItems: true,
@@ -176,19 +173,28 @@ async function loadLosslessCanonicalProduct(tx: Prisma.TransactionClient, produc
           },
         },
       },
-    },
-  });
-  if (!product) throw new Error(`Cannot snapshot missing product ${productId}`);
-  const variantOrderItems = product.variants.length
-    ? await tx.shopOrderItem.findMany({
-        where: {
-          productId: null,
-          variantId: { in: product.variants.map((variant) => variant.id) },
-        },
-        select: { id: true, productId: true, variantId: true, productSlug: true },
-      })
-    : [];
-  return { product, variantOrderItems };
+    } satisfies Prisma.ShopProductInclude;
+
+export async function buildShopCatalogAdminSnapshots(
+  tx: Prisma.TransactionClient,
+  versions: readonly { productId: string; nextCatalogVersion: string }[],
+  actor: { type: string; id?: string | null; reason?: string | null }
+): Promise<Map<string, ShopCatalogCoordinatedMutationSnapshot>> {
+  if (!versions.length || new Set(versions.map(row=>row.productId)).size!==versions.length)
+    throw new Error('Snapshot batch requires distinct products');
+  const products=await tx.shopProduct.findMany({where:{id:{in:versions.map(row=>row.productId)}},include:losslessCanonicalInclude});
+  const ownerByVariant=new Map(products.flatMap(product=>product.variants.map(variant=>[variant.id,product.id] as const)));
+  const variantOrders=ownerByVariant.size ? await tx.shopOrderItem.findMany({where:{productId:null,variantId:{in:[...ownerByVariant.keys()]}},select:{id:true,productId:true,variantId:true,productSlug:true}}) : [];
+  const records=new Map(products.map(product=>[product.id,product]));
+  const result=new Map<string,ShopCatalogCoordinatedMutationSnapshot>();
+  for(const version of versions){
+    const product=records.get(version.productId);
+    if(!product)throw new Error(`Cannot snapshot missing product ${version.productId}`);
+    if(product.catalogVersion.toString()!==version.nextCatalogVersion)throw new Error('Snapshot version does not match canonical state');
+    const canonical={product,variantOrderItems:variantOrders.filter(item=>item.variantId && ownerByVariant.get(item.variantId)===product.id)};
+    result.set(product.id,{canonical:jsonSnapshot(canonical),projectionSource:buildShopCatalogProjectionSourceFromAdminRecord(product,version.nextCatalogVersion,product.variants.reduce((count,variant)=>count+variant.inventoryLevels.length,0)),actorType:actor.type,actorId:actor.id??null,reason:actor.reason??null});
+  }
+  return result;
 }
 
 export function buildShopCatalogProjectionSourceFromAdminRecord(
@@ -311,20 +317,6 @@ export async function buildShopCatalogAdminSnapshot(
   nextCatalogVersion: string,
   actor: { type: string; id?: string | null; reason?: string | null }
 ): Promise<ShopCatalogCoordinatedMutationSnapshot> {
-  const canonical = await loadLosslessCanonicalProduct(tx, productId);
-  const record = canonical.product;
-  return {
-    canonical: jsonSnapshot(canonical),
-    projectionSource: buildShopCatalogProjectionSourceFromAdminRecord(
-      record,
-      nextCatalogVersion,
-      canonical.product.variants.reduce(
-        (count, variant) => count + variant.inventoryLevels.length,
-        0
-      )
-    ),
-    actorType: actor.type,
-    actorId: actor.id ?? null,
-    reason: actor.reason ?? null,
-  };
+  const snapshots = await buildShopCatalogAdminSnapshots(tx, [{ productId, nextCatalogVersion }], actor);
+  return snapshots.get(productId)!;
 }

@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { assertManagedShopProductSourcesReady } from "./shopPriceSourceReadiness.server";
 
-import { canonicalizeCatalogBaselineValue, hashCatalogBaselineValue } from "./shopCatalogBaseline";
+import { encodeShopCatalogRevisionCanonical } from "./shopCatalogRevisionCanonical";
 import {
   buildShopCatalogProjection,
   type ShopCatalogProjectionSource,
@@ -110,7 +111,8 @@ export async function coordinateShopCatalogProductMutationInTransaction(
         data: { catalogVersion: nextVersion },
       });
       const snapshotInput = await input.mutateAndSnapshot(tx, nextVersion.toString());
-      const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
+      await assertManagedShopProductSourcesReady(tx, product.id);
+      const { contentHash, canonical } = encodeShopCatalogRevisionCanonical(snapshotInput.canonical);
       const projectionSource = {
         ...snapshotInput.projectionSource,
         productId: product.id,
@@ -120,7 +122,6 @@ export async function coordinateShopCatalogProductMutationInTransaction(
       } satisfies ShopCatalogProjectionSource;
       buildShopCatalogProjection(projectionSource);
       const safeProjectionSource = jsonRoundTrip(projectionSource, "projectionSource");
-      const canonical = canonicalizeCatalogBaselineValue(snapshotInput.canonical);
       const newSlug = projectionSource.slug;
       const plan = buildShopCatalogPublicationPlan({
         entityType: "PRODUCT",
@@ -244,7 +245,8 @@ export async function coordinateShopCatalogProductCreationWithClient(
         throw new Error(`New catalog product ${productId} must start at version 0`);
       }
       const snapshotInput = await input.snapshot(tx, productId, initialVersion.toString());
-      const contentHash = hashCatalogBaselineValue(snapshotInput.canonical);
+      await assertManagedShopProductSourcesReady(tx, productId);
+      const { contentHash, canonical } = encodeShopCatalogRevisionCanonical(snapshotInput.canonical);
       const projectionSource = {
         ...snapshotInput.projectionSource,
         productId,
@@ -254,7 +256,6 @@ export async function coordinateShopCatalogProductCreationWithClient(
       } satisfies ShopCatalogProjectionSource;
       buildShopCatalogProjection(projectionSource);
       const safeProjectionSource = jsonRoundTrip(projectionSource, "projectionSource");
-      const canonical = canonicalizeCatalogBaselineValue(snapshotInput.canonical);
       const plan = buildShopCatalogPublicationPlan({
         entityType: "PRODUCT",
         entityId: productId,
