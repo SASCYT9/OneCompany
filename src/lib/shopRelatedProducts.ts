@@ -12,6 +12,7 @@
 import { parseRevozportPricingWeight, parseRevozportShippingQuotes } from "./revozportShipping";
 import type { ShopProduct } from "./shopCatalog";
 import { hasShopProductAdminMediaOverride } from "./shopProductAdminMedia";
+import { withShopPriceSource } from "./shopPriceBookCurrency";
 
 /**
  * The related-products cards only need identity, title/category, image and
@@ -34,6 +35,10 @@ export type ShopRelatedProductRow = {
   collectionUa: string | null;
   collectionEn: string | null;
   stock: string;
+  priceSourceCurrency?: string | null;
+  compareAtSourceCurrency?: string | null;
+  b2bPriceSourceCurrency?: string | null;
+  b2bCompareAtSourceCurrency?: string | null;
   priceEur: unknown;
   priceEurEurope: unknown;
   priceUsd: unknown;
@@ -84,25 +89,25 @@ export function projectShopRelatedProduct(row: ShopRelatedProductRow): ShopProdu
     leadTime: emptyText,
     stock: row.stock === "preOrder" ? "preOrder" : "inStock",
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
-    price: relatedMoney(row, "price"),
+    price: withShopPriceSource(relatedMoney(row, "price"), row.priceSourceCurrency),
     shippingPricingWeightKg: parseRevozportPricingWeight([...(row.metafields ?? [])]),
     shippingToUaUsd: parseRevozportShippingQuotes([...(row.metafields ?? [])]).seaUsd,
     europePrice: relatedEuropeMoney(row),
-    b2bPrice: {
+    b2bPrice: withShopPriceSource({
       eur: Number(row.priceEurB2b ?? 0) || 0,
       usd: Number(row.priceUsdB2b ?? 0) || 0,
       uah: Number(row.priceUahB2b ?? 0) || 0,
-    },
-    compareAt: {
+    }, row.b2bPriceSourceCurrency),
+    compareAt: withShopPriceSource({
       eur: Number(row.compareAtEur ?? 0) || 0,
       usd: Number(row.compareAtUsd ?? 0) || 0,
       uah: Number(row.compareAtUah ?? 0) || 0,
-    },
-    b2bCompareAt: {
+    }, row.compareAtSourceCurrency),
+    b2bCompareAt: withShopPriceSource({
       eur: Number(row.compareAtEurB2b ?? 0) || 0,
       usd: Number(row.compareAtUsdB2b ?? 0) || 0,
       uah: Number(row.compareAtUahB2b ?? 0) || 0,
-    },
+    }, row.b2bCompareAtSourceCurrency),
     image: row.image ?? "",
     adminMediaOverride: hasShopProductAdminMediaOverride(row.metafields),
     highlights: [],
