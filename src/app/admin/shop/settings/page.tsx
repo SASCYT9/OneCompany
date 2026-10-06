@@ -241,7 +241,8 @@ type NbuRefreshResponse = {
     usdToUah: number;
     usdPerEur: number;
     usdSpecial: boolean;
-  };
+  } | null;
+  reason?: "manual_rates_active";
 };
 
 type RegionalPricingRuleForm = {
@@ -989,9 +990,14 @@ export default function AdminShopSettingsPage() {
       const data = (await response.json().catch(() => ({}))) as Partial<NbuRefreshResponse> & {
         error?: string;
       };
-      if (!response.ok || !data.settings || !data.nbu) {
+      if (!response.ok || !data.settings) {
         throw new Error(data.error || "Не вдалося оновити курси з НБУ");
       }
+      if (data.reason === "manual_rates_active") {
+        setSuccess("Активні ручні курси. Оновлення НБУ пропущено; значення збережено.");
+        return;
+      }
+      if (!data.nbu) throw new Error(data.error || "Не вдалося оновити курси з НБУ");
       const settings = data.settings;
       const nbu = data.nbu;
 
