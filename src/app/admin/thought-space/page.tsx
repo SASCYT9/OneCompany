@@ -24,7 +24,10 @@ export default function ThoughtSpacePage() {
 
   useEffect(() => {
     fetchThoughts();
-    const interval = setInterval(fetchThoughts, 10000); // Оновлення кожні 10 сек
+    // Оновлення кожні 10 сек, лише коли вкладка видима
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") fetchThoughts();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 

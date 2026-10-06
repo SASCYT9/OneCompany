@@ -1,7 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getIlmbergerProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
@@ -41,13 +40,13 @@ export default async function IlmbergerCollectionsPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const [settingsRecord, ilmbergerRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getIlmbergerProductsServer(),
   ]);
   const ilmbergerProducts = ilmbergerRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null

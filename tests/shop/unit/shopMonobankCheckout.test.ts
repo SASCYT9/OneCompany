@@ -107,6 +107,7 @@ async function fixture() {
       clearShopCart: async () => {
         cartClears++;
       },
+      setShopCartCookies: () => {},
     },
     "@/lib/shopCustomers": { upsertCustomerDefaultShippingAddress: async () => {} },
     "@/lib/shopAdminSettings": {

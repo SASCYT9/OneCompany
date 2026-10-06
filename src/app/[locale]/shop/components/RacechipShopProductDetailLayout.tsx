@@ -18,6 +18,7 @@ import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
+import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 
 type Props = {
   locale: SupportedLocale;
@@ -138,6 +139,7 @@ export default function RacechipShopProductDetailLayout({
       });
       if (!response.ok) throw new Error("Add to cart failed");
       setInCart(true);
+      notifyShopCartChanged();
       router.push(`/${locale}/shop/cart`);
     } catch {
       // Cart API failed — button resets via finally; user can retry.

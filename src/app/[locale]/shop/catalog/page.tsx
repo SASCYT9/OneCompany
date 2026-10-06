@@ -23,7 +23,7 @@ import { observeShopCatalogRead } from "@/lib/shopCatalogReadTelemetry";
 import { getShopCatalogCardPricingByIds } from "@/lib/shopCatalogCardPricing.server";
 import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { prisma } from "@/lib/prisma";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
@@ -175,13 +175,13 @@ export default async function CatalogPage({ params, searchParams }: Props) {
         : Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>);
     const [settingsRecord, session, warehouseProducts, vehicleProductIds, sharedEventuriProducts] =
       await Promise.all([
-        getOrCreateShopSettings(prisma),
+        getPublicShopSettingsRuntime(),
         getCurrentShopCustomerSession(),
         warehouseProductsPromise,
         vehicleProductIdsPromise,
         sharedEventuriProductsPromise,
       ]);
-    const settings = getShopSettingsRuntime(settingsRecord);
+    const settings = settingsRecord;
     const pricingContext = await buildShopViewerPricingContextServer({
       prisma,
       settings,

@@ -4,9 +4,10 @@ import {
   deleteShopCartItem,
   SHOP_CART_COOKIE,
   serializeResolvedShopCart,
+  setShopCartCookies,
   updateShopCartItemQuantity,
 } from "@/lib/shopCart";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { prisma } from "@/lib/prisma";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
@@ -19,24 +20,11 @@ import {
   updateLocalShopCartItem,
 } from "@/lib/shopLocalCart";
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
-
-function setCartCookie(response: NextResponse, token: string) {
-  response.cookies.set(SHOP_CART_COOKIE, token, {
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
-}
-
 async function loadPricingContext() {
-  const [session, settingsRecord] = await Promise.all([
+  const [session, settings] = await Promise.all([
     getCurrentShopCustomerSession(),
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
   ]);
-  const settings = getShopSettingsRuntime(settingsRecord);
   return {
     session,
     settings,
@@ -93,7 +81,7 @@ export async function PATCH(
       });
       const payload = await serializeLocalShopCart(cart, context);
       const response = NextResponse.json(payload);
-      setCartCookie(response, token);
+      setShopCartCookies(response, token, payload.totalItems);
       return response;
     }
     const { cart, token } = await updateShopCartItemQuantity(prisma, {
@@ -106,7 +94,7 @@ export async function PATCH(
     });
     const payload = await serializeResolvedShopCart(cart, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, token);
+    setShopCartCookies(response, token, payload.totalItems);
     return response;
   } catch (error) {
     if ((error as Error).message === "CART_ITEM_NOT_FOUND") {
@@ -136,7 +124,7 @@ export async function DELETE(
       });
       const payload = await serializeLocalShopCart(cart, context);
       const response = NextResponse.json(payload);
-      setCartCookie(response, token);
+      setShopCartCookies(response, token, payload.totalItems);
       return response;
     }
     const { cart, token } = await deleteShopCartItem(prisma, {
@@ -148,7 +136,7 @@ export async function DELETE(
     });
     const payload = await serializeResolvedShopCart(cart, context);
     const response = NextResponse.json(payload);
-    setCartCookie(response, token);
+    setShopCartCookies(response, token, payload.totalItems);
     return response;
   } catch (error) {
     console.error("Shop cart item delete", error);

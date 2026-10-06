@@ -1,9 +1,8 @@
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
 import { getAkrapovicProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
@@ -52,13 +51,13 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
   const isMoto = scope === "moto" || segment === "moto";
 
   const [settingsRecord, akrapovicRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getAkrapovicProductsServer(),
   ]);
   const akrapovicProducts = akrapovicRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null

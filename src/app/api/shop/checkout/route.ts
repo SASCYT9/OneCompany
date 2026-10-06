@@ -17,7 +17,7 @@ import { dispatchCrmWebhook } from "@/lib/webhookDispatcher";
 import OrderConfirmationEmail from "@/components/emails/OrderConfirmationEmail";
 import { notifyAdminNewShopOrder } from "@/lib/telegramNotifications";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from "@/lib/shopCart";
+import { clearShopCart, resolveShopCart, setShopCartCookies, SHOP_CART_COOKIE } from "@/lib/shopCart";
 import { upsertCustomerDefaultShippingAddress } from "@/lib/shopCustomers";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 
@@ -38,7 +38,6 @@ import {
 } from "@/lib/shopInternationalCheckout";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ["EUR", "USD", "UAH"] as const;
 
@@ -88,6 +87,23 @@ async function monobankCheckoutResponse(
   return { orderNumber: order.orderNumber, viewToken: order.viewToken, redirectUrl };
 }
 
+async function withCurrentCustomerPricingState(
+  session: Awaited<ReturnType<typeof getCurrentShopCustomerSession>>
+) {
+  if (!session?.customerId) return session;
+  const customer = await prisma.shopCustomer.findUnique({
+    where: { id: session.customerId },
+    select: { group: true, b2bDiscountPercent: true, isActive: true },
+  });
+  if (!customer?.isActive) return null;
+  return {
+    ...session,
+    group: customer.group,
+    b2bDiscountPercent:
+      customer.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null,
+  };
+}
+
 export async function POST(req: NextRequest) {
   let body: CheckoutBody;
   try {
@@ -100,7 +116,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid checkout" }, { status: 400 });
   }
 
-  const session = await getCurrentShopCustomerSession();
+  // Session tokens refresh customer state every few minutes; price the order from
+  // the current record so a revoked B2B group or discount cannot be used here.
+  const session = await withCurrentCustomerPricingState(await getCurrentShopCustomerSession());
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
   let monoKeyHash: string | undefined;
   let monoRequestHash: string | undefined;
@@ -566,12 +584,7 @@ export async function POST(req: NextRequest) {
     requiresQuote: quote.requiresQuote,
     brandsRequiringQuote: quote.brandsRequiringQuote,
   });
-  response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+  // The order consumed the cart; the header badge reads this count cookie.
+  setShopCartCookies(response, activeCart.token, 0);
   return response;
 }
