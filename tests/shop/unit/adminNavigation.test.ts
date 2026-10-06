@@ -59,7 +59,6 @@ test("imports section exposes feed exports beside import tooling", () => {
       "/admin/shop/import",
       "/admin/shop/stock",
       "/admin/shop/feed",
-      "/admin/shop/turn14",
       "/admin/shop/audit",
     ]
   );

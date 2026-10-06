@@ -121,7 +121,6 @@ export type ShopAiProduct = {
   slug: string;
   href?: string | null;
   variantId: string | null;
-  turn14Id: string;
   fitments?: Array<{
     make: string | null;
     models: string[];

@@ -97,7 +97,6 @@ function responseWithProducts(
       inStock: true,
       price: null,
       slug: product.id,
-      turn14Id: "",
     })),
     totalItems: products.length,
     plan: {

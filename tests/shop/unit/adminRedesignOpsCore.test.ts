@@ -96,26 +96,6 @@ test("import operations screens use shared admin primitives including job detail
       ],
     },
     {
-      path: "src/app/admin/shop/turn14/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminMetricGrid",
-        "AdminActionBar",
-        "AdminFilterBar",
-        "AdminTableShell",
-      ],
-    },
-    {
-      path: "src/app/admin/shop/turn14/markups/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminMetricGrid",
-        "AdminActionBar",
-        "AdminFilterBar",
-        "AdminTableShell",
-      ],
-    },
-    {
       path: "src/app/admin/shop/quality/page.tsx",
       markers: [
         "Catalog Quality Center",

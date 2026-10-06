@@ -96,7 +96,6 @@ export async function POST(request: NextRequest) {
             discountPct: item.discountPct,
             unitPrice: item.unitPrice,
             weightKg: item.weightKg,
-            turn14Id: item.turn14Id,
           })),
         },
         items: {

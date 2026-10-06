@@ -1,7 +1,7 @@
 /**
  * Shipping calculator for B2B orders.
  *
- * Weight conversion:  Turn14 items are in LBS → we convert to KG
+ * Weight conversion:  supplier weights in LBS → we convert to KG
  * Volumetric weight:  L × W × H (cm) / 5000
  * Shipping cost:      actualWeight × ratePerKg + max(0, volWeight − actualWeight) × volSurchargePerKg
  *
@@ -184,7 +184,7 @@ export function calcShipping(input: ShippingCalcInput): ShippingCalcResult {
 // ─── Price calculation ───────────────────────────────────────
 
 export interface OrderPriceCalcInput {
-  /** Base cost from supplier (e.g. Turn14 dealer price) in USD. */
+  /** Base cost from supplier (dealer price) in USD. */
   baseCostUsd: number;
   /** Markup percentage to apply on top of base cost. */
   markupPct: number;

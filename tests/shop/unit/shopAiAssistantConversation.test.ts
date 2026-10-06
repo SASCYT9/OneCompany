@@ -33,7 +33,6 @@ const product = (id: string): ShopAiProduct => ({
   price: 100,
   slug: id,
   variantId: null,
-  turn14Id: "",
 });
 
 test("continuation inherits the previous vehicle, category and power goal", () => {

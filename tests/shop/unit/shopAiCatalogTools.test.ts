@@ -42,7 +42,6 @@ function candidate(id: string, brand: string, chassis: string, gain: number | nu
     price: 1000,
     slug: id,
     variantId: null,
-    turn14Id: "",
     matchStatus: "exact",
     compatibility: "confirmed",
     facts: gain

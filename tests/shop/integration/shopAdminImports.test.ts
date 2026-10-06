@@ -195,9 +195,6 @@ function createMockPrisma(existingProduct: MockProductRecord | null) {
         return { id: `audit-${state.auditLogs}` };
       },
     },
-    turn14CatalogItem: {
-      findMany: async () => [],
-    },
   };
 }
 

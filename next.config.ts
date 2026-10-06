@@ -368,26 +368,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Turn14 hub is a 700k-part live proxy — keep crawlers out so
-        // they don't waste budget on dynamic search permutations.
-        source: "/:locale(ua|en)/shop/turn14/:path*",
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex, nofollow, noarchive",
-          },
-        ],
-      },
-      {
-        source: "/:locale(ua|en)/shop/turn14",
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex, nofollow, noarchive",
-          },
-        ],
-      },
-      {
         source: "/:locale(ua|en)/admin/:path*",
         headers: [
           {
@@ -677,9 +657,15 @@ const nextConfig: NextConfig = {
           destination: `/:locale/shop/${segment}/products/:slug`,
           permanent: true,
         })),
+      // The Turn14 live catalogue was retired; send old links to the shop hub.
       {
-        source: "/:locale(ua|en)/admin/shop/turn14-sync",
-        destination: "/admin/shop/turn14-sync",
+        source: "/:locale(ua|en)/shop/turn14/:path*",
+        destination: "/:locale/shop",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/turn14",
+        destination: "/:locale/shop",
         permanent: true,
       },
       {

@@ -25,7 +25,6 @@ function product(id: string, brand: string): ShopAiProduct {
     price: 100,
     slug: id,
     variantId: null,
-    turn14Id: "",
   };
 }
 

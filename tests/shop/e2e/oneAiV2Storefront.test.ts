@@ -31,7 +31,6 @@ function mockedAssistantProduct(input: {
     slug: input.id,
     href: `/en/shop/product/${input.id}`,
     variantId: null,
-    turn14Id: "",
     matchStatus: input.status,
     matchBasis: "fitment",
     compatibility: input.status === "exact" ? "confirmed" : "needs_review",

@@ -65,7 +65,7 @@ type Rule = {
   brackets: Bracket[];
 };
 
-type Brand = { brand: string; productCount: number; turn14BrandId: string | null };
+type Brand = { brand: string; productCount: number };
 
 type ShippingZone = {
   id: string;
@@ -172,7 +172,7 @@ export default function BrandRulesPage() {
     try {
       const [settingsRes, brandsRes] = await Promise.all([
         fetch("/api/admin/shop/settings", { cache: "no-store" }),
-        fetch("/api/admin/shop/turn14/sync-dimensions", { cache: "no-store" }),
+        fetch("/api/admin/shop/logistics/brand-list", { cache: "no-store" }),
       ]);
       if (!settingsRes.ok) throw new Error("Не вдалося завантажити налаштування магазину");
 
@@ -210,7 +210,7 @@ export default function BrandRulesPage() {
       if (!rule.brandName.trim()) continue;
       const key = rule.brandName.trim().toLowerCase();
       if (!values.has(key)) {
-        values.set(key, { brand: rule.brandName.trim(), productCount: 0, turn14BrandId: null });
+        values.set(key, { brand: rule.brandName.trim(), productCount: 0 });
       }
     }
     return Array.from(values.values()).sort((a, b) => a.brand.localeCompare(b.brand));

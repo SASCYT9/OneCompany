@@ -30,7 +30,6 @@ import {
   AdminSelectField as SelectField,
   AdminTextareaField as TextareaField,
 } from "@/components/admin/AdminFormFields";
-import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
 import { addMissingShopMarketZones } from "@/lib/shopMarkets";
@@ -583,7 +582,6 @@ function moveItem<T>(items: T[], index: number, direction: -1 | 1) {
 }
 
 export default function AdminShopSettingsPage() {
-  const confirm = useConfirm();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -2308,48 +2306,6 @@ export default function AdminShopSettingsPage() {
         </div>
       </section>
 
-      {/* Turn14 Dimensions Sync */}
-      <section className="mt-6 rounded-none border border-white/10 bg-white/3 p-5">
-        <div className="mb-5">
-          <h3 className="text-lg font-medium text-white mb-1">Синхронізація логістики з Turn14</h3>
-          <p className="text-sm text-white/45 max-w-2xl">
-            Автоматичне заповнення точних розмірів та ваги товару за допомогою Turn14 API. Скрипт
-            знайде всі локальні товари без ваги, які відповідають Turn14-артикулам, і заповнить їх.
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={saving} // using saving state to block multiple requests
-          onClick={async () => {
-            const ok = await confirm({
-              tone: "warning",
-              title: "Запустити масове оновлення розмірів?",
-              description:
-                "Розміри товарів будуть оновлені на основі даних Turn14. Процес може зайняти хвилину і не може бути скасований.",
-              confirmLabel: "Запустити синхронізацію",
-            });
-            if (!ok) return;
-            try {
-              const res = await fetch("/api/admin/shop/turn14/sync-dimensions", { method: "POST" });
-              const json = await res.json();
-              if (res.ok) {
-                toast.success(
-                  "Синхронізацію завершено",
-                  `Оновлено товарів: ${json.updatedCount || 0}`
-                );
-              } else {
-                toast.error("Помилка синхронізації", json.error);
-              }
-            } catch (e: any) {
-              toast.error("Помилка мережі", e.message);
-            }
-          }}
-          className="inline-flex items-center gap-2 rounded-none bg-blue-500/15 text-zinc-100 px-5 py-2.5 text-sm font-medium hover:bg-blue-500/15 text-zinc-100 disabled:opacity-50"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Запустити синхронізацію габаритів
-        </button>
-      </section>
     </AdminPage>
   );
 }

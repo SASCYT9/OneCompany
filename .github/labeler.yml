@@ -50,13 +50,6 @@
           - "src/lib/email*"
           - "src/emails/**"
 
-"area: turn14":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/turn14*"
-          - "**/Turn14*"
-          - ".github/workflows/turn14-cron.yml"
-
 "area: db":
   - changed-files:
       - any-glob-to-any-file:

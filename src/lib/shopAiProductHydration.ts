@@ -133,7 +133,6 @@ export async function hydrateShopAiKnowledgeCandidates(
         slug: product.slug,
         href: buildShopStorefrontProductPathForProduct(context.locale, product),
         variantId: defaultVariant?.id || null,
-        turn14Id: "",
         matchStatus: candidate.matchStatus,
         matchBasis: candidate.matchBasis,
         matchReason: candidate.matchReason,

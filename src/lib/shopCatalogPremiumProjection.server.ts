@@ -400,7 +400,6 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       slug: item.slug,
       href: cardWheelSku ? `${productHref}?variantSku=${encodeURIComponent(cardWheelSku)}` : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
-      turn14Id: "",
       source: "catalog_v2_projection" as const,
     };
   });

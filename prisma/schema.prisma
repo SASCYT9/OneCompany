@@ -1586,6 +1586,8 @@ model ShopImportRowError {
   @@index([jobId, rowNumber])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14BrandMarkup {
   id           String    @id @default(cuid())
   brandId      String    @unique
@@ -1603,6 +1605,8 @@ model Turn14BrandMarkup {
   @@index([brandName])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14Item {
   id          String          @id
   partNumber  String
@@ -1625,6 +1629,8 @@ model Turn14Item {
   @@index([name])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14Fitment {
   id       String     @id @default(cuid())
   itemId   String
@@ -1758,6 +1764,8 @@ model StockProduct {
   @@index([name])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 /// A local mirror of the Turn14 complete catalog to bypass their lack of search functionality.
 /// Everything is stored heavily relying on JsonB for complete data retention.
 model Turn14CatalogItem {

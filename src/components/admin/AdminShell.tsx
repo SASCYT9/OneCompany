@@ -152,7 +152,7 @@ const COMMAND_ACTIONS = [
   {
     href: "/admin/shop/orders/create",
     label: "Створити B2B замовлення",
-    description: "Ручне замовлення з місцевого або Turn14 складу",
+    description: "Ручне замовлення з каталогу або вручну",
     icon: PackagePlus,
   },
   {

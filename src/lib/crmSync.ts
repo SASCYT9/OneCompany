@@ -180,28 +180,12 @@ export async function syncAllCrmData(): Promise<SyncResult> {
       if (p.sku) skuMap.set(p.id, p.sku);
     }
 
-    // Lookup images from Turn14/DO88 catalog based on extracted SKUs
-    const allSkus = Array.from(skuMap.values());
-    const turn14Items = await prisma.turn14Item.findMany({
-      where: { partNumber: { in: allSkus } },
-      select: { partNumber: true, attributes: true }
-    });
-    const imageMap = new Map<string, string>();
-    for (const t14 of turn14Items) {
-      if (t14.attributes) {
-        const attrs = t14.attributes as any;
-        const img = attrs.product_images?.[0] || attrs.thumbnail;
-        if (img) imageMap.set(t14.partNumber, img);
-      }
-    }
-
     for (const item of items) {
       try {
         const orderAirtableId = item.orderIds?.[0];
         const localOrderId = orderAirtableId ? orderMap.get(orderAirtableId) : null;
         
         const sku = item.productId ? skuMap.get(item.productId) : null;
-        const imageUrl = sku ? imageMap.get(sku) : null;
 
         await prisma.crmOrderItem.upsert({
           where: { airtableId: item.id },
@@ -224,7 +208,6 @@ export async function syncAllCrmData(): Promise<SyncResult> {
             source: item.source,
             productId: item.productId || null,
             sku: sku || null,
-            imageUrl: imageUrl || null,
             orderId: localOrderId || null,
             syncedAt: new Date(),
           },
@@ -248,7 +231,6 @@ export async function syncAllCrmData(): Promise<SyncResult> {
             source: item.source,
             productId: item.productId || null,
             sku: sku || null,
-            imageUrl: imageUrl || null,
             orderId: localOrderId || null,
           },
         });

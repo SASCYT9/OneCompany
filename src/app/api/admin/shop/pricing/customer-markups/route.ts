@@ -7,7 +7,7 @@ import {
   getAllCustomerMarkups,
   upsertCustomerMarkup,
   deleteCustomerMarkup,
-} from "@/lib/turn14Pricing";
+} from "@/lib/shopCustomerMarkups";
 import { fetchAirtableCustomers } from "@/lib/airtable";
 
 /**
