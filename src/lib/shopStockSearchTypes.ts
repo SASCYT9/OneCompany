@@ -24,7 +24,6 @@ export type StockItem = {
   slug: string;
   href?: string | null;
   variantId: string | null;
-  turn14Id: string;
   category?: string | null;
   matchStatus?: "exact" | "requires_verification";
   missingFacts?: string[];

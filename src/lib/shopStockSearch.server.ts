@@ -1733,7 +1733,6 @@ export async function searchShopStock(request: { url: string }) {
             ? `${buildShopStorefrontProductPathForProduct(locale, product)}?variantSku=${encodeURIComponent(q.trim())}`
             : buildShopStorefrontProductPathForProduct(locale, product),
           variantId: strictCatalogMatch?.variantId || defaultVariant?.id || null,
-          turn14Id: "", // empty so frontend knows it's a shop product
           source: "local" as const,
           ...(strictCatalogMatch
             ? {

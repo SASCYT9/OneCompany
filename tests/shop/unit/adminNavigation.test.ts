@@ -40,28 +40,22 @@ test("catalog section keeps the phase-1 commerce modules together", () => {
       "/admin/shop/categories",
       "/admin/shop/collections",
       "/admin/shop/bundles",
-      "/admin/shop/media",
+      "/admin/shop/wheelforce-wheelsets",
+      "/admin/shop/catalogs",
       "/admin/shop/quality",
-      "/admin/shop/fitment",
-      "/admin/shop/ai-quality",
       "/admin/shop/pricing",
-      "/admin/shop/seo",
     ]
   );
 });
 
-test("imports section exposes feed exports beside import tooling", () => {
+// The manager workflow streamline (c19e67f7) folded stock, feed and audit tooling
+// into the single import workspace.
+test("imports section is the single import workspace", () => {
   const importsSection = ADMIN_NAV_SECTIONS.find((section) => section.key === "imports");
   assert.ok(importsSection);
   assert.deepEqual(
     importsSection.items.map((item) => item.href),
-    [
-      "/admin/shop/import",
-      "/admin/shop/stock",
-      "/admin/shop/feed",
-      "/admin/shop/turn14",
-      "/admin/shop/audit",
-    ]
+    ["/admin/shop/import"]
   );
 });
 
@@ -90,8 +84,8 @@ test("active item and section lookup resolves nested catalog and logistics route
   assert.equal(getActiveAdminNavSection("/admin/shop/collections/123")?.key, "catalog");
   assert.equal(getActiveAdminNavItem("/admin/shop/quality")?.href, "/admin/shop/quality");
   assert.equal(getActiveAdminNavSection("/admin/shop/quality")?.key, "catalog");
-  assert.equal(getActiveAdminNavItem("/admin/shop/feed")?.href, "/admin/shop/feed");
-  assert.equal(getActiveAdminNavSection("/admin/shop/feed")?.key, "imports");
+  assert.equal(getActiveAdminNavItem("/admin/shop/import")?.href, "/admin/shop/import");
+  assert.equal(getActiveAdminNavSection("/admin/shop/import")?.key, "imports");
   assert.equal(
     getActiveAdminNavItem("/admin/shop/logistics/taxes")?.href,
     "/admin/shop/logistics/taxes"

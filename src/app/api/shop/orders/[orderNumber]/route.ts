@@ -49,7 +49,12 @@ export async function GET(
       if (refreshed) order = refreshed;
       payment = await prisma.shopMonobankPayment.findUnique({ where: { orderId: order.id } });
     }
-    monobankPayment = publicMonobankPayment(payment, order.status, order.paymentStatus, Number(order.amountPaid));
+    monobankPayment = publicMonobankPayment(
+      payment,
+      order.status,
+      order.paymentStatus,
+      Number(order.amountPaid)
+    );
   }
 
   const itemsList = order.items.map((i) => {
@@ -102,51 +107,49 @@ export async function GET(
     };
   });
 
-  for (const item of itemsList) {
-    if (!item.image && item.sku) {
-      const t14 = await prisma.turn14Item.findFirst({ where: { partNumber: item.sku } });
-      if (t14?.thumbnail) item.image = t14.thumbnail;
-    }
-  }
-
   const pricingSnapshot = order.pricingSnapshot as Record<string, unknown> | null;
 
-  return NextResponse.json({
-    orderNumber: order.orderNumber,
-    status: order.status,
-    paymentMethod: order.paymentMethod ?? "FOP",
-    paymentStatus: order.paymentStatus,
-    monobankPayment,
-    email: order.email,
-    customerName: order.customerName,
-    phone: order.phone,
-    shippingAddress: order.shippingAddress as object,
-    currency: order.currency,
-    customerGroupSnapshot: order.customerGroupSnapshot,
-    subtotal: Number(order.subtotal),
-    regionalAdjustmentAmount: Number(
-      (pricingSnapshot?.regionalAdjustmentAmount as number | undefined) ?? 0
-    ),
-    shippingCost: Number(order.shippingCost),
-    taxableSubtotal: Number((pricingSnapshot?.taxableSubtotal as number | undefined) ?? 0),
-    taxableShippingCost: Number((pricingSnapshot?.taxableShippingCost as number | undefined) ?? 0),
-    taxAmount: Number(order.taxAmount),
-    total: Number(order.total),
-    pricingSnapshot: order.pricingSnapshot,
-    landedCost: (pricingSnapshot?.landedCost as object | null | undefined) ?? null,
-    regionalPricingRule: (pricingSnapshot?.regionalPricingRule as object | undefined) ?? null,
-    showTaxesIncludedNotice: Boolean(pricingSnapshot?.showTaxesIncludedNotice),
-    createdAt: order.createdAt.toISOString(),
-    items: itemsList,
-    shipments: order.shipments.map((shipment) => ({
-      id: shipment.id,
-      carrier: shipment.carrier,
-      serviceLevel: shipment.serviceLevel,
-      trackingNumber: shipment.trackingNumber,
-      trackingUrl: shipment.trackingUrl,
-      status: shipment.status,
-      shippedAt: shipment.shippedAt?.toISOString() ?? null,
-      deliveredAt: shipment.deliveredAt?.toISOString() ?? null,
-    })),
-  }, { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } });
+  return NextResponse.json(
+    {
+      orderNumber: order.orderNumber,
+      status: order.status,
+      paymentMethod: order.paymentMethod ?? "FOP",
+      paymentStatus: order.paymentStatus,
+      monobankPayment,
+      email: order.email,
+      customerName: order.customerName,
+      phone: order.phone,
+      shippingAddress: order.shippingAddress as object,
+      currency: order.currency,
+      customerGroupSnapshot: order.customerGroupSnapshot,
+      subtotal: Number(order.subtotal),
+      regionalAdjustmentAmount: Number(
+        (pricingSnapshot?.regionalAdjustmentAmount as number | undefined) ?? 0
+      ),
+      shippingCost: Number(order.shippingCost),
+      taxableSubtotal: Number((pricingSnapshot?.taxableSubtotal as number | undefined) ?? 0),
+      taxableShippingCost: Number(
+        (pricingSnapshot?.taxableShippingCost as number | undefined) ?? 0
+      ),
+      taxAmount: Number(order.taxAmount),
+      total: Number(order.total),
+      pricingSnapshot: order.pricingSnapshot,
+      landedCost: (pricingSnapshot?.landedCost as object | null | undefined) ?? null,
+      regionalPricingRule: (pricingSnapshot?.regionalPricingRule as object | undefined) ?? null,
+      showTaxesIncludedNotice: Boolean(pricingSnapshot?.showTaxesIncludedNotice),
+      createdAt: order.createdAt.toISOString(),
+      items: itemsList,
+      shipments: order.shipments.map((shipment) => ({
+        id: shipment.id,
+        carrier: shipment.carrier,
+        serviceLevel: shipment.serviceLevel,
+        trackingNumber: shipment.trackingNumber,
+        trackingUrl: shipment.trackingUrl,
+        status: shipment.status,
+        shippedAt: shipment.shippedAt?.toISOString() ?? null,
+        deliveredAt: shipment.deliveredAt?.toISOString() ?? null,
+      })),
+    },
+    { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } }
+  );
 }

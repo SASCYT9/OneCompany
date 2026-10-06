@@ -48,7 +48,8 @@ the current code.
 - `src/app/[locale]/layout.tsx`: next-intl provider, header/footer, currency
   context, hero media, and public shop settings.
 - `src/app/[locale]/shop/`: hubs, brand PLPs, collections, cart, checkout,
-  customer account, stock, and Turn14.
+  customer account, and stock. The Turn14 integration was retired in October 2026
+  (old `/shop/turn14` URLs redirect to `/shop`; its tables are kept unused).
 - `src/app/(strict-http)/[locale]/shop/`: canonical PDP and paginated route
   implementations with explicit static/ISR HTTP behavior.
 - `src/proxy.ts`: country block, URL normalization, admin cookie pre-check,

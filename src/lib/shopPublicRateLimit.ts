@@ -97,16 +97,7 @@ export async function consumeRateLimit(input: {
       },
     });
 
-    if (Math.random() < 0.01) {
-      void prisma.requestRateLimit.deleteMany({
-        where: {
-          expiresAt: {
-            lt: new Date(now),
-          },
-        },
-      });
-    }
-
+    // Expired buckets are removed by the nightly /api/cron/shop-retention job.
     return entry.count <= input.maxPerWindow;
   } catch (error) {
     console.error('Shared rate limit fallback engaged', error);

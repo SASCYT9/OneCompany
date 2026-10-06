@@ -10,8 +10,8 @@ import { isMonobankEnabled } from '@/lib/shopMonobank';
 
 export async function GET() {
   try {
-    const record = await getOrCreateShopSettings(prisma);
-    const settings = getShopSettingsRuntime(record);
+    // Bank-transfer instructions are shown to buyers: never serve a cached copy.
+    const settings = getShopSettingsRuntime(await getOrCreateShopSettings(prisma));
 
     const methods: Array<'FOP' | 'WHITEBIT' | 'MONOBANK'> = ['FOP', 'WHITEBIT'];
     if (isMonobankEnabled() && settings.enabledCurrencies.includes('UAH')) methods.push('MONOBANK');

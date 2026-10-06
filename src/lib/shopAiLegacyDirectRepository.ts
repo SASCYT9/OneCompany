@@ -60,7 +60,6 @@ function toShopAiProduct(item: LegacyItem, context: ShopAiContext): ShopAiProduc
     price: null,
     slug: product.slug,
     variantId: defaultVariant?.id || null,
-    turn14Id: "",
     fitmentStatus: item.fitmentStatus,
     fitmentSource: item.fitmentSource,
     fitments: item.fitments.map((fitment) => ({

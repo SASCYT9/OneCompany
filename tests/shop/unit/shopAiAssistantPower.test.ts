@@ -32,7 +32,6 @@ const product: ShopAiProduct = {
   price: 1000,
   slug: "racechip-g90",
   variantId: null,
-  turn14Id: "",
   matchStatus: "exact",
   compatibility: "confirmed",
   facts: { powerGainHp: 136, powerGainVerified: true },

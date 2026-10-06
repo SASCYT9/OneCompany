@@ -29,7 +29,6 @@ const FILES = [
   'src/app/[locale]/shop/ohlins/catalog/page.tsx',
   'src/app/[locale]/shop/racechip/catalog/page.tsx',
   'src/app/[locale]/shop/racechip/products/[slug]/page.tsx',
-  // turn14: skipped — legitimately dynamic (per-customer markup on server).
   'src/app/[locale]/shop/urban/collections/[handle]/page.tsx',
   'src/app/[locale]/shop/urban/products/page.tsx',
 ];

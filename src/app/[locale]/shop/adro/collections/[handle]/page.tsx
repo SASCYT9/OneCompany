@@ -1,9 +1,8 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { localizeShopProductTitle } from "@/lib/shopText";
-import { prisma } from "@/lib/prisma";
 import { ADRO_PRODUCT_LINES } from "../../../data/adroHomeData";
 import { getAdroProductsServer } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { getProductsForAdroCollection } from "@/lib/adroCollectionMatcher";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
@@ -55,12 +54,12 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
   if (!line) notFound();
 
   const [settingsRecord, products] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getAdroProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null

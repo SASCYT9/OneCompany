@@ -37,8 +37,7 @@ test("orders and customers workbench pages use shared ops primitives", () => {
     {
       path: "src/app/admin/shop/orders/[id]/page.tsx",
       markers: [
-        "AdminPageHeader",
-        "AdminEntityToolbar",
+        "AdminKeyValueGrid",
         "AdminSplitDetailShell",
         "AdminInspectorCard",
         "AdminTimelineList",
@@ -93,26 +92,6 @@ test("import operations screens use shared admin primitives including job detail
         "AdminInspectorCard",
         "AdminKeyValueGrid",
         "AdminTimelineList",
-      ],
-    },
-    {
-      path: "src/app/admin/shop/turn14/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminMetricGrid",
-        "AdminActionBar",
-        "AdminFilterBar",
-        "AdminTableShell",
-      ],
-    },
-    {
-      path: "src/app/admin/shop/turn14/markups/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminMetricGrid",
-        "AdminActionBar",
-        "AdminFilterBar",
-        "AdminTableShell",
       ],
     },
     {

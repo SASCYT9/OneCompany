@@ -43,5 +43,7 @@ declare module 'next-auth/jwt' {
     companyName?: string | null;
     firstName?: string;
     lastName?: string;
+    /** Epoch ms of the last customer-state read from the database. */
+    refreshedAt?: number;
   }
 }

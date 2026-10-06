@@ -423,7 +423,7 @@ export default function AdminShopImportPage() {
       <AdminEditorSection
         id="import-tools"
         title="Інструменти імпортів"
-        description="Усі пов’язані з імпортом дії зібрані в одному місці. Turn14 прибрано з робочої навігації."
+        description="Усі пов’язані з імпортом дії зібрані в одному місці."
       >
         <div className="grid gap-3 md:grid-cols-3">
           <Link

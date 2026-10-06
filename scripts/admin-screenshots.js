@@ -12,7 +12,6 @@ const adminPages = [
   { url: '/admin/shop/logistics', name: '05_logistics', wait: 3000 },
   { url: '/admin/shop/pricing', name: '06_pricing', wait: 3000 },
   { url: '/admin/shop/import', name: '07_import', wait: 3000 },
-  { url: '/admin/shop/turn14', name: '08_turn14', wait: 3000 },
   { url: '/admin/shop/customers', name: '09_customers', wait: 3000 },
   { url: '/admin/shop/settings', name: '10_settings', wait: 3000 },
   { url: '/admin/crm', name: '11_crm', wait: 3000 },

@@ -959,30 +959,30 @@ model ShopShippingZone {
 }
 
 model ShopTaxRegionRule {
-  id             String   @id @default(cuid())
-  regionCode     String   @unique
-  regionName     String
-  regionNameUa   String
-  taxType        String   @default("VAT")
-  taxRate        Float    @default(0)
-  taxLabel       String?
-  taxLabelUa     String?
-  customsDutyPct Float    @default(0)
-  landedCostEnabled Boolean @default(false)
-  appliesToShipping Boolean @default(true)
-  incoterm       String   @default("DAP")
-  brokerageFee   Float    @default(0)
-  handlingFee    Float    @default(0)
-  insurancePct   Float    @default(0)
-  riskReservePct Float    @default(0)
-  importerOfRecord String?
-  ddpGuarantee   Boolean  @default(false)
-  isInclusive    Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  notes          String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  regionCode        String   @unique
+  regionName        String
+  regionNameUa      String
+  taxType           String   @default("VAT")
+  taxRate           Float    @default(0)
+  taxLabel          String?
+  taxLabelUa        String?
+  customsDutyPct    Float    @default(0)
+  landedCostEnabled Boolean  @default(false)
+  appliesToShipping Boolean  @default(true)
+  incoterm          String   @default("DAP")
+  brokerageFee      Float    @default(0)
+  handlingFee       Float    @default(0)
+  insurancePct      Float    @default(0)
+  riskReservePct    Float    @default(0)
+  importerOfRecord  String?
+  ddpGuarantee      Boolean  @default(false)
+  isInclusive       Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  notes             String?
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([isActive, sortOrder])
 }
@@ -1436,16 +1436,16 @@ model ShopOrder {
   quoteDeclinedAt DateTime?
   internalNote    String?
 
-  customer            ShopCustomer?          @relation(fields: [customerId], references: [id])
-  items               ShopOrderItem[]
-  events              ShopOrderStatusEvent[]
-  shipments           ShopShipment[]
-  returns             ShopOrderReturn[]
-  monobankPayment     ShopMonobankPayment?
+  customer               ShopCustomer?                @relation(fields: [customerId], references: [id])
+  items                  ShopOrderItem[]
+  events                 ShopOrderStatusEvent[]
+  shipments              ShopShipment[]
+  returns                ShopOrderReturn[]
+  monobankPayment        ShopMonobankPayment?
   monobankPaymentHistory ShopMonobankPaymentHistory[]
-  opsTasks            OpsTask[]
-  opsComments         OpsComment[]
-  opsTelegramContexts OpsTelegramContext[]
+  opsTasks               OpsTask[]
+  opsComments            OpsComment[]
+  opsTelegramContexts    OpsTelegramContext[]
 
   @@index([status])
   @@index([createdAt])
@@ -1474,15 +1474,15 @@ model ShopMonobankPayment {
 }
 
 model ShopMonobankPaymentHistory {
-  id                 String @id
+  id                 String    @id
   orderId            String
-  invoiceId          String @unique
+  invoiceId          String    @unique
   amount             Int
   ccy                Int
   status             String
   providerModifiedAt DateTime?
-  finalAmount        Int @default(0)
-  retiredAt          DateTime @default(now())
+  finalAmount        Int       @default(0)
+  retiredAt          DateTime  @default(now())
   order              ShopOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
@@ -1610,6 +1610,8 @@ model ShopImportRowError {
   @@index([jobId, rowNumber])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14BrandMarkup {
   id           String    @id @default(cuid())
   brandId      String    @unique
@@ -1627,6 +1629,8 @@ model Turn14BrandMarkup {
   @@index([brandName])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14Item {
   id          String          @id
   partNumber  String
@@ -1649,6 +1653,8 @@ model Turn14Item {
   @@index([name])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 model Turn14Fitment {
   id       String     @id @default(cuid())
   itemId   String
@@ -1782,6 +1788,8 @@ model StockProduct {
   @@index([name])
 }
 
+/// Retired 2026-10: the Turn14 integration was removed from the code. The table is
+/// kept only for data retention; nothing reads or writes it.
 /// A local mirror of the Turn14 complete catalog to bypass their lack of search functionality.
 /// Everything is stored heavily relying on JsonB for complete data retention.
 model Turn14CatalogItem {
@@ -3917,7 +3925,7 @@ model ShopCatalogProjectionConstraint {
   @@index([dimension, state, yearFrom, yearTo, productId])
   @@index([variantId, dimension, state])
   @@index([sourceVersion])
-  @@index([powertrainId, dimension, state])
+  @@index([powertrainId, dimension, state], map: "ShopCatalogProjectionConstraint_powertrainId_dimension_state_id")
 }
 
 model ShopCatalogState {

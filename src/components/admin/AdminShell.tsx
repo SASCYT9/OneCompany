@@ -1,5 +1,5 @@
 "use client";
-import { shopUahSaleRate, type ShopPriceBookRates } from '@/lib/shopPriceBookCurrency';
+import { shopUahSaleRate, type ShopPriceBookRates } from "@/lib/shopPriceBookCurrency";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -153,7 +153,7 @@ const COMMAND_ACTIONS = [
   {
     href: "/admin/shop/orders/create",
     label: "Створити B2B замовлення",
-    description: "Ручне замовлення з місцевого або Turn14 складу",
+    description: "Ручне замовлення з каталогу або вручну",
     icon: PackagePlus,
   },
   {
@@ -1136,15 +1136,13 @@ function AdminSidebarItem({
 
 function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
   const { currency, setCurrency, rates, ratesLoading } = useAdminCurrency();
-  const [shopRates, setShopRates] = useState<ShopPriceBookRates | null>(
-    null
-  );
+  const [shopRates, setShopRates] = useState<ShopPriceBookRates | null>(null);
 
   useEffect(() => {
     if (collapsed) return;
     async function loadShopRates() {
       try {
-        const response = await fetch("/api/shop/currency-rates", {cache:'no-store'});
+        const response = await fetch("/api/shop/currency-rates", { cache: "no-store" });
         const data = await response.json();
         if (response.ok && data.currencyRates) {
           setShopRates(data.currencyRates);
@@ -1197,15 +1195,16 @@ function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
           <div className="flex justify-between items-center text-zinc-400">
             <span className="font-semibold text-blue-400">Курс сайту:</span>
             <span>
-                1$ = {shopUahSaleRate('USD',shopRates).toFixed(2)}₴ · 1€ = {shopUahSaleRate('EUR',shopRates).toFixed(2)}₴
+              1$ = {shopUahSaleRate("USD", shopRates).toFixed(2)}₴ · 1€ ={" "}
+              {shopUahSaleRate("EUR", shopRates).toFixed(2)}₴
             </span>
           </div>
         ) : null}
         {!ratesLoading && rates.updatedAt ? (
           <div className="flex justify-between items-center text-[9px] text-zinc-600">
-              <span>{rates.rateDate ? `НБУ (${rates.rateDate}):` : 'Базовий курс:'}</span>
+            <span>{rates.rateDate ? `НБУ (${rates.rateDate}):` : "Базовий курс:"}</span>
             <span>
-                1$ = {rates.USD.toFixed(2)}₴ · 1€ = {rates.EUR.toFixed(2)}₴
+              1$ = {rates.USD.toFixed(2)}₴ · 1€ = {rates.EUR.toFixed(2)}₴
             </span>
           </div>
         ) : null}

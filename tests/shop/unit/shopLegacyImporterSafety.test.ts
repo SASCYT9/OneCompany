@@ -153,55 +153,6 @@ test("Atomic scheduler invokes the versioned endpoint instead of a direct databa
   assert.doesNotMatch(workflow, /DATABASE_URL|DIRECT_URL|scripts\/atomic-sync-cron/);
 });
 
-test("Turn14 scheduler invokes the authenticated Catalog V2 endpoint", () => {
-  const legacyCli = readWorkspaceFile("scripts/turn14-cron.ts");
-  const workflow = readWorkspaceFile(".github/workflows/turn14-cron.yml");
-  const endpoint = readWorkspaceFile("src/app/api/admin/cron/turn14-sync/route.ts");
-
-  assert.match(legacyCli, /LEGACY_TURN14_DIRECT_WRITE_DISABLED/);
-  assert.match(legacyCli, /throw new Error\(LEGACY_TURN14_DIRECT_WRITE_DISABLED\)/);
-  assert.match(workflow, /api\/admin\/cron\/turn14-sync\?brand=/);
-  assert.match(workflow, /Authorization: Bearer \$\{CRON_SECRET\}/);
-  assert.doesNotMatch(workflow, /DATABASE_URL|DIRECT_URL|TURN14_CLIENT_(?:ID|SECRET)/);
-  assert.match(endpoint, /matchesBearerSecret/);
-  assert.match(endpoint, /syncBrandFromTurn14/);
-  assert.match(endpoint, /runShopCatalogOutboxRuntime/);
-  assert.doesNotMatch(endpoint, /prisma\.shopProduct(?:Variant)?\.(?:create|update)/);
-});
-
-test("Turn14 live hydration and sync publish through the central catalog writer", () => {
-  const sharedSync = readWorkspaceFile("src/lib/turn14Sync.ts");
-  assert.match(sharedSync, /publishShopCatalogImportUpdate/);
-  assert.match(sharedSync, /publishShopCatalogImportCreation/);
-  assert.doesNotMatch(
-    sharedSync,
-    /prisma\.shopProduct(?:Variant|Media)?\.(?:create|update|updateMany)\(/
-  );
-
-  for (const relativePath of [
-    "src/app/api/admin/shop/turn14/import/route.ts",
-    "src/app/api/admin/shop/turn14/sync/route.ts",
-    "src/app/api/shop/cart/items/route.ts",
-  ]) {
-    assert.match(readWorkspaceFile(relativePath), /runShopCatalogOutboxRuntime/);
-  }
-});
-
-test("Turn14 dimensions sync groups writes behind product catalog locks", () => {
-  const sharedSync = readWorkspaceFile("src/lib/turn14ShippingSync.ts");
-  const route = readWorkspaceFile("src/app/api/admin/shop/turn14/sync-dimensions/route.ts");
-  const writer = readWorkspaceFile("src/lib/shopCatalogDimensionsWriter.server.ts");
-
-  assert.match(sharedSync, /pendingByProduct/);
-  assert.match(sharedSync, /publishShopCatalogDimensionsUpdate/);
-  assert.doesNotMatch(sharedSync, /prisma\.shopProductVariant\.update\(/);
-  assert.match(route, /publishShopCatalogDimensionsUpdate/);
-  assert.match(route, /runShopCatalogOutboxRuntime/);
-  assert.doesNotMatch(route, /prisma\.shopProductVariant\.update\(/);
-  assert.match(writer, /coordinateShopCatalogProductMutation/);
-  assert.match(writer, /buildShopCatalogAdminSnapshot/);
-});
-
 test("AI SEO writes are validated and versioned through the catalog coordinator", () => {
   const source = readWorkspaceFile("src/app/api/admin/shop/seo-generate/route.ts");
   assert.match(source, /requiredSeoText/);

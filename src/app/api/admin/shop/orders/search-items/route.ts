@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { prisma } from "@/lib/prisma";
-import { searchTurn14Items } from "@/lib/turn14";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 
 export async function GET(request: Request) {
@@ -81,45 +80,8 @@ export async function GET(request: Request) {
       };
     });
 
-    // 2. Search Turn14 Database (Local Postgres Cache)
-    let turn14Items: any[] = [];
-
-    try {
-      const rawItems = await prisma.turn14CatalogItem.findMany({
-        where: {
-          OR: [
-            { partNumber: { contains: query, mode: "insensitive" } },
-            { productName: { contains: query, mode: "insensitive" } },
-            { brand: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        take: 15,
-      });
-
-      turn14Items = rawItems.map((item: any) => {
-        const attrs = (item.rawAttributes as any) || {};
-        return {
-          source: "turn14",
-          id: item.id,
-          product_name: item.productName,
-          part_number: item.partNumber,
-          brand: item.brand,
-          weight: item.weight || attrs.weight || attrs.dimensions?.[0]?.weight || 0,
-          primary_image: attrs.thumbnail || attrs.primary_image || "",
-          dealer_price:
-            item.retailPrice || item.dealerPrice || attrs.jobber_price || attrs.dealer_price || 0,
-          attributes: attrs,
-        };
-      });
-    } catch (e) {
-      console.error("[API] Local Turn14 Search Error:", e);
-    }
-
-    // Combine results (Local first, then Turn14)
-    const combinedItems = [...localItems, ...turn14Items];
-
     return NextResponse.json({
-      items: combinedItems,
+      items: localItems,
     });
   } catch (error) {
     console.error("[API] Search Items Error:", error);

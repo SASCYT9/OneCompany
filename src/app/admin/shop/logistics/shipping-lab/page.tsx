@@ -267,7 +267,7 @@ export default function ShippingLabPage() {
     try {
       const [settingsResponse, brandsResponse] = await Promise.all([
         fetch("/api/admin/shop/settings", { cache: "no-store" }),
-        fetch("/api/admin/shop/turn14/sync-dimensions", { cache: "no-store" }),
+        fetch("/api/admin/shop/logistics/brand-list", { cache: "no-store" }),
       ]);
       if (!settingsResponse.ok) throw new Error("Не вдалося завантажити налаштування магазину");
 

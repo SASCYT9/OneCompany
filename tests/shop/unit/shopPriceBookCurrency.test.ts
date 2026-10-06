@@ -5,7 +5,11 @@ import { tagShopMoneySource } from "../../../src/lib/shopPriceBookCurrency";
 import { tagShopProductMoneySources } from "../../../src/lib/shopPriceBookCurrency";
 import type { ShopProduct } from "../../../src/lib/shopCatalog";
 import { shopDbPriceSource } from "../../../src/lib/shopPriceBookCurrency";
-import { managedAdminPriceChange, managedAdminSourceSelection } from "../../../src/lib/shopAdminPriceConversion";
+import {
+  managedAdminPriceChange,
+  managedAdminPriceBandUpdates,
+  managedAdminSourceSelection,
+} from "../../../src/lib/shopAdminPriceConversion";
 import { wheelForceSetMoney } from "../../../src/lib/wheelforceFamily";
 
 const rates = {
@@ -16,26 +20,79 @@ const rates = {
   _uahReserve: 1,
 };
 
-test('fallback variants that omit a price retain inheritance instead of crashing the fallback reader',()=>{
-  const source={price:{eur:100,usd:0,uah:0},variants:[{id:'inherited',isDefault:true}]} as unknown as ShopProduct;
-  const tagged=tagShopProductMoneySources(source);
-  assert.equal(tagged.price.sourceCurrency,'EUR');
-  assert.equal(tagged.variants![0].price,undefined);
+test("clearing a managed product or variant band clears all amounts and its source", () => {
+  for (const currency of ["EUR", "USD", "UAH"] as const) {
+    assert.deepEqual(managedAdminPriceChange(0, currency, rates), {
+      eur: "",
+      usd: "",
+      uah: "",
+      sourceCurrency: "",
+    });
+  }
+  assert.deepEqual(managedAdminPriceBandUpdates({ priceEur: "", priceUsd: "", priceUah: "" }), {});
+  assert.deepEqual(
+    managedAdminPriceBandUpdates({
+      b2bCompareAtSourceCurrency: "",
+      compareAtEurB2b: "",
+      compareAtUsdB2b: "",
+      compareAtUahB2b: "",
+    }),
+    {
+      b2bCompareAtSourceCurrency: "",
+      compareAtEurB2b: "",
+      compareAtUsdB2b: "",
+      compareAtUahB2b: "",
+    }
+  );
+  assert.deepEqual(
+    managedAdminPriceBandUpdates({
+      priceSourceCurrency: "USD",
+      priceEur: "89",
+      priceUsd: "100",
+      priceUah: "4583.33",
+    }),
+    { priceSourceCurrency: "USD", priceEur: "89", priceUsd: "100", priceUah: "4583.33" }
+  );
 });
 
-test('changing the authoritative currency immediately updates the displayed гривня price and keeps the selected native amount',()=>{
-  const selected=managedAdminSourceSelection({priceEur:'100',priceUsd:'113.08',priceUah:'5169.75'},'priceSourceCurrency','USD',rates)!;
-  assert.equal(selected.priceSourceCurrency,'USD');assert.equal(selected.priceUsd,'113.08');
-  assert.equal(selected.priceUah,'5182.83');
-  assert.equal(managedAdminSourceSelection({priceEur:''},'priceSourceCurrency','EUR',rates),null);
+test("fallback variants that omit a price retain inheritance instead of crashing the fallback reader", () => {
+  const source = {
+    price: { eur: 100, usd: 0, uah: 0 },
+    variants: [{ id: "inherited", isDefault: true }],
+  } as unknown as ShopProduct;
+  const tagged = tagShopProductMoneySources(source);
+  assert.equal(tagged.price.sourceCurrency, "EUR");
+  assert.equal(tagged.variants![0].price, undefined);
 });
 
-test('an explicit product currency wins over unrelated variant fallback columns',()=>{
-  assert.equal(shopDbPriceSource({priceUsd:100},{priceEur:120,priceSourceCurrency:'EUR'},'price'),'USD');
-  assert.equal(shopDbPriceSource({priceEur:100,priceUsd:120},{priceSourceCurrency:'USD'},'price'),undefined);
-  const changed=managedAdminPriceChange(100,'USD',rates)!;
-  assert.equal(changed.uah,'4583.33');
-  assert.equal(changed.sourceCurrency,'USD');
+test("changing the authoritative currency immediately updates the displayed гривня price and keeps the selected native amount", () => {
+  const selected = managedAdminSourceSelection(
+    { priceEur: "100", priceUsd: "113.08", priceUah: "5169.75" },
+    "priceSourceCurrency",
+    "USD",
+    rates
+  )!;
+  assert.equal(selected.priceSourceCurrency, "USD");
+  assert.equal(selected.priceUsd, "113.08");
+  assert.equal(selected.priceUah, "5182.83");
+  assert.equal(
+    managedAdminSourceSelection({ priceEur: "" }, "priceSourceCurrency", "EUR", rates),
+    null
+  );
+});
+
+test("an explicit product currency wins over unrelated variant fallback columns", () => {
+  assert.equal(
+    shopDbPriceSource({ priceUsd: 100 }, { priceEur: 120, priceSourceCurrency: "EUR" }, "price"),
+    "USD"
+  );
+  assert.equal(
+    shopDbPriceSource({ priceEur: 100, priceUsd: 120 }, { priceSourceCurrency: "USD" }, "price"),
+    undefined
+  );
+  const changed = managedAdminPriceChange(100, "USD", rates)!;
+  assert.equal(changed.uah, "4583.33");
+  assert.equal(changed.sourceCurrency, "USD");
 });
 
 test("EUR and USD each receive one hryvnia reserve and the sale cross closes the same UAH conversion paths", () => {
@@ -48,7 +105,7 @@ test("EUR and USD each receive one hryvnia reserve and the sale cross closes the
     };
     const result = repriceShopSourceMoney(source, rates);
     assert.equal(result.uah, 100 * ((sourceCurrency === "EUR" ? 50.6975 : 44.8333) + 1));
-    assert.ok(Math.abs(result.usd / result.eur - (51.6975 / 45.8333)) < 1e-4);
+    assert.ok(Math.abs(result.usd / result.eur - 51.6975 / 45.8333) < 1e-4);
     assert.ok(Math.abs(result.eur * 51.6975 - result.uah) <= 0.26);
     assert.ok(Math.abs(result.usd * 45.8333 - result.uah) <= 0.24);
     assert.equal(source.uah, 0);

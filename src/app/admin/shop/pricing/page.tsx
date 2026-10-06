@@ -196,6 +196,10 @@ export default function CustomerPricingPage() {
 
   return (
     <AdminPage className="space-y-6">
+      <AdminInlineAlert tone="warning">
+        Персональні націнки зараз не впливають на ціни: їх застосовував лише прайс Turn14, який
+        видалено. Записи збережено як довідку для менеджерів.
+      </AdminInlineAlert>
       <AdminPageHeader
         eyebrow="Catalog"
         title="Customer pricing"

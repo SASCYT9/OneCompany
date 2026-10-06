@@ -1,4 +1,6 @@
 "use client";
+
+import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 import { isInternationalDelivery } from "@/lib/shopInternationalCheckout";
 
 import Link from "next/link";
@@ -491,6 +493,8 @@ export default function ShopCheckoutClient({
         window.location.href = data.redirectUrl;
         return;
       }
+      // The order consumed the cart; the persistent header badge must refresh.
+      notifyShopCartChanged();
       router.push(
         `/${locale}/shop/checkout/success?order=${encodeURIComponent(data.orderNumber)}&token=${encodeURIComponent(data.viewToken)}`
       );
