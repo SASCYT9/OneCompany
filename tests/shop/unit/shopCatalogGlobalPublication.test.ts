@@ -27,12 +27,19 @@ test("every live ShopSettings writer publishes and legacy hardcoded rates fail c
   const shopSettings = readFileSync("src/app/api/admin/shop/settings/route.ts", "utf8");
   const appSettings = readFileSync("src/app/api/admin/settings/app/route.ts", "utf8");
   const nbu = readFileSync("src/app/api/admin/shop/settings/currency-rates/nbu/route.ts", "utf8");
+  const nbuCron = readFileSync("src/app/api/admin/cron/currency-rates/route.ts", "utf8");
+  // Both NBU writers share the coordinated mutation in the sync helper.
+  const nbuSync = readFileSync("src/lib/shopCurrencyNbuSync.server.ts", "utf8");
   const legacy = readFileSync("scripts/update-db-currency-rates.ts", "utf8");
-  for (const route of [shopSettings, appSettings, nbu]) {
+  for (const route of [shopSettings, appSettings]) {
     assert.match(route, /coordinateShopCatalogGlobalMutationWithClient/);
+  }
+  assert.match(nbuSync, /coordinateShopCatalogGlobalMutationWithClient/);
+  for (const route of [shopSettings, appSettings, nbu, nbuCron]) {
     assert.match(route, /runShopCatalogOutboxRuntime/);
     assert.match(route, /revalidateTag\("shop-settings"/);
   }
+  for (const route of [nbu, nbuCron]) assert.match(route, /syncShopNbuCurrencyRates/);
   assert.match(legacy, /Disabled legacy hardcoded currency writer/);
   assert.ok(
     legacy.indexOf("Disabled legacy hardcoded currency writer") < legacy.indexOf("new PrismaClient")

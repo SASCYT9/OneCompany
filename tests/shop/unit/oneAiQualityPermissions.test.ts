@@ -2,14 +2,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { ADMIN_NAV_SECTIONS, getActiveAdminNavItem } from "../../../src/lib/admin/adminNavigation";
 import { ADMIN_PERMISSIONS } from "../../../src/lib/adminRbac";
 
 function source(path: string) {
   return readFileSync(path, "utf8");
 }
 
-test("One AI quality exposes the three explicit permissions and admin navigation", () => {
+// The page left the sidebar in the manager workflow streamline (c19e67f7); its API
+// routes still enforce the dedicated permissions checked below.
+test("One AI quality exposes the three explicit permissions", () => {
   assert.deepEqual(
     [
       ADMIN_PERMISSIONS.SHOP_AI_READ,
@@ -19,11 +20,6 @@ test("One AI quality exposes the three explicit permissions and admin navigation
     ["shop.ai.read", "shop.ai.review", "shop.ai.manage"]
   );
 
-  const item = ADMIN_NAV_SECTIONS.find((section) => section.key === "catalog")?.items.find(
-    (candidate) => candidate.href === "/admin/shop/ai-quality"
-  );
-  assert.ok(item);
-  assert.equal(getActiveAdminNavItem("/admin/shop/ai-quality")?.href, item.href);
 });
 
 test("One AI quality routes enforce read, review and manage boundaries", () => {

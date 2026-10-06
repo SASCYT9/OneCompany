@@ -75,10 +75,12 @@ test("operational catalog screens also sit on shared admin primitives", () => {
   }
 });
 
-test("product editor declares explicit section navigation for the shared editor shell", () => {
+// The editor redesign (19b0b586) replaced the tab strip with a sticky top bar over
+// stacked, collapsible editor sections.
+test("product editor uses the shared top bar and editor sections", () => {
   const editorSource = readRepoFile("src/app/admin/shop/components/AdminProductEditor.tsx");
 
-  assert.match(editorSource, /\bPRODUCT_EDITOR_TABS\b/);
-  assert.match(editorSource, /\bAdminEditorTabs\b/);
+  assert.match(editorSource, /\bAdminEditorTopBar\b/);
   assert.match(editorSource, /\bAdminEditorSection\b/);
+  assert.match(editorSource, /\bAdminCollapsibleSection\b/);
 });

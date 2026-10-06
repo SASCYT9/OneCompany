@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./fixtures/register-server-only.mjs";
 
 import { fillEmptyShippingValues } from "../../../src/lib/shopAdminImports";
 

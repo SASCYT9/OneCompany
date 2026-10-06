@@ -87,6 +87,8 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     engine: null,
     fuel: null,
     opfGpf: null,
+    // G63 narrows the broad G-Class constraint for free-text matching (#124).
+    modelAlternates: ["G63"],
   });
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("BMW M3 G80 Eventuri"), {
     make: "BMW",
@@ -96,6 +98,7 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     engine: null,
     fuel: null,
     opfGpf: null,
+    modelAlternates: [],
   });
   assert.equal(getShopCatalogSuggestionVehicleConstraints("BMW G8X"), null);
   assert.equal(getShopCatalogSuggestionTextQuery("AMG G63 W465"), "G63 AMG");
