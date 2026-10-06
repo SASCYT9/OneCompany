@@ -24,6 +24,14 @@ const EXPLICIT_EXCEPTIONS = new Map<string, string>([
     "Service endpoint authenticated with its bearer secret instead of an admin session.",
   ],
   [
+    "src/app/api/admin/cron/currency-rates/route.ts",
+    "Service endpoint authenticated with its bearer secret instead of an admin session.",
+  ],
+  [
+    "src/app/api/admin/users/[id]/route.ts",
+    "Re-exports the PATCH handler built in handler.ts with ADMIN_USERS_MANAGE.",
+  ],
+  [
     "src/app/api/admin/search/route.ts",
     "Search resolves current DB access once and applies domain permissions to each result group.",
   ],

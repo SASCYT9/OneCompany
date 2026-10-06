@@ -27,7 +27,7 @@ test("available product lookup applies saved manager controls and refreshes afte
   ];
   invalidateShopWarehouseProductsCache();
   assert.deepEqual(await getShopInStockProducts(), [
-    { id: "enabled-new", sku: "NEW-SKU", slug: "new" },
+    { id: "enabled-new", sku: "NEW-SKU", slug: "new", showInCarousel: false },
   ]);
   state.rows[1].metafields = metadata(false);
   invalidateShopWarehouseProductsCache();
@@ -47,7 +47,7 @@ test("warehouse reads coalesce, refresh after expiry, and recover after rejectio
   invalidateShopWarehouseProductsCache();
   t.mock.method(Date, "now", () => now);
   const [first, second] = await Promise.all([getShopInStockProducts(), getShopInStockProducts()]);
-  assert.deepEqual(first, [{ id: "stock-1", sku: "85230", slug: "stock" }]);
+  assert.deepEqual(first, [{ id: "stock-1", sku: "85230", slug: "stock", showInCarousel: true }]);
   assert.strictEqual(first, second);
   assert.equal(state.calls.length, 1);
   assert.strictEqual(await getShopInStockProducts(), first);
@@ -60,18 +60,18 @@ test("warehouse reads coalesce, refresh after expiry, and recover after rejectio
   assert.equal(state.calls[0].where.status, "ACTIVE");
   invalidateShopWarehouseProductsCache();
   assert.deepEqual(await getShopInStockProducts(), [
-    { id: "stock-2", sku: "85230", slug: "stock" },
+    { id: "stock-2", sku: "85230", slug: "stock", showInCarousel: true },
   ]);
   now += 30_001;
   assert.deepEqual(await getShopInStockProducts(), [
-    { id: "stock-3", sku: "85230", slug: "stock" },
+    { id: "stock-3", sku: "85230", slug: "stock", showInCarousel: true },
   ]);
   now += 30_001;
   state.fail = true;
   await assert.rejects(getShopInStockProducts(), /warehouse unavailable/);
   state.fail = false;
   assert.deepEqual(await getShopInStockProducts(), [
-    { id: "stock-5", sku: "85230", slug: "stock" },
+    { id: "stock-5", sku: "85230", slug: "stock", showInCarousel: true },
   ]);
   assert.equal(state.calls.length, 5);
 });

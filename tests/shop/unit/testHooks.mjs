@@ -18,7 +18,15 @@ const loaderUrl = pathToFileURL(
  */
 export function registerHooks(options = {}) {
   if (typeof nodeModule.registerHooks === "function") {
-    return nodeModule.registerHooks(options);
+    // Without an explicit resolver the default must still stub `server-only`;
+    // an empty hook set let the real guard throw on Node 24.
+    return nodeModule.registerHooks({
+      resolve(specifier, context, nextResolve) {
+        if (specifier === "server-only") return { url: serverOnlyStub, shortCircuit: true };
+        return nextResolve(specifier, context);
+      },
+      ...options,
+    });
   }
   installCommonJsFallback();
   nodeModule.register(loaderUrl, {

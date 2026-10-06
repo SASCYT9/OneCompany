@@ -28,20 +28,6 @@ test("shared admin primitives expose dashboard and settings building blocks", ()
 test("overview and system pages use the shared Phase 3 admin primitives", () => {
   const pageExpectations = [
     {
-      path: "src/app/admin/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "DashboardKpiCard",
-        "AdminDashboardSection",
-        "AdminInsightPanel",
-        "AdminTrendChart",
-        "AdminBarList",
-        "DashboardOrderPipeline",
-        "AdminQuickActionCard",
-        "operationalRisks",
-      ],
-    },
-    {
       path: "src/app/admin/settings/page.tsx",
       markers: ["AdminPageHeader", "AdminSettingsShell", "AdminStickyActionBar", "AdminDangerZone"],
     },
@@ -75,4 +61,12 @@ test("overview and system pages use the shared Phase 3 admin primitives", () => 
       assert.match(source, new RegExp(`\\b${marker}\\b`));
     }
   }
+});
+
+// The overview was redesigned (19b0b586) with its own module styles; it must keep
+// reading the consolidated dashboard contract instead of ad hoc requests.
+test("overview renders the consolidated dashboard contract", () => {
+  const source = readRepoFile("src/app/admin/page.tsx");
+  assert.match(source, /from ["']@\/lib\/admin\/dashboardOverview["']/);
+  assert.match(source, /DashboardOverview/);
 });

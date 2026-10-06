@@ -37,8 +37,7 @@ test("orders and customers workbench pages use shared ops primitives", () => {
     {
       path: "src/app/admin/shop/orders/[id]/page.tsx",
       markers: [
-        "AdminPageHeader",
-        "AdminEntityToolbar",
+        "AdminKeyValueGrid",
         "AdminSplitDetailShell",
         "AdminInspectorCard",
         "AdminTimelineList",
