@@ -301,6 +301,8 @@ test("native auto, moto and engine/fuel/OPF queries never build legacy ID lists"
         assert.equal(query.fuel, input.get("fuel"));
         assert.equal(query.opfGpf, input.get("opfGpf"));
         assert.equal(query.scope, input.get("scope"));
+        // The unpartitioned Auto tab leaves motorcycle-only products out.
+        assert.equal(query.excludeScope, input.get("scope") === "moto" ? null : "moto");
         assert.equal(query.locale, input.get("locale"));
       }
     }

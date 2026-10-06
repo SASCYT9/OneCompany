@@ -431,3 +431,71 @@ test("progressive facets unlock exactly one level at a time", async () => {
     assert.equal((sql.match(/UNION ALL/g) ?? []).length + 1, branchCount);
   }
 });
+
+test("Auto tab excludes the moto partition in listings, counts and maintained facets", async () => {
+  const {
+    buildShopCatalogProjectionFacetQuerySql,
+    buildShopCatalogProjectionOrderedQuerySql,
+    buildShopCatalogProjectionWhere,
+    normalizeShopCatalogProjectionQuery,
+  } = await queryModule;
+  const listing = buildShopCatalogProjectionOrderedQuerySql({
+    locale: "ua",
+    text: "akrapovic",
+    excludeScope: "moto",
+  });
+  assert.ok(listing);
+  assert.match(listing.sql, /projection\."scopeKey" <> \?/);
+  assert.ok(listing.values.includes("moto"));
+
+  // Without other filters brand counts stay on maintained counters:
+  // unpartitioned rows minus the excluded scope, never a projection scan.
+  const facets = buildShopCatalogProjectionFacetQuerySql({ locale: "ua", excludeScope: "moto" });
+  assert.match(facets.sql, /facet\."prefixKey" IN \('', \?\)/);
+  assert.match(facets.sql, /HAVING sum\(CASE WHEN facet\."prefixKey" = ''/);
+  assert.ok(facets.values.includes("scope:moto"));
+  assert.match(facets.sql, /NOT LIKE/);
+
+  const branded = buildShopCatalogProjectionFacetQuerySql({
+    locale: "ua",
+    brand: "Akrapovic",
+    excludeScope: "moto",
+  });
+  assert.ok(branded.values.includes("scope:%|brand:akrapovic"));
+  assert.ok(branded.values.includes("scope:moto|%"));
+
+  assert.deepEqual(
+    buildShopCatalogProjectionWhere({ locale: "ua", excludeScope: "moto" }).scopeKey,
+    {
+      not: "moto",
+    }
+  );
+  // A strict scope wins; there is nothing left to exclude.
+  const strict = normalizeShopCatalogProjectionQuery({
+    locale: "ua",
+    scope: "moto",
+    excludeScope: "moto",
+  });
+  assert.equal(strict.scope, "moto");
+  assert.equal(strict.excludeScope, null);
+});
+
+test("title and named-brand matches outrank incidental searchText rank", async () => {
+  const { buildShopCatalogProjectionOrderedQuerySql, SHOP_CATALOG_SEARCH_RELEVANCE_WEIGHTS } =
+    await queryModule;
+  const weights = SHOP_CATALOG_SEARCH_RELEVANCE_WEIGHTS;
+  // ts_rank_cd with normalization 32 is < 1, so its whole contribution stays
+  // below one title-token match and far below a named brand.
+  assert.ok(weights.searchTextRank < weights.titleToken);
+  assert.ok(weights.namedBrandToken > weights.titleToken + weights.searchTextRank);
+  const kw = buildShopCatalogProjectionOrderedQuerySql({ locale: "ua", text: "KW" });
+  assert.ok(kw);
+  assert.match(kw.sql, new RegExp(`THEN ${weights.namedBrandToken} ELSE 0 END`));
+  assert.ok(kw.sql.includes(`) * ${weights.searchTextRank}\n`));
+  assert.doesNotMatch(kw.sql, /\* 1000\n/);
+  const exhaust = buildShopCatalogProjectionOrderedQuerySql({ locale: "ua", text: "exhaust" });
+  assert.ok(exhaust);
+  // "exhaust" is a product term, not a brand: Fi EXHAUST gets no named-brand boost.
+  assert.doesNotMatch(exhaust.sql, new RegExp(`THEN ${weights.namedBrandToken} ELSE`));
+  assert.match(exhaust.sql, new RegExp(`THEN ${weights.titleToken} ELSE`));
+});

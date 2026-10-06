@@ -3,7 +3,16 @@
 import { fetchShopStockSearch } from "@/lib/shopStockSearchRequest";
 import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
-import { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  Suspense,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { useParams, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -44,7 +53,11 @@ import {
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
-import { isWheelForceWheel, isWheelForceWheelSet, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
+import {
+  isWheelForceWheel,
+  isWheelForceWheelSet,
+  WHEELFORCE_WHEEL_SET_SIZE,
+} from "@/lib/wheelforceFamily";
 import { getVehicleMakeLogoPath, normalizeVehicleMakeName } from "@/lib/vehicleMakeLogos";
 import {
   canonicalVehicleModelLabel,
@@ -104,6 +117,13 @@ import CatalogLoadingShell from "./CatalogLoadingShell";
 type StockFilter = "all" | "inStock" | "preOrder";
 type StockSort = "default" | "price_asc" | "price_desc" | "name_asc";
 type VehicleMode = "auto" | "moto";
+
+// Clears the fixed storefront header (h-16/h-20) with a small visual gap.
+const SEARCH_BOX_MIN_VIEWPORT_TOP = 104;
+
+function fitmentResultVehicleKey(make: string, model: string, chassis: string) {
+  return [make, model, chassis].map((value) => value.trim().toLocaleLowerCase()).join("|");
+}
 
 function FitmentExplanation({
   item,
@@ -824,11 +844,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   };
 
   // Search state
-  const initialPage = useRef(parseStockPage(
-    typeof window === "undefined"
-      ? searchParams.get("page")
-      : new URLSearchParams(window.location.search).get("page")
-  )).current;
+  const initialPage = useRef(
+    parseStockPage(
+      typeof window === "undefined"
+        ? searchParams.get("page")
+        : new URLSearchParams(window.location.search).get("page")
+    )
+  ).current;
   const initialBrands = parseShopStockParamList(searchParams, "brand");
   const initialStock = searchParams.get("stock");
   const initialSort = searchParams.get("sort");
@@ -859,6 +881,18 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [items, setItems] = useState<StockItem[]>(initialResponse?.data ?? []);
+  // Vehicle that produced `items`. Selecting another vehicle updates make/model
+  // immediately, while the previous products stay visible until the new
+  // response arrives; fitment claims must never be shown for that stale page.
+  const [resultVehicleKey, setResultVehicleKey] = useState<string | null>(() =>
+    initialData
+      ? fitmentResultVehicleKey(
+          searchParams.get("make") ?? "",
+          searchParams.get("model") ?? "",
+          searchParams.get("chassis") ?? ""
+        )
+      : null
+  );
   const [warehouseHeroItems, setWarehouseHeroItems] = useState<StockItem[]>([]);
   const [heroProductIndex, setHeroProductIndex] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
@@ -992,6 +1026,21 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     return featured;
   }, [heroInventoryItems]);
   const activeHeroProduct = showWarehouseHero ? (heroProducts[heroProductIndex] ?? null) : null;
+  // Typing the first character hides the warehouse hero above the search box.
+  // Without compensation the whole page shifts up by the hero height and the
+  // focused input slides under the fixed site header while the user types.
+  const previousShowWarehouseHeroRef = useRef(showWarehouseHero);
+  useLayoutEffect(() => {
+    const heroJustHidden = previousShowWarehouseHeroRef.current && !showWarehouseHero;
+    previousShowWarehouseHeroRef.current = showWarehouseHero;
+    if (!heroJustHidden || !searchFocusedRef.current) return;
+    const searchBox = searchBoxRef.current;
+    if (!searchBox) return;
+    const top = searchBox.getBoundingClientRect().top;
+    if (top < SEARCH_BOX_MIN_VIEWPORT_TOP) {
+      window.scrollBy({ top: top - SEARCH_BOX_MIN_VIEWPORT_TOP, behavior: "auto" });
+    }
+  }, [showWarehouseHero]);
   const heroRailProducts = useMemo(
     () =>
       heroProducts.length > 1
@@ -1497,8 +1546,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const applySearchPayload = useCallback(
-    (data: StockSearchResponse, searchPage: number) => {
+    (data: StockSearchResponse, searchPage: number, vehicleKey: string) => {
       setItems(data.data || []);
+      setResultVehicleKey(vehicleKey);
       setTotalPages(data.meta?.totalPages || 1);
       setTotalItems(data.meta?.totalItems || 0);
       setFallbackApplied(data.meta?.fallbackApplied || null);
@@ -1828,10 +1878,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       if (locale) params.set("locale", locale);
       if (country) params.set("country", country);
       params.set("page", searchPage.toString());
+      const requestVehicleKey = fitmentResultVehicleKey(make, model, chassis);
       const cacheKey = `${audienceKey}|${stockSearchCacheKey(params)}`;
       const cached = searchResponseCacheRef.current.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < 45_000) {
-        applySearchPayload(cached.data, searchPage);
+        applySearchPayload(cached.data, searchPage, requestVehicleKey);
         searchRequestRef.current = null;
         setLoading(false);
         return;
@@ -1852,7 +1903,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           const oldestKey = searchResponseCacheRef.current.keys().next().value;
           if (oldestKey) searchResponseCacheRef.current.delete(oldestKey);
         }
-        applySearchPayload(data, searchPage);
+        applySearchPayload(data, searchPage, requestVehicleKey);
       } catch (error) {
         if (controller.signal.aborted) return;
         setItems([]);
@@ -1908,9 +1959,24 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const searchTextKey = JSON.stringify([query, engineFilter, minPriceFilter, maxPriceFilter]);
   const previousSearchTextRef = useRef(searchTextKey);
   const autoSearchFilterKey = JSON.stringify([
-    selectedBrands, make, model, chassis, requestedYear, engineFilter, fuelFilter,
-    opfGpfFilter, productKindFilter, strictMatch, query, stockFilter, sortOrder,
-    localCategory, productTypeFilter, minPriceFilter, maxPriceFilter, vehicleMode,
+    selectedBrands,
+    make,
+    model,
+    chassis,
+    requestedYear,
+    engineFilter,
+    fuelFilter,
+    opfGpfFilter,
+    productKindFilter,
+    strictMatch,
+    query,
+    stockFilter,
+    sortOrder,
+    localCategory,
+    productTypeFilter,
+    minPriceFilter,
+    maxPriceFilter,
+    vehicleMode,
   ]);
   const autoSearchContextKey = JSON.stringify([currency, country, audienceKey, locale]);
   const previousAutoSearchFilterKeyRef = useRef(autoSearchFilterKey);
@@ -2340,6 +2406,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const selectedVehicleLabel = [make, model, chassis].filter(Boolean).join(" ");
+  const showFitmentEvidence =
+    Boolean(make || model || chassis) &&
+    !loading &&
+    resultVehicleKey === fitmentResultVehicleKey(make, model, chassis);
   const emptyStateActions = useMemo(() => {
     const actions: Array<{ key: string; ua: string; en: string; run: () => void }> = [];
     if (query.trim()) {
@@ -3060,7 +3130,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
-        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
+        const wheelLike = {
+          brand: item.brand,
+          partNumber: item.partNumber,
+          category: item.category,
+        };
         const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
         const availability =
           item.availability === undefined
@@ -3131,7 +3205,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 <div className="mt-1.5 min-h-[17px] truncate text-[10px] font-light uppercase tracking-[0.1em] text-foreground/52">
                   {item.category}
                 </div>
-                {make || model || chassis ? (
+                {showFitmentEvidence ? (
                   <div className="mt-1 truncate text-[10px] font-light text-foreground/48">
                     {vehicleLabel}
                   </div>
@@ -3139,7 +3213,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
               </div>
             </Link>
 
-            {make || model || chassis ? (
+            {showFitmentEvidence ? (
               <FitmentExplanation item={item} vehicleLabel={vehicleLabel} isUa={isUa} />
             ) : null}
 
@@ -3171,7 +3245,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     </div>
                     {isWheelSet ? (
                       <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
-                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                        {isUa
+                          ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків`
+                          : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
                       </div>
                     ) : null}
                     {!isWheelSet ? (
@@ -3200,7 +3276,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     </div>
                     {isWheelSet ? (
                       <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-foreground/45">
-                        {isUa ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків` : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
+                        {isUa
+                          ? `Комплект із ${WHEELFORCE_WHEEL_SET_SIZE} дисків`
+                          : `Set of ${WHEELFORCE_WHEEL_SET_SIZE} wheels`}
                       </div>
                     ) : null}
                   </div>
@@ -3262,6 +3340,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       make,
       model,
       chassis,
+      showFitmentEvidence,
       isUa,
       isB2B,
       vehicleMode,
@@ -3475,10 +3554,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   >
                     <span className="relative block aspect-[16/10] h-full max-h-[275px] w-full max-w-[550px] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#f3f0e9_0%,#d8d4ca_72%,#bbb5a9_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.52)] ring-1 ring-white/10">
                       <Image
-                        src={resolveShopWarehouseHeroImage(
-                          activeHeroProduct.partNumber,
-                          activeHeroProduct.thumbnail
-                        )!}
+                        src={
+                          resolveShopWarehouseHeroImage(
+                            activeHeroProduct.partNumber,
+                            activeHeroProduct.thumbnail
+                          )!
+                        }
                         alt=""
                         fill
                         priority={heroProductIndex === 0}
@@ -3496,7 +3577,15 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     className="relative z-20 min-w-0 self-start lg:col-start-2 lg:self-center"
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f6f24] dark:text-[#c6a657]">
-                      <Link href={buildShopStorefrontBrandPath(isUa ? "ua" : "en", activeHeroProduct.brand)} className="hover:underline underline-offset-4">{activeHeroProduct.brand}</Link>
+                      <Link
+                        href={buildShopStorefrontBrandPath(
+                          isUa ? "ua" : "en",
+                          activeHeroProduct.brand
+                        )}
+                        className="hover:underline underline-offset-4"
+                      >
+                        {activeHeroProduct.brand}
+                      </Link>
                       <span className="mx-2 text-black/20 dark:text-white/20">·</span>
                       {activeHeroProduct.partNumber}
                     </p>
@@ -4406,8 +4495,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           const logoPath = getBrandLogoPath(item.brand);
                           const compareAtLabel = formatItemCompareAt(item);
                           const priceLabel = formatItemPrice(item);
-                          const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
-                          const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
+                          const wheelLike = {
+                            brand: item.brand,
+                            partNumber: item.partNumber,
+                            category: item.category,
+                          };
+                          const isWheelSet =
+                            isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                           return (
                             <div
@@ -4525,7 +4619,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     >
                                       {priceLabel}
                                     </span>
-                                    {isWheelSet ? <span className="ml-2 text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</span> : null}
+                                    {isWheelSet ? (
+                                      <span className="ml-2 text-[9px] uppercase tracking-wider text-foreground/45">
+                                        {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                      </span>
+                                    ) : null}
                                   </div>
                                 ) : (
                                   <div
@@ -4535,7 +4633,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
-                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
+                                {isWheelSet ? (
+                                  <div className="text-[9px] uppercase tracking-wider text-foreground/45">
+                                    {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                  </div>
+                                ) : null}
                               </div>
 
                               {/* Add to Cart button */}
@@ -4549,7 +4651,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                   </Link>
                                 ) : isWheelSet ? (
                                   <Link
-                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    href={resolveShopCatalogProductHref(
+                                      locale,
+                                      item.href,
+                                      item.slug
+                                    )}
                                     className="flex h-9 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[9px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
                                   >
                                     {isUa ? "Обрати комплект" : "Choose set"}
@@ -4578,8 +4684,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                         const logoPath = getBrandLogoPath(item.brand);
                         const compareAtLabel = formatItemCompareAt(item);
                         const priceLabel = formatItemPrice(item);
-                        const wheelLike = { brand: item.brand, partNumber: item.partNumber, category: item.category };
-                        const isWheelSet = isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
+                        const wheelLike = {
+                          brand: item.brand,
+                          partNumber: item.partNumber,
+                          category: item.category,
+                        };
+                        const isWheelSet =
+                          isWheelForceWheel(wheelLike) || isWheelForceWheelSet(wheelLike);
 
                         return (
                           <div
@@ -4661,7 +4772,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                               </div>
                             </div>
 
-                            {make || model || chassis ? (
+                            {showFitmentEvidence ? (
                               <div className="mb-3">
                                 <FitmentExplanation
                                   item={item}
@@ -4699,7 +4810,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                     {priceLabel}
                                   </div>
                                 )}
-                                {isWheelSet ? <div className="text-[9px] uppercase tracking-wider text-foreground/45">{isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}</div> : null}
+                                {isWheelSet ? (
+                                  <div className="text-[9px] uppercase tracking-wider text-foreground/45">
+                                    {isUa ? "Комплект із 4 дисків" : "Set of 4 wheels"}
+                                  </div>
+                                ) : null}
                               </div>
 
                               <div className="w-32">
@@ -4712,7 +4827,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                                   </Link>
                                 ) : isWheelSet ? (
                                   <Link
-                                    href={resolveShopCatalogProductHref(locale, item.href, item.slug)}
+                                    href={resolveShopCatalogProductHref(
+                                      locale,
+                                      item.href,
+                                      item.slug
+                                    )}
                                     className="flex min-h-8 w-full items-center justify-center border border-foreground/20 bg-foreground/[0.08] px-2 text-center text-[8px] font-semibold uppercase tracking-[0.08em] text-foreground transition hover:border-foreground hover:bg-foreground hover:text-background"
                                   >
                                     {isUa ? "Обрати комплект" : "Choose set"}

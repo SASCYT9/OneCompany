@@ -28,6 +28,12 @@ export const SHOP_SEARCH_TOKEN_ALIASES: Readonly<Record<string, string>> = {
   intercooler: "intercoolers?|інтеркулер(?:и|ів|а)?|интеркулер(?:ы|ов|а)?",
   radiator: "radiators?|радіатор(?:и|ів|а)?|радиатор(?:ы|ов|а)?",
   system: "systems?|систем(?:а|и|у|ою|ы)",
+  // Customers type Ukrainian (and Russian) brake/suspension words; several
+  // supplier titles use only one language, e.g. GiroDisc "Тормозные колодки".
+  brakes:
+    "brakes?|гальм(?:о|а|и|ів|ами|івн(?:ий|а|і|их|ого|ої|у|ими))?|тормоз(?:а|ов|ной|ная|ные|ных|ную)?",
+  pads: "pads?|колодк(?:а|и|ок|ами)",
+  springs: "springs?|пружин(?:а|и|ами|ів|ою|у)?",
   do88: "do[ -]*88",
   racechip: "race[ -]*chip",
   girodisc: "giro[ -]*disc",
@@ -131,6 +137,18 @@ const SHOP_SEARCH_QUERY_ALIASES = [
   ["рено", "renault"],
   ["ягуар", "jaguar"],
   ["бмв", "bmw"],
+  // Reviewed model names that customers commonly type in Cyrillic.
+  ["гольф", "golf"],
+  ["поло", "polo"],
+  ["тігуан", "tiguan"],
+  ["тигуан", "tiguan"],
+  ["туарег", "touareg"],
+  ["кайєн", "cayenne"],
+  ["каєн", "cayenne"],
+  ["кайен", "cayenne"],
+  ["макан", "macan"],
+  ["панамера", "panamera"],
+  ["супра", "supra"],
 ] as const;
 
 // High-intent catalog vocabulary used for conservative typo recovery. Only a
@@ -239,11 +257,22 @@ export function buildShopSearchText(parts: readonly SearchPart[]) {
   return canonicalizeShopSearchAliasesAndMakes(parts.filter(Boolean).join(" "));
 }
 
+// Queries are compared after normalizeShopSearchText, whose NFKD + combining-mark
+// removal turns "й" into "и". Normalize alias keys the same way, otherwise
+// entries such as "тойота" or "кайєн" can never match.
+let normalizedQueryAliases: ReadonlyArray<readonly [string, string]> | null = null;
+function getNormalizedShopSearchQueryAliases() {
+  normalizedQueryAliases ??= SHOP_SEARCH_QUERY_ALIASES.map(
+    ([alias, canonical]) => [normalizeShopSearchText(alias), canonical] as const
+  );
+  return normalizedQueryAliases;
+}
+
 export function getShopSearchQueryVariants(query: string | null | undefined) {
   const normalized = normalizeShopSearchText(query);
   if (!normalized) return [];
   const variants = new Set<string>([normalized]);
-  for (const [alias, canonical] of SHOP_SEARCH_QUERY_ALIASES) {
+  for (const [alias, canonical] of getNormalizedShopSearchQueryAliases()) {
     for (const variant of [...variants]) {
       if (variant.includes(alias)) variants.add(variant.replace(alias, canonical));
     }
@@ -257,7 +286,7 @@ export function canonicalizeShopSearchQuery(query: string | null | undefined) {
 
 function canonicalizeShopSearchAliasesAndMakes(query: string | null | undefined) {
   let normalized = normalizeShopSearchAliases(query);
-  for (const [alias, canonical] of SHOP_SEARCH_QUERY_ALIASES) {
+  for (const [alias, canonical] of getNormalizedShopSearchQueryAliases()) {
     normalized = normalized.replace(new RegExp(`(^| )${alias}(?= |$)`, "g"), `$1${canonical}`);
   }
   return normalized;
@@ -362,6 +391,11 @@ const SHOP_SEARCH_BRAND_TOKENS = new Set([
   "urban",
   "ipe",
 ]);
+
+/** Canonical query token that names a catalog brand (after alias canonicalization). */
+export function isShopSearchBrandToken(token: string) {
+  return SHOP_SEARCH_BRAND_TOKENS.has(token);
+}
 
 /** A single named brand must not be satisfied by a rival's SKU or description. */
 export function matchesShopSearchBrandIntent(brand: string | undefined, query: string) {

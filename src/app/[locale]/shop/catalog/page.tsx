@@ -93,10 +93,7 @@ function legacyCatalogHref(locale: string, filters: CatalogSearchParams) {
   return `/${locale}/shop/stock${query ? `?${query}` : ""}`;
 }
 
-export default async function CatalogPage({
-  params,
-  searchParams,
-}: Props) {
+export default async function CatalogPage({ params, searchParams }: Props) {
   const reader = resolveShopCatalogReaderFlag(process.env[SHOP_CATALOG_V2_READER_MODE_ENV]);
   const requestHeaders = reader.mode === "canary" ? await headers() : null;
   const [{ locale }, filters] = await Promise.all([params, searchParams]);
@@ -207,6 +204,7 @@ export default async function CatalogPage({
       // The established catalog treats auto as the default unpartitioned tab;
       // only moto is a strict projection scope.
       scope: query.scope === "moto" ? "moto" : null,
+      excludeScope: query.scope === "moto" ? null : "moto",
       effectivePriceContext,
       ...(query.stock === "inStock"
         ? { productIds: warehouseProductIds }
