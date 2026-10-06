@@ -7,7 +7,11 @@ import {
   adminVariantSummarySelect,
   applyAdminPricingPatchInTransaction,
   serializeAdminVariantSummary,
+  pricingVariantSelect,
 } from "@/lib/shopAdminVariants";
+import { normalizeShopCurrencyRates } from "@/lib/shopAdminSettings";
+import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
+import { managedAdminPricingPatch } from "@/lib/shopManagedAdminPricing";
 import { prisma } from "@/lib/prisma";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import {
@@ -33,7 +37,14 @@ export async function GET() {
       select: adminVariantSummarySelect,
     });
 
-    return NextResponse.json(variants.map(serializeAdminVariantSummary));
+    const settings = await prisma.shopSettings.findUnique({
+      where: { key: "shop" },
+      select: { currencyRates: true },
+    });
+    const rates = normalizeShopCurrencyRates(settings?.currencyRates);
+    return NextResponse.json(
+      variants.map((variant) => serializeAdminVariantSummary(variant, rates))
+    );
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -136,8 +147,7 @@ export async function PATCH(request: NextRequest) {
     const selectedVariants = await prisma.shopProductVariant.findMany({
       where: { id: { in: uniqueVariantIds } },
       select: {
-        id: true,
-        productId: true,
+        ...pricingVariantSelect,
         product: {
           select: { catalogVersion: true, slug: true, brand: true, vendor: true, tags: true },
         },
@@ -146,6 +156,15 @@ export async function PATCH(request: NextRequest) {
     if (selectedVariants.length !== uniqueVariantIds.length) {
       return NextResponse.json({ error: "One or more variants were not found" }, { status: 404 });
     }
+    // A managed price book derives every amount from the native source. Validate
+    // the patch for each variant up front so an invalid edit is a 400, not a 500.
+    const settings = await prisma.shopSettings.findUnique({
+      where: { key: "shop" },
+      select: { currencyRates: true },
+    });
+    const rates = normalizeShopCurrencyRates(settings?.currencyRates);
+    if (isShopSourcePriceBook(rates))
+      for (const variant of selectedVariants) managedAdminPricingPatch(variant, payload, rates);
     const groups = new Map<
       string,
       {
@@ -211,10 +230,13 @@ export async function PATCH(request: NextRequest) {
           limit: Math.min(50, Math.max(10, catalogMutations.length)),
         });
       } catch (error) {
-        console.error("[shop-catalog.pricing] immediate publish failed; cron recovery remains active", {
-          outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
-          error,
-        });
+        console.error(
+          "[shop-catalog.pricing] immediate publish failed; cron recovery remains active",
+          {
+            outboxIds: catalogMutations.map((mutation) => mutation.outboxId),
+            error,
+          }
+        );
       }
     });
 
@@ -252,6 +274,11 @@ export async function PATCH(request: NextRequest) {
         { status: 409 }
       );
     }
+    if ((error as Error).message.startsWith("MANAGED_PRICE_PATCH_INVALID:"))
+      return NextResponse.json(
+        { error: (error as Error).message.slice("MANAGED_PRICE_PATCH_INVALID:".length) },
+        { status: 400 }
+      );
     console.error("Admin pricing patch", error);
     return NextResponse.json({ error: "Failed to update pricing" }, { status: 500 });
   }

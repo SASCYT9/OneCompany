@@ -57,6 +57,43 @@ test("clearing a managed product or variant band clears all amounts and its sour
   );
 });
 
+test("copying product prices preserves variant-only bands while bulk clearing remains explicit", () => {
+  const variant = {
+    b2bPriceSourceCurrency: "USD",
+    priceEurB2b: "80",
+    priceUsdB2b: "90",
+    priceUahB2b: "4095",
+  };
+  const product = {
+    priceSourceCurrency: "EUR",
+    priceEur: "100",
+    priceUsd: "114",
+    priceUah: "5150",
+    b2bPriceSourceCurrency: "",
+    priceEurB2b: "",
+    priceUsdB2b: "",
+    priceUahB2b: "",
+  };
+  const copied: Record<string, string> = {
+    ...variant,
+    ...managedAdminPriceBandUpdates(product, false),
+  };
+  assert.equal(copied.b2bPriceSourceCurrency, "USD");
+  assert.equal(copied.priceUsdB2b, "90");
+  assert.equal(copied.priceSourceCurrency, "EUR");
+  const cleared = {
+    ...variant,
+    ...managedAdminPriceBandUpdates({
+      b2bPriceSourceCurrency: "",
+      priceEurB2b: "",
+      priceUsdB2b: "",
+      priceUahB2b: "",
+    }),
+  };
+  assert.equal(cleared.priceUsdB2b, "");
+  assert.equal(cleared.b2bPriceSourceCurrency, "");
+});
+
 test("fallback variants that omit a price retain inheritance instead of crashing the fallback reader", () => {
   const source = {
     price: { eur: 100, usd: 0, uah: 0 },

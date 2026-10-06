@@ -1,8 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateWheelForcePrices } from "../../../src/lib/wheelforcePricing";
+import {
+  buildWheelForcePriceFields,
+  calculateWheelForcePrices,
+} from "../../../src/lib/wheelforcePricing";
+import { normalizeAdminProductPayload } from "../../../src/lib/shopAdminCatalog";
 
 const rates = { EUR: 1, USD: 1.152174, UAH: 53 };
+
+test("WheelForce staging carries the supplier EUR source for both the product and variant", () => {
+  const manual = {
+    EUR: 1,
+    USD: 1.14,
+    UAH: 51.5,
+    _rawUsdToUah: 45.5,
+    _uahReserve: 0,
+    _manualCross: 1,
+  };
+  const fields = buildWheelForcePriceFields(42.5, manual);
+  assert.equal(fields.priceSourceCurrency, "EUR");
+  assert.equal(fields.priceUsd, 53.3);
+  assert.equal(fields.priceUah, 2407.63);
+  const { data, errors } = normalizeAdminProductPayload({
+    slug: "synthetic-wheel-set",
+    titleEn: "Synthetic set",
+    ...fields,
+    variants: [{ isDefault: true, ...fields }],
+  });
+  assert.deepEqual(errors, []);
+  assert.equal(data.priceSourceCurrency, "EUR");
+  assert.equal(data.variants[0].priceSourceCurrency, "EUR");
+});
 
 test("WheelForce set price applies 10% for Ukraine and keeps the Europe VAT base separate", () => {
   const prices = calculateWheelForcePrices(3280, rates);

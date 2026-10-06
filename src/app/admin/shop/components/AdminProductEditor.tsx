@@ -1662,23 +1662,31 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const applyProductPricingToVariants = () => {
     setForm((current) => ({
       ...current,
-      variants: current.variants.map((item) => ({
-        ...item,
-        priceEur: current.priceEur || item.priceEur,
-        priceEurEurope: current.priceEurEurope || item.priceEurEurope,
-        priceUsd: current.priceUsd || item.priceUsd,
-        priceUah: current.priceUah || item.priceUah,
-        priceEurB2b: current.priceEurB2b || item.priceEurB2b,
-        priceUsdB2b: current.priceUsdB2b || item.priceUsdB2b,
-        priceUahB2b: current.priceUahB2b || item.priceUahB2b,
-        compareAtEur: current.compareAtEur || item.compareAtEur,
-        compareAtUsd: current.compareAtUsd || item.compareAtUsd,
-        compareAtUah: current.compareAtUah || item.compareAtUah,
-        compareAtEurB2b: current.compareAtEurB2b || item.compareAtEurB2b,
-        compareAtUsdB2b: current.compareAtUsdB2b || item.compareAtUsdB2b,
-        compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
-        ...(isShopSourcePriceBook(rates) ? managedAdminPriceBandUpdates(current) : {}),
-      })),
+      variants: current.variants.map((item) =>
+        isShopSourcePriceBook(rates)
+          ? {
+              ...item,
+              ...managedAdminPriceBandUpdates(current, false),
+              priceEurEurope:
+                Number(current.priceEurEurope) > 0 ? current.priceEurEurope : item.priceEurEurope,
+            }
+          : {
+              ...item,
+              priceEur: current.priceEur || item.priceEur,
+              priceEurEurope: current.priceEurEurope || item.priceEurEurope,
+              priceUsd: current.priceUsd || item.priceUsd,
+              priceUah: current.priceUah || item.priceUah,
+              priceEurB2b: current.priceEurB2b || item.priceEurB2b,
+              priceUsdB2b: current.priceUsdB2b || item.priceUsdB2b,
+              priceUahB2b: current.priceUahB2b || item.priceUahB2b,
+              compareAtEur: current.compareAtEur || item.compareAtEur,
+              compareAtUsd: current.compareAtUsd || item.compareAtUsd,
+              compareAtUah: current.compareAtUah || item.compareAtUah,
+              compareAtEurB2b: current.compareAtEurB2b || item.compareAtEurB2b,
+              compareAtUsdB2b: current.compareAtUsdB2b || item.compareAtUsdB2b,
+              compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
+            }
+      ),
     }));
     setSuccess("Top-level pricing copied to variants.");
   };

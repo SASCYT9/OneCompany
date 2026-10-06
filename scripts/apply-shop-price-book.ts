@@ -3,7 +3,10 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { parse } from "dotenv";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { coordinateShopCatalogPriceBatchInTransaction, SHOP_PRICE_BATCH_FIELDS } from "../src/lib/shopCatalogPriceBatch.server";
+import {
+  coordinateShopCatalogPriceBatchInTransaction,
+  SHOP_PRICE_BATCH_FIELDS,
+} from "../src/lib/shopCatalogPriceBatch.server";
 import { shopPriceSourceReadiness } from "../src/lib/shopPriceSourceReadiness.server";
 import { retrySerializablePriceBatch } from "../src/lib/shopPriceBookBatchRetry";
 
@@ -133,8 +136,27 @@ function check(
     assertBefore(actual as unknown as Record<string, unknown>, row);
   }
 }
+/** A committed batch can outlive a crash before its checkpoint rename. */
+function matchesAfter(current: Record<string, unknown>, after: Record<string, unknown>) {
+  return Object.entries(after).every(([key, value]) => {
+    const actual = current[key];
+    if (key.endsWith("Currency")) return (actual ?? null) === (value ?? null);
+    return value == null ? actual == null : Number(actual) === Number(value);
+  });
+}
+function alreadyApplied(
+  current: { variants: Array<{ id: string }> } & Record<string, unknown>,
+  entry: Entry
+) {
+  if (!matchesAfter(current, entry.product.after)) return false;
+  return entry.variants.every((row) => {
+    const actual = current.variants.find((v) => v.id === row.id);
+    return Boolean(actual) && matchesAfter(actual as unknown as Record<string, unknown>, row.after);
+  });
+}
 async function main() {
   const done = new Set(receipt.applied.map((row) => row.id));
+  const resuming = process.argv.includes("--resume");
   // Check the entire remainder before the first write; a batch rechecks under locks.
   for (let offset = 0; offset < plan.changes.length; offset += 500) {
     const entries = plan.changes
@@ -142,11 +164,34 @@ async function main() {
       .filter((row) => !done.has(row.product.id));
     const rows = await db.shopProduct.findMany({
       where: { id: { in: entries.map((e) => e.product.id) } },
-      select: { id: true, sku: true, catalogVersion: true, ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map(field=>[field,true])), variants: { select: { id: true, sku: true, ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map(field=>[field,true])) } } },
+      select: {
+        id: true,
+        sku: true,
+        catalogVersion: true,
+        ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map((field) => [field, true])),
+        variants: {
+          select: {
+            id: true,
+            sku: true,
+            ...Object.fromEntries(SHOP_PRICE_BATCH_FIELDS.map((field) => [field, true])),
+          },
+        },
+      },
     });
     for (const entry of entries) {
       const current = rows.find((r) => r.id === entry.product.id);
       if (!current) throw new Error(`Product missing: ${entry.product.id}`);
+      // On resume, a product already at its planned prices was committed by a batch
+      // whose checkpoint was lost; record it instead of rejecting the advanced version.
+      if (resuming && alreadyApplied(current as never, entry)) {
+        done.add(entry.product.id);
+        receipt.applied.push({
+          id: entry.product.id,
+          version: String(current.catalogVersion),
+          outboxId: "reconciled-on-resume",
+        });
+        continue;
+      }
       check(current, entry);
     }
   }
@@ -162,26 +207,51 @@ async function main() {
     })
   );
   if (mode === "DRY_RUN") return;
+  writeFileSync(checkpointPath + ".next", JSON.stringify(receipt, null, 2));
+  renameSync(checkpointPath + ".next", checkpointPath);
   const remaining = plan.changes.filter((row) => !done.has(row.product.id));
   for (let offset = 0; offset < remaining.length; offset += batchSize) {
     if (maxBatches != null && offset / batchSize >= maxBatches) {
-      console.log(JSON.stringify({ boundedRunComplete: true, applied: receipt.applied.length, total: plan.changes.length }));
+      console.log(
+        JSON.stringify({
+          boundedRunComplete: true,
+          applied: receipt.applied.length,
+          total: plan.changes.length,
+        })
+      );
       return;
     }
     const batch = remaining.slice(offset, offset + batchSize);
     const batchStartedAt = Date.now();
-    const results = await retrySerializablePriceBatch(() => db.$transaction(
-      tx => coordinateShopCatalogPriceBatchInTransaction(tx, batch, {
-        type: 'system', id: 'price-book-source-initialization',
-        reason: 'Owner-confirmed source currencies; +1 UAH to USD and EUR; sale cross derived from both buffered rates',
-      }),
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 120000, maxWait: 10000 }
-    ), attempt => console.log(JSON.stringify({ retryingPriceBatch: offset, attempt, reason: 'P2034' })));
+    const results = await retrySerializablePriceBatch(
+      () =>
+        db.$transaction(
+          (tx) =>
+            coordinateShopCatalogPriceBatchInTransaction(tx, batch, {
+              type: "system",
+              id: "price-book-source-initialization",
+              reason:
+                "Owner-confirmed source currencies; +1 UAH to USD and EUR; sale cross derived from both buffered rates",
+            }),
+          {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+            timeout: 120000,
+            maxWait: 10000,
+          }
+        ),
+      (attempt) =>
+        console.log(JSON.stringify({ retryingPriceBatch: offset, attempt, reason: "P2034" }))
+    );
     receipt.applied.push(...results);
     writeFileSync(checkpointPath + ".next", JSON.stringify(receipt, null, 2));
     renameSync(checkpointPath + ".next", checkpointPath);
     if (maxBatches != null)
-      console.log(JSON.stringify({ batchProducts: batch.length, batchDurationMs: Date.now() - batchStartedAt }));
+      console.log(
+        JSON.stringify({
+          batchProducts: batch.length,
+          batchDurationMs: Date.now() - batchStartedAt,
+        })
+      );
     if (receipt.applied.length % 100 === 0 || receipt.applied.length === plan.changes.length)
       console.log(JSON.stringify({ applied: receipt.applied.length, total: plan.changes.length }));
   }

@@ -60,7 +60,10 @@ export function managedAdminSourceSelection(
 }
 
 /** Copy every amount with its source, including an explicitly cleared band. */
-export function managedAdminPriceBandUpdates(form: object): Record<string, string> {
+export function managedAdminPriceBandUpdates(
+  form: object,
+  includeEmpty = true
+): Record<string, string> {
   const updates: Record<string, string> = {};
   const groups = [
     ["priceSourceCurrency", "priceEur", "priceUsd", "priceUah"],
@@ -70,6 +73,7 @@ export function managedAdminPriceBandUpdates(form: object): Record<string, strin
   ];
   for (const [source, ...amounts] of groups) {
     if (Reflect.get(form, source) === undefined) continue;
+    if (!includeEmpty && !amounts.some((field) => Number(Reflect.get(form, field)) > 0)) continue;
     for (const field of [source, ...amounts])
       updates[field] = String(Reflect.get(form, field) ?? "");
   }

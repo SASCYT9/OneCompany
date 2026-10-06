@@ -1,4 +1,11 @@
 import { Prisma, ShopInventoryPolicy } from "@prisma/client";
+import { normalizeShopCurrencyRates } from "./shopAdminSettings";
+import {
+  isShopSourcePriceBook,
+  tryRepriceShopSourceMoney,
+  type ShopPriceBookRates,
+} from "./shopPriceBookCurrency";
+import { managedAdminPricingPatch, SHOP_ADMIN_PRICE_BANDS } from "./shopManagedAdminPricing";
 
 export const adminVariantSummarySelect = {
   id: true,
@@ -14,6 +21,10 @@ export const adminVariantSummarySelect = {
     include: { location: true },
   },
   priceEur: true,
+  priceSourceCurrency: true,
+  b2bPriceSourceCurrency: true,
+  compareAtSourceCurrency: true,
+  b2bCompareAtSourceCurrency: true,
   priceEurEurope: true,
   priceUsd: true,
   priceUah: true,
@@ -107,8 +118,11 @@ function uniqueStrings(values: string[]) {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
-export function serializeAdminVariantSummary(record: AdminShopVariantSummaryRecord) {
-  return {
+export function serializeAdminVariantSummary(
+  record: AdminShopVariantSummaryRecord,
+  rates?: ShopPriceBookRates
+) {
+  const summary = {
     id: record.id,
     productId: record.productId,
     title: record.title,
@@ -128,6 +142,10 @@ export function serializeAdminVariantSummary(record: AdminShopVariantSummaryReco
       incomingQuantity: level.incomingQuantity,
     })),
     priceEur: decimalToNumber(record.priceEur),
+    priceSourceCurrency: record.priceSourceCurrency,
+    b2bPriceSourceCurrency: record.b2bPriceSourceCurrency,
+    compareAtSourceCurrency: record.compareAtSourceCurrency,
+    b2bCompareAtSourceCurrency: record.b2bCompareAtSourceCurrency,
     priceEurEurope: decimalToNumber(record.priceEurEurope),
     priceUsd: decimalToNumber(record.priceUsd),
     priceUah: decimalToNumber(record.priceUah),
@@ -165,6 +183,26 @@ export function serializeAdminVariantSummary(record: AdminShopVariantSummaryReco
       })),
     },
   };
+  if (isShopSourcePriceBook(rates)) {
+    for (const [source, fields] of SHOP_ADMIN_PRICE_BANDS) {
+      if (!fields.some((field) => Number(record[field]) > 0)) continue;
+      const money = tryRepriceShopSourceMoney(
+        {
+          eur: Number(record[fields[0]] ?? 0),
+          usd: Number(record[fields[1]] ?? 0),
+          uah: Number(record[fields[2]] ?? 0),
+          ...(record[source] ? { sourceCurrency: record[source] as "EUR" | "USD" | "UAH" } : {}),
+        },
+        rates
+      );
+      if (money) {
+        summary[fields[0]] = money.eur;
+        summary[fields[1]] = money.usd;
+        summary[fields[2]] = money.uah;
+      }
+    }
+  }
+  return summary;
 }
 
 /**
@@ -196,8 +234,7 @@ export async function applyAdminInventoryPatchInTransaction(
               ? variant.inventoryQty + input.inventoryAdjustment
               : undefined,
         inventoryPolicy: input.inventoryPolicy ?? undefined,
-        inventoryTracker:
-          input.inventoryTracker !== undefined ? input.inventoryTracker : undefined,
+        inventoryTracker: input.inventoryTracker !== undefined ? input.inventoryTracker : undefined,
         fulfillmentService:
           input.fulfillmentService !== undefined ? input.fulfillmentService : undefined,
       },
@@ -240,10 +277,14 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-const pricingVariantSelect = {
+export const pricingVariantSelect = {
   id: true,
   productId: true,
   isDefault: true,
+  priceSourceCurrency: true,
+  b2bPriceSourceCurrency: true,
+  compareAtSourceCurrency: true,
+  b2bCompareAtSourceCurrency: true,
   priceEur: true,
   priceEurEurope: true,
   priceUsd: true,
@@ -275,13 +316,22 @@ function pricingUpdateData(variant: PricingVariant, input: AdminPricingPatchInpu
       ? round2(decimalToNumber(value)! * multiplier)
       : undefined;
   return {
-    priceEur: input.priceEur !== undefined ? input.priceEur : multiplied(variant.priceEur, input.multiplyEur),
+    priceEur:
+      input.priceEur !== undefined
+        ? input.priceEur
+        : multiplied(variant.priceEur, input.multiplyEur),
     priceEurEurope:
       input.priceEurEurope !== undefined
         ? input.priceEurEurope
         : multiplied(variant.priceEurEurope, input.multiplyEurEurope),
-    priceUsd: input.priceUsd !== undefined ? input.priceUsd : multiplied(variant.priceUsd, input.multiplyUsd),
-    priceUah: input.priceUah !== undefined ? input.priceUah : multiplied(variant.priceUah, input.multiplyUah),
+    priceUsd:
+      input.priceUsd !== undefined
+        ? input.priceUsd
+        : multiplied(variant.priceUsd, input.multiplyUsd),
+    priceUah:
+      input.priceUah !== undefined
+        ? input.priceUah
+        : multiplied(variant.priceUah, input.multiplyUah),
     priceEurB2b:
       input.priceEurB2b !== undefined
         ? input.priceEurB2b
@@ -315,17 +365,44 @@ export async function applyAdminPricingPatchInTransaction(
   if (variants.length !== variantIds.length) {
     throw new Error(`Pricing variants do not all belong to product ${input.productId}`);
   }
+  const settings = await tx.shopSettings.findUnique({
+    where: { key: "shop" },
+    select: { currencyRates: true },
+  });
+  const rates = normalizeShopCurrencyRates(settings?.currencyRates);
+  const managed = isShopSourcePriceBook(rates);
+  const updates = new Map<string, Record<string, unknown>>();
   for (const variant of variants) {
+    const data = pricingUpdateData(variant, input);
+    if (managed) {
+      const changed = managedAdminPricingPatch(variant, input, rates);
+      for (const [, fields] of SHOP_ADMIN_PRICE_BANDS)
+        for (const field of fields) delete data[field];
+      Object.assign(data, changed);
+    }
+    updates.set(
+      variant.id,
+      Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined))
+    );
     await tx.shopProductVariant.update({
       where: { id: variant.id },
-      data: pricingUpdateData(variant, input),
+      data,
     });
   }
   const defaultVariant = await tx.shopProductVariant.findFirst({
     where: { productId: input.productId, isDefault: true },
     select: pricingVariantSelect,
   });
-  if (defaultVariant) {
+  if (managed && defaultVariant && updates.has(defaultVariant.id)) {
+    const changed = updates.get(defaultVariant.id)!;
+    if (Object.keys(changed).length)
+      await tx.shopProduct.update({
+        where: { id: input.productId },
+        data: Object.fromEntries(
+          Object.keys(changed).map((field) => [field, Reflect.get(defaultVariant, field)])
+        ),
+      });
+  } else if (!managed && defaultVariant) {
     await tx.shopProduct.update({
       where: { id: input.productId },
       data: {
