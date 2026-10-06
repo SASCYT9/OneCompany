@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
+
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -96,6 +98,8 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     }
 
     await fetch("/api/shop/cart");
+    // The merged customer cart replaced the guest count; refresh the header badge.
+    notifyShopCartChanged();
     router.push(nextHref);
     router.refresh();
   }
