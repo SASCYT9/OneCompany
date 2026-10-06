@@ -18,6 +18,8 @@ export const REVOZPORT_USD_TO_UAH_RATE = 46;
 
 export type RevozportCurrencyRates = ShopPriceBookRates;
 
+let reportedNonUsdRevozportSource = false;
+
 export type RevozportShippingQuotes = {
   seaUsd: number | null;
   airUsd: number | null;
@@ -87,7 +89,7 @@ export function resolveRevozportUkraineShippingUsd(
 }
 
 export function addRevozportUkraineShippingToPriceSet(
-  price: { eur: number; usd: number; uah: number },
+  price: { eur: number; usd: number; uah: number; sourceCurrency?: "EUR" | "USD" | "UAH" },
   brandName: string | null | undefined,
   country: string | null | undefined,
   weightKg: number | null | undefined,
@@ -98,11 +100,17 @@ export function addRevozportUkraineShippingToPriceSet(
   const shippingUsd = resolveRevozportUkraineShippingUsd(weightKg, supplierQuoteUsd);
   if (shippingUsd == null) return price;
   if (rates._uahReserve === 1) {
-    if (!(price.usd > 0)) {
-      if ([price.eur, price.uah].some(value => value > 0)) throw new Error("REVOZPORT_PRICE_SOURCE_REVIEW_REQUIRED");
-      return price;
+    // The supplier delivery rate is USD. Like the SQL price reader, add it only
+    // to a USD source price; any other source keeps its price for data review
+    // instead of failing the whole page.
+    const source = price.sourceCurrency ?? (price.usd > 0 ? "USD" : undefined);
+    if (source === "USD" && price.usd > 0)
+      return repriceShopSourceMoney({ eur: 0, usd: price.usd + shippingUsd, uah: 0, sourceCurrency: "USD" }, rates);
+    if (!reportedNonUsdRevozportSource && [price.eur, price.usd, price.uah].some((value) => value > 0)) {
+      reportedNonUsdRevozportSource = true;
+      console.warn("[revozport] delivery not added to a non-USD source price", source ?? "unresolved");
     }
-    return repriceShopSourceMoney({ eur: 0, usd: price.usd + shippingUsd, uah: 0, sourceCurrency: "USD" }, rates);
+    return price;
   }
 
   const hasValue = (value: number | null | undefined) =>

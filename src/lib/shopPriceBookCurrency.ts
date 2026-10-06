@@ -75,6 +75,29 @@ export function repriceShopSourceMoney(
   };
 }
 
+const reportedRepriceFailures = new Set<string>();
+
+/**
+ * Display paths must not fail a whole page for one unresolved price band.
+ * Returns null so callers keep the stored legacy values; checkout and price-book
+ * scripts keep using the strict `repriceShopSourceMoney`.
+ */
+export function tryRepriceShopSourceMoney(
+  price: ShopSourceMoney,
+  rates: ShopPriceBookRates
+): ShopSourceMoney | null {
+  try {
+    return repriceShopSourceMoney(price, rates);
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "SHOP_PRICE_REPRICE_FAILED";
+    if (!reportedRepriceFailures.has(code)) {
+      reportedRepriceFailures.add(code);
+      console.warn("[shop-price-book] display fallback to stored prices", code);
+    }
+    return null;
+  }
+}
+
 /** Runtime never infers a currency from a brand or a global default. */
 export function tagShopMoneySource(price: ShopSourceMoney): ShopSourceMoney {
   if (price.sourceCurrency) return price;

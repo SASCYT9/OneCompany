@@ -133,3 +133,16 @@ test("fixed UAH sources stay fixed and ambiguous multi-currency input cannot sil
     /INVALID/
   );
 });
+
+test("display readers keep stored prices for an unresolved source while checkout stays strict", async () => {
+  const { convertShopMoney } = await import("../../../src/lib/shopMoneyFormat");
+  const { computeShopDisplayPrices } = await import("../../../src/lib/shopDisplayPrices");
+  const { expandShopPrices } = await import("../../../src/lib/shopPriceConversion");
+  const ambiguous = { eur: 100, usd: 116, uah: 4850 };
+  assert.throws(() => repriceShopSourceMoney(ambiguous, rates), /SHOP_PRICE_SOURCE_REQUIRED/);
+  assert.equal(convertShopMoney(ambiguous, "UAH", rates), 4850);
+  assert.deepEqual(computeShopDisplayPrices(ambiguous, rates), ambiguous);
+  assert.deepEqual(expandShopPrices(ambiguous, rates), ambiguous);
+  const tagged = { ...ambiguous, sourceCurrency: "EUR" as const };
+  assert.equal(convertShopMoney(tagged, "UAH", rates), repriceShopSourceMoney(tagged, rates).uah);
+});

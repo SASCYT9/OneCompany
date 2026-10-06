@@ -1,5 +1,5 @@
 import type { SupportedLocale } from "@/lib/seo";
-import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+import { tryRepriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 export type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
@@ -50,8 +50,8 @@ export function convertShopMoney(
 ): number {
   if (!price) return 0;
   if (rates?._uahReserve === 1 && [price.eur, price.usd, price.uah].some(value => value > 0)) {
-    const priced = repriceShopSourceMoney(price, rates);
-    return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * 100) / 100;
+    const priced = tryRepriceShopSourceMoney(price, rates);
+    if (priced) return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * 100) / 100;
   }
 
   const direct = target === "USD" ? price.usd : target === "UAH" ? price.uah : price.eur;

@@ -1,6 +1,6 @@
 import type { ShopMoneySet } from "@/lib/shopCatalog";
 import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
-import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+import { tryRepriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 type Rates = ShopPriceBookRates;
 
@@ -15,8 +15,10 @@ type Rates = ShopPriceBookRates;
  * If all three are zero, returns zeros (caller decides what to do).
  */
 export function expandShopPrices(price: ShopMoneySet | null | undefined, rates: Rates): ShopMoneySet {
-  if (rates?._uahReserve === 1 && price && [price.eur, price.usd, price.uah].some(value => value > 0))
-    return repriceShopSourceMoney(price, rates);
+  if (rates?._uahReserve === 1 && price && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+    const priced = tryRepriceShopSourceMoney(price, rates);
+    if (priced) return priced;
+  }
   const usd = price?.usd ?? 0;
   const eur = price?.eur ?? 0;
   const uah = price?.uah ?? 0;
