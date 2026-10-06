@@ -5,15 +5,25 @@ import { fetchShopCurrencyRatesFromNbu } from "@/lib/shopCurrencyNbu";
 import { getOrCreateShopSettings } from "@/lib/shopAdminSettings";
 import { coordinateShopCatalogGlobalMutationWithClient } from "@/lib/shopCatalogGlobalMutationCoordinator.server";
 import { assertShopPriceSourcesReady } from "./shopPriceSourceReadiness.server";
+import { isManualShopPriceBook } from "./shopPriceBookCurrency";
 
 export async function syncShopNbuCurrencyRates(
   prisma: PrismaClient,
   session?: AdminSession,
   dryRun = false
 ) {
-  const nbu = await fetchShopCurrencyRatesFromNbu();
   const current = await getOrCreateShopSettings(prisma);
   const previous = current.currencyRates as Record<string, unknown>;
+  if (isManualShopPriceBook(previous))
+    return {
+      settings: current,
+      nbu: null,
+      changed: false,
+      dryRun,
+      publications: [],
+      reason: "manual_rates_active",
+    };
+  const nbu = await fetchShopCurrencyRatesFromNbu();
   if (!dryRun) await assertShopPriceSourcesReady(prisma);
   const dateKey = (date: string) => {
     const match = date.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
@@ -52,6 +62,7 @@ export async function syncShopNbuCurrencyRates(
     mutate: async (tx) => {
       const latest = await tx.shopSettings.findUniqueOrThrow({ where: { key: current.key } });
       const latestRates = latest.currencyRates as Record<string, unknown>;
+      if (isManualShopPriceBook(latestRates)) throw new Error("MANUAL_RATES_ACTIVE");
       await assertShopPriceSourcesReady(tx);
       if (
         typeof latestRates._exchangedAt === "string" &&

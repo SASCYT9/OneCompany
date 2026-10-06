@@ -1,4 +1,5 @@
 import {
+  isShopSourcePriceBook,
   repriceShopSourceMoney,
   shopUahSaleRate,
   type ShopPriceBookRates,
@@ -11,7 +12,7 @@ export function managedAdminPriceChange(
   currency: ShopCurrencyCode,
   rates: Record<string, number>
 ) {
-  if (rates._uahReserve !== 1 || !Number.isFinite(value) || value < 0) return null;
+  if (!isShopSourcePriceBook(rates) || !Number.isFinite(value) || value < 0) return null;
   if (value === 0) return { eur: "", usd: "", uah: "", sourceCurrency: "" as const };
   const result = repriceShopSourceMoney(
     {
@@ -76,7 +77,7 @@ export function managedAdminPriceBandUpdates(form: object): Record<string, strin
 }
 
 export function adminPriceBookDescription(rates: Record<string, number>) {
-  return rates._uahReserve === 1
+  return isShopSourcePriceBook(rates)
     ? `EUR/USD: ${rates.USD.toFixed(6)}. Курс продажу: EUR ${shopUahSaleRate("EUR", rates as ShopPriceBookRates).toFixed(4)} грн; USD ${shopUahSaleRate("USD", rates as ShopPriceBookRates).toFixed(4)} грн. Перерахунок від вихідної валюти.`
     : `При зміні однієї валюти інші оновлюються автоматично. Курс: 1 EUR = ${rates.USD} USD = ${rates.UAH} UAH`;
 }

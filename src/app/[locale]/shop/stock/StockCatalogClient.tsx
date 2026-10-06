@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchShopStockSearch } from "@/lib/shopStockSearchRequest";
-import { getShopStockItemPriceSet } from "@/lib/shopStockItemPricing";
+import { getShopStockItemCompareAtSet, getShopStockItemPriceSet } from "@/lib/shopStockItemPricing";
 import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
 import {
@@ -2360,17 +2360,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   }, []);
 
   const getItemCompareAtSet = useCallback((item: StockItem): ShopPriceSet | null => {
-    const compareAt = item.originalPriceSet;
-    if (
-      compareAt &&
-      ((compareAt.eur ?? 0) > 0 || (compareAt.usd ?? 0) > 0 || (compareAt.uah ?? 0) > 0)
-    ) {
-      return compareAt;
-    }
-    if (item.originalPrice && item.originalPrice > 0) {
-      return { eur: 0, usd: item.originalPrice, uah: 0 };
-    }
-    return null;
+    return getShopStockItemCompareAtSet(item);
   }, []);
 
   const formatAmount = useCallback(
@@ -2413,12 +2403,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const getItemCompareAtAmount = useCallback(
     (item: StockItem) => {
       const compareAtAmount = convertShopMoney(getItemCompareAtSet(item), currency, displayRates);
-      if (compareAtAmount > 0) return compareAtAmount;
-
-      const priceAmount = getItemDisplayPriceAmount(item);
-      return priceAmount > 0 ? priceAmount * 1.3 : 0;
+      return compareAtAmount > 0 ? compareAtAmount : 0;
     },
-    [currency, displayRates, getItemCompareAtSet, getItemDisplayPriceAmount]
+    [currency, displayRates, getItemCompareAtSet]
   );
 
   const formatItemPrice = useCallback(

@@ -1,8 +1,16 @@
 import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
-import { requiresUrbanBodyKitQuote, URBAN_BODYKIT_QUOTE_ERROR } from "@/lib/shopProductPurchasePolicy";
+import {
+  requiresUrbanBodyKitQuote,
+  URBAN_BODYKIT_QUOTE_ERROR,
+} from "@/lib/shopProductPurchasePolicy";
 import { calculateTaxAmount, calculateProportionalAmount } from "@/lib/shopCheckoutTax";
 import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
-import { repriceShopSourceMoney, type ShopSourceMoney } from "./shopPriceBookCurrency";
+import {
+  isShopSourcePriceBook,
+  repriceShopSourceMoney,
+  type ShopSourceMoney,
+} from "./shopPriceBookCurrency";
+import { convertShopCurrencyAmount } from "./shopMoneyFormat";
 import {
   getOrCreateShopSettings,
   getShopSettingsRuntime,
@@ -195,10 +203,7 @@ function convertAmount(
   rates: Record<ShopCurrencyCode, number>
 ) {
   if (fromCurrency === toCurrency) return roundMoney(amount);
-
-  const amountInEur = fromCurrency === "EUR" ? amount : amount / rates[fromCurrency];
-  const converted = toCurrency === "EUR" ? amountInEur : amountInEur * rates[toCurrency];
-  return roundMoney(converted);
+  return convertShopCurrencyAmount(amount, fromCurrency, toCurrency, rates, 2);
 }
 
 function resolveUnitPrice(
@@ -206,9 +211,18 @@ function resolveUnitPrice(
   currency: ShopCurrencyCode,
   settings: ShopSettingsRuntime
 ) {
-  if (settings.currencyRates._uahReserve === 1 && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+  if (
+    isShopSourcePriceBook(settings.currencyRates) &&
+    [price.eur, price.usd, price.uah].some((value) => value > 0)
+  ) {
     const priced = repriceShopSourceMoney(price, settings.currencyRates);
-    return { amount: roundMoney(priced[currency.toLowerCase() as "eur" | "usd" | "uah"]), sourceCurrency: priced.sourceCurrency!, sourceAmount: roundMoney(priced[priced.sourceCurrency!.toLowerCase() as "eur" | "usd" | "uah"]) };
+    return {
+      amount: roundMoney(priced[currency.toLowerCase() as "eur" | "usd" | "uah"]),
+      sourceCurrency: priced.sourceCurrency!,
+      sourceAmount: roundMoney(
+        priced[priced.sourceCurrency!.toLowerCase() as "eur" | "usd" | "uah"]
+      ),
+    };
   }
   const directPrices: Record<ShopCurrencyCode, number> = {
     EUR: Number(price.eur || 0),
@@ -995,7 +1009,12 @@ export async function buildCheckoutQuote(
     const variant = rawItem.variantId
       ? product.variants?.find((entry) => entry.id === rawItem.variantId)
       : undefined;
-    const variantWeightKg = variant?.shippingPricingWeightKg ?? product.shippingPricingWeightKg ?? variant?.weightKg ?? product.weightKg ?? null;
+    const variantWeightKg =
+      variant?.shippingPricingWeightKg ??
+      product.shippingPricingWeightKg ??
+      variant?.weightKg ??
+      product.weightKg ??
+      null;
     const pricing = variant
       ? resolveShopPriceBands({
           b2cPrice: addRevozportUkraineShippingToPriceSet(
@@ -1015,7 +1034,11 @@ export async function buildCheckoutQuote(
         })
       : resolveShopProductPricing(product, pricingContext);
 
-    const { amount, sourceCurrency, sourceAmount } = resolveUnitPrice(pricing.effectivePrice, currency, settings);
+    const { amount, sourceCurrency, sourceAmount } = resolveUnitPrice(
+      pricing.effectivePrice,
+      currency,
+      settings
+    );
     const total = roundMoney(amount * quantity);
     const title =
       typeof product.title === "object" && product.title !== null
@@ -1047,7 +1070,10 @@ export async function buildCheckoutQuote(
       shippingIncludedInPrice:
         isUkraineCountry(input.shippingAddress.country) &&
         isRevozportBrand(product.brand) &&
-        resolveRevozportUkraineShippingUsd(variantWeightKg, variant?.shippingToUaUsd ?? product.shippingToUaUsd) != null,
+        resolveRevozportUkraineShippingUsd(
+          variantWeightKg,
+          variant?.shippingToUaUsd ?? product.shippingToUaUsd
+        ) != null,
     });
     subtotal = roundMoney(subtotal + total);
     itemCount += quantity;

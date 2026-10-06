@@ -1,5 +1,10 @@
 import type { SupportedLocale } from "@/lib/seo";
-import { tryRepriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+import {
+  isShopSourcePriceBook,
+  repriceShopSourceMoney,
+  tryRepriceShopSourceMoney,
+  type ShopPriceBookRates,
+} from "./shopPriceBookCurrency";
 
 export type ShopCurrencyCode = "EUR" | "USD" | "UAH";
 
@@ -27,6 +32,20 @@ export function convertShopCurrencyAmount(
 ): number {
   if (!Number.isFinite(amount) || amount < 0) return 0;
   if (source === target) return amount;
+  if (amount === 0) return 0;
+  if (isShopSourcePriceBook(rates)) {
+    const priced = repriceShopSourceMoney(
+      {
+        eur: source === "EUR" ? amount : 0,
+        usd: source === "USD" ? amount : 0,
+        uah: source === "UAH" ? amount : 0,
+        sourceCurrency: source,
+      },
+      rates
+    );
+    const scale = 10 ** (fractionDigits ?? (target === "UAH" ? 0 : 2));
+    return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * scale) / scale;
+  }
 
   const sourceRate = rates?.[source] && rates[source] > 0 ? rates[source] : 0;
   const targetRate = rates?.[target] && rates[target] > 0 ? rates[target] : 0;
@@ -49,9 +68,13 @@ export function convertShopMoney(
   rates: ShopCurrencyRates | null | undefined
 ): number {
   if (!price) return 0;
-  if (rates?._uahReserve === 1 && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+  if (
+    isShopSourcePriceBook(rates) &&
+    [price.eur, price.usd, price.uah].some((value) => value > 0)
+  ) {
     const priced = tryRepriceShopSourceMoney(price, rates);
-    if (priced) return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * 100) / 100;
+    if (priced)
+      return Math.round(priced[target.toLowerCase() as "eur" | "usd" | "uah"] * 100) / 100;
   }
 
   const direct = target === "USD" ? price.usd : target === "UAH" ? price.uah : price.eur;

@@ -21,13 +21,15 @@ const rates = {
 };
 
 test("clearing a managed product or variant band clears all amounts and its source", () => {
-  for (const currency of ["EUR", "USD", "UAH"] as const) {
-    assert.deepEqual(managedAdminPriceChange(0, currency, rates), {
-      eur: "",
-      usd: "",
-      uah: "",
-      sourceCurrency: "",
-    });
+  for (const reserve of [0, 1]) {
+    for (const currency of ["EUR", "USD", "UAH"] as const) {
+      assert.deepEqual(managedAdminPriceChange(0, currency, { ...rates, _uahReserve: reserve }), {
+        eur: "",
+        usd: "",
+        uah: "",
+        sourceCurrency: "",
+      });
+    }
   }
   assert.deepEqual(managedAdminPriceBandUpdates({ priceEur: "", priceUsd: "", priceUah: "" }), {});
   assert.deepEqual(

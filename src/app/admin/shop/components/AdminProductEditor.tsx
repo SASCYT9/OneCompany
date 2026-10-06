@@ -1,4 +1,6 @@
 "use client";
+
+import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
 import {
   managedAdminPriceChange,
   managedAdminPriceBandUpdates,
@@ -1231,7 +1233,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
       const sourceChange = managedAdminSourceSelection(current, String(key), String(value), rates);
       if (sourceChange) Object.assign(next, sourceChange);
 
-      if (autoConvert || rates._uahReserve === 1) {
+      if (autoConvert || isShopSourcePriceBook(rates)) {
         const valStr = String(value);
         const priceTrios = [
           ["priceEur", "priceUsd", "priceUah"],
@@ -1304,7 +1306,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const updateVariantBulkField = (key: keyof VariantBulkState, value: string) => {
     setVariantBulk((current) => {
       const next = { ...current, [key]: value };
-      if (autoConvert || rates._uahReserve === 1) {
+      if (autoConvert || isShopSourcePriceBook(rates)) {
         const val = parseFloat(value);
         const priceTrios = [
           ["priceEur", "priceUsd", "priceUah"],
@@ -1675,7 +1677,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         compareAtEurB2b: current.compareAtEurB2b || item.compareAtEurB2b,
         compareAtUsdB2b: current.compareAtUsdB2b || item.compareAtUsdB2b,
         compareAtUahB2b: current.compareAtUahB2b || item.compareAtUahB2b,
-        ...(rates._uahReserve === 1 ? managedAdminPriceBandUpdates(current) : {}),
+        ...(isShopSourcePriceBook(rates) ? managedAdminPriceBandUpdates(current) : {}),
       })),
     }));
     setSuccess("Top-level pricing copied to variants.");
@@ -2289,8 +2291,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 <div className="mb-4 rounded-none border border-white/10 bg-zinc-950/40 p-4">
                   <CheckboxField
                     label="Автоматичний перерахунок цін за курсом"
-                    checked={autoConvert || rates._uahReserve === 1}
-                    disabled={rates._uahReserve === 1}
+                    checked={autoConvert || isShopSourcePriceBook(rates)}
+                    disabled={isShopSourcePriceBook(rates)}
                     onChange={setAutoConvert}
                     helper={adminPriceBookDescription(rates)}
                   />
@@ -3003,7 +3005,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         onRemove={() => removeListItem("variants", index)}
                         onSetDefault={() => setDefaultVariant(index)}
                         rates={rates}
-                        autoConvert={autoConvert || rates._uahReserve === 1}
+                        autoConvert={autoConvert || isShopSourcePriceBook(rates)}
                       />
                     ))}
                   </div>

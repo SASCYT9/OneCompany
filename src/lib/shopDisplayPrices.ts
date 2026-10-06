@@ -1,15 +1,17 @@
-import type { ShopMoneySet } from '@/lib/shopCatalog';
-import type { ShopCurrencyCode } from '@/lib/shopMoneyFormat';
-import { tryRepriceShopSourceMoney } from "./shopPriceBookCurrency";
+import type { ShopMoneySet } from "@/lib/shopCatalog";
+import type { ShopCurrencyCode } from "@/lib/shopMoneyFormat";
+import { isShopSourcePriceBook, tryRepriceShopSourceMoney } from "./shopPriceBookCurrency";
 
-type DisplayRates = {
-  EUR: number;
-  USD: number;
-  UAH?: number;
-  _uahReserve?: number;
-  _rawUsdToUah?: number;
-
-} | null | undefined;
+type DisplayRates =
+  | {
+      EUR: number;
+      USD: number;
+      UAH?: number;
+      _uahReserve?: number;
+      _rawUsdToUah?: number;
+    }
+  | null
+  | undefined;
 
 function normalizeAmount(value: unknown) {
   const parsed = Number(value);
@@ -27,9 +29,25 @@ export function computeShopDisplayPrices(
   let eur = normalizeAmount(price?.eur);
   let usd = normalizeAmount(price?.usd);
   let uah = normalizeAmount(price?.uah);
-  if (rates?._uahReserve === 1 && (eur > 0 || usd > 0 || uah > 0)) {
-    const result = tryRepriceShopSourceMoney({ eur, usd, uah, sourceCurrency: price?.sourceCurrency, sourceUnitAmount: price?.sourceUnitAmount, sourceQuantity: price?.sourceQuantity }, { ...rates, EUR: rates.EUR, USD: rates.USD, UAH: Number(rates.UAH) });
-    if (result) return { ...result, eur: roundAmount(result.eur), usd: roundAmount(result.usd), uah: roundAmount(result.uah) };
+  if (isShopSourcePriceBook(rates) && (eur > 0 || usd > 0 || uah > 0)) {
+    const result = tryRepriceShopSourceMoney(
+      {
+        eur,
+        usd,
+        uah,
+        sourceCurrency: price?.sourceCurrency,
+        sourceUnitAmount: price?.sourceUnitAmount,
+        sourceQuantity: price?.sourceQuantity,
+      },
+      { ...rates, EUR: rates.EUR, USD: rates.USD, UAH: Number(rates.UAH) }
+    );
+    if (result)
+      return {
+        ...result,
+        eur: roundAmount(result.eur),
+        usd: roundAmount(result.usd),
+        uah: roundAmount(result.uah),
+      };
   }
 
   const eurToUsd = normalizeAmount(rates?.USD);
@@ -57,7 +75,10 @@ export function computeShopDisplayPrices(
   };
 }
 
-export function hasAnyShopPrice(price: Partial<ShopMoneySet> | null | undefined, rates: DisplayRates) {
+export function hasAnyShopPrice(
+  price: Partial<ShopMoneySet> | null | undefined,
+  rates: DisplayRates
+) {
   const computed = computeShopDisplayPrices(price, rates);
   return computed.eur > 0 || computed.usd > 0 || computed.uah > 0;
 }
@@ -69,7 +90,7 @@ export function pickShopSortableAmount(
 ) {
   const computed = computeShopDisplayPrices(price, rates);
   const preferred =
-    currency === 'USD' ? computed.usd : currency === 'UAH' ? computed.uah : computed.eur;
+    currency === "USD" ? computed.usd : currency === "UAH" ? computed.uah : computed.eur;
 
   if (preferred > 0) {
     return preferred;

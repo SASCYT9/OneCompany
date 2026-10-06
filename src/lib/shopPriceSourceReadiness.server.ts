@@ -1,3 +1,4 @@
+import { isShopSourcePriceBook } from "./shopPriceBookCurrency";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 const bands = [
@@ -47,7 +48,7 @@ export async function assertManagedShopProductSourcesReady(
     select: { currencyRates: true },
   });
   const rates = settings?.currencyRates as Record<string, unknown> | null | undefined;
-  if (rates?._uahReserve !== 1) return;
+  if (!isShopSourcePriceBook(rates)) return;
   const report = await shopPriceSourceReadiness(tx, productId);
   if (!report.ready) throw new Error(`SHOP_PRICE_SOURCE_REQUIRED:${report.unresolvedBands}`);
 }

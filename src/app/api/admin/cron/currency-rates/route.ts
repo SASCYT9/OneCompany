@@ -14,13 +14,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ skipped: true, reason: "Daily NBU sync not enabled" });
   try {
     const result = await syncShopNbuCurrencyRates(prisma, undefined, dryRun);
+    if (!dryRun && result.reason === "manual_rates_active")
+      revalidateTag("shop-settings", { expire: 0 });
     if (result.changed) {
       revalidateTag("shop-settings", { expire: 0 });
       after(async () => {
         await runShopCatalogOutboxRuntime({ workerId: `nbu-cron:${randomUUID()}`, limit: 10 });
       });
     }
-    return NextResponse.json({ ok: true, changed: result.changed, dryRun, nbu: result.nbu });
+    return NextResponse.json({
+      ok: true,
+      changed: result.changed,
+      dryRun,
+      nbu: result.nbu,
+      ...(result.reason ? { reason: result.reason } : {}),
+    });
   } catch (error) {
     console.error("NBU daily sync failed", error);
     return NextResponse.json({ error: "NBU sync failed; current rates retained" }, { status: 503 });

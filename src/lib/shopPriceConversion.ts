@@ -1,6 +1,10 @@
 import type { ShopMoneySet } from "@/lib/shopCatalog";
 import type { ShopCurrencyCode } from "@/lib/shopAdminSettings";
-import { tryRepriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+import {
+  isShopSourcePriceBook,
+  tryRepriceShopSourceMoney,
+  type ShopPriceBookRates,
+} from "./shopPriceBookCurrency";
 
 type Rates = ShopPriceBookRates;
 
@@ -14,8 +18,15 @@ type Rates = ShopPriceBookRates;
  * Priority of source currency: any non-zero value, in order USD → EUR → UAH.
  * If all three are zero, returns zeros (caller decides what to do).
  */
-export function expandShopPrices(price: ShopMoneySet | null | undefined, rates: Rates): ShopMoneySet {
-  if (rates?._uahReserve === 1 && price && [price.eur, price.usd, price.uah].some(value => value > 0)) {
+export function expandShopPrices(
+  price: ShopMoneySet | null | undefined,
+  rates: Rates
+): ShopMoneySet {
+  if (
+    isShopSourcePriceBook(rates) &&
+    price &&
+    [price.eur, price.usd, price.uah].some((value) => value > 0)
+  ) {
     const priced = tryRepriceShopSourceMoney(price, rates);
     if (priced) return priced;
   }
@@ -24,22 +35,22 @@ export function expandShopPrices(price: ShopMoneySet | null | undefined, rates: 
   const uah = price?.uah ?? 0;
   const out: ShopMoneySet = { usd, eur, uah };
 
-  const safe = (n: number) => typeof n === 'number' && Number.isFinite(n) && n > 0;
+  const safe = (n: number) => typeof n === "number" && Number.isFinite(n) && n > 0;
 
-  let source: 'usd' | 'eur' | 'uah' | null = null;
-  if (safe(usd)) source = 'usd';
-  else if (safe(eur)) source = 'eur';
-  else if (safe(uah)) source = 'uah';
+  let source: "usd" | "eur" | "uah" | null = null;
+  if (safe(usd)) source = "usd";
+  else if (safe(eur)) source = "eur";
+  else if (safe(uah)) source = "uah";
 
   if (!source || !rates) return out;
 
   const r = { USD: rates.USD, EUR: rates.EUR, UAH: rates.UAH };
   if (!safe(r.USD) || !safe(r.EUR) || !safe(r.UAH)) return out;
 
-  if (source === 'usd') {
+  if (source === "usd") {
     if (!safe(out.eur)) out.eur = (usd / r.USD) * r.EUR;
     if (!safe(out.uah)) out.uah = (usd / r.USD) * r.UAH;
-  } else if (source === 'eur') {
+  } else if (source === "eur") {
     if (!safe(out.usd)) out.usd = (eur / r.EUR) * r.USD;
     if (!safe(out.uah)) out.uah = (eur / r.EUR) * r.UAH;
   } else {
@@ -50,6 +61,6 @@ export function expandShopPrices(price: ShopMoneySet | null | undefined, rates: 
   return out;
 }
 
-export function pickPrimaryCurrency(locale: 'ua' | 'en'): ShopCurrencyCode {
-  return locale === 'ua' ? 'UAH' : 'USD';
+export function pickPrimaryCurrency(locale: "ua" | "en"): ShopCurrencyCode {
+  return locale === "ua" ? "UAH" : "USD";
 }

@@ -4,7 +4,7 @@ import type { ShopProduct } from "@/lib/shopCatalog";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import { expandShopPrices } from "./shopPriceConversion";
-import { tagShopMoneySource } from "./shopPriceBookCurrency";
+import { isShopSourcePriceBook, tagShopMoneySource } from "./shopPriceBookCurrency";
 
 export type ShopPriceAudience = "b2c" | "b2b";
 export type ShopResolvedPriceSource = "b2c" | "b2b-explicit" | "b2b-discount";
@@ -98,7 +98,9 @@ function normalizeMoneySet(input?: Partial<PriceSet> | null): PriceSet {
     usd: roundMoney(Number(input?.usd ?? 0) || 0),
     uah: roundMoney(Number(input?.uah ?? 0) || 0),
     ...(input?.sourceCurrency ? { sourceCurrency: input.sourceCurrency } : {}),
-    ...(input?.sourceQuantity ? { sourceQuantity: input.sourceQuantity, sourceUnitAmount: input.sourceUnitAmount } : {}),
+    ...(input?.sourceQuantity
+      ? { sourceQuantity: input.sourceQuantity, sourceUnitAmount: input.sourceUnitAmount }
+      : {}),
   };
 }
 
@@ -136,7 +138,20 @@ function applyPercentDiscount(base: PriceSet, discountPercent: number): PriceSet
     usd: base.usd > 0 ? roundMoney(base.usd * multiplier) : 0,
     uah: base.uah > 0 ? roundMoney(base.uah * multiplier) : 0,
     ...(base.sourceCurrency ? { sourceCurrency: base.sourceCurrency } : {}),
-    ...(base.sourceQuantity ? { sourceQuantity: base.sourceQuantity, ...(base.sourceCurrency ? { sourceUnitAmount: roundMoney((base.sourceUnitAmount ?? base[base.sourceCurrency.toLowerCase() as "eur" | "usd" | "uah"] / base.sourceQuantity) * multiplier) } : {}) } : {}),
+    ...(base.sourceQuantity
+      ? {
+          sourceQuantity: base.sourceQuantity,
+          ...(base.sourceCurrency
+            ? {
+                sourceUnitAmount: roundMoney(
+                  (base.sourceUnitAmount ??
+                    base[base.sourceCurrency.toLowerCase() as "eur" | "usd" | "uah"] /
+                      base.sourceQuantity) * multiplier
+                ),
+              }
+            : {}),
+        }
+      : {}),
   };
 }
 
@@ -197,7 +212,15 @@ function mergeB2BPriceSet(
     eur: explicit.eur > 0 ? explicit.eur : (discounted?.eur ?? base.eur),
     usd: explicit.usd > 0 ? explicit.usd : (discounted?.usd ?? base.usd),
     uah: explicit.uah > 0 ? explicit.uah : (discounted?.uah ?? base.uah),
-    ...((hasExplicit ? explicit.sourceCurrency : discounted?.sourceCurrency ?? base.sourceCurrency) ? { sourceCurrency: hasExplicit ? explicit.sourceCurrency : discounted?.sourceCurrency ?? base.sourceCurrency } : {}),
+    ...((
+      hasExplicit ? explicit.sourceCurrency : (discounted?.sourceCurrency ?? base.sourceCurrency)
+    )
+      ? {
+          sourceCurrency: hasExplicit
+            ? explicit.sourceCurrency
+            : (discounted?.sourceCurrency ?? base.sourceCurrency),
+        }
+      : {}),
   };
 
   return {
@@ -229,7 +252,11 @@ function mergeB2BCompareSet(
     eur: explicit.eur > 0 ? explicit.eur : (fallback?.eur ?? 0),
     usd: explicit.usd > 0 ? explicit.usd : (fallback?.usd ?? 0),
     uah: explicit.uah > 0 ? explicit.uah : (fallback?.uah ?? 0),
-    ...(explicit.sourceCurrency ? { sourceCurrency: explicit.sourceCurrency } : fallback?.sourceCurrency ? { sourceCurrency: fallback.sourceCurrency } : {}),
+    ...(explicit.sourceCurrency
+      ? { sourceCurrency: explicit.sourceCurrency }
+      : fallback?.sourceCurrency
+        ? { sourceCurrency: fallback.sourceCurrency }
+        : {}),
   };
 }
 
@@ -286,8 +313,14 @@ export function resolveShopPriceBands(input: {
 }): ShopResolvedPricing {
   const prepare = (money?: Partial<PriceSet> | null) => {
     const normalized = normalizeMoneySet(money);
-    if (input.context.currencyRates && (input.context.currencyRates as { _uahReserve?: number })._uahReserve === 1 && hasAnyPositiveValue(normalized))
-      return normalizeMoneySet(expandShopPrices(tagShopMoneySource(normalized), input.context.currencyRates));
+    if (
+      input.context.currencyRates &&
+      isShopSourcePriceBook(input.context.currencyRates as { _uahReserve?: number }) &&
+      hasAnyPositiveValue(normalized)
+    )
+      return normalizeMoneySet(
+        expandShopPrices(tagShopMoneySource(normalized), input.context.currencyRates)
+      );
     return normalized;
   };
   const europePrice = prepare(input.europePrice);
@@ -297,13 +330,26 @@ export function resolveShopPriceBands(input: {
   // `b2cCompareAt` belongs to the default regional price. Reusing it beside
   // an independent Europe price creates fake discounts (for example €52
   // shown against a €650 default-market compare-at price).
-  const comparable = (["eur", "usd", "uah"] as const).filter(currency => Number(input.b2cPrice[currency]) > 0 && Number(input.b2cCompareAt?.[currency]) > 0);
-  const historicalNoDiscount = (input.context.currencyRates as { _uahReserve?: number } | undefined)?._uahReserve === 1 && comparable.length > 0 && comparable.every(currency => Number(input.b2cCompareAt?.[currency]) <= Number(input.b2cPrice[currency]));
-  const b2cCompareAt = useEuropeBase || historicalNoDiscount ? null : normalizeCompareSet(prepare(input.b2cCompareAt));
+  const comparable = (["eur", "usd", "uah"] as const).filter(
+    (currency) => Number(input.b2cPrice[currency]) > 0 && Number(input.b2cCompareAt?.[currency]) > 0
+  );
+  const historicalNoDiscount =
+    isShopSourcePriceBook(input.context.currencyRates as { _uahReserve?: number } | undefined) &&
+    comparable.length > 0 &&
+    comparable.every(
+      (currency) => Number(input.b2cCompareAt?.[currency]) <= Number(input.b2cPrice[currency])
+    );
+  const b2cCompareAt =
+    useEuropeBase || historicalNoDiscount ? null : normalizeCompareSet(prepare(input.b2cCompareAt));
   const effectiveDiscountPercent = resolveEffectiveDiscountPercent(input.context, input.brand);
   const mergedB2B = mergeB2BPriceSet(b2cPrice, prepare(input.b2bPrice), effectiveDiscountPercent);
   const b2bPrice = mergedB2B.price;
-  const b2bCompareAt = mergeB2BCompareSet(b2cPrice, b2cCompareAt, b2bPrice, prepare(input.b2bCompareAt));
+  const b2bCompareAt = mergeB2BCompareSet(
+    b2cPrice,
+    b2cCompareAt,
+    b2bPrice,
+    prepare(input.b2bCompareAt)
+  );
 
   const audience = resolveCheckoutAudience(input.context);
   const effectivePrice = audience === "b2b" && b2bPrice ? b2bPrice : b2cPrice;

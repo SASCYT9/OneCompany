@@ -8,7 +8,11 @@
  * legacy products that do not yet have a usable shipping weight.
  */
 
-import { repriceShopSourceMoney, type ShopPriceBookRates } from "./shopPriceBookCurrency";
+import {
+  isShopSourcePriceBook,
+  repriceShopSourceMoney,
+  type ShopPriceBookRates,
+} from "./shopPriceBookCurrency";
 
 export const REVOZPORT_LOGISTICS_NAMESPACE = "revozport_logistics";
 export const REVOZPORT_SEA_SHIPPING_KEY = "sea_shipping_usd";
@@ -50,8 +54,14 @@ export function parseRevozportShippingQuotes(
 
 export const REVOZPORT_PRICING_WEIGHT_KEY = "delivery_pricing_weight_kg";
 
-export function parseRevozportPricingWeight(metafields: Array<{ namespace?: string | null; key?: string | null; value?: string | null }>) {
-  const value = metafields.find((field) => field.namespace === REVOZPORT_LOGISTICS_NAMESPACE && field.key === REVOZPORT_PRICING_WEIGHT_KEY)?.value;
+export function parseRevozportPricingWeight(
+  metafields: Array<{ namespace?: string | null; key?: string | null; value?: string | null }>
+) {
+  const value = metafields.find(
+    (field) =>
+      field.namespace === REVOZPORT_LOGISTICS_NAMESPACE &&
+      field.key === REVOZPORT_PRICING_WEIGHT_KEY
+  )?.value;
   const weight = Number(value);
   return Number.isFinite(weight) && weight > 0 ? weight : null;
 }
@@ -83,7 +93,9 @@ export function resolveRevozportUkraineShippingUsd(
 ) {
   const weightRate = calculateRevozportShippingUsd(weightKg);
   if (weightRate != null) return weightRate;
-  return typeof supplierQuoteUsd === "number" && Number.isFinite(supplierQuoteUsd) && supplierQuoteUsd >= 0
+  return typeof supplierQuoteUsd === "number" &&
+    Number.isFinite(supplierQuoteUsd) &&
+    supplierQuoteUsd >= 0
     ? supplierQuoteUsd
     : null;
 }
@@ -99,16 +111,25 @@ export function addRevozportUkraineShippingToPriceSet(
   if (!isRevozportBrand(brandName) || !isUkraineCountry(country)) return price;
   const shippingUsd = resolveRevozportUkraineShippingUsd(weightKg, supplierQuoteUsd);
   if (shippingUsd == null) return price;
-  if (rates._uahReserve === 1) {
+  if (isShopSourcePriceBook(rates)) {
     // The supplier delivery rate is USD. Like the SQL price reader, add it only
     // to a USD source price; any other source keeps its price for data review
     // instead of failing the whole page.
     const source = price.sourceCurrency ?? (price.usd > 0 ? "USD" : undefined);
     if (source === "USD" && price.usd > 0)
-      return repriceShopSourceMoney({ eur: 0, usd: price.usd + shippingUsd, uah: 0, sourceCurrency: "USD" }, rates);
-    if (!reportedNonUsdRevozportSource && [price.eur, price.usd, price.uah].some((value) => value > 0)) {
+      return repriceShopSourceMoney(
+        { eur: 0, usd: price.usd + shippingUsd, uah: 0, sourceCurrency: "USD" },
+        rates
+      );
+    if (
+      !reportedNonUsdRevozportSource &&
+      [price.eur, price.usd, price.uah].some((value) => value > 0)
+    ) {
       reportedNonUsdRevozportSource = true;
-      console.warn("[revozport] delivery not added to a non-USD source price", source ?? "unresolved");
+      console.warn(
+        "[revozport] delivery not added to a non-USD source price",
+        source ?? "unresolved"
+      );
     }
     return price;
   }
@@ -159,4 +180,3 @@ export function isUkraineShippingZone(zone: { countries?: string[] } | null | un
     return normalized === "ua" || normalized === "ukraine" || normalized === "україна";
   });
 }
-

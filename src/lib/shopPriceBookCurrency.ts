@@ -8,7 +8,21 @@ export type ShopPriceBookRates = Record<ShopCurrencyCode, number> & {
   _uahReserve?: number;
   _rawUsdToUah?: number;
   _rawUsdPerEur?: number;
+  _manualCross?: number;
 };
+
+/** Explicit zero reserve keeps native-source conversion enabled for manual rates. */
+export function isShopSourcePriceBook<T extends { _uahReserve?: unknown }>(
+  rates: T | null | undefined
+): rates is T & { _uahReserve: 0 | 1 } {
+  return rates?._uahReserve === 0 || rates?._uahReserve === 1;
+}
+
+export function isManualShopPriceBook(
+  rates: { _uahReserve?: unknown; _source?: unknown } | null | undefined
+) {
+  return rates?._uahReserve === 0 && rates?._source === "manual";
+}
 
 export type ShopSourceMoney = {
   eur: number;
@@ -36,9 +50,11 @@ export function shopUahSaleRate(currency: ShopCurrencyCode, rates: ShopPriceBook
 }
 
 export function shopSaleUsdPerEur(rates: ShopPriceBookRates) {
-  return rates._uahReserve === 1
-    ? shopUahSaleRate("EUR", rates) / shopUahSaleRate("USD", rates)
-    : rates.USD;
+  return rates._manualCross === 1
+    ? rates.USD
+    : isShopSourcePriceBook(rates)
+      ? shopUahSaleRate("EUR", rates) / shopUahSaleRate("USD", rates)
+      : rates.USD;
 }
 
 export function repriceShopSourceMoney(
@@ -60,15 +76,22 @@ export function repriceShopSourceMoney(
   if (![rates.EUR, rates.USD, rates.UAH].every(positive))
     throw new Error("INVALID_SHOP_PRICE_BOOK_RATE");
   const cross = shopSaleUsdPerEur(rates);
-  const eur = source === "EUR"
-    ? amount
-    : source === "USD"
-      ? amount / cross
-      : amount / shopUahSaleRate("EUR", rates);
+  const eur =
+    source === "EUR"
+      ? amount
+      : source === "USD"
+        ? amount / cross
+        : amount / shopUahSaleRate("EUR", rates);
   const total = (unit: number) => roundMoney(unit) * quantity;
   return {
     eur: total(eur),
-    usd: total(source === "USD" ? amount : eur * cross),
+    usd: total(
+      source === "USD"
+        ? amount
+        : source === "UAH"
+          ? amount / shopUahSaleRate("USD", rates)
+          : eur * cross
+    ),
     uah: total(source === "UAH" ? amount : amount * shopUahSaleRate(source, rates)),
     sourceCurrency: source,
     ...(quantity > 1 ? { sourceUnitAmount: amount, sourceQuantity: quantity } : {}),

@@ -5,7 +5,11 @@ import {
 } from "@/lib/shopMoneyFormat";
 import { monobankMinorUnits } from "@/lib/shopMonobank";
 import { calculateTaxAmount, calculateProportionalAmount } from "@/lib/shopCheckoutTax";
-import { repriceShopSourceMoney, shopUahSaleRate } from "./shopPriceBookCurrency";
+import {
+  isShopSourcePriceBook,
+  repriceShopSourceMoney,
+  shopUahSaleRate,
+} from "./shopPriceBookCurrency";
 
 type Money = number | { toString(): string };
 type QuoteOrder = {
@@ -94,7 +98,7 @@ export function calculateInternationalDeliveryQuote(
     const currency = hasSource ? (savedCurrency as ShopCurrencyCode) : source;
     const amount = hasSource ? savedAmount : Number(item.price);
     const price =
-      rates._uahReserve === 1 || hasSource
+      isShopSourcePriceBook(rates) || hasSource
         ? monobankMinorUnits(
             repriceShopSourceMoney(
               {
@@ -113,10 +117,10 @@ export function calculateInternationalDeliveryQuote(
   const subtotal = items.reduce((sum, item) => sum + monobankMinorUnits(item.total), 0) / 100;
   const region = snapshotRecord(originalSnapshot.regionalPricingRule);
   const regionalAdjustmentAmount =
-    rates._uahReserve === 1 && region.mode === "percent" && typeof region.value === "number"
+    isShopSourcePriceBook(rates) && region.mode === "percent" && typeof region.value === "number"
       ? (Math.sign(region.value) * monobankMinorUnits((subtotal * Math.abs(region.value)) / 100)) /
         100
-      : rates._uahReserve === 1 &&
+      : isShopSourcePriceBook(rates) &&
           region.mode === "fixed" &&
           typeof region.value === "number" &&
           ["EUR", "USD", "UAH"].includes(String(region.currency))

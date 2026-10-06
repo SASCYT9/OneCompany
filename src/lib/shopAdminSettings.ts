@@ -1,8 +1,13 @@
+import { isShopSourcePriceBook } from "./shopPriceBookCurrency";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import { EU_VAT_COUNTRIES } from "@/lib/shopEuVat";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
-import { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
+import {
+  DEFAULT_CURRENCY_RATES,
+  SHOP_CURRENCIES,
+  type ShopCurrencyCode,
+} from "@/lib/shopCurrencyDefaults";
 import type { ShopPriceBookRates } from "./shopPriceBookCurrency";
 
 export { DEFAULT_CURRENCY_RATES, SHOP_CURRENCIES };
@@ -520,7 +525,19 @@ export function normalizeShopSettingsPayload(input: unknown) {
     enabledCurrencies: stringArray(source.enabledCurrencies).map((c) =>
       normalizeCurrencyCode(c, "EUR")
     ),
-    currencyRates: Object.fromEntries(Object.entries(asNumberRecord(source.currencyRates)).map(([key, value]) => [({ _UAHRESERVE: "_uahReserve", _RAWUSDTOUAH: "_rawUsdToUah", _RAWUSDPEREUR: "_rawUsdPerEur" } as Record<string, string>)[key] ?? key, value])),
+    currencyRates: Object.fromEntries(
+      Object.entries(asNumberRecord(source.currencyRates)).map(([key, value]) => [
+        (
+          {
+            _UAHRESERVE: "_uahReserve",
+            _RAWUSDTOUAH: "_rawUsdToUah",
+            _RAWUSDPEREUR: "_rawUsdPerEur",
+            _MANUALCROSS: "_manualCross",
+          } as Record<string, string>
+        )[key] ?? key,
+        value,
+      ])
+    ),
     shippingZones: asObjectArray(source.shippingZones),
     brandShippingRules: asObjectArray(source.brandShippingRules),
     taxRegions: asObjectArray(source.taxRegions),
@@ -558,7 +575,14 @@ export function normalizeShopCurrencyRates(value: unknown): ShopPriceBookRates {
     EUR: rates.EUR > 0 ? rates.EUR : DEFAULT_CURRENCY_RATES.EUR,
     USD: rates.USD > 0 ? rates.USD : DEFAULT_CURRENCY_RATES.USD,
     UAH: rates.UAH > 0 ? rates.UAH : DEFAULT_CURRENCY_RATES.UAH,
-    ...(raw._UAHRESERVE === 1 ? { _uahReserve: 1, ...(raw._RAWUSDTOUAH > 0 ? { _rawUsdToUah: raw._RAWUSDTOUAH } : {}), ...(raw._RAWUSDPEREUR > 0 ? { _rawUsdPerEur: raw._RAWUSDPEREUR } : {}) } : {}),
+    ...(isShopSourcePriceBook({ _uahReserve: raw._UAHRESERVE })
+      ? {
+          _uahReserve: raw._UAHRESERVE,
+          ...(raw._RAWUSDTOUAH > 0 ? { _rawUsdToUah: raw._RAWUSDTOUAH } : {}),
+          ...(raw._RAWUSDPEREUR > 0 ? { _rawUsdPerEur: raw._RAWUSDPEREUR } : {}),
+          ...(raw._MANUALCROSS === 1 ? { _manualCross: 1 } : {}),
+        }
+      : {}),
   };
 }
 
@@ -626,8 +650,10 @@ export function getShopSettingsRuntime(record: ShopSettingsRecord): ShopSettings
       key: record.key,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
-      currencyRatesDate: typeof (record.currencyRates as Record<string, unknown>)?._exchangedAt === 'string'
-        ? String((record.currencyRates as Record<string, unknown>)._exchangedAt) : null,
+      currencyRatesDate:
+        typeof (record.currencyRates as Record<string, unknown>)?._exchangedAt === "string"
+          ? String((record.currencyRates as Record<string, unknown>)._exchangedAt)
+          : null,
     }
   );
 }
