@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import "./fixtures/register-server-only.mjs";
 import { buildProductsFromShopifyCsv } from "../../../src/lib/shopAdminCsv";
 import { buildAdminProductCsvScalarMask } from "../../../src/lib/shopAdminImports";
 

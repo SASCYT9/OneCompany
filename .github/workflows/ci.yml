@@ -56,6 +56,12 @@ jobs:
         run: npx tsc --noEmit
       - name: SEO contracts
         run: npm run test:seo:contracts
+      # The full unit suite needs no database or secrets; it guards pricing,
+      # checkout, catalog and admin permission contracts on every change.
+      # Explicit file list: sh has no `**` globstar and Node 20's test runner does
+      # not expand glob arguments itself.
+      - name: Shop unit tests
+        run: npx tsx --test $(find tests/shop/unit -name '*.test.ts' | sort)
 
   prisma:
     name: Prisma validate

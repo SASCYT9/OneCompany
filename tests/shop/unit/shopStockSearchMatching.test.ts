@@ -70,11 +70,15 @@ test("exact titles rank above generic fitment and description mentions", () => {
   assert.ok(exact.score > generic.score);
   assert.ok(exact.reasons.includes("title:exact"));
 });
-test("product query terms do not become implicit selector restrictions", () => {
+// Search-box queries infer a vehicle constraint only from one unambiguous make plus
+// one model or chassis (8b0cc457); several models stay free text.
+test("search-box vehicle inference uses only the unambiguous identity", () => {
   const plan = buildShopCatalogVehicleSearchPlan(
     new URLSearchParams({ q: "Mounting Kit Mercedes G500 G550 W463A" })
   );
-  assert.equal(plan.constraints.make, null);
+  assert.equal(plan.constraints.make, "Mercedes-Benz");
+  assert.equal(plan.constraints.generation, "W463A");
+  assert.equal(plan.constraints.model, null);
   const explicit = buildShopCatalogVehicleSearchPlan(
     new URLSearchParams({ q: "Akrapovic M3", make: "Audi", model: "RSQ8" })
   );
