@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
+import { SHOP_CATALOG_SELECTOR_CACHE_TAG } from "@/lib/shopCatalogSelectorCache";
 
 export async function GET() {
   try {
@@ -10,6 +11,8 @@ export async function GET() {
     await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_SETTINGS_WRITE);
     // Clear the entire shop cache to ensure all database values immediately reflect in RSC layer
     revalidatePath("/", "layout");
+    // Data-cache entries are not cleared by path revalidation.
+    revalidateTag(SHOP_CATALOG_SELECTOR_CACHE_TAG, { expire: 0 });
 
     return NextResponse.json({
       success: true,

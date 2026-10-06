@@ -6,6 +6,7 @@ import {
 import { invalidateShopCatalogCaches } from "@/lib/shopCatalogServer";
 import { invalidateShopStockSearchCaches } from "@/lib/shopStockSearch.server";
 import { invalidateShopWarehouseProductsCache } from "@/lib/shopWarehouseInventory.server";
+import { SHOP_CATALOG_SELECTOR_CACHE_TAG } from "@/lib/shopCatalogSelectorCache";
 
 /** A batch invalidates shared listing paths/tags once, regardless of size. */
 export function revalidateShopStorefrontProducts(
@@ -29,6 +30,8 @@ export function revalidateShopStorefrontProducts(
   // invalidate it with the same mutation so stock badges reflect edits
   // immediately instead of waiting for the shared 60-second TTL.
   revalidateTag("shop-warehouse-products", { expire: 0 });
+  // Product fitment edits and imports change vehicle selector options.
+  revalidateTag(SHOP_CATALOG_SELECTOR_CACHE_TAG, { expire: 0 });
 }
 
 /** Invalidates only the canonical and legacy PDP aliases, never a listing. */

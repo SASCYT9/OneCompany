@@ -125,6 +125,65 @@ function escapeLike(value: string) {
   return value.replace(/([\\%_])/g, "\\$1");
 }
 
+/**
+ * `compactShopCode` keeps only Latin letters and digits, so a Cyrillic word
+ * compacts to "" (or a lone digit). Comparing that to `coalesce(sku, '')`
+ * would match every product without a SKU, so such codes never take part in
+ * exact-SKU matching or ranking.
+ */
+export const SHOP_CATALOG_SUGGESTION_MIN_SKU_LENGTH = 3;
+
+export function usableShopCatalogSuggestionSku(value: string | null | undefined) {
+  const sku = value?.trim() ?? "";
+  return sku.length >= SHOP_CATALOG_SUGGESTION_MIN_SKU_LENGTH ? sku : null;
+}
+
+/**
+ * Lexical WHERE fragment shared by product suggestions. `rawSku` is the code as
+ * typed: brand aliases can rewrite the text query (`BMS 6W00` -> `burger 6w00`)
+ * but must not rewrite a part number.
+ */
+export function buildShopCatalogSuggestionLexicalSql(
+  normalizedProductQuery: string,
+  rawSku = ""
+): Prisma.Sql {
+  const skus = [
+    ...new Set(
+      [compactShopCode(normalizedProductQuery), rawSku]
+        .map(usableShopCatalogSuggestionSku)
+        .filter((sku): sku is string => sku !== null)
+    ),
+  ];
+  // Match the same bounded token semantics as the stock search endpoint.
+  // A contiguous phrase is too strict for reordered vehicle queries (for
+  // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
+  // products. Exact normalized SKUs remain a separate high-priority match.
+  const queryTokens = tokenizeShopSearchQuery(normalizedProductQuery);
+  const tokenConditions = queryTokens.map((token) =>
+    shopSearchTokenConditionSql(Prisma.sql`projection."searchText"`, token)
+  );
+  if (tokenConditions.length > 0) {
+    const tokenCondition = Prisma.sql`(${Prisma.join(tokenConditions, " AND ")})`;
+    return skus.length
+      ? Prisma.sql`(
+          lower(coalesce(projection."normalizedSku", '')) IN (${Prisma.join(skus)})
+          OR ${tokenCondition}
+        )`
+      : tokenCondition;
+  }
+  return normalizedProductQuery
+    ? Prisma.sql`projection."searchText" ILIKE ${`%${escapeLike(normalizedProductQuery)}%`} ESCAPE '\\'`
+    : Prisma.sql`TRUE`;
+}
+
+/** First ORDER BY branch: an exact SKU wins only for a code that can identify a part. */
+export function buildShopCatalogSuggestionSkuRankSql(normalizedSku: string): Prisma.Sql {
+  const sku = usableShopCatalogSuggestionSku(normalizedSku);
+  return sku
+    ? Prisma.sql`WHEN lower(coalesce(projection."normalizedSku", '')) = lower(${sku}) THEN 0`
+    : Prisma.empty;
+}
+
 type SuggestionProductRow = {
   productId: string;
   slug: string;
@@ -225,35 +284,19 @@ export async function queryShopCatalogSuggestions(
     { readerMode: process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE }
   );
   const vehicleConstraints = getShopCatalogSuggestionVehicleConstraints(input.query);
-  const vehicleProductIds = vehicleConstraints && !vehicleSearchPlan.canonical
-    ? await resolveLegacyVehicleProductIds({
-        ...vehicleSearchPlan.constraints,
-        modelAlternates: vehicleSearchPlan.modelAlternates,
-      })
-    : null;
+  const vehicleProductIds =
+    vehicleConstraints && !vehicleSearchPlan.canonical
+      ? await resolveLegacyVehicleProductIds({
+          ...vehicleSearchPlan.constraints,
+          modelAlternates: vehicleSearchPlan.modelAlternates,
+        })
+      : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);
-  const normalizedProductQuery = normalizeShopSearchText(
-    canonicalizeShopSearchQuery(productQuery)
+  const normalizedProductQuery = normalizeShopSearchText(canonicalizeShopSearchQuery(productQuery));
+  const lexicalCondition = buildShopCatalogSuggestionLexicalSql(
+    normalizedProductQuery,
+    input.normalizedSku
   );
-  const normalizedProductSku = compactShopCode(normalizedProductQuery);
-  const productSearchPattern = `%${escapeLike(normalizedProductQuery)}%`;
-  // Match the same bounded token semantics as the stock search endpoint.
-  // A contiguous phrase is too strict for reordered vehicle queries (for
-  // example, `G90 BMW M5`), while an unconstrained OR would surface unrelated
-  // products. Exact normalized SKUs remain a separate high-priority match.
-  const queryTokens = tokenizeShopSearchQuery(normalizedProductQuery);
-  const tokenConditions = queryTokens.map((token) =>
-    shopSearchTokenConditionSql(Prisma.sql`projection."searchText"`, token)
-  );
-  const lexicalCondition =
-    tokenConditions.length > 0
-      ? Prisma.sql`(
-          lower(coalesce(projection."normalizedSku", '')) = lower(${normalizedProductSku})
-          OR (${Prisma.join(tokenConditions, " AND ")})
-        )`
-      : normalizedProductQuery
-        ? Prisma.sql`projection."searchText" ILIKE ${productSearchPattern} ESCAPE '\\'`
-        : Prisma.sql`TRUE`;
   const projectionConditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
     Prisma.sql`projection."isPublished" = true`,
@@ -286,7 +329,7 @@ export async function queryShopCatalogSuggestions(
       WHERE ${Prisma.join(projectionConditions, " AND ")}
       ORDER BY
         CASE
-          WHEN lower(coalesce(projection."normalizedSku", '')) = lower(${input.normalizedSku}) THEN 0
+          ${buildShopCatalogSuggestionSkuRankSql(input.normalizedSku)}
           WHEN lower(projection."title") = lower(${input.query}) THEN 1
           WHEN projection."title" ILIKE ${prefixPattern} ESCAPE '\\' THEN 2
           WHEN projection."brandLabel" ILIKE ${prefixPattern} ESCAPE '\\' THEN 3

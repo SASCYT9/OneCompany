@@ -1,3 +1,7 @@
+"use client";
+
+import { useParams } from "next/navigation";
+
 const pulse = "animate-pulse bg-foreground/[0.08] motion-reduce:animate-none";
 
 function ProductCardSkeleton() {
@@ -18,14 +22,16 @@ function ProductCardSkeleton() {
 }
 
 export default function CatalogLoadingShell() {
+  const params = useParams<{ locale?: string }>();
+  const label = params?.locale === "en" ? "Loading catalog…" : "Завантажуємо каталог…";
   return (
     <main
       className="min-h-screen bg-background text-foreground"
       aria-busy="true"
-      aria-label="Loading catalog"
+      aria-label={label}
     >
       <span className="sr-only" role="status">
-        Loading catalog…
+        {label}
       </span>
       <div className="w-full px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
         <section className="rounded-[16px] border border-foreground/10 bg-card p-3 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-4 lg:rounded-[12px] lg:px-5 lg:py-5">

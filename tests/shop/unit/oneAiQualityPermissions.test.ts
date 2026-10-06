@@ -19,7 +19,6 @@ test("One AI quality exposes the three explicit permissions", () => {
     ],
     ["shop.ai.read", "shop.ai.review", "shop.ai.manage"]
   );
-
 });
 
 test("One AI quality routes enforce read, review and manage boundaries", () => {

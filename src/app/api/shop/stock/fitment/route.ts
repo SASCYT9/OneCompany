@@ -1,4 +1,9 @@
+import { unstable_cache } from "next/cache";
 import { getCanonicalFitmentOptions } from "@/lib/shopCanonicalFitmentOptions.server";
+import {
+  SHOP_CATALOG_SELECTOR_CACHE_SECONDS,
+  SHOP_CATALOG_SELECTOR_CACHE_TAG,
+} from "@/lib/shopCatalogSelectorCache";
 import { prisma } from "@/lib/prisma";
 import {
   parseSupplierFitmentContract,
@@ -32,12 +37,22 @@ import {
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
     headers: {
-      // Keep selector data fast while bounding stale fitment exposure after a
-      // controlled Knowledge V2 reindex.
-      // Selector responses are public and keyed entirely by the request URL.
-      // Give mobile back/forward and repeated filter opens a short browser hit
-      // as well as the CDN hit; this avoids re-running a slow fallback scan
-      // while preserving the existing bounded staleness window.
+      // Selector responses are public, price-free and keyed entirely by the
+      // request URL. Their options change only when fitment is published, so
+      // the CDN keeps them for the same bounded window as the server cache
+      // and serves a stale copy while refreshing instead of re-running the
+      // multi-join selector SQL (0.5-2.4 s) for every visitor.
+      "Cache-Control": `public, max-age=60, s-maxage=${SHOP_CATALOG_SELECTOR_CACHE_SECONDS}, stale-while-revalidate=86400`,
+    },
+  });
+
+// The legacy fallback runs only when the canonical selector is unavailable,
+// and its body depends on the reader gate (a canary request gets 503 for the
+// same URL). Keep its original short shared lifetime so a legacy response
+// cannot occupy the CDN for long.
+const legacyFallbackJson = (body: unknown) =>
+  NextResponse.json(body, {
+    headers: {
       "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=60",
     },
   });
@@ -100,7 +115,13 @@ async function getBmcSupplierApplications(): Promise<SupplierVehicleApplication[
 
 async function supplementBmcSupplierFitment<T extends { type?: string; data?: unknown }>(
   result: T | null,
-  input: { make: string | null; model: string | null; chassis: string | null; brand: string | null; scope: "auto" | "moto" | null }
+  input: {
+    make: string | null;
+    model: string | null;
+    chassis: string | null;
+    brand: string | null;
+    scope: "auto" | "moto" | null;
+  }
 ): Promise<T | null> {
   if (!result || (input.brand && input.brand.toLocaleLowerCase() !== "bmc")) return result;
   const applications = (await getBmcSupplierApplications()).filter((application) =>
@@ -123,15 +144,22 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
       ...result,
       data: canonicalizeVehicleModels(input.make, [
         ...result.data.filter((value): value is string => typeof value === "string"),
-        ...forMake.map((application) => application.model).filter((value): value is string => Boolean(value)),
+        ...forMake
+          .map((application) => application.model)
+          .filter((value): value is string => Boolean(value)),
         ...getVehicleSelectorModelAliases(input.make),
       ]),
     };
   }
   const forModel = forMake.filter(
     (application) =>
-      Boolean(application.model && input.model && shopVehicleModelsMatch(application.model, input.model, application.make)) &&
-      (!input.chassis || application.chassisCode?.toLocaleLowerCase() === input.chassis.toLocaleLowerCase())
+      Boolean(
+        application.model &&
+          input.model &&
+          shopVehicleModelsMatch(application.model, input.model, application.make)
+      ) &&
+      (!input.chassis ||
+        application.chassisCode?.toLocaleLowerCase() === input.chassis.toLocaleLowerCase())
   );
   if (result.type === "chassis" && Array.isArray(result.data) && input.make && input.model) {
     return {
@@ -139,7 +167,9 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
       data: canonicalizeVehicleChassisCodes(
         [
           ...result.data.filter((value): value is string => typeof value === "string"),
-          ...forModel.map((application) => application.chassisCode).filter((value): value is string => Boolean(value)),
+          ...forModel
+            .map((application) => application.chassisCode)
+            .filter((value): value is string => Boolean(value)),
           ...getVehicleSelectorChassisAliases(input.make, input.model),
         ],
         input.make,
@@ -147,19 +177,51 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
       ),
     };
   }
-  if (result.type === "details" && input.make && input.model && result.data && typeof result.data === "object") {
-    const years = new Set<number>("years" in result.data && Array.isArray(result.data.years) ? result.data.years : []);
+  if (
+    result.type === "details" &&
+    input.make &&
+    input.model &&
+    result.data &&
+    typeof result.data === "object"
+  ) {
+    const years = new Set<number>(
+      "years" in result.data && Array.isArray(result.data.years) ? result.data.years : []
+    );
     const maxYear = new Date().getFullYear() + 2;
     for (const application of forModel) {
       if (application.yearFrom == null) continue;
-      for (let year = Math.max(1886, application.yearFrom); year <= Math.min(maxYear, application.yearTo ?? maxYear); year += 1) {
+      for (
+        let year = Math.max(1886, application.yearFrom);
+        year <= Math.min(maxYear, application.yearTo ?? maxYear);
+        year += 1
+      ) {
         years.add(year);
       }
     }
-    return { ...result, data: { ...result.data, years: [...years].sort((left, right) => right - left) } };
+    return {
+      ...result,
+      data: { ...result.data, years: [...years].sort((left, right) => right - left) },
+    };
   }
   return result;
 }
+
+type SelectorOptionsInput = Parameters<typeof getCanonicalFitmentOptions>[0];
+
+// Shared across requests and instances (Next data cache). Errors are not
+// cached; a null result (selector artifact unavailable) is, for the same TTL.
+const readCachedSelectorOptions = unstable_cache(
+  async (input: SelectorOptionsInput) =>
+    supplementBmcSupplierFitment(await getCanonicalFitmentOptions(input), {
+      make: input.make,
+      model: input.model,
+      chassis: input.chassis,
+      brand: input.brand,
+      scope: input.scope,
+    }),
+  ["shop-fitment-selector-options-v1"],
+  { revalidate: SHOP_CATALOG_SELECTOR_CACHE_SECONDS, tags: [SHOP_CATALOG_SELECTOR_CACHE_TAG] }
+);
 
 export async function GET(request: NextRequest) {
   try {
@@ -180,15 +242,15 @@ export async function GET(request: NextRequest) {
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await supplementBmcSupplierFitment(await getCanonicalFitmentOptions({
-          make,
-          model,
-          chassis,
-          year,
-          brand,
-          scope: vehicleScope,
-          details,
-        }), { make, model, chassis, brand, scope: vehicleScope });
+    const canonical = await readCachedSelectorOptions({
+      make,
+      model,
+      chassis,
+      year,
+      brand,
+      scope: vehicleScope,
+      details,
+    });
     if (
       canonical?.type === "models" &&
       isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
@@ -282,7 +344,7 @@ export async function GET(request: NextRequest) {
           for (let year = from; year <= to; year += 1) years.add(year);
         }
       }
-      return cachedJson({
+      return legacyFallbackJson({
         type: "details",
         make,
         model,
@@ -294,7 +356,7 @@ export async function GET(request: NextRequest) {
     // Legacy fitment does not have a dependable engine field. Keep the
     // selector precise rather than reusing the chassis response at this level.
     if (make && model && chassis) {
-      return cachedJson({ type: "engines", make, model, chassis, data: [] });
+      return legacyFallbackJson({ type: "engines", make, model, chassis, data: [] });
     }
 
     // Level 0: Return unique makes
@@ -308,13 +370,13 @@ export async function GET(request: NextRequest) {
         }
       }
       const makes = canonicalizeVehicleMakes(Array.from(makesSet));
-      return cachedJson({ type: "makes", data: makes });
+      return legacyFallbackJson({ type: "makes", data: makes });
     }
 
     // Level 1: Make → Models
     if (make && !model) {
       if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
-        return cachedJson({ type: "models", make, data: [] });
+        return legacyFallbackJson({ type: "models", make, data: [] });
       }
       const modelsSet = new Set<string>();
       for (const item of productsWithFitments) {
@@ -330,13 +392,13 @@ export async function GET(request: NextRequest) {
         ...modelsSet,
         ...getVehicleSelectorModelAliases(make),
       ]);
-      return cachedJson({ type: "models", make, data: models });
+      return legacyFallbackJson({ type: "models", make, data: models });
     }
 
     // Level 2: Make + Model → Chassis
     if (make && model) {
       if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
-        return cachedJson({ type: "chassis", make, model, data: [] });
+        return legacyFallbackJson({ type: "chassis", make, model, data: [] });
       }
       const chassisSet = new Set<string>();
       for (const item of productsWithFitments) {
@@ -358,10 +420,10 @@ export async function GET(request: NextRequest) {
         make,
         model
       );
-      return cachedJson({ type: "chassis", make, model, data: chassis });
+      return legacyFallbackJson({ type: "chassis", make, model, data: chassis });
     }
 
-    return cachedJson({ data: [] });
+    return legacyFallbackJson({ data: [] });
   } catch (error: any) {
     console.error("[Fitment API Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -13,16 +13,18 @@ const incoming = {
   width: 60,
   height: 28,
   isDimensionsEstimated: true,
-  variants: [{
-    sku: "WC-420",
-    title: "Default Title",
-    weight: 10,
-    weightUnit: "kg",
-    length: 85,
-    width: 60,
-    height: 28,
-    isDimensionsEstimated: true,
-  }],
+  variants: [
+    {
+      sku: "WC-420",
+      title: "Default Title",
+      weight: 10,
+      weightUnit: "kg",
+      length: 85,
+      width: 60,
+      height: 28,
+      isDimensionsEstimated: true,
+    },
+  ],
 } as never;
 
 test("fill-empty shipping preserves existing measured product and variant values", () => {
@@ -32,16 +34,18 @@ test("fill-empty shipping preserves existing measured product and variant values
     width: 55.88,
     height: 17.018,
     isDimensionsEstimated: false,
-    variants: [{
-      sku: "WC-420",
-      isDefault: true,
-      weight: 7.983,
-      weightUnit: "kg",
-      length: 76.962,
-      width: 55.88,
-      height: 17.018,
-      isDimensionsEstimated: false,
-    }],
+    variants: [
+      {
+        sku: "WC-420",
+        isDefault: true,
+        weight: 7.983,
+        weightUnit: "kg",
+        length: 76.962,
+        width: 55.88,
+        height: 17.018,
+        isDimensionsEstimated: false,
+      },
+    ],
   } as never;
 
   const result = fillEmptyShippingValues(incoming, existing);
@@ -65,16 +69,18 @@ test("fill-empty shipping keeps known weight and fills only missing package dime
     width: null,
     height: null,
     isDimensionsEstimated: false,
-    variants: [{
-      sku: "WC-420",
-      isDefault: true,
-      weight: 7.983,
-      weightUnit: "kg",
-      length: null,
-      width: null,
-      height: null,
-      isDimensionsEstimated: false,
-    }],
+    variants: [
+      {
+        sku: "WC-420",
+        isDefault: true,
+        weight: 7.983,
+        weightUnit: "kg",
+        length: null,
+        width: null,
+        height: null,
+        isDimensionsEstimated: false,
+      },
+    ],
   } as never;
 
   const result = fillEmptyShippingValues(incoming, existing);
