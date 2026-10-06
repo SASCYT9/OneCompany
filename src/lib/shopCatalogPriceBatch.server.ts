@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { buildShopCatalogAdminSnapshots } from "./shopCatalogAdminSnapshot.server";
-import { canonicalizeCatalogBaselineValue, hashCatalogBaselineValue } from "./shopCatalogBaseline";
+import { encodeShopCatalogRevisionCanonical } from "./shopCatalogRevisionCanonical";
 import { buildShopCatalogProjection } from "./shopCatalogProjection.server";
 import { buildShopCatalogPublicationPlan } from "./shopCatalogPublication";
 import { SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION } from "./shopCatalogProjectionSource.server";
@@ -70,7 +70,7 @@ export async function coordinateShopCatalogPriceBatchInTransaction(
       if (field.endsWith("Currency") ? value != null && !["EUR", "USD", "UAH"].includes(String(value)) : value != null && (!Number.isFinite(Number(value)) || Number(value) < 0))
         throw new Error(`Invalid price value: ${row.id}/${field}`);
     }
-  await tx.$executeRawUnsafe("SET LOCAL idle_in_transaction_session_timeout = '15s'");
+  await tx.$executeRawUnsafe("SET LOCAL idle_in_transaction_session_timeout = '60s'");
   await tx.$queryRaw(Prisma.sql`SELECT id FROM "ShopProduct" WHERE id IN (${Prisma.join([...ids].sort())}) ORDER BY id FOR UPDATE`);
   if (variantIds.length)
     await tx.$queryRaw(Prisma.sql`SELECT id FROM "ShopProductVariant" WHERE id IN (${Prisma.join([...variantIds].sort())}) ORDER BY id FOR UPDATE`);
@@ -101,13 +101,13 @@ export async function coordinateShopCatalogPriceBatchInTransaction(
     for (const id of ids) if (!(await shopPriceSourceReadiness(tx, id)).ready) throw new Error(`SHOP_PRICE_SOURCE_REQUIRED:${id}`);
   const prepared = versions.map(version => {
     const snapshot = snapshots.get(version.productId)!;
-    const contentHash = hashCatalogBaselineValue(snapshot.canonical);
+    const { contentHash, canonical } = encodeShopCatalogRevisionCanonical(snapshot.canonical);
     const projectionSource = { ...snapshot.projectionSource, canonicalContentHash: contentHash };
     buildShopCatalogProjection(projectionSource);
     const row = byId.get(version.productId)!;
     const plan = buildShopCatalogPublicationPlan({ entityType: "PRODUCT", entityId: row.id, canonicalVersion: version.nextCatalogVersion, changeDomains: ["PRICE"], oldSlug: row.slug, newSlug: row.slug });
     return { ...version, revisionId: randomUUID(), outboxId: randomUUID(), contentHash, plan,
-      snapshot: JSON.parse(JSON.stringify({ schemaVersion: SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION, canonical: canonicalizeCatalogBaselineValue(snapshot.canonical), projectionSource })) as Prisma.InputJsonValue };
+      snapshot: JSON.parse(JSON.stringify({ schemaVersion: SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION, canonical, projectionSource })) as Prisma.InputJsonValue };
   });
   await tx.shopCatalogProductRevision.createMany({ data: prepared.map(row => ({ id: row.revisionId, productId: row.productId, version: BigInt(row.nextCatalogVersion), schemaVersion: SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION, changeDomains: ["PRICE"], snapshot: row.snapshot, contentHash: row.contentHash, actorType: actor.type, actorId: actor.id, reason: actor.reason })) });
   await tx.shopCatalogOutbox.createMany({ data: prepared.map(row => ({ id: row.outboxId, dedupeKey: row.plan.dedupeKey, entityType: "PRODUCT", entityId: row.productId, productId: row.productId, revisionId: row.revisionId, canonicalVersion: BigInt(row.nextCatalogVersion), changeDomains: ["PRICE"], payload: row.plan as unknown as Prisma.InputJsonValue })) });

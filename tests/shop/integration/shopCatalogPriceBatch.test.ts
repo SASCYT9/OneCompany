@@ -10,6 +10,7 @@ import { buildShopCatalogProjection } from "../../../src/lib/shopCatalogProjecti
 import { persistShopCatalogPriceProjectionBuild, persistShopCatalogProjectionBuild } from "../../../src/lib/shopCatalogProjectionPersistence.server";
 import { publishShopCatalogPriceBatch } from "../../../src/lib/shopCatalogPricePublicationBatch.server";
 import { claimShopCatalogOutbox, processShopCatalogOutboxJob } from "../../../src/lib/shopCatalogOutboxWorker.server";
+import { decodeShopCatalogRevisionCanonical } from "../../../src/lib/shopCatalogRevisionCanonical";
 
 const url = process.env.MONOBANK_TEST_DATABASE_URL;
 test("price batch preserves complete canonical state, rolls back stale input, and uses fewer queries", { skip: !url }, async () => {
@@ -30,6 +31,8 @@ test("price batch preserves complete canonical state, rolls back stale input, an
       metafields: { create: { namespace: "test", key: "retained", value: "original" } },
       variants: { create: [{ sku: id + "-priced", position: 1, priceEur: 50, priceSourceCurrency: "EUR", inventoryQty: 7 }, { sku: id + "-inherited", position: 2 }] },
     } });
+    const largeMetadata = "Synthetic supplier metadata; ".repeat(80000);
+    await db.shopProductMetafield.create({ data: { productId: ids[0], namespace: "test", key: "large", value: largeMetadata } });
     const before = await db.shopProduct.findMany({ where: { id: { in: ids } }, include: { variants: true, media: true, options: true, metafields: true } });
     const entries: ShopPriceBatchEntry[] = before.map(row => ({
       catalogVersion: row.catalogVersion.toString(),
@@ -69,8 +72,11 @@ test("price batch preserves complete canonical state, rolls back stale input, an
     const revisions = await db.shopCatalogProductRevision.findMany({ where: { productId: { in: ids } } });
     assert.equal(revisions.length, 10);
     for (const revision of revisions) {
-      const snapshot = revision.snapshot as unknown as { canonical: { product: { priceEur: string; options: unknown[]; metafields: unknown[] } } };
-      assert.equal(Number(snapshot.canonical.product.priceEur), 101); assert.equal(snapshot.canonical.product.options.length, 1); assert.equal(snapshot.canonical.product.metafields.length, 1);
+      const snapshot = revision.snapshot as unknown as { canonical: unknown };
+      const canonical = decodeShopCatalogRevisionCanonical(snapshot.canonical, revision.contentHash) as { product: { priceEur: string; options: unknown[]; metafields: Array<{key:string;value:string}> } };
+      assert.equal(Number(canonical.product.priceEur), 101); assert.equal(canonical.product.options.length, 1);
+      assert.equal(canonical.product.metafields.length, before.find(row=>row.id===revision.productId)!.metafields.length);
+      if (revision.productId === ids[0]) assert.equal(canonical.product.metafields.find(row=>row.key==='large')!.value,largeMetadata);
       await persistShopCatalogProjectionBuild(buildShopCatalogProjection(projectionSourceFromRevision({ productId: revision.productId, catalogVersion: revision.version, revisionId: revision.id, revisionVersion: revision.version, contentHash: revision.contentHash, createdAt: revision.createdAt, snapshot: revision.snapshot })));
     }
     assert.equal(await db.shopCatalogOutbox.count({ where: { id: { in: result.map(row => row.outboxId) } } }), 10);

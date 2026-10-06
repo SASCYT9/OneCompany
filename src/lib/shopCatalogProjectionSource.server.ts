@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import { validateShopCatalogRevisionCanonical } from "./shopCatalogRevisionCanonical";
 import {
   buildShopCatalogProjection,
   SHOP_CATALOG_PROJECTION_LIMITS,
@@ -12,7 +13,7 @@ export const SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION = 1 as const;
 
 export type ShopCatalogRevisionSnapshot = {
   schemaVersion: typeof SHOP_CATALOG_REVISION_SNAPSHOT_SCHEMA_VERSION;
-  /** Complete immutable canonical payload. The projection never replaces it. */
+  /** Complete immutable payload: raw JSON or a lossless envelope decoded by the canonical reader. */
   canonical: unknown;
   /** Compact, rebuildable derivative required by the storefront projection. */
   projectionSource: ShopCatalogProjectionSource;
@@ -71,6 +72,7 @@ export function projectionSourceFromRevision(
   if (!("canonical" in snapshot)) {
     throw new Error(`Catalog revision ${row.revisionId} is missing its canonical payload`);
   }
+  validateShopCatalogRevisionCanonical(snapshot.canonical, row.contentHash);
   const derivative = objectValue(snapshot.projectionSource);
   if (!derivative) {
     throw new Error(`Catalog revision ${row.revisionId} is missing projectionSource`);
