@@ -1,8 +1,7 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
-import { prisma } from "@/lib/prisma";
 import { getIlmbergerProductsServer } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import IlmbergerHomeSignature from "../components/IlmbergerHomeSignature";
 
@@ -33,12 +32,12 @@ export default async function ShopIlmbergerPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const [settingsRecord, ilmbergerProducts] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getIlmbergerProductsServer(),
   ]);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null

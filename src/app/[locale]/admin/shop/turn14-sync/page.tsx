@@ -38,7 +38,10 @@ export default function Turn14SyncDashboard() {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000); // poll every 3s
+    // Poll every 3s only while the tab is visible; each poll is a database read.
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") fetchStatus();
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 

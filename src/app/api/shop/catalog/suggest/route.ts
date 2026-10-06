@@ -26,9 +26,16 @@ export async function GET(request: NextRequest) {
       rows: (value) => value.length,
       execute: () => queryShopCatalogSuggestions({ locale, query: filters.text, scope: filters.scope }),
     });
+    // Suggestions do not depend on the visitor. With full V2 serving the same
+    // keystroke prefix is answered by the CDN instead of up to three DB reads;
+    // canary responses depend on a request header and stay uncached.
+    const cacheControl =
+      reader.mode === "ssr"
+        ? "public, max-age=0, s-maxage=60, stale-while-revalidate=300"
+        : "private, no-store, max-age=0";
     return NextResponse.json(
       { data: read.value },
-      { headers: { "Cache-Control": "private, no-store, max-age=0", "Server-Timing": shopCatalogServerTiming(read.metric) } }
+      { headers: { "Cache-Control": cacheControl, "Server-Timing": shopCatalogServerTiming(read.metric) } }
     );
   } catch (error) {
     if (error instanceof TypeError) {

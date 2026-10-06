@@ -53,6 +53,9 @@ export const prisma = {
 export async function getOrCreateShopSettings() {
   return { currencyRates: { EUR: 1, USD: 1, UAH: 40 }, defaultB2bDiscountPercent: 0 };
 }
+export async function getPublicShopSettingsRuntime() {
+  return getOrCreateShopSettings();
+}
 export function getShopSettingsRuntime(value) {
   return value;
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { trackAddToCart } from "@/lib/analytics";
+import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 import {
   postShopAiClientAttributionEvent,
   readShopAiClientAttribution,
@@ -90,6 +91,7 @@ export function AddToCartButton({
         throw new Error("Add to cart failed");
       }
       setAdded(true);
+      notifyShopCartChanged();
       if (slug) trackAddToCart(slug, normalizedQuantity, productName);
       const oneAiAttribution = readShopAiClientAttribution();
       if (

@@ -17,7 +17,7 @@ import { dispatchCrmWebhook } from "@/lib/webhookDispatcher";
 import OrderConfirmationEmail from "@/components/emails/OrderConfirmationEmail";
 import { notifyAdminNewShopOrder } from "@/lib/telegramNotifications";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
-import { clearShopCart, resolveShopCart, SHOP_CART_COOKIE } from "@/lib/shopCart";
+import { clearShopCart, resolveShopCart, setShopCartCookies, SHOP_CART_COOKIE } from "@/lib/shopCart";
 import { upsertCustomerDefaultShippingAddress } from "@/lib/shopCustomers";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 
@@ -38,7 +38,6 @@ import {
 } from "@/lib/shopInternationalCheckout";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 const CURRENCIES = ["EUR", "USD", "UAH"] as const;
 
@@ -566,12 +565,7 @@ export async function POST(req: NextRequest) {
     requiresQuote: quote.requiresQuote,
     brandsRequiringQuote: quote.brandsRequiringQuote,
   });
-  response.cookies.set(SHOP_CART_COOKIE, activeCart.token, {
-    path: "/",
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+  // The order consumed the cart; the header badge reads this count cookie.
+  setShopCartCookies(response, activeCart.token, 0);
   return response;
 }

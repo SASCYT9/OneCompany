@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import { getUrbanProductsServer } from "@/lib/shopCatalogServer";
 import {
   getProductsForUrbanCollection,
   sortUrbanCollectionProducts,
 } from "@/lib/urbanCollectionMatcher";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { buildUrbanCollectionImagePool } from "@/lib/urbanImageUtils";
 import { URBAN_COLLECTION_CARDS } from "../../../data/urbanCollectionsList";
@@ -64,10 +63,10 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
   if (!card) notFound();
   const [products, settingsRecord] = await Promise.all([
     getUrbanProductsServer(),
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
   ]);
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord), null, false, null
+    settingsRecord, null, false, null
   );
   const matchedProducts = getProductsForUrbanCollection(products, handle, card.title, card.brand);
   const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);

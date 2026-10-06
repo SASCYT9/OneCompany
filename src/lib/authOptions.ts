@@ -68,6 +68,8 @@ async function loadCurrentCustomerTokenState(customerId: string) {
   };
 }
 
+const CUSTOMER_TOKEN_REFRESH_MS = 5 * 60 * 1000;
+
 export const authOptions: NextAuthOptions = {
   secret: NEXTAUTH_SECRET || "dev-shop-customer-secret",
   pages: {
@@ -165,10 +167,16 @@ export const authOptions: NextAuthOptions = {
         token.companyName = user.companyName ?? null;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
+        token.refreshedAt = Date.now();
         return token;
       }
 
-      if (token.customerId) {
+      // Every session check used to re-read the customer. Group, discount and
+      // deactivation changes now reach an active session within this window.
+      if (
+        token.customerId &&
+        Date.now() - (token.refreshedAt ?? 0) >= CUSTOMER_TOKEN_REFRESH_MS
+      ) {
         const currentCustomer = await loadCurrentCustomerTokenState(String(token.customerId));
         if (!currentCustomer) {
           delete token.customerId;
@@ -198,6 +206,7 @@ export const authOptions: NextAuthOptions = {
         token.companyName = currentCustomer.companyName;
         token.firstName = currentCustomer.firstName;
         token.lastName = currentCustomer.lastName;
+        token.refreshedAt = Date.now();
       }
 
       return token;

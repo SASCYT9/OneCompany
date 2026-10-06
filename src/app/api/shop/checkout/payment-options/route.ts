@@ -4,14 +4,12 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getOrCreateShopSettings, getShopSettingsRuntime } from '@/lib/shopAdminSettings';
-import { prisma } from '@/lib/prisma';
+import { getPublicShopSettingsRuntime } from '@/lib/shopPublicSettings';
 import { isMonobankEnabled } from '@/lib/shopMonobank';
 
 export async function GET() {
   try {
-    const record = await getOrCreateShopSettings(prisma);
-    const settings = getShopSettingsRuntime(record);
+    const settings = await getPublicShopSettingsRuntime();
 
     const methods: Array<'FOP' | 'WHITEBIT' | 'MONOBANK'> = ['FOP', 'WHITEBIT'];
     if (isMonobankEnabled() && settings.enabledCurrencies.includes('UAH')) methods.push('MONOBANK');

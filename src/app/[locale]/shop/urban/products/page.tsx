@@ -1,8 +1,7 @@
-import { prisma } from "@/lib/prisma";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 import UrbanVehicleFilter from "../../components/UrbanVehicleFilter";
 import { getUrbanProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
-import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import Link from "next/link";
 
@@ -35,13 +34,13 @@ export default async function UrbanProductsCatalogPage({ params }: Props) {
   const resolvedLocale = resolveLocale(locale);
 
   const [settingsRecord, urbanRows] = await Promise.all([
-    getOrCreateShopSettings(prisma),
+    getPublicShopSettingsRuntime(),
     getUrbanProductsServer(),
   ]);
   const urbanProducts = urbanRows.map(projectShopProductForListGrid);
 
   const viewerContext = buildShopViewerPricingContext(
-    getShopSettingsRuntime(settingsRecord),
+    settingsRecord,
     null,
     false,
     null
