@@ -30,8 +30,10 @@ export const SHOP_SEARCH_TOKEN_ALIASES: Readonly<Record<string, string>> = {
   system: "systems?|систем(?:а|и|у|ою|ы)",
   // Customers type Ukrainian (and Russian) brake/suspension words; several
   // supplier titles use only one language, e.g. GiroDisc "Тормозные колодки".
+  // Patterns run on normalized text, where NFKD turns "й" into "и"
+  // ("гальмівний" -> "гальмівнии", "тормозной" -> "тормознои").
   brakes:
-    "brakes?|гальм(?:о|а|и|ів|ами|івн(?:ий|а|і|их|ого|ої|у|ими))?|тормоз(?:а|ов|ной|ная|ные|ных|ную)?",
+    "brakes?|гальм(?:о|а|и|ів|ами|івн(?:ии|а|і|их|ого|ої|у|ими))?|тормоз(?:а|ов|нои|ная|ные|ных|ную)?",
   pads: "pads?|колодк(?:а|и|ок|ами)",
   springs: "springs?|пружин(?:а|и|ами|ів|ою|у)?",
   do88: "do[ -]*88",

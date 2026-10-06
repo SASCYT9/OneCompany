@@ -68,6 +68,10 @@ test("fitment selector options are shared across requests and invalidated with t
   const revalidation = readFileSync("src/lib/shopStorefrontRevalidation.ts", "utf8");
   const adminReset = readFileSync("src/app/api/admin/revalidate/route.ts", "utf8");
   assert.match(fitmentRoute, /unstable_cache\(/);
+  // The reader-gated legacy fallback keeps the short shared lifetime.
+  const legacy = fitmentRoute.slice(fitmentRoute.indexOf("await getShopProductsWithFitments()"));
+  assert.doesNotMatch(legacy, /return cachedJson\(/);
+  assert.match(fitmentRoute, /legacyFallbackJson[\s\S]*s-maxage=60, stale-while-revalidate=60/);
   assert.match(fitmentRoute, /tags: \[SHOP_CATALOG_SELECTOR_CACHE_TAG\]/);
   assert.match(revalidation, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);
   assert.match(adminReset, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);

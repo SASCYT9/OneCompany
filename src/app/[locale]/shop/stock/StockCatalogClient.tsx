@@ -121,8 +121,31 @@ type VehicleMode = "auto" | "moto";
 // Clears the fixed storefront header (h-16/h-20) with a small visual gap.
 const SEARCH_BOX_MIN_VIEWPORT_TOP = 104;
 
-function fitmentResultVehicleKey(make: string, model: string, chassis: string) {
-  return [make, model, chassis].map((value) => value.trim().toLocaleLowerCase()).join("|");
+type FitmentResultKeyInput = {
+  make: string;
+  model: string;
+  chassis: string;
+  year: number | null;
+  engine: string;
+  fuel: string;
+  opfGpf: string | null;
+  strict: boolean;
+};
+
+/** Every selection that changes fitment evidence (badges, matchStatus) on a page. */
+function fitmentResultKey(input: FitmentResultKeyInput) {
+  return [
+    input.make,
+    input.model,
+    input.chassis,
+    input.year ? String(input.year) : "",
+    input.engine,
+    input.fuel,
+    input.opfGpf ?? "",
+    input.strict ? "strict" : "",
+  ]
+    .map((value) => value.trim().toLocaleLowerCase())
+    .join("|");
 }
 
 function FitmentExplanation({
@@ -886,11 +909,16 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   // response arrives; fitment claims must never be shown for that stale page.
   const [resultVehicleKey, setResultVehicleKey] = useState<string | null>(() =>
     initialData
-      ? fitmentResultVehicleKey(
-          searchParams.get("make") ?? "",
-          searchParams.get("model") ?? "",
-          searchParams.get("chassis") ?? ""
-        )
+      ? fitmentResultKey({
+          make: searchParams.get("make") ?? "",
+          model: searchParams.get("model") ?? "",
+          chassis: searchParams.get("chassis") ?? "",
+          year: Number(searchParams.get("year")) || null,
+          engine: searchParams.get("engine") ?? "",
+          fuel: searchParams.get("fuel") ?? "",
+          opfGpf: searchParams.get("opfGpf"),
+          strict: searchParams.get("strict") === "1",
+        })
       : null
   );
   const [warehouseHeroItems, setWarehouseHeroItems] = useState<StockItem[]>([]);
@@ -1878,7 +1906,16 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       if (locale) params.set("locale", locale);
       if (country) params.set("country", country);
       params.set("page", searchPage.toString());
-      const requestVehicleKey = fitmentResultVehicleKey(make, model, chassis);
+      const requestVehicleKey = fitmentResultKey({
+        make,
+        model,
+        chassis,
+        year: requestedYear,
+        engine: engineFilter,
+        fuel: fuelFilter,
+        opfGpf: opfGpfFilter,
+        strict: strictMatch,
+      });
       const cacheKey = `${audienceKey}|${stockSearchCacheKey(params)}`;
       const cached = searchResponseCacheRef.current.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < 45_000) {
@@ -2406,10 +2443,29 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const selectedVehicleLabel = [make, model, chassis].filter(Boolean).join(" ");
-  const showFitmentEvidence =
-    Boolean(make || model || chassis) &&
-    !loading &&
-    resultVehicleKey === fitmentResultVehicleKey(make, model, chassis);
+  const currentFitmentKey = fitmentResultKey({
+    make,
+    model,
+    chassis,
+    year: requestedYear,
+    engine: engineFilter,
+    fuel: fuelFilter,
+    opfGpf: opfGpfFilter,
+    strict: strictMatch,
+  });
+  // The visible page was produced for the current vehicle/strict selection.
+  const resultsMatchSelection = !loading && resultVehicleKey === currentFitmentKey;
+  const showFitmentEvidence = Boolean(make || model || chassis) && resultsMatchSelection;
+  // Strict match statuses ("Confirmed" / "Verify fitment") and the actions they
+  // select belong to the response that produced them; drop them while a
+  // replacement request for a different selection is pending.
+  const visibleItems = useMemo(
+    () =>
+      resultsMatchSelection
+        ? items
+        : items.map((item) => (item.matchStatus ? { ...item, matchStatus: undefined } : item)),
+    [items, resultsMatchSelection]
+  );
   const emptyStateActions = useMemo(() => {
     const actions: Array<{ key: string; ua: string; en: string; run: () => void }> = [];
     if (query.trim()) {
@@ -3126,7 +3182,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   // Keep card subtrees stable while typing or rotating the warehouse hero.
   const gridCards = useMemo(
     () =>
-      items.map((item) => {
+      visibleItems.map((item) => {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
@@ -3334,7 +3390,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         );
       }),
     [
-      items,
+      visibleItems,
       formatItemCompareAt,
       formatItemPrice,
       make,
@@ -4491,7 +4547,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       </div>
                       {/* Table Rows */}
                       <div className="divide-y divide-foreground/5">
-                        {items.map((item) => {
+                        {visibleItems.map((item) => {
                           const logoPath = getBrandLogoPath(item.brand);
                           const compareAtLabel = formatItemCompareAt(item);
                           const priceLabel = formatItemPrice(item);
@@ -4680,7 +4736,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
                     {/* Mobile/Tablet view */}
                     <div className="space-y-3 xl:hidden">
-                      {items.map((item) => {
+                      {visibleItems.map((item) => {
                         const logoPath = getBrandLogoPath(item.brand);
                         const compareAtLabel = formatItemCompareAt(item);
                         const priceLabel = formatItemPrice(item);

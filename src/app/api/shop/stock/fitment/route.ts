@@ -46,6 +46,17 @@ const cachedJson = (body: unknown) =>
     },
   });
 
+// The legacy fallback runs only when the canonical selector is unavailable,
+// and its body depends on the reader gate (a canary request gets 503 for the
+// same URL). Keep its original short shared lifetime so a legacy response
+// cannot occupy the CDN for long.
+const legacyFallbackJson = (body: unknown) =>
+  NextResponse.json(body, {
+    headers: {
+      "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=60",
+    },
+  });
+
 type SupplierVehicleApplication = {
   make: string;
   model: string | null;
@@ -333,7 +344,7 @@ export async function GET(request: NextRequest) {
           for (let year = from; year <= to; year += 1) years.add(year);
         }
       }
-      return cachedJson({
+      return legacyFallbackJson({
         type: "details",
         make,
         model,
@@ -345,7 +356,7 @@ export async function GET(request: NextRequest) {
     // Legacy fitment does not have a dependable engine field. Keep the
     // selector precise rather than reusing the chassis response at this level.
     if (make && model && chassis) {
-      return cachedJson({ type: "engines", make, model, chassis, data: [] });
+      return legacyFallbackJson({ type: "engines", make, model, chassis, data: [] });
     }
 
     // Level 0: Return unique makes
@@ -359,13 +370,13 @@ export async function GET(request: NextRequest) {
         }
       }
       const makes = canonicalizeVehicleMakes(Array.from(makesSet));
-      return cachedJson({ type: "makes", data: makes });
+      return legacyFallbackJson({ type: "makes", data: makes });
     }
 
     // Level 1: Make → Models
     if (make && !model) {
       if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
-        return cachedJson({ type: "models", make, data: [] });
+        return legacyFallbackJson({ type: "models", make, data: [] });
       }
       const modelsSet = new Set<string>();
       for (const item of productsWithFitments) {
@@ -381,13 +392,13 @@ export async function GET(request: NextRequest) {
         ...modelsSet,
         ...getVehicleSelectorModelAliases(make),
       ]);
-      return cachedJson({ type: "models", make, data: models });
+      return legacyFallbackJson({ type: "models", make, data: models });
     }
 
     // Level 2: Make + Model → Chassis
     if (make && model) {
       if (!isVehicleMakeCompatibleWithScope(make, vehicleScope)) {
-        return cachedJson({ type: "chassis", make, model, data: [] });
+        return legacyFallbackJson({ type: "chassis", make, model, data: [] });
       }
       const chassisSet = new Set<string>();
       for (const item of productsWithFitments) {
@@ -409,10 +420,10 @@ export async function GET(request: NextRequest) {
         make,
         model
       );
-      return cachedJson({ type: "chassis", make, model, data: chassis });
+      return legacyFallbackJson({ type: "chassis", make, model, data: chassis });
     }
 
-    return cachedJson({ data: [] });
+    return legacyFallbackJson({ data: [] });
   } catch (error: any) {
     console.error("[Fitment API Error]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

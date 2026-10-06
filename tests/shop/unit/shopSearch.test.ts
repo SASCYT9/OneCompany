@@ -171,6 +171,9 @@ test("Ukrainian and Russian brake, pad and spring words match both catalog langu
     ["GIRODISC Тормозные колодки GP20 Racing", "гальмівні колодки girodisc"],
     ["KW HAS lowering springs BMW M3", "пружини bmw m3"],
     ["Регульовані пружини KW HAS", "kw springs"],
+    // Masculine forms contain "й", which normalization turns into "и".
+    ["GiroDisc front brake kit", "гальмівний girodisc"],
+    ["Передній гальмівний диск GiroDisc", "тормозной диск girodisc"],
   ])
     assert.equal(matchesShopSearchQuery(buildShopSearchText([text]), query), true, query);
   // Pads are narrower than brakes: a disc kit is not a pad match.
