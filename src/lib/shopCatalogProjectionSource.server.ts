@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "./prisma";
 import { validateShopCatalogRevisionCanonical } from "./shopCatalogRevisionCanonical";
@@ -35,6 +35,15 @@ export type ShopCatalogProjectionRevisionReader = {
     limit: number;
   }): Promise<readonly ShopCatalogProjectionRevisionRow[]>;
 };
+
+/** Projection consumers need presence proof, not a potentially huge raw archive. */
+export function shopCatalogProjectionSnapshotSql(snapshot: Prisma.Sql): Prisma.Sql {
+  return Prisma.sql`CASE WHEN ${snapshot} IS NULL THEN NULL ELSE
+    jsonb_build_object('schemaVersion',${snapshot}->'schemaVersion','projectionSource',${snapshot}->'projectionSource') ||
+    CASE WHEN ${snapshot} ? 'canonical' THEN jsonb_build_object('canonical',
+      CASE WHEN ${snapshot}#>>'{canonical,$encoding}' IS NOT NULL THEN ${snapshot}->'canonical' ELSE 'true'::jsonb END)
+      ELSE '{}'::jsonb END END`;
+}
 
 function objectValue(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -102,7 +111,7 @@ export const prismaShopCatalogProjectionRevisionReader: ShopCatalogProjectionRev
         revision."version" AS "revisionVersion",
         revision."contentHash" AS "contentHash",
         revision."createdAt" AS "createdAt",
-        revision."snapshot" AS "snapshot"
+        ${shopCatalogProjectionSnapshotSql(Prisma.sql`revision."snapshot"`)} AS "snapshot"
       FROM "ShopProduct" product
       LEFT JOIN "ShopCatalogProductRevision" revision
         ON revision."productId" = product."id"

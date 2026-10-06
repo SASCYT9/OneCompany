@@ -3,6 +3,7 @@ import "server-only";
 import { Prisma, ShopCatalogOutboxStatus, type ShopCatalogProjectionTarget } from "@prisma/client";
 
 import { prisma } from "./prisma";
+import { shopCatalogProjectionSnapshotSql } from "./shopCatalogProjectionSource.server";
 
 export const SHOP_CATALOG_OUTBOX_LIMITS = {
   maxBatch: 50,
@@ -151,8 +152,8 @@ export async function claimShopCatalogOutbox(input: {
   });
   if (!claimedIds.length) return [];
 
-  // Revision snapshots can be large. Load them after the atomic lease claim so
-  // the row-locking transaction doesn't time out while materializing JSON.
+  // Fetch the publication view after claiming. Full archival JSON remains in
+  // the immutable ledger; ordinary publication never downloads it needlessly.
   const jobs = await prisma.shopCatalogOutbox.findMany({
     where: {
       id: { in: claimedIds },
@@ -160,21 +161,16 @@ export async function claimShopCatalogOutbox(input: {
       lockedBy: workerId,
       leaseExpiresAt,
     },
-    include: {
-      revision: {
-        select: {
-          id: true,
-          productId: true,
-          version: true,
-          contentHash: true,
-          createdAt: true,
-          snapshot: true,
-        },
-      },
-    },
     orderBy: [{ canonicalVersion: "asc" }, { id: "asc" }],
   });
-  return jobs as ShopCatalogClaimedOutbox[];
+  const revisionIds = [...new Set(jobs.flatMap(job => job.revisionId ? [job.revisionId] : []))];
+  const revisions = revisionIds.length ? await prisma.$queryRaw<NonNullable<ShopCatalogClaimedOutbox["revision"]>[]>(Prisma.sql`
+    SELECT revision.id,revision."productId",revision.version,revision."contentHash",revision."createdAt",
+      ${shopCatalogProjectionSnapshotSql(Prisma.sql`revision.snapshot`)} AS snapshot
+    FROM "ShopCatalogProductRevision" revision WHERE revision.id IN (${Prisma.join(revisionIds)})
+  `) : [];
+  const byId = new Map(revisions.map(revision => [revision.id, revision]));
+  return jobs.map(job => ({ ...job, revision: job.revisionId ? byId.get(job.revisionId) ?? null : null }));
 }
 
 async function setReceiptPublishing(

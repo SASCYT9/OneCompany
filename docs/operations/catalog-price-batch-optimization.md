@@ -18,6 +18,11 @@ the same snapshot schema and projection source. Source transactions retain the
 120-second overall bound and use a 60-second idle guard because materializing a
 large lossless archive legitimately takes longer than a small price update.
 
+Outbox/rebuild readers select a publication view in SQL: schema, compact source,
+and proof that a raw archive exists. Compressed archives retain their envelope
+for checksum validation. Restore/audit code must read the complete stored
+revision directly, not this publication view. No existing archive is rewritten.
+
 PRICE publication compares both locale hashes and every SKU field against the
 new immutable source reconstructed at the stored version. It advances matching
 projection/child versions without deleting rows. Missing or changed projections
