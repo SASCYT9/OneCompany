@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchShopStockSearch } from "@/lib/shopStockSearchRequest";
+import { getShopStockItemPriceSet } from "@/lib/shopStockItemPricing";
 import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense, type ReactNode } from "react";
@@ -2252,11 +2253,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         : filterStats?.stock.preOrder;
 
   const getItemPriceSet = useCallback((item: StockItem): ShopPriceSet => {
-    return {
-      eur: item.priceSet?.eur ?? item.priceEur ?? 0,
-      usd: item.priceSet?.usd ?? item.priceUsd ?? item.price ?? 0,
-      uah: item.priceSet?.uah ?? item.priceUah ?? 0,
-    };
+    return getShopStockItemPriceSet(item);
   }, []);
 
   const getItemCompareAtSet = useCallback((item: StockItem): ShopPriceSet | null => {
