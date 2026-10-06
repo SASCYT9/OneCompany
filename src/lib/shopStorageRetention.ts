@@ -1,7 +1,10 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const CART_EXPIRY_GRACE_MS = 7 * DAY_MS;
+// The cart cookie is renewed for 30 days on every response while the row's expiry
+// moves only in its last week, so a row may trail its cookie by up to 23 days.
+// Waiting the full cookie lifetime after expiry never removes a reachable cart.
+const CART_EXPIRY_GRACE_MS = 30 * DAY_MS;
 
 export type ShopStorageRetentionResult = {
   deletedCarts: number;
@@ -10,10 +13,11 @@ export type ShopStorageRetentionResult = {
 };
 
 /**
- * Nightly cleanup for rows that only grow. Carts: every expired guest cart, and
- * guest carts that never received an item (one per cookie-less visitor or bot
- * before carts were created lazily). A customer's cart is removed only when it
- * is both expired and empty. Items cascade with their cart.
+ * Nightly cleanup for rows that only grow. Carts: guest carts past expiry plus
+ * the cookie lifetime (including the empty ones every cookie-less visitor or bot
+ * created before carts were created lazily). A customer's cart is removed only
+ * when it is also empty. Unexpired carts are never touched, so retention cannot
+ * race a cart rewrite. Items cascade with their cart.
  */
 export async function runShopStorageRetention(
   prisma: PrismaClient,
@@ -23,13 +27,10 @@ export async function runShopStorageRetention(
   const batchSize = options.batchSize ?? 5_000;
   const maxBatches = options.maxBatches ?? 20;
   const deadline = Date.now() + (options.deadlineMs ?? 45_000);
-  // Reads extend a cart's expiry only in its last week (shopCart touchCart),
-  // while the cookie is renewed on every visit; this grace keeps both aligned.
   const expiredBefore = new Date(now.getTime() - CART_EXPIRY_GRACE_MS);
   const cartWhere: Prisma.ShopCartWhereInput = {
     OR: [
       { customerId: null, expiresAt: { lt: expiredBefore } },
-      { customerId: null, createdAt: { lt: new Date(now.getTime() - DAY_MS) }, items: { none: {} } },
       { expiresAt: { lt: expiredBefore }, items: { none: {} } },
     ],
   };

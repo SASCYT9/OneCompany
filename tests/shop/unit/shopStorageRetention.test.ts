@@ -37,27 +37,27 @@ function fakePrisma(carts: Cart[], expiredBuckets: number) {
   return { client: client as never, remaining };
 }
 
-test("retention removes expired and never-used guest carts but keeps live and customer carts", async () => {
+test("retention removes carts only after expiry plus the cookie lifetime", async () => {
   const now = new Date("2026-10-06T03:41:00Z");
   const days = (value: number) => new Date(now.getTime() + value * 24 * 60 * 60 * 1000);
   const { client, remaining } = fakePrisma(
     [
-      { id: "guest-expired", customerId: null, expiresAt: days(-8), createdAt: days(-38), items: 2 },
-      { id: "guest-expired-in-grace", customerId: null, expiresAt: days(-2), createdAt: days(-32), items: 1 },
+      { id: "guest-expired", customerId: null, expiresAt: days(-31), createdAt: days(-61), items: 2 },
+      { id: "guest-expired-in-grace", customerId: null, expiresAt: days(-20), createdAt: days(-50), items: 1 },
       { id: "guest-empty-old", customerId: null, expiresAt: days(28), createdAt: days(-2), items: 0 },
       { id: "guest-empty-today", customerId: null, expiresAt: days(30), createdAt: days(-0.1), items: 0 },
       { id: "guest-live", customerId: null, expiresAt: days(20), createdAt: days(-10), items: 1 },
-      { id: "customer-expired-with-items", customerId: "c1", expiresAt: days(-9), createdAt: days(-40), items: 1 },
-      { id: "customer-expired-empty", customerId: "c2", expiresAt: days(-9), createdAt: days(-40), items: 0 },
+      { id: "customer-expired-with-items", customerId: "c1", expiresAt: days(-31), createdAt: days(-40), items: 1 },
+      { id: "customer-expired-empty", customerId: "c2", expiresAt: days(-31), createdAt: days(-40), items: 0 },
     ],
     7
   );
   const result = await runShopStorageRetention(client, { now, batchSize: 2 });
   assert.deepEqual(
     remaining.map((cart) => cart.id),
-    ["guest-expired-in-grace", "guest-empty-today", "guest-live", "customer-expired-with-items"]
+    ["guest-expired-in-grace", "guest-empty-old", "guest-empty-today", "guest-live", "customer-expired-with-items"]
   );
-  assert.equal(result.deletedCarts, 3);
+  assert.equal(result.deletedCarts, 2);
   assert.equal(result.deletedRateLimitBuckets, 7);
   assert.equal(result.complete, true);
 });
