@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import type { Prisma } from "@prisma/client";
+import { withShopPriceSource } from "./shopPriceBookCurrency";
 
 const PAGE_SIZE = 250;
 const isAccelerateEnabled =
@@ -42,12 +43,13 @@ type FitmentCatalogRow = Prisma.ShopProductGetPayload<{
 const money = (
   eur: { toString(): string } | number | null,
   usd: { toString(): string } | number | null,
-  uah: { toString(): string } | number | null
-): ShopMoneySet => ({
+  uah: { toString(): string } | number | null,
+  sourceCurrency?: unknown
+): ShopMoneySet => withShopPriceSource({
   eur: Number(eur ?? 0),
   usd: Number(usd ?? 0),
   uah: Number(uah ?? 0),
-});
+}, sourceCurrency);
 
 /**
  * Loads the complete published catalog in bounded pages for vehicle filtering.
@@ -143,6 +145,10 @@ export async function getShopFitmentCatalogProducts(
                 collectionEn: true,
                 stock: true,
                 priceEur: includeCommerce,
+                priceSourceCurrency: includeCommerce,
+                compareAtSourceCurrency: includeCommerce,
+                b2bPriceSourceCurrency: includeCommerce,
+                b2bCompareAtSourceCurrency: includeCommerce,
                 priceUsd: includeCommerce,
                 priceUah: includeCommerce,
                 priceEurEurope: includeCommerce,
@@ -194,6 +200,10 @@ export async function getShopFitmentCatalogProducts(
                           image: true,
                           isDefault: true,
                           priceEur: true,
+                          priceSourceCurrency: true,
+                          compareAtSourceCurrency: true,
+                          b2bPriceSourceCurrency: true,
+                          b2bCompareAtSourceCurrency: true,
                           priceUsd: true,
                           priceUah: true,
                           priceEurEurope: true,
@@ -245,11 +255,11 @@ export async function getShopFitmentCatalogProducts(
         leadTime: { ua: "", en: "" },
         stock: row.stock === "preOrder" ? "preOrder" : "inStock",
         collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
-        price: money(row.priceEur, row.priceUsd, row.priceUah),
-        europePrice: money(row.priceEurEurope, row.priceUsd, row.priceUah),
-        b2bPrice: money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b),
-        compareAt: money(row.compareAtEur, row.compareAtUsd, row.compareAtUah),
-        b2bCompareAt: money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
+        price: money(row.priceEur, row.priceUsd, row.priceUah, row.priceSourceCurrency),
+        europePrice: money(row.priceEurEurope, null, null, "EUR"),
+        b2bPrice: money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b, row.b2bPriceSourceCurrency),
+        compareAt: money(row.compareAtEur, row.compareAtUsd, row.compareAtUah, row.compareAtSourceCurrency),
+        b2bCompareAt: money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b, row.b2bCompareAtSourceCurrency),
         image: row.image ?? "",
         highlights: [],
         collections: readProductCollections(row).map((entry) => ({
@@ -271,14 +281,15 @@ export async function getShopFitmentCatalogProducts(
           inventoryQty: variant.inventoryQty,
           image: variant.image,
           isDefault: variant.isDefault,
-          price: money(variant.priceEur, variant.priceUsd, variant.priceUah),
-          europePrice: money(variant.priceEurEurope, variant.priceUsd, variant.priceUah),
-          b2bPrice: money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b),
-          compareAt: money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah),
+          price: money(variant.priceEur, variant.priceUsd, variant.priceUah, variant.priceSourceCurrency),
+          europePrice: money(variant.priceEurEurope, null, null, "EUR"),
+          b2bPrice: money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b, variant.b2bPriceSourceCurrency),
+          compareAt: money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah, variant.compareAtSourceCurrency),
           b2bCompareAt: money(
             variant.compareAtEurB2b,
             variant.compareAtUsdB2b,
-            variant.compareAtUahB2b
+            variant.compareAtUahB2b,
+            variant.b2bCompareAtSourceCurrency
           ),
         })),
       });
