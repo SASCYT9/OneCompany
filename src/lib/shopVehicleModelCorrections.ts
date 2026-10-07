@@ -275,7 +275,7 @@ const SELECTOR_AUDIT_MODEL_CORRECTIONS: ModelCorrections = {
     "Prelude VI [japan]": ["Prelude VI"],
   },
   infiniti: { "Q70 / M [russia]": ["Q70"] },
-  jaguar: { "Xf,xf Sportbrake": ["XF"], "XJ / Xjr": ["XJ"], "Xk / XKR": ["XK"] },
+  jaguar: { "Xf,xf Sportbrake": ["XF"], "XJ / Xjr": ["XJ", "XJR"], "Xk / XKR": ["XK", "XKR"] },
   jeep: { "Renegade [american Market]": ["Renegade"] },
   lada: { "Niva / 4X4 /Taiga": ["Niva"], "Vesta Cross,vesta Sw,vesta SW Cross": ["Vesta"] },
   lexus: {
