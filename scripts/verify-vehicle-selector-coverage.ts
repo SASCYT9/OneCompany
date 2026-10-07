@@ -8,7 +8,8 @@
  * `snapshot` records, for every make and model the selector offers, the ids of
  * the products the listing returns. `verify` maps each recorded model through
  * the current taxonomy and asserts every recorded product is still returned by
- * the model(s) it maps to.
+ * the model(s) it maps to. Models that are no longer offered fail the check
+ * unless `--allow-unoffered` confirms the printed list was reviewed.
  */
 import fs from "node:fs";
 import {
@@ -125,14 +126,18 @@ async function verify(base: string, file: string) {
   console.log(
     `\n${jobs.length} models, ${checked} product matches checked; ${lost.length} models lose products, ${unoffered.length} models no longer offered`
   );
-  process.exitCode = lost.length ? 1 : 0;
+  // A model with products that is no longer offered fails too, unless the
+  // caller has reviewed the UNOFFERED list (quarantined wrong-make models).
+  process.exitCode = lost.length || (unoffered.length && !allowUnoffered) ? 1 : 0;
 }
 
-const [mode, base = "", file = ""] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const allowUnoffered = args.includes("--allow-unoffered");
+const [mode, base = "", file = ""] = args.filter((arg) => !arg.startsWith("--"));
 const baseUrl = base.replace(/\/$/, "");
 if (mode === "snapshot" && baseUrl && file) void snapshot(baseUrl, file);
 else if (mode === "verify" && baseUrl && file) void verify(baseUrl, file);
 else {
-  console.error("usage: snapshot|verify <baseUrl> <file.json>");
+  console.error("usage: snapshot|verify <baseUrl> <file.json> [--allow-unoffered]");
   process.exitCode = 2;
 }
