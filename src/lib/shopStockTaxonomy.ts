@@ -85,6 +85,17 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "ecu tuning",
       "чіп-тюнінг",
       "чіп тюнінг",
+      "bootmod3",
+      "ліцензія bootmod3",
+      "jb4 pro",
+      "map tuning",
+      "jb4pro",
+      "флешер",
+      "flasher",
+      "cantool",
+      "tuner",
+      "ek1",
+      "ecu",
     ],
   },
   {
@@ -120,6 +131,43 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "аппайп",
       "каталізатор",
       "насадки",
+      "back system",
+      "backsystem",
+      "back-system",
+      "gpf back",
+      "opf back",
+      "gpf",
+      "opf",
+      "outlet tubes",
+      "випускних колекторів",
+      "лінк пайпи",
+      "лінк-пайпи",
+      "паипи",
+      "звуковий пакет",
+      "front section",
+      "axle back",
+      "axle-back",
+      "exhaust manifold",
+      "tips",
+      "випускний колектор",
+      "випускні колектори",
+      "catback",
+      "каталізатора",
+      "пайп",
+      "пайпів",
+      "пайпи",
+      "center section",
+      "mid section",
+      "rear section",
+      "endrohr",
+      "schalldämpfer",
+      "sportschalldämpfer",
+      "шумопоглинач",
+      "насадок",
+      "звуковий комплект",
+      "управління звуком",
+      "frontpipe",
+      "front pipe",
     ],
   },
   {
@@ -173,6 +221,14 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "підвищення кліренсу",
       "розпірки стійок",
       "поперечні розпірки",
+      "springs",
+      "spring",
+      "пружини",
+      "brace",
+      "braces",
+      "strut cross braces",
+      "differential brace",
+      "модуль зниження",
     ],
   },
   {
@@ -202,6 +258,12 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "патруб",
       "шланг",
       "силіконов",
+      "transmission cooler",
+      "cooler",
+      "coolers",
+      "патрубок",
+      "патрубки",
+      "патрубків",
     ],
   },
   {
@@ -254,6 +316,35 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "маслоуловлювач",
       "масловіддільник",
       "масляний піддон",
+      "walbro",
+      "lpfp",
+      "hpfp",
+      "fuel pump",
+      "port injection",
+      "injection",
+      "впорскування",
+      "інлет",
+      "інлети",
+      "wmi",
+      "водно метанолова",
+      "intake manifold",
+      "колектор",
+      "колектори",
+      "впускний колектор",
+      "колектор впускний",
+      "свічка",
+      "свічки",
+      "spark plug",
+      "spark plugs",
+      "vacuum tank",
+      "vacuum tanks",
+      "ignition coil",
+      "ignition coils",
+      "drop in filter",
+      "filter set",
+      "запалювання",
+      "повітряний фільтр",
+      "boostxtra",
     ],
   },
   {
@@ -347,6 +438,26 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "бампер",
       "підспойлер",
       "накладки",
+      "капот",
+      "капоти",
+      "арок",
+      "розширених арок",
+      "bullnose",
+      "кузовний пакет",
+      "пакет кузов",
+      "пакет майстерності",
+      "signature пакет",
+      "кузов",
+      "накладка",
+      "сплітер",
+      "сплітери",
+      "спліттер",
+      "даховий",
+      "даховий елемент",
+      "драбина",
+      "захисту днища",
+      "спойлерlippe",
+      "lippe",
     ],
   },
   {
@@ -371,6 +482,14 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "диски",
       "колеса",
       "проставки",
+      "комплект дисків",
+      "литий диск",
+      "литі диски",
+      "ковані диски",
+      "колісні диски",
+      "диск",
+      "дисків",
+      "комплект колісних дисків",
     ],
   },
   {
@@ -398,6 +517,14 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "led",
       "память start stop",
       "цифрова панель приладів",
+      "ліхтарі",
+      "ліхтарів",
+      "rgb панелі",
+      "світлодіодні",
+      "світлодіодні панелі",
+      "задні ліхтарі",
+      "старт стоп",
+      "старт – стоп",
     ],
   },
   {
@@ -438,6 +565,51 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "підголівники",
       "підставка для ніг",
       "прилади для даху",
+      "шкіряні",
+      "шкіряна",
+      "шкіряний",
+      "шкіряне",
+      "шкіряного",
+      "шкіряну",
+      "шкіряної",
+      "шкіра",
+      "шкіри",
+      "оббивка",
+      "оббивки",
+      "оббивку",
+      "оббивкою",
+      "салону",
+      "салоні",
+      "дверні панелі",
+      "панелі управління",
+      "панелі входу",
+      "панель приладів",
+      "панелі приладів",
+      "приладової панелі",
+      "стельове покриття",
+      "стелі",
+      "потолок",
+      "підлога",
+      "підлоги",
+      "підлогу",
+      "килимок",
+      "консоль",
+      "консолі",
+      "крісел",
+      "крісла",
+      "ковшів",
+      "обробки салону",
+      "елементи інтер'єру",
+      "інтер'єру",
+      "alcantara",
+      "алькантари",
+      "шкірою",
+      "шкіряною",
+      "стовпи",
+      "стійки a",
+      "підрульові лепестки",
+      "лепестки",
+      "перемикачі передач",
     ],
   },
   {
@@ -497,6 +669,25 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "лебідка",
       "лопата",
       "сокира",
+      "фаркоп",
+      "tow bar",
+      "towbar",
+      "чохол",
+      "багажник",
+      "багажник на дах",
+      "roof carrier",
+      "килимки багажника",
+      "декалі",
+      "декалей",
+      "номерного знака",
+      "комплект декалей",
+      "бризковиків",
+      "брендингу",
+      "гайки",
+      "болтів",
+      "дверні ручки",
+      "ручки",
+      "dragy",
     ],
   },
   {
@@ -524,6 +715,12 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "кепка",
       "футболка",
       "худі",
+      "поло",
+      "шапка",
+      "polo",
+      "промо стенду",
+      "промо-стенду",
+      "дисплею pos",
     ],
   },
   {
@@ -607,7 +804,7 @@ function getCategoryCorpus(item: ShopStockTaxonomyItem, locale: string) {
 }
 
 const EXTERIOR_AERO_PATTERN =
-  /(?:\b(?:diffuser|splitter|spoiler|rear wing|body kit|bodykit|widebody|side skirt|bumper|bonnet|hood|grille)\b|дифузор|спліттер|спойлер|обвіс|бампер|пороги|решітка)/;
+  /(?:\b(?:diffuser|splitter|spoiler|rear wing|body kit|bodykit|widebody|side skirt|bumper|bonnet|hood|grille)\b|дифузор|спліттер|спойлер|обвіс|бампер|пороги|решітк[а-яіїєґ]*)/;
 
 function isKwSuspensionProduct(item: ShopStockTaxonomyItem) {
   const brandIdentity = normalizeShopSearchText(
@@ -618,6 +815,43 @@ function isKwSuspensionProduct(item: ShopStockTaxonomyItem) {
     brandIdentity.includes("kw suspensions") ||
     brandIdentity.includes("kw automotive ukraine")
   );
+}
+
+// Single-discipline brands: a part whose title names no product type (Remus
+// "Part: 089618", Akrapovič mounting kits, Brabus fasteners) still belongs to
+// the brand's discipline. Keyword matches always win over this fallback.
+const BRAND_FALLBACK_GROUP: Record<string, ShopStockCategoryGroupId> = {
+  remus: "exhaust",
+  akrapovic: "exhaust",
+  "ipe exhaust": "exhaust",
+  "fi exhaust": "exhaust",
+  "g sport by gesi": "exhaust",
+  racechip: "chipTuning",
+  bootmod3: "chipTuning",
+  girodisc: "brakes",
+  stopflex: "brakes",
+  "kw suspensions": "suspension",
+  ohlins: "suspension",
+  csf: "cooling",
+  do88: "cooling",
+  setrab: "cooling",
+  gfb: "cooling",
+  garrett: "cooling",
+  bmc: "performance",
+  eventuri: "performance",
+  "mst performance": "performance",
+  adro: "carbonAero",
+  revozport: "carbonAero",
+  wheelforce: "wheels",
+  brabus: "accessories",
+  "burger motorsports": "accessories",
+  "urban automotive": "accessories",
+};
+
+function brandFallbackGroup(item: ShopStockTaxonomyItem) {
+  const brand = normalizeShopSearchText(item.product.brand ?? item.product.vendor ?? "");
+  const groupId = BRAND_FALLBACK_GROUP[brand];
+  return groupId ? GROUP_BY_ID.get(groupId) : undefined;
 }
 
 export function getShopStockCategoryGroupForProduct(
@@ -637,8 +871,18 @@ export function getShopStockCategoryGroupForProduct(
   return (
     STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
       keywords.some((keyword) => corpus.includes(keyword))
-    )?.group ?? GROUP_BY_ID.get("other")!
+    )?.group ??
+    brandFallbackGroup(item) ??
+    GROUP_BY_ID.get("other")!
   );
+}
+
+/** Resolves a group id or its UA/EN label to the canonical group id. */
+export function resolveShopStockCategoryGroupId(
+  value: string | null | undefined
+): ShopStockCategoryGroupId | null {
+  const normalized = normalizeShopSearchText(value ?? "");
+  return normalized ? (GROUP_LABEL_LOOKUP.get(normalized) ?? null) : null;
 }
 
 export function getShopStockCategoryLabel(groupId: ShopStockCategoryGroupId, locale: string) {

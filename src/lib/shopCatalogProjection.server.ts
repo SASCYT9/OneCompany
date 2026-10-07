@@ -17,6 +17,10 @@ import {
   type ShopCatalogV2YearRange,
 } from "./shopCatalogV2Compatibility";
 import { normalizeShopSearchText } from "./shopSearch";
+import {
+  getShopStockCategoryGroupForProduct,
+  resolveShopStockCategoryGroupId,
+} from "./shopStockTaxonomy";
 import { WHEELFORCE_FAMILY_CHILD_TAG } from "./wheelforceFamily";
 
 export const SHOP_CATALOG_PROJECTION_SCHEMA_VERSION = 1 as const;
@@ -750,6 +754,36 @@ function buildSearchText(input: {
   return text;
 }
 
+/**
+ * Storefront product group (`shopStockTaxonomy`) for every product. It does not
+ * depend on the optional admin `ShopCategory` link, so the "product group"
+ * facet covers the whole catalog instead of only manually categorized rows.
+ */
+function deriveCategoryGroupKey(
+  source: ShopCatalogProjectionSource,
+  sourceCategoryGroupKey: string | null
+) {
+  const explicit = resolveShopStockCategoryGroupId(sourceCategoryGroupKey);
+  if (explicit) return explicit;
+  return getShopStockCategoryGroupForProduct(
+    {
+      product: {
+        brand: source.brand.labelEn || source.brand.key,
+        productType: source.productTypeKey,
+        sku: source.sku,
+        slug: source.slug,
+        title: { ua: source.locales.ua?.title, en: source.locales.en?.title },
+        category: source.category
+          ? { ua: source.category.labelUa, en: source.category.labelEn }
+          : null,
+        tags: [...(source.tags ?? []), ...(source.collectionKeys ?? [])],
+        variants: (source.variants ?? []).map((variant) => ({ sku: variant.sku })),
+      },
+    },
+    "ua"
+  ).id;
+}
+
 export function buildShopCatalogProjection(
   source: ShopCatalogProjectionSource
 ): ShopCatalogProjectionBuild {
@@ -775,7 +809,8 @@ export function buildShopCatalogProjection(
   const category = source.category ? normalizedNamedFacet(source.category, "category") : null;
   const productTypeKey = optionalText(source.productTypeKey, "productTypeKey");
   const productKindKey = optionalText(source.productKindKey, "productKindKey");
-  const categoryGroupKey = optionalText(source.categoryGroupKey, "categoryGroupKey");
+  const sourceCategoryGroupKey = optionalText(source.categoryGroupKey, "categoryGroupKey");
+  const categoryGroupKey = deriveCategoryGroupKey(source, sourceCategoryGroupKey);
   const primaryMedia = normalizedPrimaryMedia(source.primaryMedia);
   const tags = uniqueSortedText(source.tags, "tags", undefined, null);
   const statusKey = tags.includes(WHEELFORCE_FAMILY_CHILD_TAG) ? "FAMILY_CHILD" : baseStatusKey;
@@ -851,7 +886,7 @@ export function buildShopCatalogProjection(
         category,
         productTypeKey,
         productKindKey,
-        categoryGroupKey,
+        categoryGroupKey: sourceCategoryGroupKey,
         tags,
         collectionKeys,
         sharedSearchTerms,

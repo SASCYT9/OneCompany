@@ -24,6 +24,10 @@ import {
   tokenizeShopSearchQuery,
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
+import {
+  getShopStockCategoryLabel,
+  resolveShopStockCategoryGroupId,
+} from "./shopStockTaxonomy";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 import { isExactWheelForceSkuSearch } from "./wheelforceFamily";
 
@@ -664,6 +668,22 @@ function correlatedYearConstraintSql(year: number) {
     )`;
 }
 
+/**
+ * A product-group id or label (UA/EN) selects by the taxonomy group stored on
+ * every projection row; any other value keeps matching the admin category
+ * key/label so existing links to specific categories continue to work.
+ */
+function projectionCategoryConditionSql(category: string) {
+  const groupId = resolveShopStockCategoryGroupId(category);
+  if (groupId) return Prisma.sql`projection."categoryGroupKey" = ${groupId}`;
+  return Prisma.sql`(lower(projection."categoryKey") = lower(${category}) OR lower(projection."categoryLabel") = lower(${category}))`;
+}
+
+function categoryGroupLabel(groupKey: string | null | undefined, locale: string) {
+  const groupId = resolveShopStockCategoryGroupId(groupKey);
+  return groupId ? getShopStockCategoryLabel(groupId, locale) : null;
+}
+
 function projectionFacetBaseConditions(
   input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
   includeBrand: boolean,
@@ -700,9 +720,7 @@ function projectionFacetBaseConditions(
     conditions.push(projectionBrandConditionSql(input.brand));
   }
   if (includeCategory && input.category) {
-    conditions.push(
-      Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
-    );
+    conditions.push(projectionCategoryConditionSql(input.category));
   }
   if (input.text) {
     conditions.push(projectionSearchConditionSql(input.text));
@@ -825,7 +843,7 @@ function buildProjectionFacetSource(
   return {
     prefix: Prisma.sql`WITH priced_facet_projection AS MATERIALIZED (
       SELECT projection."productId", projection."brandKey", projection."brandLabel",
-             projection."categoryKey", projection."categoryLabel"
+             projection."categoryKey", projection."categoryLabel", projection."categoryGroupKey"
       FROM "ShopCatalogProjection" projection
       CROSS JOIN LATERAL (SELECT ${projectionPriceSql(input)} AS amount OFFSET 0) facet_price
       WHERE ${Prisma.join(common, " AND ")}
@@ -835,9 +853,7 @@ function buildProjectionFacetSource(
       const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
       if (includeBrand && input.brand) conditions.push(projectionBrandConditionSql(input.brand));
       if (includeCategory && input.category) {
-        conditions.push(
-          Prisma.sql`(lower(projection."categoryKey") = lower(${input.category}) OR lower(projection."categoryLabel") = lower(${input.category}))`
-        );
+        conditions.push(projectionCategoryConditionSql(input.category));
       }
       return conditions;
     },
@@ -980,16 +996,16 @@ export function buildShopCatalogProjectionFacetQuerySql(
   const categoryBranch = Prisma.sql`
     (SELECT
        'category'::text AS "dimension",
-       projection."categoryKey" AS "key",
-       min(projection."categoryLabel") AS "label",
+       projection."categoryGroupKey" AS "key",
+       min(projection."categoryGroupKey") AS "label",
        count(*)::bigint AS "count",
        NULL::integer AS "yearFrom",
        NULL::integer AS "yearTo"
      FROM ${source.from}
      WHERE ${Prisma.join(categoryConditions, " AND ")}
-       AND projection."categoryKey" IS NOT NULL
-       AND projection."categoryKey" <> ''
-     GROUP BY projection."categoryKey"
+       AND projection."categoryGroupKey" IS NOT NULL
+       AND projection."categoryGroupKey" <> ''
+     GROUP BY projection."categoryGroupKey"
      ORDER BY "count" DESC, "label" ASC
      LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
   const branches = [brandBranch, categoryBranch];
@@ -1085,12 +1101,20 @@ export async function queryShopCatalogProjectionFacets(
     if (!Number.isSafeInteger(count) || count < 1) continue;
     facets[row.dimension].push({
       key: row.key,
-      label: row.label,
+      label:
+        row.dimension === "category"
+          ? (categoryGroupLabel(row.key, raw.locale) ?? row.label)
+          : row.label,
       count,
       yearFrom: row.yearFrom,
       yearTo: row.yearTo,
     });
   }
+  // The catch-all group always goes last, whatever its size.
+  facets.category.sort(
+    (left, right) =>
+      Number(left.key === "other") - Number(right.key === "other") || right.count - left.count
+  );
   if (raw.make && facets.model.length) {
     const canonicalModels = new Map<string, ShopCatalogProjectionFacetItem>();
     for (const item of facets.model) {
@@ -1144,6 +1168,7 @@ export function buildShopCatalogProjectionVehicleQuerySql(
       projection."brandLabel",
       projection."categoryKey",
       projection."categoryLabel",
+      projection."categoryGroupKey",
       projection."productTypeKey",
       projection."stableRank",
       projection."normalizedSku",
@@ -1234,8 +1259,8 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     SELECT
       projection."productId", projection."locale", projection."slug", projection."title",
       projection."cardCopy", projection."brandKey", projection."brandLabel",
-      projection."categoryKey", projection."categoryLabel", projection."stableRank",
-      projection."productTypeKey",
+      projection."categoryKey", projection."categoryLabel", projection."categoryGroupKey",
+      projection."stableRank", projection."productTypeKey",
       projection."normalizedSku", projection."primaryMediaUrl", projection."minPriceEur",
       projection."minPriceEurEurope", projection."minPriceUsd", projection."minPriceUah",
       projection."contentHash", projection."projectionVersion"
@@ -1277,12 +1302,17 @@ export function buildShopCatalogProjectionWhere(
     });
   }
   if (input.category) {
-    and.push({
-      OR: [
-        { categoryKey: { equals: input.category, mode: "insensitive" } },
-        { categoryLabel: { equals: input.category, mode: "insensitive" } },
-      ],
-    });
+    const groupId = resolveShopStockCategoryGroupId(input.category);
+    and.push(
+      groupId
+        ? { categoryGroupKey: groupId }
+        : {
+            OR: [
+              { categoryKey: { equals: input.category, mode: "insensitive" } },
+              { categoryLabel: { equals: input.category, mode: "insensitive" } },
+            ],
+          }
+    );
   }
   if (input.after) {
     and.push({
@@ -1376,6 +1406,7 @@ export async function queryShopCatalogProjection(
           brandLabel: string;
           categoryKey: string | null;
           categoryLabel: string | null;
+          categoryGroupKey: string | null;
           productTypeKey: string | null;
           stableRank: Prisma.Decimal;
           normalizedSku: string | null;
@@ -1402,6 +1433,7 @@ export async function queryShopCatalogProjection(
           brandLabel: true,
           categoryKey: true,
           categoryLabel: true,
+          categoryGroupKey: true,
           productTypeKey: true,
           stableRank: true,
           normalizedSku: true,
@@ -1415,8 +1447,10 @@ export async function queryShopCatalogProjection(
         },
       });
   const hasMore = rows.length > input.limit;
-  const visible = rows.slice(0, input.limit).map((row) => ({
+  const visible = rows.slice(0, input.limit).map(({ categoryGroupKey, ...row }) => ({
     ...row,
+    // Products without an admin category still show their storefront group.
+    categoryLabel: row.categoryLabel ?? categoryGroupLabel(categoryGroupKey, input.locale),
     stableRank: row.stableRank.toString(),
     minPriceEur: row.minPriceEur?.toString() ?? null,
     minPriceEurEurope: row.minPriceEurEurope?.toString() ?? null,
