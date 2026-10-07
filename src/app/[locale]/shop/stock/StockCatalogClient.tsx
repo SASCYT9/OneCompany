@@ -408,6 +408,7 @@ function VehiclePickerSelect({
   const [highlight, setHighlight] = useState(0);
   const [menuShift, setMenuShift] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const keyboardNavRef = useRef(false);
   const listId = useId();
@@ -429,13 +430,13 @@ function VehiclePickerSelect({
     setHighlight(0);
     keyboardNavRef.current = false;
     const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
-    const close = (event: PointerEvent) => {
+    const closeOnOutside = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) onOpenChange(false);
     };
-    window.addEventListener("pointerdown", close);
+    window.addEventListener("pointerdown", closeOnOutside);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("pointerdown", close);
+      window.removeEventListener("pointerdown", closeOnOutside);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -463,8 +464,16 @@ function VehiclePickerSelect({
     if (open && !loading && options.length === 0 && !anyLabel) onOpenChange(false);
   }, [anyLabel, loading, onOpenChange, open, options.length]);
 
-  const choose = (next: string) => {
+  // The focused search input unmounts on close; hand focus back to the trigger
+  // so keyboard users aren't dropped on <body>. When a pick advances to the
+  // next picker, that picker's input takes focus right after.
+  const close = () => {
     onOpenChange(false);
+    triggerRef.current?.focus();
+  };
+
+  const choose = (next: string) => {
+    close();
     onChange(next);
   };
 
@@ -472,6 +481,7 @@ function VehiclePickerSelect({
     <div ref={rootRef} className={`relative min-w-0 ${className}`}>
       <button
         type="button"
+        ref={triggerRef}
         disabled={disabled}
         onClick={() => onOpenChange(!open)}
         aria-haspopup="listbox"
@@ -529,7 +539,7 @@ function VehiclePickerSelect({
                   if (row) choose(row.value);
                 } else if (event.key === "Escape") {
                   event.preventDefault();
-                  onOpenChange(false);
+                  close();
                 }
               }}
               placeholder={searchPlaceholder}
@@ -1495,27 +1505,20 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setHeroProductIndex((current) => (heroProducts.length ? current % heroProducts.length : 0));
   }, [heroProducts.length]);
 
+  const heroAutoplayActive =
+    showWarehouseHero &&
+    !heroPaused &&
+    heroInView &&
+    heroProducts.length >= 2 &&
+    !shouldReduceMotion;
+
   useEffect(() => {
-    if (
-      !showWarehouseHero ||
-      heroPaused ||
-      !heroInView ||
-      heroProducts.length < 2 ||
-      shouldReduceMotion
-    )
-      return;
+    if (!heroAutoplayActive) return;
     const interval = window.setInterval(() => {
       setHeroProductIndex((current) => (current + 1) % heroProducts.length);
     }, 7000);
     return () => window.clearInterval(interval);
-  }, [
-    heroInView,
-    heroPaused,
-    heroProductIndex,
-    heroProducts.length,
-    shouldReduceMotion,
-    showWarehouseHero,
-  ]);
+  }, [heroAutoplayActive, heroProductIndex, heroProducts.length]);
 
   useEffect(() => {
     const hero = heroSectionRef.current;
@@ -4441,15 +4444,14 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           className="relative hidden h-px flex-1 overflow-hidden bg-black/15 dark:bg-white/15 @3xl:block"
                         >
                           <span
-                            key={`hero-progress-${heroProductIndex}`}
+                            key={`hero-progress-${heroProductIndex}-${heroAutoplayActive}`}
                             className="absolute inset-0 origin-left bg-foreground"
                             style={
                               shouldReduceMotion
                                 ? { transform: "scaleX(1)" }
-                                : {
-                                    animation: "catalog-hero-progress 7s linear forwards",
-                                    animationPlayState: heroPaused ? "paused" : "running",
-                                  }
+                                : heroAutoplayActive
+                                  ? { animation: "catalog-hero-progress 7s linear forwards" }
+                                  : { transform: "scaleX(0)" }
                             }
                           />
                         </span>
