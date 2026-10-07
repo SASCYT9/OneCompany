@@ -191,6 +191,17 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
   return sharedCache.fitmentPending;
 }
 
+const METAFIELD_BATCH_SIZE = 100;
+const METAFIELD_PARALLEL_BATCHES = 4;
+
+function chunk<T>(values: readonly T[], size: number) {
+  const result: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    result.push(values.slice(index, index + size));
+  }
+  return result;
+}
+
 async function indexFitmentProducts(
   products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>
 ) {
@@ -198,16 +209,25 @@ async function indexFitmentProducts(
     .filter((product) => ["wheelforce", "bmc"].includes(normalizeShopSearchText(product.brand)))
     .map((product) => product.id)
     .filter((id): id is string => Boolean(id));
-  const metafields = productIds.length
-    ? await prisma.shopProductMetafield.findMany({
-        where: {
-          productId: { in: productIds },
-          namespace: "onecompany",
-          key: { in: ["normalized_fitment", SUPPLIER_FITMENT_KEY] },
-        },
-        select: { productId: true, key: true, value: true },
-      })
-    : [];
+  // Supplier contracts are large; read them in bounded batches so one wide
+  // vehicle selection never exceeds a single-response size limit.
+  const metafields: Array<{ productId: string; key: string; value: string }> = [];
+  const batches = chunk(productIds, METAFIELD_BATCH_SIZE);
+  for (let start = 0; start < batches.length; start += METAFIELD_PARALLEL_BATCHES) {
+    const group = await Promise.all(
+      batches.slice(start, start + METAFIELD_PARALLEL_BATCHES).map((ids) =>
+        prisma.shopProductMetafield.findMany({
+          where: {
+            productId: { in: ids },
+            namespace: "onecompany",
+            key: { in: ["normalized_fitment", SUPPLIER_FITMENT_KEY] },
+          },
+          select: { productId: true, key: true, value: true },
+        })
+      )
+    );
+    metafields.push(...group.flat());
+  }
   const byProduct = new Map<string, { normalized?: string; supplier?: string }>();
   for (const item of metafields) {
     const current = byProduct.get(item.productId) ?? {};
