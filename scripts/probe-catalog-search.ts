@@ -77,7 +77,7 @@ async function main() {
     }
     if (
       golden.topExcludes &&
-      titles.some((title) => title.includes(golden.topExcludes!.toLowerCase()))
+      titles.slice(0, 3).some((title) => title.includes(golden.topExcludes!.toLowerCase()))
     ) {
       problems.push(`top must not include "${golden.topExcludes}"`);
     }
