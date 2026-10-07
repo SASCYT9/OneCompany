@@ -134,7 +134,9 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
   return sharedCache.fitmentPending;
 }
 
-async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>) {
+async function indexFitmentProducts(
+  products: Awaited<ReturnType<typeof getShopFitmentCatalogProducts>>
+) {
   const productIds = products
     .filter((product) => ["wheelforce", "bmc"].includes(normalizeShopSearchText(product.brand)))
     .map((product) => product.id)
@@ -161,12 +163,13 @@ async function indexFitmentProducts(products: Awaited<ReturnType<typeof getShopF
     const persisted = byProduct.get(product.id ?? "");
     const supplier = parseSupplierFitmentContract(persisted?.supplier);
     const manualFitment = parseNormalizedFitment(persisted?.normalized);
-    const preserveManualFitment = manualFitment?.source === "manual" && manualFitment.status === "verified";
+    const preserveManualFitment =
+      manualFitment?.source === "manual" && manualFitment.status === "verified";
     const value = preserveManualFitment
       ? persisted?.normalized
       : supplier
         ? JSON.stringify(supplierContractToNormalizedFitment(supplier))
-        : persisted?.normalized ?? null;
+        : (persisted?.normalized ?? null);
     return {
       id: product.id,
       fitments: resolveSearchFitments(automatic, value),
@@ -192,10 +195,19 @@ function productTextAlternatives(fields: readonly ProductTextField[], values: re
  * checking the vehicle, which made a cold filter request several seconds.
  */
 async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonicalMake: string) {
-  const makeKey = canonicalMake.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
   const makeValues = [
     ...new Set([canonicalMake, ...(input.make ? vehicleMakeAliases(canonicalMake) : [])]),
   ];
+  // Importers wrote tags from their own spelling (`fits-make:skoda` for
+  // `Škoda`, `fits-make:mercedes` for `Mercedes-Benz`): build tags from every alias.
+  const makeKeys = [
+    ...new Set(
+      makeValues.map((value) =>
+        value.toLowerCase().replace(/[-_]+/g, " ").trim().replace(/\s+/g, "-")
+      )
+    ),
+  ];
+  const makeTags = makeKeys.map((makeKey) => `fits-make:${makeKey}`);
   const modelValues = [
     ...new Set(
       [input.model, ...(input.modelAlternates ?? [])]
@@ -211,13 +223,15 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
   // A bare fits-make tag is intentionally broad. Use it only for a make-only
   // selection; model/generation selections get focused tags plus text joins.
   if (input.make && !input.model && !input.generation) {
-    tagValues.add(`fits-make:${makeKey}`);
+    for (const makeTag of makeTags) tagValues.add(makeTag);
   }
   for (const model of modelValues) {
     const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
     if (input.make) {
-      modelTagValues.add(`fits-model:${makeKey}:${modelKey}`);
-      modelTagValues.add(`fits:${makeKey}-${modelKey}`);
+      for (const makeKey of makeKeys) {
+        modelTagValues.add(`fits-model:${makeKey}:${modelKey}`);
+        modelTagValues.add(`fits:${makeKey}-${modelKey}`);
+      }
     }
     modelTagValues.add(`model:${modelKey}`);
   }
@@ -227,7 +241,11 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
     generationTagValues.add(`chassis:${generation.trim().toUpperCase()}`);
     for (const model of modelValues) {
       const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
-      if (input.make) generationTagValues.add(`fits-trim:${makeKey}:${modelKey}:${generationKey}`);
+      if (input.make) {
+        for (const makeKey of makeKeys) {
+          generationTagValues.add(`fits-trim:${makeKey}:${modelKey}:${generationKey}`);
+        }
+      }
     }
   }
   for (const tag of [...modelTagValues, ...generationTagValues]) tagValues.add(tag);
@@ -246,14 +264,15 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
   // A valid make tag can pair with a model in the product title even when an
   // old importer produced an incomplete model tag (notably Urban Defender).
   if (input.make && modelText.length > 0) {
-    alternatives.push({ AND: [{ tags: { has: `fits-make:${makeKey}` } }, { OR: modelText }] });
+    alternatives.push({ AND: [{ tags: { hasSome: makeTags } }, { OR: modelText }] });
   }
   if (tagValues.size > 0) alternatives.push({ tags: { hasSome: [...tagValues] } });
   if (input.make && (input.model || input.generation)) {
-    const makeTag = `fits-make:${makeKey}`;
     const focusedTags = [...modelTagValues, ...generationTagValues];
     if (focusedTags.length > 0) {
-      alternatives.push({ AND: [{ tags: { has: makeTag } }, { tags: { hasSome: focusedTags } }] });
+      alternatives.push({
+        AND: [{ tags: { hasSome: makeTags } }, { tags: { hasSome: focusedTags } }],
+      });
     }
   }
   if (makeText.length > 0 && modelText.length > 0 && generationText.length > 0) {
@@ -481,12 +500,12 @@ async function resolveLegacyVehicleProductIdsUncached(input: LegacyVehicleQuery)
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
   const requestedModelKeys = new Set(
-    [...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value)))].flatMap(
-      (value) => [
-        vehicleModelKey(value),
-        vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)),
-      ]
-    )
+    [
+      ...new Set(requestedModels.flatMap((value) => vehicleModelAliases(canonicalMake, value))),
+    ].flatMap((value) => [
+      vehicleModelKey(value),
+      vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, value)),
+    ])
   );
   const requestedChassis = normalizeShopSearchText(input.generation ?? "");
   for (const application of canonicalApplications) {

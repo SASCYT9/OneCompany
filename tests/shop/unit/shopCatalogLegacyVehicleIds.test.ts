@@ -68,7 +68,11 @@ test("matches every official BMC supplier application, not only the primary vehi
     note: null,
   });
 
-  const result = await resolveLegacyVehicleProductIds({ brand: "BMC", make: "Volkswagen", model: "Golf" });
+  const result = await resolveLegacyVehicleProductIds({
+    brand: "BMC",
+    make: "Volkswagen",
+    model: "Golf",
+  });
   assert.deepEqual(result, ["bmc-multi-application-id"]);
   assert.ok(
     mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
@@ -86,9 +90,11 @@ test("BMC supplier candidates are still loaded after the same vehicle was cached
   await resolveLegacyVehicleProductIds(vehicle);
   mock.state.productSearchArgs.length = 0;
   await resolveLegacyVehicleProductIds({ ...vehicle, brand: "BMC" });
-  assert.ok(mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
-    JSON.stringify(args.where.OR).includes('"BMC"')
-  ));
+  assert.ok(
+    mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
+      JSON.stringify(args.where.OR).includes('"BMC"')
+    )
+  );
 });
 
 test("coalesces concurrent vehicle resolutions and reuses the bounded result", async () => {
@@ -107,7 +113,10 @@ test("coalesces concurrent vehicle resolutions and reuses the bounded result", a
   assert.equal(mock.state.projectionCalls, 1);
   assert.equal(mock.state.catalogCalls, 1);
   assert.equal(mock.state.metafieldCalls, 1);
-  assert.deepEqual(mock.state.metafieldArgs[0].where.key.in, ["normalized_fitment", "supplier_fitment"]);
+  assert.deepEqual(mock.state.metafieldArgs[0].where.key.in, [
+    "normalized_fitment",
+    "supplier_fitment",
+  ]);
   assert.equal(mock.state.applicationArgs[0].where.AND.length, 2);
   assert.equal(mock.state.applicationArgs[0].where.verificationStatus, "VERIFIED");
   // Evidence is narrowed to the selected year, model, and chassis before the
@@ -152,6 +161,19 @@ test("legacy resolution queries both the selected family and its specific model 
   const clauseFilters = JSON.stringify(mock.state.projectionArgs[0].where.AND);
   assert.match(clauseFilters, /G-Class/);
   assert.match(clauseFilters, /G63/);
+});
+
+test("legacy tag candidates use every make spelling, not only the canonical label", async () => {
+  const { resolveLegacyVehicleProductIds } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("remus-octavia");
+  await resolveLegacyVehicleProductIds({ make: "Škoda", model: "Octavia" });
+
+  // Remus rows carry only `fits-make:skoda` / `fits-model:skoda:octavia` tags.
+  const candidateQuery = JSON.stringify(mock.state.productSearchArgs[0].where);
+  assert.match(candidateQuery, /fits-make:skoda"/);
+  assert.match(candidateQuery, /fits-model:skoda:octavia"/);
 });
 
 test("vehicle results expire and unrelated vehicle keys do not share answers", async (t) => {
