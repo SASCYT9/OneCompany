@@ -9,6 +9,7 @@ import {
   queryShopCatalogProjectionStockSummary,
   queryShopCatalogProjection,
   queryShopCatalogProjectionFacets,
+  queryShopCatalogProjectionIdsByText,
   type ShopCatalogProjectionQueryInput,
 } from "@/lib/shopCatalogProjectionQuery.server";
 import { getKwCardTitle } from "@/lib/shopKwCardPresentation";
@@ -40,7 +41,10 @@ import {
 } from "@/lib/eventuriSharedIntake";
 import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
-import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
+import {
+  buildShopCatalogSelectedVehicleTextHint,
+  buildShopCatalogVehicleSearchPlan,
+} from "@/lib/shopCatalogVehicleSearchPlan";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
 import { canonicalizeShopSearchQuery } from "@/lib/shopSearch";
 
@@ -99,20 +103,26 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       vehiclePlan.constraints.generation ||
       vehiclePlan.constraints.year
   );
+  // A vehicle named only inside the search box (`ipe 911`, `do88 bmw m3`) is a
+  // hint, not a hard filter: the text query already requires every word in the
+  // product's search text, while structured fitment covers only part of the
+  // catalog and used to drop products whose vehicle appears just in the title.
+  const vehicleInferredFromQueryOnly =
+    hasVehicleIdentity &&
+    Boolean(params.get("q")) &&
+    !params.get("make") &&
+    !params.get("model") &&
+    !params.get("chassis") &&
+    !params.get("year") &&
+    !params.get("engine") &&
+    !params.get("fuel") &&
+    !params.get("opfGpf");
   // Basic model search needs the complete product-owned fitment bridge while
   // verified policy migration is partial. Engine/fuel/emissions requests still
   // require one canonical clause, so they cannot combine unrelated evidence.
   if (
     hasVehicleIdentity &&
-    (firstBrand(params)?.toLowerCase() === "bmc" ||
-      (Boolean(params.get("q")) &&
-        !params.get("make") &&
-        !params.get("model") &&
-        !params.get("chassis") &&
-        !params.get("year") &&
-        !params.get("engine") &&
-        !params.get("fuel") &&
-        !params.get("opfGpf")))
+    (firstBrand(params)?.toLowerCase() === "bmc" || vehicleInferredFromQueryOnly)
   ) {
     vehiclePlan = buildShopCatalogVehicleSearchPlan(params, { readerMode: "legacy" });
   }
@@ -132,7 +142,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // Start it immediately so their database round-trips do not add to its latency.
   const vehicleProductIdsPromise = measure(
     "vehicle",
-    vehiclePlan.canonical
+    vehiclePlan.canonical || vehicleInferredFromQueryOnly
       ? Promise.resolve(null)
       : resolveLegacyVehicleProductIds({
           ...vehiclePlan.constraints,
@@ -252,10 +262,38 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // projection-native because legacy evidence does not model them reliably.
   if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
     if (vehicleProductIds) {
+      // A selected vehicle plus typed words (`Touareg III` + `racechip`) must not
+      // hide products that name the vehicle only in their title: widen the
+      // structured fitment ids with products whose text states make and model.
+      const vehicleTextHint =
+        query.text &&
+        !query.generation &&
+        !query.year &&
+        !query.engine &&
+        !query.fuel &&
+        !query.opfGpf
+          ? buildShopCatalogSelectedVehicleTextHint(query.make, query.model)
+          : "";
+      const textVehicleProductIds = vehicleTextHint
+        ? await measure(
+            "vehicle_text",
+            queryShopCatalogProjectionIdsByText({
+              locale,
+              text: vehicleTextHint,
+              excludeScope: query.excludeScope,
+            })
+          )
+        : [];
       const effectiveVehicleProductIds =
         canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
-          ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
-          : vehicleProductIds;
+          ? [
+              ...new Set([
+                ...vehicleProductIds,
+                ...textVehicleProductIds,
+                canonicalSharedEventuriId,
+              ]),
+            ]
+          : [...new Set([...vehicleProductIds, ...textVehicleProductIds])];
       query.productIds = query.productIds
         ? effectiveVehicleProductIds.filter((productId) => query.productIds?.includes(productId))
         : effectiveVehicleProductIds;

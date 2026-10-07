@@ -190,3 +190,18 @@ test("common Cyrillic model names canonicalize to catalog spellings", () => {
   assert.equal(canonicalizeShopSearchQuery("порше кайєн"), "porsche cayenne");
   assert.equal(canonicalizeShopSearchQuery("тойота супра"), "toyota supra");
 });
+
+test("a trailing model letter stays a token, SKU separators do not", () => {
+  assert.deepEqual(tokenizeShopSearchQuery("golf r"), ["golf", "r"]);
+  assert.deepEqual(tokenizeShopSearchQuery("S-BM/T/27H"), ["bm", "27h"]);
+  assert.equal(matchesShopSearchQuery("Volkswagen Golf R Mk7", "golf r"), true);
+  assert.equal(matchesShopSearchQuery("Volkswagen Golf GTI Mk7", "golf r"), false);
+});
+
+test("model typos, Cyrillic model names and spaced chassis codes resolve", () => {
+  assert.equal(canonicalizeShopSearchQuery("racechip tuareg"), "racechip touareg");
+  assert.equal(canonicalizeShopSearchQuery("урус акрапович"), "urus akrapovic");
+  assert.equal(canonicalizeShopSearchQuery("брабус гелендваген"), "brabus g class");
+  assert.equal(matchesShopSearchQuery("Brabus Mercedes W 463A", "w463a"), true);
+  assert.equal(matchesShopSearchQuery("Brabus Mercedes W463A", "w 463a"), true);
+});

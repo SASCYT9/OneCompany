@@ -500,6 +500,36 @@ function projectionSearchConditionSql(text: string) {
 }
 
 /**
+ * Product ids whose indexed search text names every word of `text`. Used to
+ * widen a selected vehicle (structured fitment covers only part of the
+ * catalog) with products that state the vehicle in their title or fitment text.
+ */
+export async function queryShopCatalogProjectionIdsByText(input: {
+  locale: "ua" | "en";
+  text: string;
+  excludeScope?: string | null;
+  limit?: number;
+}): Promise<string[]> {
+  const text = input.text.trim();
+  if (!text) return [];
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`projection."locale" = ${input.locale}`,
+    Prisma.sql`projection."isPublished" = true`,
+    Prisma.sql`projection."statusKey" = 'ACTIVE'`,
+    projectionSearchConditionSql(text),
+  ];
+  if (input.excludeScope) {
+    conditions.push(Prisma.sql`projection."scopeKey" <> ${input.excludeScope}`);
+  }
+  const rows = await prisma.$queryRaw<Array<{ productId: string }>>(Prisma.sql`
+    SELECT projection."productId"
+    FROM "ShopCatalogProjection" projection
+    WHERE ${Prisma.join(conditions, " AND ")}
+    LIMIT ${Math.min(Math.max(input.limit ?? 5000, 1), 5000)}`);
+  return rows.map((row) => row.productId);
+}
+
+/**
  * Rank only the already indexed candidate set. The projection search text is
  * intentionally broad for recall, while title/brand/SKU weights keep buyer
  * intent ahead of incidental mentions in descriptions and fitment metadata.
