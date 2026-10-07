@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
 import { DesktopShopMenu } from "./DesktopShopMenu";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
@@ -17,6 +17,7 @@ import { ShopCountrySearchList } from "@/components/shop/ShopCountryCombobox";
 import { SHOP_COUNTRIES } from "@/lib/shopCountries";
 import { getShopNavigationActiveKey } from "@/lib/shopNavigation";
 import { STOREFRONT_ROUTE_REGISTRY } from "@/lib/storefrontRouteRegistry";
+import { CATALOG_FOCUS_SEARCH_EVENT, isCatalogSearchPath } from "@/lib/catalogSearchFocus";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -131,6 +132,17 @@ export function Header() {
     href: `/${locale}${item.href}`,
     label: tNav(item.key),
   }));
+  // The general catalog adds a Search item after Contacts that jumps to its field.
+  const isCatalogSearchPage = isCatalogSearchPath(pathname);
+  const searchNavLabel = isUa ? "Пошук" : "Search";
+  // The extra Search item needs room on 1024-1279px screens: tighten letter
+  // spacing and show only the currency there (catalog page only).
+  const navTrackingClass = isCatalogSearchPage
+    ? "md:text-[12px] md:tracking-[0.12em] xl:text-[13px] xl:tracking-[0.2em]"
+    : "md:tracking-[0.2em]";
+  const focusCatalogSearch = () => {
+    window.dispatchEvent(new Event(CATALOG_FOCUS_SEARCH_EVENT));
+  };
 
   const brandCatalogHref =
     isBrandPortal && currentBrand
@@ -190,7 +202,12 @@ export function Header() {
             <Logo className="w-20 sm:w-28 md:w-32" priority tone="auto" size="compact" />
             <span className="pointer-events-none absolute -bottom-1 left-0 h-px w-8 bg-linear-to-r from-foreground to-transparent sm:-bottom-2 sm:w-10" />
           </Link>
-          <nav className="ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex">
+          <nav
+            className={cn(
+              "ml-6 hidden flex-1 items-center gap-3 md:ml-8 md:gap-5 lg:flex",
+              isCatalogSearchPage && "md:ml-5 md:mr-4 md:gap-4 xl:ml-8 xl:mr-0 xl:gap-5"
+            )}
+          >
             {globalNavItems.map((item) => {
               const isActive =
                 item.key === "shop"
@@ -206,6 +223,7 @@ export function Header() {
                     isActive={isActive}
                     activeDestination={shopNavigationActiveKey}
                     brandCatalog={brandCatalog}
+                    trackingClassName={navTrackingClass}
                   />
                 );
               }
@@ -216,7 +234,8 @@ export function Header() {
                   href={item.href}
                   suppressHydrationWarning
                   className={cn(
-                    "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors md:text-[13px] md:tracking-[0.2em]",
+                    "relative whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors md:text-[13px]",
+                    navTrackingClass,
                     isActive && "text-foreground"
                   )}
                 >
@@ -230,6 +249,16 @@ export function Header() {
                 </Link>
               );
             })}
+            {isCatalogSearchPage ? (
+              <button
+                type="button"
+                onClick={focusCatalogSearch}
+                className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-[4px] border border-foreground/25 bg-foreground/[0.06] px-3 font-display text-[11px] uppercase tracking-[0.14em] text-foreground transition-colors hover:border-foreground/50 hover:bg-foreground/10 xl:text-[12px]"
+              >
+                <Search className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                {searchNavLabel}
+              </button>
+            ) : null}
           </nav>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
@@ -242,12 +271,20 @@ export function Header() {
                   className="inline-flex h-9 items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-foreground/75 transition hover:border-foreground/35 hover:bg-foreground/10"
                 >
                   <span
-                    className="max-w-[112px] truncate normal-case tracking-normal"
+                    className={cn(
+                      "max-w-[112px] truncate normal-case tracking-normal",
+                      isCatalogSearchPage && "hidden xl:inline"
+                    )}
                     suppressHydrationWarning
                   >
                     {mounted ? activeCountryLabel : isUa ? "Країна" : "Country"}
                   </span>
-                  <span className="h-3 w-px bg-foreground/20" />
+                  <span
+                    className={cn(
+                      "h-3 w-px bg-foreground/20",
+                      isCatalogSearchPage && "hidden xl:block"
+                    )}
+                  />
                   <span suppressHydrationWarning>{mounted ? currency : "EUR"}</span>
                   <ChevronDown
                     className={cn(
@@ -403,6 +440,19 @@ export function Header() {
                     </Link>
                   );
                 })}
+                {isCatalogSearchPage ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      focusCatalogSearch();
+                    }}
+                    className="relative font-display flex min-h-[44px] items-center justify-center gap-2 border-b border-foreground/10 px-3 text-sm uppercase tracking-[0.25em] text-foreground transition-colors"
+                  >
+                    <Search className="h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+                    {searchNavLabel}
+                  </button>
+                ) : null}
                 {isShopRoute ? (
                   <div className="mt-2 grid gap-2 border-t border-foreground/10 pt-3">
                     {brandCatalog ? (

@@ -16,6 +16,8 @@ type DesktopShopMenuProps = {
   label: string;
   isActive: boolean;
   activeDestination: ShopNavigationDestinationKey | null;
+  /** Letter-spacing classes shared with the sibling header nav links. */
+  trackingClassName?: string;
   brandCatalog?: {
     href: string;
     label: string;
@@ -33,6 +35,7 @@ export function DesktopShopMenu({
   isActive,
   activeDestination,
   brandCatalog,
+  trackingClassName = "md:tracking-[0.2em]",
 }: DesktopShopMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
@@ -74,7 +77,8 @@ export function DesktopShopMenu({
         <Link
           href={`/${locale}/shop`}
           className={cn(
-            "whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/55 md:text-[13px] md:tracking-[0.2em]",
+            "whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/55 md:text-[13px]",
+            trackingClassName,
             isActive && "text-foreground"
           )}
         >
