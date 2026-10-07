@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildShopCatalogVehicleSearchPlan } from "../../../src/lib/shopCatalogVehicleSearchPlan";
+import {
+  buildShopCatalogSelectedVehicleTextHint,
+  buildShopCatalogVehicleSearchPlan,
+} from "../../../src/lib/shopCatalogVehicleSearchPlan";
 
 test("engine and fuel queries retain every vehicle constraint on the canonical path", () => {
   for (const extra of ["engine=S68", "fuel=petrol", "engine=S68&fuel=hybrid"]) {
@@ -134,4 +137,16 @@ test("invalid OPF selections fail closed before the legacy bridge can run", () =
     () => buildShopCatalogVehicleSearchPlan(new URLSearchParams(`opfGpf=${"x".repeat(321)}`)),
     /opfGpf exceeds 320 characters/
   );
+});
+
+test("selected vehicle text hint drops the generation suffix of the model", () => {
+  assert.equal(
+    buildShopCatalogSelectedVehicleTextHint("Volkswagen", "Touareg III"),
+    "Volkswagen Touareg"
+  );
+  assert.equal(buildShopCatalogSelectedVehicleTextHint("Volkswagen", "Golf 8"), "Volkswagen Golf");
+  assert.equal(buildShopCatalogSelectedVehicleTextHint("BMW", "M3"), "BMW M3");
+  assert.equal(buildShopCatalogSelectedVehicleTextHint("BMW", "3 Series"), "BMW 3 Series");
+  assert.equal(buildShopCatalogSelectedVehicleTextHint("Audi", null), "Audi");
+  assert.equal(buildShopCatalogSelectedVehicleTextHint(null, "M3"), "");
 });

@@ -29,10 +29,13 @@ export function buildShopCatalogVehicleSearchPlan(
   const query = canonicalizeShopSearchQuery(params.get("q") ?? "");
   const queryExpansion = query ? expandVehicleAliases(query) : null;
   const queryMakes = query
-    ? [...new Set([
-        ...vehicleMakesMentionedInQuery(query),
-        ...(queryExpansion?.makes ?? []),
-      ].map(canonicalVehicleMakeLabel))]
+    ? [
+        ...new Set(
+          [...vehicleMakesMentionedInQuery(query), ...(queryExpansion?.makes ?? [])].map(
+            canonicalVehicleMakeLabel
+          )
+        ),
+      ]
     : [];
   const isChassisToken = (token: string) =>
     /^(?:[efg]\d{2,3}[a-z]?|[wcl]\d{3}[a-z]?|r\d{2,3}[a-z]?|mk\d(?:\.\d)?|mqb|[89]\d{2}(?:\.\d)?|718)$/i.test(
@@ -55,10 +58,10 @@ export function buildShopCatalogVehicleSearchPlan(
   // one model or chassis; additional product words remain text search terms.
   const hasSpecificQueryIdentity = Boolean(
     queryExpansion &&
-    queryMakes.length === 1 &&
-    (explicitlyMentionedModels.length === 1 ||
-      queryExpansion.models.length === 1 ||
-      queryChassis.length === 1)
+      queryMakes.length === 1 &&
+      (explicitlyMentionedModels.length === 1 ||
+        queryExpansion.models.length === 1 ||
+        queryChassis.length === 1)
   );
   const inferredMake = hasSpecificQueryIdentity ? (queryMakes[0] ?? null) : null;
   const inferredModel =
@@ -73,20 +76,25 @@ export function buildShopCatalogVehicleSearchPlan(
     hasSpecificQueryIdentity && queryExpansion?.years.length === 1 ? queryExpansion.years[0] : null;
   const make = clean(params.get("make")) ?? inferredMake;
   const requestedModel = clean(params.get("model")) ?? inferredModel;
-  const modelFilter = make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
+  const modelFilter =
+    make && requestedModel ? resolveVehicleModelFilter(make, requestedModel) : null;
   // Preserve a specific selector identity when its broad family is used for
   // the catalog constraint (for example AMG G 63 -> G-Class). The qualifier
   // term keeps free-text matching specific to the selected model.
   const modelAlternates =
-    modelFilter && requestedModel && vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
+    modelFilter &&
+    requestedModel &&
+    vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
       ? [requestedModel]
       : [];
-  const requestedGeneration = clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
+  const requestedGeneration =
+    clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
   // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53.
   // Keep the RS5 qualifier and translate only that explicitly selected pair.
   const generation =
     make?.toLowerCase().replace(/[^a-z]/g, "") === "audi" &&
-    requestedModel && vehicleModelKey(requestedModel) === "rs5" &&
+    requestedModel &&
+    vehicleModelKey(requestedModel) === "rs5" &&
     requestedGeneration?.toUpperCase() === "B9"
       ? "B8"
       : requestedGeneration;
@@ -119,4 +127,25 @@ export function buildShopCatalogVehicleSearchPlan(
     canonical,
     reader,
   };
+}
+
+/**
+ * Words that name a selected vehicle in product titles: make plus model without
+ * its generation suffix (`Touareg III` -> `Volkswagen Touareg`), because the
+ * suppliers write `Touareg CR7`, `Touareg (CR_)` or `Touareg 3.0 TDI`.
+ */
+export function buildShopCatalogSelectedVehicleTextHint(
+  make: string | null | undefined,
+  model: string | null | undefined
+) {
+  const cleanMake = make?.trim() ?? "";
+  if (!cleanMake) return "";
+  const modelWords = (model?.trim() ?? "").split(/\s+/).filter(Boolean);
+  while (
+    modelWords.length > 1 &&
+    /^(?:[ivx]{1,4}|\d{1,2}|mk\d|gen\d)$/i.test(modelWords[modelWords.length - 1]!)
+  ) {
+    modelWords.pop();
+  }
+  return [cleanMake, ...modelWords].join(" ");
 }

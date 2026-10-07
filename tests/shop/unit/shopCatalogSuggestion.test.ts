@@ -235,7 +235,7 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(service, /resolveLegacyVehicleProductIds/);
   assert.match(service, /!vehicleSearchPlan\.canonical/);
   assert.match(service, /projection\."productId" IN/);
-  assert.match(service, /projectionConditions\.push\(vehicleCondition\)/);
+  assert.match(service, /vehicleMatchConditions\.push\(vehicleCondition\)/);
   assert.match(service, /brand: getProductDisplayBrand\(product\.brandLabel/);
   assert.match(service, /normalizedProductQuery[\s\S]*Prisma\.sql`TRUE`/);
   assert.doesNotMatch(
@@ -245,4 +245,31 @@ test("V2 suggestion path is projection-only, bounded, fail-closed, and uncached"
   assert.match(route, /if \(!isShopCatalogReaderRequestEnabled\(/);
   assert.match(route, /private, no-store/);
   assert.match(route, /status: 400/);
+});
+
+test("the auto tab means every scope except moto", async () => {
+  const { resolveShopCatalogSuggestionScope, subtractShopCatalogBrandScopeRows } =
+    await suggestionModule;
+  assert.deepEqual(resolveShopCatalogSuggestionScope("auto"), {
+    scope: null,
+    excludeScope: "moto",
+  });
+  assert.deepEqual(resolveShopCatalogSuggestionScope("moto"), {
+    scope: "moto",
+    excludeScope: null,
+  });
+  assert.deepEqual(resolveShopCatalogSuggestionScope(undefined), {
+    scope: null,
+    excludeScope: null,
+  });
+  assert.deepEqual(
+    subtractShopCatalogBrandScopeRows(
+      [
+        { valueKey: "racechip", productCount: 10 },
+        { valueKey: "bmc", productCount: 4 },
+      ],
+      [{ valueKey: "bmc", productCount: 4 }]
+    ),
+    [{ valueKey: "racechip", productCount: 10 }]
+  );
 });

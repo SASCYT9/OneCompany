@@ -126,6 +126,18 @@ function escapeLike(value: string) {
 }
 
 /**
+ * The storefront "auto" tab is the unpartitioned catalog minus moto: most
+ * products carry no `scopeKey = 'auto'`, so an equality filter hides them
+ * (`Racechip Touareg` found nothing while the listing found 15). Mirrors the
+ * listing, which sends `scope: null, excludeScope: "moto"` for auto.
+ */
+export function resolveShopCatalogSuggestionScope(scope: string | null | undefined) {
+  const value = scope?.trim() || null;
+  if (value === "auto") return { scope: null, excludeScope: "moto" } as const;
+  return { scope: value, excludeScope: null } as const;
+}
+
+/**
  * `compactShopCode` keeps only Latin letters and digits, so a Cyrillic word
  * compacts to "" (or a lone digit). Comparing that to `coalesce(sku, '')`
  * would match every product without a SKU, so such codes never take part in
@@ -273,6 +285,59 @@ export function normalizeShopCatalogBrandSuggestionRows(
     .map((brand) => ({ type: "brand" as const, ...brand }));
 }
 
+/** Subtract the excluded scope's counts from the unpartitioned brand totals. */
+export function subtractShopCatalogBrandScopeRows<
+  Row extends { valueKey: string; productCount: number },
+>(total: readonly Row[], excluded: readonly Pick<Row, "valueKey" | "productCount">[]): Row[] {
+  const excludedByKey = new Map(excluded.map((row) => [row.valueKey, row.productCount]));
+  return total
+    .map((row) => ({
+      ...row,
+      productCount: row.productCount - (excludedByKey.get(row.valueKey) ?? 0),
+    }))
+    .filter((row) => row.productCount > 0);
+}
+
+async function queryShopCatalogBrandSuggestionRows(input: {
+  locale: "ua" | "en";
+  scope: string | null;
+  excludeScope: string | null;
+  normalizedQuery: string;
+  query: string;
+}) {
+  const match = {
+    locale: input.locale,
+    dimension: "BRAND" as const,
+    productCount: { gt: 0 },
+    OR: [
+      { valueKey: { contains: input.normalizedQuery, mode: "insensitive" as const } },
+      { valueLabel: { contains: input.query, mode: "insensitive" as const } },
+    ],
+  };
+  const take = SHOP_CATALOG_SUGGESTION_LIMITS.brands * 3;
+  const orderBy = [{ productCount: "desc" as const }, { valueLabel: "asc" as const }];
+  if (!input.excludeScope) {
+    return prisma.shopCatalogProjectionFacetCount.findMany({
+      where: { ...match, prefixKey: input.scope ? `scope:${input.scope}` : "" },
+      orderBy,
+      take,
+    });
+  }
+  const rows = await prisma.shopCatalogProjectionFacetCount.findMany({
+    where: { ...match, prefixKey: { in: ["", `scope:${input.excludeScope}`] } },
+    orderBy,
+  });
+  return subtractShopCatalogBrandScopeRows(
+    rows.filter((row) => row.prefixKey === ""),
+    rows.filter((row) => row.prefixKey !== "")
+  )
+    .sort(
+      (left, right) =>
+        right.productCount - left.productCount || left.valueLabel.localeCompare(right.valueLabel)
+    )
+    .slice(0, take);
+}
+
 export async function queryShopCatalogSuggestions(
   raw: ShopCatalogSuggestionInput
 ): Promise<readonly ShopCatalogSuggestion[]> {
@@ -297,16 +362,22 @@ export async function queryShopCatalogSuggestions(
     normalizedProductQuery,
     input.normalizedSku
   );
+  const scopeFilter = resolveShopCatalogSuggestionScope(input.scope);
   const projectionConditions: Prisma.Sql[] = [
     Prisma.sql`projection."locale" = ${input.locale}`,
     Prisma.sql`projection."isPublished" = true`,
     Prisma.sql`projection."statusKey" = 'ACTIVE'`,
-    lexicalCondition,
   ];
-  if (input.scope) projectionConditions.push(Prisma.sql`projection."scopeKey" = ${input.scope}`);
+  const vehicleMatchConditions: Prisma.Sql[] = [lexicalCondition];
+  if (scopeFilter.scope) {
+    projectionConditions.push(Prisma.sql`projection."scopeKey" = ${scopeFilter.scope}`);
+  }
+  if (scopeFilter.excludeScope) {
+    projectionConditions.push(Prisma.sql`projection."scopeKey" <> ${scopeFilter.excludeScope}`);
+  }
   if (vehicleConstraints) {
     if (vehicleProductIds !== null) {
-      projectionConditions.push(
+      vehicleMatchConditions.push(
         vehicleProductIds.length
           ? Prisma.sql`projection."productId" IN (${Prisma.join(vehicleProductIds)})`
           : Prisma.sql`FALSE`
@@ -316,9 +387,22 @@ export async function queryShopCatalogSuggestions(
         locale: input.locale,
         ...vehicleConstraints,
       });
-      if (vehicleCondition) projectionConditions.push(vehicleCondition);
+      if (vehicleCondition) vehicleMatchConditions.push(vehicleCondition);
     }
   }
+  // A vehicle typed into the search box is a hint, not a hard filter: structured
+  // fitment covers only part of the catalog, so a product whose title names the
+  // vehicle (`IPE ... Porsche 911`) must still match when every query word is
+  // present in its search text.
+  const structuredMatch = Prisma.sql`(${Prisma.join(vehicleMatchConditions, " AND ")})`;
+  projectionConditions.push(
+    vehicleConstraints
+      ? Prisma.sql`(${structuredMatch} OR ${buildShopCatalogSuggestionLexicalSql(
+          input.normalizedQuery,
+          input.normalizedSku
+        )})`
+      : structuredMatch
+  );
 
   const [products, brands] = await Promise.all([
     prisma.$queryRaw<SuggestionProductRow[]>(Prisma.sql`
@@ -343,13 +427,13 @@ export async function queryShopCatalogSuggestions(
           vehicleProductIds !== null
             ? {
                 locale: input.locale,
-                scope: input.scope,
+                ...scopeFilter,
                 productIds: vehicleProductIds,
                 text: normalizedProductQuery || null,
               }
             : {
                 locale: input.locale,
-                scope: input.scope,
+                ...scopeFilter,
                 text: normalizedProductQuery || null,
                 ...vehicleConstraints,
               }
@@ -360,19 +444,12 @@ export async function queryShopCatalogSuggestions(
             productCount: brand.count,
           }))
         )
-      : prisma.shopCatalogProjectionFacetCount.findMany({
-          where: {
-            locale: input.locale,
-            dimension: "BRAND",
-            prefixKey: input.scope ? `scope:${input.scope}` : "",
-            productCount: { gt: 0 },
-            OR: [
-              { valueKey: { contains: input.normalizedQuery, mode: "insensitive" } },
-              { valueLabel: { contains: input.query, mode: "insensitive" } },
-            ],
-          },
-          orderBy: [{ productCount: "desc" }, { valueLabel: "asc" }],
-          take: SHOP_CATALOG_SUGGESTION_LIMITS.brands * 3,
+      : queryShopCatalogBrandSuggestionRows({
+          locale: input.locale,
+          scope: scopeFilter.scope,
+          excludeScope: scopeFilter.excludeScope,
+          normalizedQuery: input.normalizedQuery,
+          query: input.query,
         }),
   ]);
 

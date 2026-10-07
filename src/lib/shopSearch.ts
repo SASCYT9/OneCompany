@@ -151,6 +151,14 @@ const SHOP_SEARCH_QUERY_ALIASES = [
   ["макан", "macan"],
   ["панамера", "panamera"],
   ["супра", "supra"],
+  ["урус", "urus"],
+  ["гелендваген", "g class"],
+  ["гелік", "g class"],
+  ["гелик", "g class"],
+  ["рендж ровер", "range rover"],
+  ["рейндж ровер", "range rover"],
+  ["дефендер", "defender"],
+  ["мустанг", "mustang"],
 ] as const;
 
 // High-intent catalog vocabulary used for conservative typo recovery. Only a
@@ -165,6 +173,8 @@ const SHOP_SEARCH_TYPO_LEXICON = [
   "brabus",
   "burger",
   "carbon",
+  "cayenne",
+  "defender",
   "diffuser",
   "downpipe",
   "eventuri",
@@ -177,11 +187,14 @@ const SHOP_SEARCH_TYPO_LEXICON = [
   "intercooler",
   "jaguar",
   "lamborghini",
+  "macan",
   "mclaren",
   "mercedes",
   "motorsports",
+  "mustang",
   "nissan",
   "ohlins",
+  "panamera",
   "porsche",
   "racechip",
   "radiator",
@@ -192,8 +205,11 @@ const SHOP_SEARCH_TYPO_LEXICON = [
   "suspension",
   "suspensions",
   "system",
+  "tiguan",
+  "touareg",
   "toyota",
   "urban",
+  "urus",
   "volkswagen",
   "volvo",
 ] as const;
@@ -299,9 +315,19 @@ export function tokenizeShopSearchQuery(query: string | null | undefined) {
   const key = query ?? "";
   const cached = searchQueryTokenCache.get(key);
   if (cached) return cached;
-  const tokens = canonicalizeShopSearchQuery(query)
-    .split(" ")
-    .filter((token) => token.length > 1 || isShopSearchCodeToken(token));
+  const words = canonicalizeShopSearchQuery(query).split(" ");
+  // A trailing Latin letter after a plain word is a model suffix (`golf r`,
+  // `bmw x`); dropping it widened `golf r` to every Golf product. Letters split
+  // out of a SKU (`S-BM/T/27H`) are never trailing after a plain word.
+  const tokens = words.filter(
+    (token, index) =>
+      token.length > 1 ||
+      isShopSearchCodeToken(token) ||
+      (index === words.length - 1 &&
+        index > 0 &&
+        /^[b-z]$/.test(token) &&
+        /^[a-zа-яіїєґ]{3,}$/.test(words[index - 1]!))
+  );
   if (searchQueryTokenCache.size >= 256) searchQueryTokenCache.clear();
   searchQueryTokenCache.set(key, tokens);
   return tokens;
@@ -368,7 +394,7 @@ export function isShopSearchCodeToken(token: string) {
 }
 
 export function isShopVehicleSearchToken(token: string) {
-  return /^(?:[efg]\d{2,3}[a-z]?|f9x|g8x|w\d{3}|c\d{3}|r\d{2,3}|[sm]1000(?:rr|r|xr)|mk\d|mqb|rsq?\d|sq\d|s\d|m\d{1,3}|x\d{1,2}m?|z\d|b[89]|c[78]|8[vy]|4[gmno]|718|9\d{2}|sf\d{2,3}|s63(?:tu\d?)?|b58|s58|n5[45]|amg|gt[34]?)$/i.test(
+  return /^(?:[efg]\d{2,3}[a-z]?|f9x|g8x|w\d{3}[a-z]?|c\d{3}|r\d{2,3}|[sm]1000(?:rr|r|xr)|mk\d|mqb|rsq?\d|sq\d|s\d|m\d{1,3}|x\d{1,2}m?|z\d|b[89]|c[78]|8[vy]|4[gmno]|718|9\d{2}|sf\d{2,3}|s63(?:tu\d?)?|b58|s58|n5[45]|amg|gt[34]?)$/i.test(
     token
   );
 }
