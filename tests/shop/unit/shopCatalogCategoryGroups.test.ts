@@ -229,3 +229,17 @@ test("the Volkswagen Polo model is not apparel, polo shirts are", async () => {
   assert.equal(groupOf("KW Suspensions", "KW V1 для Volkswagen Polo 6R"), "suspension");
   assert.equal(groupOf("AKRAPOVIC", "AKRAPOVIC 801636 Поло чоловіче Akrapovič Logo, L"), "merch");
 });
+
+test("a leather accessory is an accessory while leather trim stays interior", async () => {
+  const { getShopStockCategoryGroupForProduct } = await import(
+    "../../../src/lib/shopStockTaxonomy"
+  );
+  const groupOf = (title: string) =>
+    getShopStockCategoryGroupForProduct(
+      { product: { brand: "Brabus", title: { ua: title, en: title } } },
+      "ua"
+    ).id;
+  assert.equal(groupOf("Шкіряний чохол для ключа BRABUS"), "accessories");
+  assert.equal(groupOf("Шкіряні дверні панелі BRABUS на базі Rolls – Royce Ghost"), "interior");
+  assert.equal(groupOf("Шкіряна центральна консоль для Mercedes – X 167"), "interior");
+});

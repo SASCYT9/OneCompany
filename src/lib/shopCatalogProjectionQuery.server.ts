@@ -110,18 +110,9 @@ export type ShopCatalogProjectionQueryResult = {
 };
 
 const CATEGORY_GROUPS_READY_TTL_MS = 60_000;
-let categoryGroupsReadyCache: { value: boolean; expiresAt: number } | null = null;
+let categoryGroupsReadyCache: { value: Promise<boolean>; expiresAt: number } | null = null;
 
-/**
- * True once no projection row is left without a taxonomy group id. One cheap
- * existence probe per minute; any failure keeps the legacy category behavior.
- */
-async function categoryGroupsReady(): Promise<boolean> {
-  const now = Date.now();
-  if (categoryGroupsReadyCache && categoryGroupsReadyCache.expiresAt > now) {
-    return categoryGroupsReadyCache.value;
-  }
-  let value = false;
+async function probeCategoryGroupsReady(): Promise<boolean> {
   try {
     const groupIds = SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id);
     const rows = await prisma.$queryRaw<Array<{ pending: boolean }>>(Prisma.sql`
@@ -131,10 +122,23 @@ async function categoryGroupsReady(): Promise<boolean> {
            OR projection."categoryGroupKey" NOT IN (${Prisma.join(groupIds)})
       ) AS "pending"
     `);
-    value = rows[0]?.pending === false;
+    return rows[0]?.pending === false;
   } catch {
-    value = false;
+    return false;
   }
+}
+
+/**
+ * True once no projection row is left without a taxonomy group id. The probe
+ * promise itself is cached, so the concurrent product/facet/summary reads of one
+ * request share a single query per minute; failure keeps the legacy behavior.
+ */
+function categoryGroupsReady(): Promise<boolean> {
+  const now = Date.now();
+  if (categoryGroupsReadyCache && categoryGroupsReadyCache.expiresAt > now) {
+    return categoryGroupsReadyCache.value;
+  }
+  const value = probeCategoryGroupsReady();
   categoryGroupsReadyCache = { value, expiresAt: now + CATEGORY_GROUPS_READY_TTL_MS };
   return value;
 }

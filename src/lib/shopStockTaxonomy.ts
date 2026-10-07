@@ -565,15 +565,6 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "підголівники",
       "підставка для ніг",
       "прилади для даху",
-      "шкіряні",
-      "шкіряна",
-      "шкіряний",
-      "шкіряне",
-      "шкіряного",
-      "шкіряну",
-      "шкіряної",
-      "шкіра",
-      "шкіри",
       "оббивка",
       "оббивки",
       "оббивку",
@@ -603,8 +594,6 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "інтер'єру",
       "alcantara",
       "алькантари",
-      "шкірою",
-      "шкіряною",
       "стовпи",
       "стійки a",
       "підрульові лепестки",
@@ -733,6 +722,13 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
     keywords: [],
   },
 ];
+
+// Leather adjectives describe the material, not the part: "Шкіряний чохол для
+// ключа" is an accessory. They only decide the group when no stronger keyword
+// (including the accessory nouns) matched.
+const WEAK_INTERIOR_KEYWORDS = ["шкіряні", "шкіряна", "шкіряний", "шкіряне", "шкіряного", "шкіряну", "шкіряної", "шкіра", "шкіри", "шкірою", "шкіряною"]
+  .map(normalizeShopSearchText)
+  .map((word) => ` ${word} `);
 
 const GROUP_BY_ID = new Map(SHOP_STOCK_CATEGORY_GROUPS.map((group) => [group.id, group]));
 
@@ -875,6 +871,9 @@ export function getShopStockCategoryGroupForProduct(
     STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
       keywords.some((keyword) => corpus.includes(keyword))
     )?.group ??
+    (WEAK_INTERIOR_KEYWORDS.some((keyword) => corpus.includes(keyword))
+      ? GROUP_BY_ID.get("interior")
+      : undefined) ??
     brandFallbackGroup(item) ??
     GROUP_BY_ID.get("other")!
   );
