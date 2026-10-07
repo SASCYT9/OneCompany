@@ -205,3 +205,11 @@ test("model typos, Cyrillic model names and spaced chassis codes resolve", () =>
   assert.equal(matchesShopSearchQuery("Brabus Mercedes W 463A", "w463a"), true);
   assert.equal(matchesShopSearchQuery("Brabus Mercedes W463A", "w 463a"), true);
 });
+
+test("bare model numbers do not match inside longer numbers", () => {
+  assert.equal(matchesShopSearchToken("porsche 911 gt3 992.1", "992"), true);
+  assert.equal(matchesShopSearchToken("porsche 992gt3 kit", "992"), true);
+  assert.equal(matchesShopSearchToken("racechip 1992cc 4 cyl", "992"), false);
+  assert.equal(matchesShopSearchToken("z12992zv monoblock", "992"), false);
+  assert.equal(matchesShopSearchToken("model from 1992 2001", "992"), false);
+});

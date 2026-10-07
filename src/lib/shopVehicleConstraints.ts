@@ -1,5 +1,6 @@
 import type { Fitment } from "@/lib/crossShopFitment";
 import { normalizeShopSearchText } from "@/lib/shopSearch";
+import { vehicleChassisMatchLevel } from "@/lib/shopVehicleHierarchy";
 import { vehicleYearRangeContains } from "@/lib/shopVehicleYears";
 import {
   canonicalVehicleMakeLabel,
@@ -13,6 +14,11 @@ export type ShopVehicleConstraints = {
   model?: string | null;
   modelAlternates?: readonly string[] | null;
   chassis?: string | null;
+  /**
+   * Also accept products filed on a broader code (`992` for a `992.1`
+   * request). They are a lower tier, never an exact match.
+   */
+  chassisIncludesAncestors?: boolean;
   year?: number | null;
 };
 
@@ -46,13 +52,24 @@ export function shopVehicleModelsMatch(
 }
 
 /**
- * A selected chassis is an exact generation constraint. Platform siblings
- * such as MK7/MK8 or 8V/8Y must not be treated as interchangeable, and a
- * generic 991 record cannot silently confirm an explicit 991.2 request.
+ * A selected chassis is a generation constraint. Platform siblings such as
+ * MK7/MK8 or 8V/8Y must not be treated as interchangeable, and a generic 991
+ * record cannot silently confirm an explicit 991.2 request. A request for the
+ * generation itself (`992`) includes its facelifts (`992.1`, `992.2`); the
+ * reverse is only accepted when the caller asks for the lower tier.
  */
-export function shopVehicleChassisMatches(candidate: string, requested: string | null | undefined) {
+export function shopVehicleChassisMatches(
+  candidate: string,
+  requested: string | null | undefined,
+  options: { includeAncestors?: boolean } = {}
+) {
   if (!requested) return true;
-  return normalizeShopSearchText(candidate) === normalizeShopSearchText(requested);
+  const level = vehicleChassisMatchLevel(candidate, requested);
+  return (
+    level === "exact" ||
+    level === "descendant" ||
+    (options.includeAncestors === true && level === "ancestor")
+  );
 }
 
 /** Known contradictions are rejected. Missing year evidence remains eligible
@@ -74,14 +91,20 @@ export function shopFitmentMatchesVehicleConstraints(
   if (
     requestedModels.length > 0 &&
     !fitment.models.some((candidate) =>
-      requestedModels.some((requested) => shopVehicleModelsMatch(candidate, requested, fitment.make))
+      requestedModels.some((requested) =>
+        shopVehicleModelsMatch(candidate, requested, fitment.make)
+      )
     )
   ) {
     return false;
   }
   if (
     constraints.chassis &&
-    !fitment.chassisCodes.some((chassis) => shopVehicleChassisMatches(chassis, constraints.chassis))
+    !fitment.chassisCodes.some((chassis) =>
+      shopVehicleChassisMatches(chassis, constraints.chassis, {
+        includeAncestors: constraints.chassisIncludesAncestors,
+      })
+    )
   ) {
     return false;
   }

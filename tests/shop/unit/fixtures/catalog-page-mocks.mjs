@@ -129,9 +129,12 @@ export function buildShopCatalogVehicleSearchPlan(params) {
   const canonical = Boolean(constraints.engine || constraints.fuel || constraints.opfGpf);
   return { constraints, canonical, reader: canonical ? "projection" : "legacy" };
 }
-export async function resolveLegacyVehicleProductIds() {
+export async function resolveLegacyVehicleProductTiers() {
   calls.legacyCalls += 1;
-  return ["legacy-id", "legacy-stock-id"];
+  return { ids: ["legacy-id", "legacy-stock-id"], exactIds: ["legacy-id", "legacy-stock-id"] };
+}
+export async function resolveLegacyVehicleProductIds() {
+  return (await resolveLegacyVehicleProductTiers()).ids;
 }
 export const EVENTURI_SHARED_V8_INTAKE_SKU = "EVE-4V8TT-CF-INT";
 export const EVENTURI_SHARED_V8_INTAKE_SLUG = "4-0tfsi-twin-turbo-v8-black-carbon-intake-system";

@@ -18,6 +18,7 @@ import {
   vehicleMakeAliases,
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
+import { vehicleChassisSelfAndAncestors, vehicleModelScope } from "./shopVehicleHierarchy";
 import {
   isShopSearchBrandToken,
   normalizeShopSearchText,
@@ -63,6 +64,13 @@ export type ShopCatalogProjectionQueryInput = {
   opfGpf?: string | null;
   productIds?: readonly string[] | null;
   excludeProductIds?: readonly string[] | null;
+  /** Products that match the selected vehicle exactly; they sort ahead of the rest. */
+  priorityProductIds?: readonly string[] | null;
+  /**
+   * Also match products filed on a broader label (`992` for a 992.1 request,
+   * `911` for `911 Carrera`) and rank the exact ones first, in SQL.
+   */
+  vehicleLowerTier?: boolean;
   minPrice?: number | null;
   maxPrice?: number | null;
   priceCurrency?: "EUR" | "USD" | "UAH" | null;
@@ -383,6 +391,10 @@ export function normalizeShopCatalogProjectionQuery(
     excludeProductIds: input.excludeProductIds
       ? [...new Set(input.excludeProductIds.filter(Boolean))]
       : null,
+    priorityProductIds: input.priorityProductIds?.length
+      ? [...new Set(input.priorityProductIds.filter(Boolean))]
+      : null,
+    vehicleLowerTier: input.vehicleLowerTier === true,
     minPrice: input.minPrice ?? null,
     maxPrice: input.maxPrice ?? null,
     priceCurrency: input.priceCurrency ?? "USD",
@@ -671,23 +683,53 @@ function correlatedTextConstraintSql(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
   make?: string | null,
-  modelAlternates?: readonly string[] | null
+  modelAlternates?: readonly string[] | null,
+  lowerTier = false
 ) {
   const modelKeys = make
     ? [
         ...new Set(
           [value, ...(modelAlternates ?? [])]
+            // Selecting a base model includes its trims (`911` -> `911 GT3`).
+            .flatMap((model) => {
+              const scope = vehicleModelScope(make, model);
+              return lowerTier ? scope.broad : scope.exact;
+            })
             .flatMap((model) => vehicleModelAliases(make, model))
             .map(vehicleModelKey)
         ),
       ]
     : [vehicleModelKey(value)];
+  const isGeneration = dimension === ShopCatalogCompatibilityDimension.GENERATION;
+  const generationLike = isGeneration ? escapeLike(value.toLowerCase()) : "";
+  const generationAncestors =
+    isGeneration && lowerTier
+      ? vehicleChassisSelfAndAncestors(value)
+          .slice(1)
+          .map((ancestor) => ancestor.toLowerCase())
+      : [];
   const exactMatch =
     dimension === ShopCatalogCompatibilityDimension.MODEL
       ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join(modelKeys)})`
       : dimension === ShopCatalogCompatibilityDimension.MAKE
         ? Prisma.sql`lower(compatibility_constraint."textValue") IN (${Prisma.join(vehicleMakeAliases(value).map((alias) => alias.toLowerCase()))})`
-        : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
+        : isGeneration
+          ? // The generation and its facelifts (`992` -> `992.1`, `G20 LCI`).
+            Prisma.sql`(
+              lower(compatibility_constraint."textValue") = lower(${value})
+              OR lower(compatibility_constraint."textValue") LIKE ${`${generationLike}.%`} ESCAPE '\\'
+              OR lower(compatibility_constraint."textValue") LIKE ${`${generationLike} %`} ESCAPE '\\'
+              ${
+                generationAncestors.length
+                  ? Prisma.sql`OR lower(compatibility_constraint."textValue") IN (${Prisma.join(generationAncestors)})`
+                  : Prisma.empty
+              }
+            )`
+          : Prisma.sql`lower(compatibility_constraint."textValue") = lower(${value})`;
+  // Suppliers file the same generation under either dimension.
+  const dimensionMatch = isGeneration
+    ? Prisma.sql`compatibility_constraint."dimension" IN ('GENERATION', 'CHASSIS')`
+    : Prisma.sql`compatibility_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"`;
   return Prisma.sql`
     EXISTS (
       SELECT 1
@@ -696,7 +738,7 @@ function correlatedTextConstraintSql(
         AND compatibility_constraint."clauseKey" = clause."clauseKey"
         AND compatibility_constraint."productId" = clause."productId"
         AND compatibility_constraint."sourceVersion" = clause."sourceVersion"
-        AND compatibility_constraint."dimension" = ${dimension}::"ShopCatalogCompatibilityDimension"
+        AND ${dimensionMatch}
         AND (
           compatibility_constraint."state" IN ('ANY', 'NOT_APPLICABLE')
           OR (
@@ -782,7 +824,9 @@ function projectionFacetBaseConditions(
     conditions.push(projectionBrandConditionSql(input.brand));
   }
   if (includeCategory && input.category) {
-    conditions.push(projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false));
+    conditions.push(
+      projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false)
+    );
   }
   if (input.text) {
     conditions.push(projectionSearchConditionSql(input.text));
@@ -792,7 +836,8 @@ function projectionFacetBaseConditions(
 
 /** All selected dimensions must be satisfied by the same version of one clause. */
 function selectedVehicleCondition(
-  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
+  lowerTier = input.vehicleLowerTier
 ): Prisma.Sql | null {
   const constraints: Prisma.Sql[] = [];
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
@@ -803,7 +848,8 @@ function selectedVehicleCondition(
           VEHICLE_DIMENSIONS[field],
           value,
           input.make,
-          input.modelAlternates
+          input.modelAlternates,
+          lowerTier
         )
       );
   }
@@ -830,6 +876,44 @@ export function buildShopCatalogProjectionVehicleCondition(
   return selectedVehicleCondition(
     normalizeShopCatalogProjectionQuery({ ...raw, locale: raw.locale ?? "ua" })
   );
+}
+
+/** True when a broader label (`992`, `911`) can match this selection too. */
+export function shopCatalogProjectionVehicleLowerTierApplies(raw: ShopCatalogProjectionQueryInput) {
+  return vehicleLowerTierApplies(normalizeShopCatalogProjectionQuery(raw));
+}
+
+function vehicleLowerTierApplies(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
+  if (!input.vehicleLowerTier) return false;
+  if (input.generation && vehicleChassisSelfAndAncestors(input.generation).length > 1) return true;
+  if (!input.make) return false;
+  return [input.model, ...(input.modelAlternates ?? [])].some((model) => {
+    if (!model) return false;
+    const scope = vehicleModelScope(input.make!, model);
+    return scope.broad.length > scope.exact.length;
+  });
+}
+
+/**
+ * Of the given products, the ones that match the selected vehicle exactly (not
+ * only through a broader label). Used to flag lower-tier cards.
+ */
+export async function queryShopCatalogProjectionExactVehicleIds(
+  raw: ShopCatalogProjectionQueryInput,
+  productIds: readonly string[]
+): Promise<Set<string>> {
+  const input = normalizeShopCatalogProjectionQuery(raw);
+  const ids = [...new Set(productIds)];
+  const exact = selectedVehicleCondition(input, false);
+  if (!ids.length || !exact) return new Set(ids);
+  const rows = await prisma.$queryRaw<Array<{ productId: string }>>(Prisma.sql`
+    SELECT DISTINCT projection."productId"
+    FROM "ShopCatalogProjection" projection
+    WHERE projection."locale" = ${input.locale}
+      AND projection."productId" IN (${Prisma.join(ids)})
+      AND ${exact}
+  `);
+  return new Set(rows.map((row) => row.productId));
 }
 
 function projectionBrandConditionSql(brand: string): Prisma.Sql {
@@ -874,7 +958,8 @@ function selectedVehicleFacetConstraints(
           VEHICLE_DIMENSIONS[field],
           value,
           input.make,
-          input.modelAlternates
+          input.modelAlternates,
+          input.vehicleLowerTier
         )
       );
   }
@@ -915,7 +1000,9 @@ function buildProjectionFacetSource(
       const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
       if (includeBrand && input.brand) conditions.push(projectionBrandConditionSql(input.brand));
       if (includeCategory && input.category) {
-        conditions.push(projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false));
+        conditions.push(
+          projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false)
+        );
       }
       return conditions;
     },
@@ -1056,12 +1143,12 @@ export function buildShopCatalogProjectionFacetQuerySql(
   const categoryConditions = source.conditions(true, false);
   if (vehicleCondition) categoryConditions.push(vehicleCondition);
   // Until every row carries a taxonomy group, keep counting the admin category.
-  const categoryColumn = input.categoryGroupsReady !== false
-    ? Prisma.sql`projection."categoryGroupKey"`
-    : Prisma.sql`projection."categoryKey"`;
-  const categoryLabelColumn = input.categoryGroupsReady !== false
-    ? categoryColumn
-    : Prisma.sql`projection."categoryLabel"`;
+  const categoryColumn =
+    input.categoryGroupsReady !== false
+      ? Prisma.sql`projection."categoryGroupKey"`
+      : Prisma.sql`projection."categoryKey"`;
+  const categoryLabelColumn =
+    input.categoryGroupsReady !== false ? categoryColumn : Prisma.sql`projection."categoryLabel"`;
   const categoryBranch = Prisma.sql`
     (SELECT
        'category'::text AS "dimension",
@@ -1266,7 +1353,9 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     input.offset === 0 &&
     input.minPrice == null &&
     input.maxPrice == null &&
-    input.text == null
+    input.text == null &&
+    !input.priorityProductIds?.length &&
+    !vehicleLowerTierApplies(input)
   )
     return null;
   const reuseEffectivePrice = Boolean(
@@ -1325,6 +1414,19 @@ export function buildShopCatalogProjectionOrderedQuerySql(
             : input.text
               ? Prisma.sql`${projectionSearchRelevanceSql(input.text)} DESC, projection."stableRank" ASC, projection."productId" ASC`
               : Prisma.sql`projection."stableRank" ASC, projection."productId" ASC`;
+  // Exact vehicle matches lead; products that only match a broader label
+  // (`992` for a 992.1 selection) follow. Explicit price/name sorts win.
+  const exactVehicleCondition = vehicleLowerTierApplies(input)
+    ? selectedVehicleCondition(input, false)
+    : null;
+  const priorityOrder =
+    input.order === "default" || input.order === "brand_interleave"
+      ? input.priorityProductIds?.length
+        ? Prisma.sql`(projection."productId" IN (${Prisma.join(input.priorityProductIds)})) DESC, `
+        : exactVehicleCondition
+          ? Prisma.sql`(${exactVehicleCondition}) DESC, `
+          : Prisma.empty
+      : Prisma.empty;
   return Prisma.sql`
     SELECT
       projection."productId", projection."locale", projection."slug", projection."title",
@@ -1337,7 +1439,7 @@ export function buildShopCatalogProjectionOrderedQuerySql(
     FROM "ShopCatalogProjection" projection
     ${priceJoin}
     WHERE ${Prisma.join(conditions, " AND ")}
-    ORDER BY ${order}, projection."productId" ASC
+    ORDER BY ${priorityOrder}${order}, projection."productId" ASC
     LIMIT ${input.limit + 1}
     OFFSET ${input.offset}`;
 }
@@ -1372,9 +1474,8 @@ export function buildShopCatalogProjectionWhere(
     });
   }
   if (input.category) {
-    const groupId = input.categoryGroupsReady !== false
-      ? resolveShopStockCategoryGroupId(input.category)
-      : null;
+    const groupId =
+      input.categoryGroupsReady !== false ? resolveShopStockCategoryGroupId(input.category) : null;
     and.push(
       groupId
         ? { categoryGroupKey: groupId }

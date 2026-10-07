@@ -105,6 +105,10 @@ export async function getShopFitmentCatalogProducts(options) {
   return [{ id, brand: "BMC" }];
 }
 
+export function getExpectedChassisForMakeModel() {
+  return null;
+}
+
 export function extractProductFitment() {
   return { make: "BMW", model: "M5", chassisCodes: ["G90"], years: [{ from: 2020, to: null }] };
 }
@@ -127,6 +131,10 @@ export function normalizeShopSearchText(value) {
 
 export function canonicalVehicleMakeLabel(value) {
   return String(value ?? "").trim() === "bmw" ? "BMW" : String(value ?? "").trim();
+}
+
+export function canonicalizeVehicleChassisCodes(values) {
+  return [...new Set(values)].sort();
 }
 
 export function canonicalVehicleModelLabel(_make, value) {

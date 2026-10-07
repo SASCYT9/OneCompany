@@ -369,6 +369,11 @@ export function shopSearchTokenPattern(token: string) {
         : isShopVehicleSearchToken(token)
           ? escaped.replace(/([a-z])(\d)/, "$1[ -]*$2").replace(/(\d)([a-z])/, "$1[ -]*$2")
           : escaped;
+  // A bare 3-5 digit number (`992`, `911`) is a model/year code, never a
+  // fragment of a longer number (`1992`, `1992cc`). Letters may touch it.
+  if (/^\d{3,5}$/.test(token) && !SHOP_SEARCH_TOKEN_ALIASES[token]) {
+    return `(^|[^0-9])${alias}($|[^0-9])`;
+  }
   return token.length <= 2 ||
     isShopSearchCodeToken(token) ||
     Boolean(SHOP_SEARCH_TOKEN_ALIASES[token])
