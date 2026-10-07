@@ -190,3 +190,42 @@ test("untitled parts of single-discipline brands fall back to the brand's group,
   assert.equal(groupOf("Brabus", "Алюмінієві штифти дверних замків для Mercedes"), "accessories");
   assert.equal(groupOf("Unknown brand", "Mystery part"), "other");
 });
+
+test("until projections are rebuilt the facet and filter keep reading the admin category", async () => {
+  const { buildShopCatalogProjectionFacetQuerySql, buildShopCatalogProjectionWhere } =
+    await queryModule;
+  const legacy = buildShopCatalogProjectionFacetQuerySql({
+    locale: "ua",
+    category: "Вихлопні системи",
+    categoryGroupsReady: false,
+  });
+  assert.doesNotMatch(legacy.sql, /categoryGroupKey/);
+  assert.match(legacy.sql, /GROUP BY projection\."categoryKey"/);
+  assert.match(legacy.sql, /lower\(projection\."categoryKey"\) = lower\(/);
+  assert.deepEqual(
+    JSON.stringify(
+      buildShopCatalogProjectionWhere({
+        locale: "ua",
+        category: "exhaust",
+        categoryGroupsReady: false,
+      }).AND
+    ).includes("categoryGroupKey"),
+    false
+  );
+  const ready = buildShopCatalogProjectionFacetQuerySql({ locale: "ua", categoryGroupsReady: true });
+  assert.match(ready.sql, /GROUP BY projection\."categoryGroupKey"/);
+});
+
+test("the Volkswagen Polo model is not apparel, polo shirts are", async () => {
+  const { getShopStockCategoryGroupForProduct } = await import(
+    "../../../src/lib/shopStockTaxonomy"
+  );
+  const groupOf = (brand: string, title: string) =>
+    getShopStockCategoryGroupForProduct(
+      { product: { brand, title: { ua: title, en: title } } },
+      "ua"
+    ).id;
+  assert.equal(groupOf("RaceChip", "RaceChip GTS 5 — Volkswagen Polo GTI 2.0 TSI"), "chipTuning");
+  assert.equal(groupOf("KW Suspensions", "KW V1 для Volkswagen Polo 6R"), "suspension");
+  assert.equal(groupOf("AKRAPOVIC", "AKRAPOVIC 801636 Поло чоловіче Akrapovič Logo, L"), "merch");
+});

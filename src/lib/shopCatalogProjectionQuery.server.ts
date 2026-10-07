@@ -27,6 +27,7 @@ import { shopSearchTokenConditionSql } from "./shopSearchSql";
 import {
   getShopStockCategoryLabel,
   resolveShopStockCategoryGroupId,
+  SHOP_STOCK_CATEGORY_GROUPS,
 } from "./shopStockTaxonomy";
 import { isUrbanProductBrand, URBAN_PRODUCT_BRAND_ALIASES } from "./shopProductDisplayBrand";
 import { isExactWheelForceSkuSearch } from "./wheelforceFamily";
@@ -70,6 +71,13 @@ export type ShopCatalogProjectionQueryInput = {
   orderSeed?: string | null;
   useEuropePrice?: boolean;
   effectivePriceContext?: ShopCatalogEffectivePriceContext | null;
+  /**
+   * Whether every projection row already carries a taxonomy group in
+   * `categoryGroupKey`. The async entry points detect this; pure SQL builders
+   * default to true. While false, the category facet and filter keep reading
+   * the admin category columns, so a deploy never has to wait for the rebuild.
+   */
+  categoryGroupsReady?: boolean | null;
 };
 
 export type ShopCatalogProjectionQueryItem = {
@@ -101,10 +109,47 @@ export type ShopCatalogProjectionQueryResult = {
   nextCursor: { stableRank: string; productId: string } | null;
 };
 
+const CATEGORY_GROUPS_READY_TTL_MS = 60_000;
+let categoryGroupsReadyCache: { value: boolean; expiresAt: number } | null = null;
+
+/**
+ * True once no projection row is left without a taxonomy group id. One cheap
+ * existence probe per minute; any failure keeps the legacy category behavior.
+ */
+async function categoryGroupsReady(): Promise<boolean> {
+  const now = Date.now();
+  if (categoryGroupsReadyCache && categoryGroupsReadyCache.expiresAt > now) {
+    return categoryGroupsReadyCache.value;
+  }
+  let value = false;
+  try {
+    const groupIds = SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id);
+    const rows = await prisma.$queryRaw<Array<{ pending: boolean }>>(Prisma.sql`
+      SELECT EXISTS (
+        SELECT 1 FROM "ShopCatalogProjection" projection
+        WHERE projection."categoryGroupKey" IS NULL
+           OR projection."categoryGroupKey" NOT IN (${Prisma.join(groupIds)})
+      ) AS "pending"
+    `);
+    value = rows[0]?.pending === false;
+  } catch {
+    value = false;
+  }
+  categoryGroupsReadyCache = { value, expiresAt: now + CATEGORY_GROUPS_READY_TTL_MS };
+  return value;
+}
+
+async function withCategoryGroupMode<T extends ShopCatalogProjectionQueryInput>(
+  raw: T
+): Promise<T> {
+  if (raw.categoryGroupsReady != null) return raw;
+  return { ...raw, categoryGroupsReady: await categoryGroupsReady() };
+}
+
 export async function countShopCatalogProjection(
   raw: ShopCatalogProjectionQueryInput
 ): Promise<number> {
-  const input = normalizeShopCatalogProjectionQuery(raw);
+  const input = normalizeShopCatalogProjectionQuery(await withCategoryGroupMode(raw));
   const conditions = projectionFacetBaseConditions(input, true);
   const vehicleCondition = selectedVehicleCondition(input);
   if (vehicleCondition) conditions.push(vehicleCondition);
@@ -129,7 +174,7 @@ export async function queryShopCatalogProjectionStockSummary(
   preOrder: number;
   price?: { min: number; max: number; currency: string };
 }> {
-  const input = normalizeShopCatalogProjectionQuery(raw);
+  const input = normalizeShopCatalogProjectionQuery(await withCategoryGroupMode(raw));
   const price = input.effectivePriceContext ? projectionPriceSql(input) : Prisma.sql`NULL::numeric`;
   const conditions = projectionFacetBaseConditions(
     input,
@@ -334,6 +379,7 @@ export function normalizeShopCatalogProjectionQuery(
     ),
     useEuropePrice: input.useEuropePrice ?? false,
     effectivePriceContext: input.effectivePriceContext ?? null,
+    categoryGroupsReady: input.categoryGroupsReady !== false,
   });
 }
 
@@ -673,8 +719,8 @@ function correlatedYearConstraintSql(year: number) {
  * every projection row; any other value keeps matching the admin category
  * key/label so existing links to specific categories continue to work.
  */
-function projectionCategoryConditionSql(category: string) {
-  const groupId = resolveShopStockCategoryGroupId(category);
+function projectionCategoryConditionSql(category: string, groupsReady: boolean) {
+  const groupId = groupsReady ? resolveShopStockCategoryGroupId(category) : null;
   if (groupId) return Prisma.sql`projection."categoryGroupKey" = ${groupId}`;
   return Prisma.sql`(lower(projection."categoryKey") = lower(${category}) OR lower(projection."categoryLabel") = lower(${category}))`;
 }
@@ -720,7 +766,7 @@ function projectionFacetBaseConditions(
     conditions.push(projectionBrandConditionSql(input.brand));
   }
   if (includeCategory && input.category) {
-    conditions.push(projectionCategoryConditionSql(input.category));
+    conditions.push(projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false));
   }
   if (input.text) {
     conditions.push(projectionSearchConditionSql(input.text));
@@ -853,7 +899,7 @@ function buildProjectionFacetSource(
       const conditions: Prisma.Sql[] = [Prisma.sql`TRUE`];
       if (includeBrand && input.brand) conditions.push(projectionBrandConditionSql(input.brand));
       if (includeCategory && input.category) {
-        conditions.push(projectionCategoryConditionSql(input.category));
+        conditions.push(projectionCategoryConditionSql(input.category, input.categoryGroupsReady !== false));
       }
       return conditions;
     },
@@ -993,19 +1039,26 @@ export function buildShopCatalogProjectionFacetQuerySql(
          LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
   const categoryConditions = source.conditions(true, false);
   if (vehicleCondition) categoryConditions.push(vehicleCondition);
+  // Until every row carries a taxonomy group, keep counting the admin category.
+  const categoryColumn = input.categoryGroupsReady !== false
+    ? Prisma.sql`projection."categoryGroupKey"`
+    : Prisma.sql`projection."categoryKey"`;
+  const categoryLabelColumn = input.categoryGroupsReady !== false
+    ? categoryColumn
+    : Prisma.sql`projection."categoryLabel"`;
   const categoryBranch = Prisma.sql`
     (SELECT
        'category'::text AS "dimension",
-       projection."categoryGroupKey" AS "key",
-       min(projection."categoryGroupKey") AS "label",
+       ${categoryColumn} AS "key",
+       min(${categoryLabelColumn}) AS "label",
        count(*)::bigint AS "count",
        NULL::integer AS "yearFrom",
        NULL::integer AS "yearTo"
      FROM ${source.from}
      WHERE ${Prisma.join(categoryConditions, " AND ")}
-       AND projection."categoryGroupKey" IS NOT NULL
-       AND projection."categoryGroupKey" <> ''
-     GROUP BY projection."categoryGroupKey"
+       AND ${categoryColumn} IS NOT NULL
+       AND ${categoryColumn} <> ''
+     GROUP BY ${categoryColumn}
      ORDER BY "count" DESC, "label" ASC
      LIMIT ${SHOP_CATALOG_PROJECTION_FACET_LIMIT})`;
   const branches = [brandBranch, categoryBranch];
@@ -1072,6 +1125,7 @@ export function buildShopCatalogProjectionFacetQuerySql(
 export async function queryShopCatalogProjectionFacets(
   raw: ShopCatalogProjectionQueryInput
 ): Promise<ShopCatalogProjectionFacetResult> {
+  raw = await withCategoryGroupMode(raw);
   const rows = await prisma.$queryRaw<
     Array<{
       dimension: keyof ShopCatalogProjectionFacetResult["facets"];
@@ -1102,7 +1156,7 @@ export async function queryShopCatalogProjectionFacets(
     facets[row.dimension].push({
       key: row.key,
       label:
-        row.dimension === "category"
+        row.dimension === "category" && raw.categoryGroupsReady
           ? (categoryGroupLabel(row.key, raw.locale) ?? row.label)
           : row.label,
       count,
@@ -1302,7 +1356,9 @@ export function buildShopCatalogProjectionWhere(
     });
   }
   if (input.category) {
-    const groupId = resolveShopStockCategoryGroupId(input.category);
+    const groupId = input.categoryGroupsReady !== false
+      ? resolveShopStockCategoryGroupId(input.category)
+      : null;
     and.push(
       groupId
         ? { categoryGroupKey: groupId }
@@ -1390,7 +1446,7 @@ export function buildShopCatalogProjectionWhere(
 export async function queryShopCatalogProjection(
   raw: ShopCatalogProjectionQueryInput
 ): Promise<ShopCatalogProjectionQueryResult> {
-  const input = normalizeShopCatalogProjectionQuery(raw);
+  const input = normalizeShopCatalogProjectionQuery(await withCategoryGroupMode(raw));
   const projectionSql =
     buildShopCatalogProjectionOrderedQuerySql(input) ??
     buildShopCatalogProjectionVehicleQuerySql(input);
