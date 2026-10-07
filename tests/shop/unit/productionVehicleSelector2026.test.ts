@@ -168,9 +168,16 @@ test("duplicate makes collapse and keep matching their raw spellings", () => {
 });
 
 test("models assigned to the wrong make are not offered", () => {
-  for (const model of ["Golf", "Golf GTI", "Golf R"]) {
+  // Their MQB products stay reachable through the Audi counterpart of the trim.
+  for (const [model, counterpart] of [
+    ["Golf", "A3"],
+    ["Golf GTI", "A3"],
+    ["Golf R", "S3"],
+  ] as const) {
     assert.ok(!selectorModels("Audi").includes(model), `Audi ${model}`);
+    assert.deepEqual(canonicalizeVehicleModels("Audi", [model]), [counterpart]);
   }
+  assert.ok(!vehicleModelAliases("Audi", "A3").some((alias) => alias === "Golf R"));
   for (const model of ["A3", "S3"]) {
     assert.ok(!selectorModels("Volkswagen").includes(model), `Volkswagen ${model}`);
   }

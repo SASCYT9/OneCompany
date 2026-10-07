@@ -113,7 +113,8 @@ export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
   const models = fitment.models ?? (fitment.model ? [fitment.model] : []);
   return (
     String(fitment.make ?? "").toLowerCase() === String(constraints.make ?? "").toLowerCase() &&
-    (!constraints.model || models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
+    (!constraints.model ||
+      models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
   );
 }
 
@@ -136,7 +137,9 @@ export function vehicleModelKey(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "");
 }
-export function vehicleMakeAliases() {
+export function vehicleMakeAliases(make) {
+  if (make === "Škoda") return ["Škoda", "skoda", "škoda"];
+  if (make === "Volkswagen") return ["Volkswagen", "volkswagen", "volkswagen (svw)"];
   return ["BMW", "bmw"];
 }
 
