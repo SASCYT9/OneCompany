@@ -189,6 +189,22 @@ function productTextAlternatives(fields: readonly ProductTextField[], values: re
 }
 
 /**
+ * Tag keys a value was persisted under: the historical lower-case/hyphen form
+ * and the importer slug (`scripts/_lib/backfillFitsTags.ts`), which strips
+ * diacritics and punctuation (`Volkswagen (Svw)` -> `volkswagen-svw`).
+ */
+function legacyTagKeys(value: string) {
+  const historical = value.toLowerCase().replace(/[-_]+/g, " ").trim().replace(/\s+/g, "-");
+  const slug = value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return [...new Set([historical, slug].filter(Boolean))];
+}
+
+/**
  * Keep the legacy bridge broad enough for historical feeds, but bound the
  * product read to rows that can actually mention the selected vehicle. The
  * previous implementation loaded and parsed the entire active catalog before
@@ -199,14 +215,8 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
     ...new Set([canonicalMake, ...(input.make ? vehicleMakeAliases(canonicalMake) : [])]),
   ];
   // Importers wrote tags from their own spelling (`fits-make:skoda` for
-  // `Škoda`, `fits-make:mercedes` for `Mercedes-Benz`): build tags from every alias.
-  const makeKeys = [
-    ...new Set(
-      makeValues.map((value) =>
-        value.toLowerCase().replace(/[-_]+/g, " ").trim().replace(/\s+/g, "-")
-      )
-    ),
-  ];
+  // `Škoda`, `fits-make:volkswagen-svw`): build tags from every alias.
+  const makeKeys = [...new Set(makeValues.flatMap(legacyTagKeys))];
   const makeTags = makeKeys.map((makeKey) => `fits-make:${makeKey}`);
   const modelValues = [
     ...new Set(
@@ -225,8 +235,8 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
   if (input.make && !input.model && !input.generation) {
     for (const makeTag of makeTags) tagValues.add(makeTag);
   }
-  for (const model of modelValues) {
-    const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
+  const modelKeys = [...new Set(modelValues.flatMap(legacyTagKeys))];
+  for (const modelKey of modelKeys) {
     if (input.make) {
       for (const makeKey of makeKeys) {
         modelTagValues.add(`fits-model:${makeKey}:${modelKey}`);
@@ -239,8 +249,7 @@ async function findLegacyFitmentCandidateIds(input: LegacyVehicleQuery, canonica
     const generationKey = generation.trim().toLowerCase();
     generationTagValues.add(`chassis:${generationKey}`);
     generationTagValues.add(`chassis:${generation.trim().toUpperCase()}`);
-    for (const model of modelValues) {
-      const modelKey = model.toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, "-");
+    for (const modelKey of modelKeys) {
       if (input.make) {
         for (const makeKey of makeKeys) {
           generationTagValues.add(`fits-trim:${makeKey}:${modelKey}:${generationKey}`);

@@ -138,7 +138,9 @@ export function vehicleModelKey(value) {
     .replace(/[^a-z0-9]+/g, "");
 }
 export function vehicleMakeAliases(make) {
-  return make === "Škoda" ? ["Škoda", "skoda", "škoda"] : ["BMW", "bmw"];
+  if (make === "Škoda") return ["Škoda", "skoda", "škoda"];
+  if (make === "Volkswagen") return ["Volkswagen", "volkswagen", "volkswagen (svw)"];
+  return ["BMW", "bmw"];
 }
 
 export function vehicleModelAliases(_make, value) {

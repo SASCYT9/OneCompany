@@ -174,6 +174,15 @@ test("legacy tag candidates use every make spelling, not only the canonical labe
   const candidateQuery = JSON.stringify(mock.state.productSearchArgs[0].where);
   assert.match(candidateQuery, /fits-make:skoda"/);
   assert.match(candidateQuery, /fits-model:skoda:octavia"/);
+
+  mock.reset();
+  mock.state.productSearchIds.push("svw-teramont");
+  await resolveLegacyVehicleProductIds({ make: "Volkswagen", model: "Teramont" });
+  // Importer slugs drop punctuation: `Volkswagen (Svw)` -> `volkswagen-svw`.
+  assert.match(
+    JSON.stringify(mock.state.productSearchArgs[0].where),
+    /fits-model:volkswagen-svw:teramont"/
+  );
 });
 
 test("vehicle results expire and unrelated vehicle keys do not share answers", async (t) => {
