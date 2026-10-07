@@ -1379,7 +1379,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       make,
       model,
       chassis,
-      year: null,
+      year: requestedYear,
     };
     writeSavedCatalogVehicle(next);
     setSavedVehicle(next);
@@ -3096,6 +3096,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   setMake(savedVehicle.make);
                   setModel(savedVehicle.model);
                   setChassis(savedVehicle.chassis);
+                  setRequestedYear(savedVehicle.year);
                 }}
                 className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-[13px] transition hover:bg-foreground/[0.05]"
               >
