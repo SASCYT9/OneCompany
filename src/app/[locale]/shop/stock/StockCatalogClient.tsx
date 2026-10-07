@@ -406,6 +406,7 @@ function VehiclePickerSelect({
 }: VehiclePickerSelectProps) {
   const [filter, setFilter] = useState("");
   const [highlight, setHighlight] = useState(0);
+  const [menuShift, setMenuShift] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const keyboardNavRef = useRef(false);
@@ -437,6 +438,24 @@ function VehiclePickerSelect({
       window.removeEventListener("pointerdown", close);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Keep the menu inside the viewport: fields sit anywhere in the row, so a
+  // menu anchored to the field's left edge can run off the right side.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const margin = 12;
+      const width = Math.min(320, window.innerWidth - margin * 2);
+      const left = root.getBoundingClientRect().left;
+      const clamped = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+      setMenuShift(clamped - left);
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
   }, [open]);
 
   // Nothing to choose (e.g. a model without chassis codes): don't hang open.
@@ -482,7 +501,10 @@ function VehiclePickerSelect({
       </button>
 
       {open ? (
-        <div className="absolute left-0 top-[calc(100%+6px)] z-[80] w-[min(320px,calc(100vw-2.5rem))] overflow-hidden rounded-[6px] border border-foreground/15 bg-popover text-popover-foreground shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:border-white/12 dark:bg-[#0b0c0f] dark:shadow-[0_24px_60px_rgba(0,0,0,0.65)]">
+        <div
+          style={{ left: menuShift }}
+          className="absolute top-[calc(100%+6px)] z-[80] w-[min(320px,calc(100vw-1.5rem))] overflow-hidden rounded-[6px] border border-foreground/15 bg-popover text-popover-foreground shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:border-white/12 dark:bg-[#0b0c0f] dark:shadow-[0_24px_60px_rgba(0,0,0,0.65)]"
+        >
           <label className="flex items-center gap-2 border-b border-foreground/10 px-3">
             <Search className="h-4 w-4 shrink-0 text-foreground/45" />
             <input
