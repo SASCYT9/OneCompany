@@ -416,6 +416,34 @@ function consolidateEventuriSharedV8IntakeItems(
   });
 }
 
+const FITMENT_METAFIELD_BATCH_SIZE = 100;
+const FITMENT_METAFIELD_PARALLEL_BATCHES = 4;
+
+/** Supplier contracts are large: keep every response bounded for wide selections. */
+async function readFitmentMetafieldsInBatches(productIds: readonly string[]) {
+  const batches: string[][] = [];
+  for (let index = 0; index < productIds.length; index += FITMENT_METAFIELD_BATCH_SIZE) {
+    batches.push(productIds.slice(index, index + FITMENT_METAFIELD_BATCH_SIZE));
+  }
+  const rows: Array<{ productId: string; key: string; value: string }> = [];
+  for (let start = 0; start < batches.length; start += FITMENT_METAFIELD_PARALLEL_BATCHES) {
+    const group = await Promise.all(
+      batches.slice(start, start + FITMENT_METAFIELD_PARALLEL_BATCHES).map((ids) =>
+        prisma.shopProductMetafield.findMany({
+          where: {
+            productId: { in: ids },
+            namespace: NORMALIZED_FITMENT_NAMESPACE,
+            key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+          },
+          select: { productId: true, key: true, value: true },
+        })
+      )
+    );
+    rows.push(...group.flat());
+  }
+  return rows;
+}
+
 async function getShopProductsWithFitmentsByIds(productIds: string[]) {
   const uniqueIds = [...new Set(productIds)];
   if (uniqueIds.length === 0) return [];
@@ -429,14 +457,7 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
     // bundle graphs for every result. Search cards only need the scalar card
     // fields plus variants for SKU/fitment evidence.
     getShopFitmentCatalogProducts({ productIds: uniqueIds }),
-    prisma.shopProductMetafield.findMany({
-      where: {
-        productId: { in: uniqueIds },
-        namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-      },
-      select: { productId: true, key: true, value: true },
-    }),
+    readFitmentMetafieldsInBatches(uniqueIds),
   ]);
   const overrides = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
