@@ -219,7 +219,7 @@ const readCachedSelectorOptions = unstable_cache(
       brand: input.brand,
       scope: input.scope,
     }),
-  ["shop-fitment-selector-options-v1"],
+  ["shop-fitment-selector-options-v2"],
   { revalidate: SHOP_CATALOG_SELECTOR_CACHE_SECONDS, tags: [SHOP_CATALOG_SELECTOR_CACHE_TAG] }
 );
 

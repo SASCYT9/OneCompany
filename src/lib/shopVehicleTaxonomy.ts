@@ -7,23 +7,47 @@ import generationAliases from "./shopVehicleGenerationAliases.json";
 
 const VEHICLE_MAKE_ALIAS_GROUPS = {
   "Alfa Romeo": ["alfa romeo", "alfa-romeo"],
+  Audi: ["audi", "audi (saic)"],
   BMW: ["bmw"],
   BYD: ["byd"],
   Citroën: ["citroen", "citroën"],
-  DS: ["ds"],
+  CUPRA: ["cupra"],
+  DS: ["ds", "ds automobiles"],
   Ford: ["ford", "ford usa"],
   GMC: ["gmc"],
   INEOS: ["ineos"],
+  Lada: ["lada", "lada (shiguli)"],
   "Land Rover": ["land rover", "land-rover", "range rover"],
   LDV: ["ldv"],
   McLaren: ["mclaren"],
-  "Mercedes-Benz": ["mercedes benz", "mercedes-benz", "mercedes amg", "mercedes-amg"],
+  "Mercedes-Benz": ["mercedes benz", "mercedes-benz", "mercedes amg", "mercedes-amg", "mercedes"],
   MINI: ["mini"],
   NIO: ["nio"],
   "Rolls-Royce": ["rolls royce", "rolls-royce"],
   SEAT: ["seat"],
-  Volkswagen: ["volkswagen", "vw"],
+  Škoda: ["skoda", "škoda"],
+  Volkswagen: ["volkswagen", "vw", "volkswagen (svw)", "volkswagen (faw vw)", "svw shanghai vw"],
 } as const;
+
+/** Display case for makes the importers deliver in title or upper case. */
+const VEHICLE_MAKE_LABELS: Readonly<Record<string, string>> = {
+  amc: "AMC",
+  "daf trucks": "DAF Trucks",
+  dr: "DR",
+  fpv: "FPV",
+  "fso motor": "FSO Motor",
+  "holden hsv": "Holden HSV",
+  "leyland daf": "Leyland DAF",
+  "leyland freight rover ldv": "Leyland Freight Rover / LDV",
+  "man truck": "MAN Truck",
+  mg: "MG",
+  saic: "SAIC",
+  ssangyong: "SsangYong",
+  uaz: "UAZ",
+  "vauxhall bedford lcv": "Vauxhall Bedford (LCV)",
+  "vdl bus coach": "VDL Bus + Coach",
+  zaz: "ZAZ",
+};
 
 const CANONICAL_VEHICLE_MAKE_BY_ALIAS = new Map<string, string>();
 for (const [canonical, aliases] of Object.entries(VEHICLE_MAKE_ALIAS_GROUPS)) {
@@ -34,8 +58,10 @@ for (const [canonical, aliases] of Object.entries(VEHICLE_MAKE_ALIAS_GROUPS)) {
 export function canonicalVehicleMakeLabel(value: string) {
   const trimmed = value.trim().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
   if (!trimmed) return "";
+  const key = normalizeShopSearchText(trimmed);
   return (
-    CANONICAL_VEHICLE_MAKE_BY_ALIAS.get(normalizeShopSearchText(trimmed)) ??
+    CANONICAL_VEHICLE_MAKE_BY_ALIAS.get(key) ??
+    VEHICLE_MAKE_LABELS[key] ??
     trimmed.replace(/\b\w/g, (letter) => letter.toUpperCase())
   );
 }
@@ -89,7 +115,7 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<
   bmw: {
     "1 Series M Coupé": ["1 Series M Coupé", "1M", "1 Series M"],
     "1 Series": ["1 Series", "M135i/M140i"],
-    "2 Series": ["2 Series", "M235i/M240i"],
+    "2 Series": ["2 Series", "M235i/M240i", "2 Gran Coupe", "2-series-gran-coupe"],
     "2 Series Active Tourer": [
       "2 Series Active Tourer",
       "2 Active Tourer",
@@ -102,7 +128,6 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<
     i4: ["i4", "I4"],
     i8: ["i8", "I8"],
     Z4: ["Z4", "Z Series", "Z4 Roadster"],
-    "2 Gran Coupe": ["2 Gran Coupe", "2-series-gran-coupe"],
     "2 Series Gran Tourer": [
       "2 Series Gran Tourer",
       "2 Gran Tourer",
@@ -237,6 +262,13 @@ const VEHICLE_MODEL_ALIAS_GROUPS: Readonly<
   },
 };
 
+const GENERATION_ALIASES_BY_MAKE = new Map<string, Readonly<Record<string, string>>>(
+  Object.entries(generationAliases).map(([make, aliases]) => [
+    normalizeShopSearchText(canonicalVehicleMakeLabel(make)),
+    aliases,
+  ])
+);
+
 const MODEL_GROUP_CACHE = new Map<string, Record<string, string[]>>();
 function modelAliasGroups(make: string) {
   const key = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
@@ -254,9 +286,7 @@ function modelAliasGroups(make: string) {
   }
   // Generation remains available through the separate chassis/year selectors.
   // Keep supplier values for queries, while presenting a single model family.
-  for (const [raw, family] of Object.entries(
-    generationAliases[canonicalVehicleMakeLabel(make) as keyof typeof generationAliases] ?? {}
-  )) {
+  for (const [raw, family] of Object.entries(GENERATION_ALIASES_BY_MAKE.get(key) ?? {})) {
     if (!isSelectableVehicleModel(make, raw)) continue;
     const label = formatVehicleModelLabel(family);
     groups[label] = [
@@ -319,7 +349,13 @@ export function vehicleModelAliases(make: string, value: string) {
       value.trim(),
       value.trim().replace(/\s+/g, "-"),
       value.trim().replace(/[\s-]+/g, ""),
-      ...(canonicalLabel ? [canonicalLabel, canonicalLabel.replace(/\s+/g, "-"), canonicalLabel.replace(/[\s-]+/g, "")] : []),
+      ...(canonicalLabel
+        ? [
+            canonicalLabel,
+            canonicalLabel.replace(/\s+/g, "-"),
+            canonicalLabel.replace(/[\s-]+/g, ""),
+          ]
+        : []),
       ...manufacturerModelAliases(make, value),
       ...labels.flatMap((label) => modelAliasGroups(make)[label] ?? [label]),
       ...baseModelAliases,
