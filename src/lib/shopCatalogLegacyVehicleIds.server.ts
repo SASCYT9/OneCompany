@@ -191,8 +191,8 @@ async function getCachedFitmentProducts(productIds?: readonly string[] | null) {
   return sharedCache.fitmentPending;
 }
 
-const METAFIELD_BATCH_SIZE = 100;
-const METAFIELD_PARALLEL_BATCHES = 4;
+const METAFIELD_BATCH_SIZE = 10;
+const METAFIELD_PARALLEL_BATCHES = 6;
 
 function chunk<T>(values: readonly T[], size: number) {
   const result: T[][] = [];

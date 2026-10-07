@@ -416,8 +416,8 @@ function consolidateEventuriSharedV8IntakeItems(
   });
 }
 
-const FITMENT_METAFIELD_BATCH_SIZE = 100;
-const FITMENT_METAFIELD_PARALLEL_BATCHES = 4;
+const FITMENT_METAFIELD_BATCH_SIZE = 10;
+const FITMENT_METAFIELD_PARALLEL_BATCHES = 6;
 
 /** Supplier contracts are large: keep every response bounded for wide selections. */
 async function readFitmentMetafieldsInBatches(productIds: readonly string[]) {
