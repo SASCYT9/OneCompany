@@ -3,7 +3,7 @@
 // Adapted from React Bits "Shiny Text" (https://reactbits.dev/text-animations/shiny-text).
 // Uses the project's framer-motion (same API as motion/react).
 
-import { motion, useAnimationFrame, useMotionValue, useTransform } from "framer-motion";
+import { motion, useAnimationFrame, useInView, useMotionValue, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 type ShinyTextProps = {
@@ -29,12 +29,14 @@ export default function ShinyText({
   shineColor = "#ffffff",
   spread = 120,
 }: ShinyTextProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref);
   const progress = useMotionValue(0);
   const elapsed = useRef(0);
   const last = useRef<number | null>(null);
 
   useAnimationFrame((time) => {
-    if (disabled) {
+    if (disabled || !inView) {
       last.current = null;
       return;
     }
@@ -53,6 +55,7 @@ export default function ShinyText({
 
   return (
     <motion.span
+      ref={ref}
       className={`inline-block ${className}`}
       style={{
         backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,

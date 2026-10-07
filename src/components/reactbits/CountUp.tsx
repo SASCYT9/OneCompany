@@ -1,54 +1,51 @@
 "use client";
 
 // Adapted from React Bits "Count Up" (https://reactbits.dev/text-animations/count-up).
-// Re-animates from the current value whenever `to` changes, so a filtered
-// product count glides to its new total instead of jumping.
+// Shows the real value immediately (no "0" flash, no dependence on viewport
+// visibility) and glides to the new total whenever `to` changes while the
+// number is on screen.
 
 import { useInView, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 type CountUpProps = {
   to: number;
-  from?: number;
   /** Seconds; controls spring stiffness. */
   duration?: number;
   className?: string;
-  /** Thousands separator, e.g. a narrow space for Ukrainian. */
-  separator?: string;
+  /** BCP 47 locale used for digit grouping, e.g. "uk-UA" or "en-US". */
+  locale?: string;
   disabled?: boolean;
 };
 
 export default function CountUp({
   to,
-  from = 0,
   duration = 1.1,
   className = "",
-  separator = " ",
+  locale = "en-US",
   disabled = false,
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(disabled ? to : from);
+  const motionValue = useMotionValue(to);
   const spring = useSpring(motionValue, {
     damping: 20 + 40 * (1 / duration),
     stiffness: 100 * (1 / duration),
   });
-  const inView = useInView(ref, { once: true, margin: "0px" });
+  const inView = useInView(ref);
 
   const format = (value: number) =>
-    Intl.NumberFormat("en-US", { maximumFractionDigits: 0 })
-      .format(Math.round(value))
-      .replace(/,/g, separator);
+    Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Math.round(value));
 
   useEffect(() => {
-    if (disabled) {
+    if (disabled || !inView) {
       motionValue.jump(to);
       spring.jump(to);
       if (ref.current) ref.current.textContent = format(to);
       return;
     }
-    if (inView) motionValue.set(to);
+    motionValue.set(to);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disabled, inView, to]);
+  }, [disabled, inView, to, locale]);
 
   useEffect(
     () =>
@@ -56,12 +53,12 @@ export default function CountUp({
         if (ref.current) ref.current.textContent = format(latest);
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [spring, separator]
+    [spring, locale]
   );
 
   return (
     <span ref={ref} className={`tabular-nums ${className}`}>
-      {format(disabled ? to : from)}
+      {format(to)}
     </span>
   );
 }

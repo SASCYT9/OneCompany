@@ -457,7 +457,6 @@ function VehiclePickerSelect({
         onClick={() => onOpenChange(!open)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls={listId}
         aria-label={`${label}: ${value || placeholder}`}
         className={`flex h-10 w-full min-w-0 items-center gap-2 rounded-[4px] border px-3 text-left text-[14px] transition disabled:cursor-not-allowed disabled:opacity-45 ${
           open
@@ -513,6 +512,13 @@ function VehiclePickerSelect({
               }}
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
+              role="combobox"
+              aria-expanded="true"
+              aria-autocomplete="list"
+              aria-controls={listId}
+              aria-activedescendant={
+                !loading && selectable[highlight] ? `${listId}-opt-${highlight}` : undefined
+              }
               className="h-11 min-w-0 flex-1 bg-transparent text-[13px] outline-hidden placeholder:text-foreground/45"
             />
           </label>
@@ -541,6 +547,7 @@ function VehiclePickerSelect({
                 return (
                   <li
                     key={`${group ?? ""}-${row.value || "__any"}`}
+                    id={`${listId}-opt-${index}`}
                     role="option"
                     aria-selected={selected}
                   >
@@ -549,6 +556,7 @@ function VehiclePickerSelect({
                     ) : null}
                     <button
                       type="button"
+                      tabIndex={-1}
                       ref={(node) => {
                         if (node && index === highlight && keyboardNavRef.current) {
                           node.scrollIntoView({ block: "nearest" });
@@ -3347,12 +3355,10 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
             <button
               type="button"
               onClick={() => {
-                document
-                  .querySelector("[data-vehicle-finder]")
-                  ?.scrollIntoView({
-                    block: "center",
-                    behavior: shouldReduceMotion ? "auto" : "smooth",
-                  });
+                document.querySelector("[data-vehicle-finder]")?.scrollIntoView({
+                  block: "center",
+                  behavior: shouldReduceMotion ? "auto" : "smooth",
+                });
                 setVehiclePicker("make");
               }}
               className="mt-2 text-[12px] text-foreground/70 underline-offset-4 transition hover:text-foreground hover:underline"
@@ -4537,7 +4543,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                             )
                           ) : (
                             <>
-                              <CountUp to={totalItems} disabled={Boolean(shouldReduceMotion)} />{" "}
+                              <CountUp
+                                to={totalItems}
+                                locale={isUa ? "uk-UA" : "en-US"}
+                                disabled={Boolean(shouldReduceMotion)}
+                              />{" "}
                               {isUa
                                 ? getUkrainianPlural(totalItems, "товар", "товари", "товарів")
                                 : "products"}
