@@ -102,6 +102,7 @@ import {
 } from "@/lib/shopWarehouseInventory";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
+  EVENTURI_SHARED_V8_INTAKE_SKU,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
@@ -1146,10 +1147,13 @@ export async function searchShopStock(request: { url: string }) {
       !requestedFuel &&
       matchesEventuriSharedV8Application(make, model)
     ) {
+      // One known SKU: never load the whole fitment catalog for it.
+      const sharedIntake = await prisma.shopProduct.findMany({
+        where: { sku: { equals: EVENTURI_SHARED_V8_INTAKE_SKU, mode: "insensitive" } },
+        select: { id: true },
+      });
       const sharedIntakeItems = filterShopStockItemsByVehicleScope(
-        (await getShopProductsWithFitments()).filter((item) =>
-          isEventuriSharedV8Intake(item.product.sku)
-        ),
+        await getShopProductsWithFitmentsByIds(sharedIntake.map((product) => product.id)),
         vehicleScope
       );
       scopedProductsWithFitments = [
