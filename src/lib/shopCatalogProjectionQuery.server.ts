@@ -112,16 +112,28 @@ export type ShopCatalogProjectionQueryResult = {
 const CATEGORY_GROUPS_READY_TTL_MS = 60_000;
 let categoryGroupsReadyCache: { value: Promise<boolean>; expiresAt: number } | null = null;
 
+/**
+ * Only published rows matter: unpublished products (drafts, archive, family
+ * children) are never rebuilt by the backfill and are never listed, so they
+ * must not hold the facet back.
+ */
+export function buildCategoryGroupsReadinessSql() {
+  const groupIds = SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id);
+  return Prisma.sql`
+    SELECT EXISTS (
+      SELECT 1 FROM "ShopCatalogProjection" projection
+      WHERE projection."isPublished" = true
+        AND (projection."categoryGroupKey" IS NULL
+             OR projection."categoryGroupKey" NOT IN (${Prisma.join(groupIds)}))
+    ) AS "pending"
+  `;
+}
+
 async function probeCategoryGroupsReady(): Promise<boolean> {
   try {
-    const groupIds = SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id);
-    const rows = await prisma.$queryRaw<Array<{ pending: boolean }>>(Prisma.sql`
-      SELECT EXISTS (
-        SELECT 1 FROM "ShopCatalogProjection" projection
-        WHERE projection."categoryGroupKey" IS NULL
-           OR projection."categoryGroupKey" NOT IN (${Prisma.join(groupIds)})
-      ) AS "pending"
-    `);
+    const rows = await prisma.$queryRaw<Array<{ pending: boolean }>>(
+      buildCategoryGroupsReadinessSql()
+    );
     return rows[0]?.pending === false;
   } catch {
     return false;

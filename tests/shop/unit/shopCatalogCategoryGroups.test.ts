@@ -259,3 +259,10 @@ test("Porsche Turbo trims and steering wheels do not hijack the group", async ()
   assert.equal(groupOf("Leather wheel airbag/impact absorber for Mercedes – X 290"), "interior");
   assert.equal(groupOf("BRABUS turbocharger kit for Mercedes"), "performance");
 });
+
+test("the readiness probe ignores unpublished rows that the backfill never rebuilds", async () => {
+  const { buildCategoryGroupsReadinessSql } = await queryModule;
+  const { sql, values } = buildCategoryGroupsReadinessSql();
+  assert.match(sql, /projection\."isPublished" = true/);
+  assert.ok(values.includes("exhaust") && values.includes("other"));
+});
