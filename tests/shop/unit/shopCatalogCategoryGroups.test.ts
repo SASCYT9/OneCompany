@@ -243,3 +243,19 @@ test("a leather accessory is an accessory while leather trim stays interior", as
   assert.equal(groupOf("Шкіряні дверні панелі BRABUS на базі Rolls – Royce Ghost"), "interior");
   assert.equal(groupOf("Шкіряна центральна консоль для Mercedes – X 167"), "interior");
 });
+
+test("Porsche Turbo trims and steering wheels do not hijack the group", async () => {
+  const { getShopStockCategoryGroupForProduct } = await import(
+    "../../../src/lib/shopStockTaxonomy"
+  );
+  const groupOf = (title: string) =>
+    getShopStockCategoryGroupForProduct(
+      { product: { brand: "Brabus", title: { ua: title, en: title } } },
+      "ua"
+    ).id;
+  assert.equal(groupOf("Leather key cover black BRABUS based on Porsche 911 Turbo"), "accessories");
+  assert.equal(groupOf("Leather upper section of dashboard BRABUS based on Porsche 911 Turbo"), "interior");
+  assert.equal(groupOf("Leather steering wheel rim BRABUS based on Rolls – Royce Ghost"), "interior");
+  assert.equal(groupOf("Leather wheel airbag/impact absorber for Mercedes – X 290"), "interior");
+  assert.equal(groupOf("BRABUS turbocharger kit for Mercedes"), "performance");
+});

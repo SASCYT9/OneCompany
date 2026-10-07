@@ -443,6 +443,7 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "арок",
       "розширених арок",
       "bullnose",
+      "frontspoiler",
       "кузовний пакет",
       "пакет кузов",
       "пакет майстерності",
@@ -538,7 +539,6 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
       "floor mat",
       "trunk mat",
       "velour",
-      "leather",
       "trim parts",
       "pedal pads",
       "paddle shifter",
@@ -726,7 +726,7 @@ export const SHOP_STOCK_CATEGORY_GROUPS: ShopStockCategoryGroup[] = [
 // Leather adjectives describe the material, not the part: "Шкіряний чохол для
 // ключа" is an accessory. They only decide the group when no stronger keyword
 // (including the accessory nouns) matched.
-const WEAK_INTERIOR_KEYWORDS = ["шкіряні", "шкіряна", "шкіряний", "шкіряне", "шкіряного", "шкіряну", "шкіряної", "шкіра", "шкіри", "шкірою", "шкіряною"]
+const WEAK_INTERIOR_KEYWORDS = ["leather", "шкіряні", "шкіряна", "шкіряний", "шкіряне", "шкіряного", "шкіряну", "шкіряної", "шкіра", "шкіри", "шкірою", "шкіряною"]
   .map(normalizeShopSearchText)
   .map((word) => ` ${word} `);
 
@@ -799,8 +799,15 @@ function getCategoryCorpus(item: ShopStockTaxonomyItem, locale: string) {
     ]),
   ]);
 
-  return ` ${fieldText} `;
+  return ` ${fieldText.replace(VEHICLE_TURBO_PATTERN, "$1")} `;
 }
+
+// "Turbo"/"Turbo S" after a Porsche model name is the vehicle trim, not a turbo part.
+const VEHICLE_TURBO_PATTERN =
+  /\b(911|718|cayenne|panamera|taycan|macan|cayman|boxster)\s+turbo(?:\s+(?:s|gt|gts))?\b/g;
+
+// Steering-wheel parts belong to the interior even though they contain "wheel".
+const STEERING_WHEEL_PATTERN = /\bsteering wheels?\b|\bwheel airbag\b|\bкермо\b|\bкерм[а-яіїєґ]*\b/;
 
 const EXTERIOR_AERO_PATTERN =
   /(?:\b(?:diffuser|splitter|spoiler|rear wing|body kit|bodykit|widebody|side skirt|bumper|bonnet|hood|grille)\b|дифузор|спліттер|спойлер|обвіс|бампер|пороги|решітк[а-яіїєґ]*)/;
@@ -866,6 +873,9 @@ export function getShopStockCategoryGroupForProduct(
   const corpus = getCategoryCorpus(item, locale);
   if (EXTERIOR_AERO_PATTERN.test(corpus)) {
     return GROUP_BY_ID.get("carbonAero")!;
+  }
+  if (STEERING_WHEEL_PATTERN.test(corpus)) {
+    return GROUP_BY_ID.get("interior")!;
   }
   return (
     STOCK_CATEGORY_RESOLUTION_GROUPS.find(({ keywords }) =>
