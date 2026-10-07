@@ -154,9 +154,11 @@ const SELECTOR_AUDIT_MODEL_CORRECTIONS: ModelCorrections = {
     "Audi / Q7 / 4M": ["Q7"],
     "Audi / Q8 / 4M": ["Q8"],
     "Audi / RS6 / C7,audi / RS6 / C8,audi / RS6 / C6,audi / RS6 / C5": ["RS6"],
-    Golf: [],
-    "Golf GTI": [],
-    "Golf R": [],
+    // MQB parts filed under Audi with the VW model name (`Golf MK8 / Audi 8Y`):
+    // offer them on the Audi models of that platform instead of a Golf entry.
+    Golf: ["A3", "S3"],
+    "Golf GTI": ["A3", "S3"],
+    "Golf R": ["A3", "S3"],
     "RS3 8Y Limousine": ["RS3"],
     "RS3 8Y Limousine Sportback": ["RS3"],
     "RS3 8Y Sportback": ["RS3"],

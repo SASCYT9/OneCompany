@@ -170,6 +170,8 @@ test("duplicate makes collapse and keep matching their raw spellings", () => {
 test("models assigned to the wrong make are not offered", () => {
   for (const model of ["Golf", "Golf GTI", "Golf R"]) {
     assert.ok(!selectorModels("Audi").includes(model), `Audi ${model}`);
+    // Their MQB products stay reachable through the Audi models of that platform.
+    assert.deepEqual(canonicalizeVehicleModels("Audi", [model]), ["A3", "S3"]);
   }
   for (const model of ["A3", "S3"]) {
     assert.ok(!selectorModels("Volkswagen").includes(model), `Volkswagen ${model}`);
