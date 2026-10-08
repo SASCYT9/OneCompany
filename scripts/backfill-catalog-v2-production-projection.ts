@@ -5,8 +5,11 @@ import { buildShopCatalogProjectionSourceFromAdminRecord } from "../src/lib/shop
 import { buildShopCatalogProjection } from "../src/lib/shopCatalogProjection.server";
 import { planShopCatalogProjectionPersistence } from "../src/lib/shopCatalogProjectionPersistence.server";
 import { projectionSourceFromRevision } from "../src/lib/shopCatalogProjectionSource.server";
+import { SHOP_STOCK_CATEGORY_GROUPS } from "../src/lib/shopStockTaxonomy";
 
-const PAGE_SIZE = 50;
+const SHOP_STOCK_CATEGORY_GROUP_IDS = new Set(SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id));
+
+const PAGE_SIZE = Number(process.argv.find((argument) => argument.startsWith("--page-size="))?.slice("--page-size=".length)) || 50;
 
 function assertAuthorized() {
   if (!process.argv.includes("--commit")) {
@@ -28,6 +31,7 @@ async function main() {
   const brand = process.argv.find((argument) => argument.startsWith("--brand="))?.slice("--brand=".length).trim() || null;
   const force = process.argv.includes("--force");
   const fromRevisions = process.argv.includes("--from-revisions");
+  const onlyUngrouped = process.argv.includes("--only-ungrouped");
   const client = new PrismaClient();
   let afterId: string | undefined;
   let processed = 0;
@@ -57,10 +61,12 @@ async function main() {
 
       const existing = await client.shopCatalogProjection.findMany({
         where: { locale: "ua", productId: { in: products.map((product) => product.id) } },
-        select: { productId: true },
+        select: { productId: true, categoryGroupKey: true },
       });
       const existingIds = new Set(existing.map((row) => row.productId));
-      const pendingProducts = force ? products : products.filter((product) => !existingIds.has(product.id));
+      const groupedIds = new Set(existing.filter((row) => row.categoryGroupKey && SHOP_STOCK_CATEGORY_GROUP_IDS.has(row.categoryGroupKey)).map((row) => row.productId));
+      const candidates = onlyUngrouped ? products.filter((product) => !groupedIds.has(product.id)) : products;
+      const pendingProducts = force ? candidates : candidates.filter((product) => !existingIds.has(product.id));
 
       const revisions = fromRevisions && pendingProducts.length ? await client.shopCatalogProductRevision.findMany({
         where: { productId: { in: pendingProducts.map((product) => product.id) } },
@@ -114,7 +120,7 @@ async function main() {
         if (policyRows.length) await tx.shopCatalogProjectionPolicy.createMany({ data: policyRows as never[], skipDuplicates: true });
         if (clauseRows.length) await tx.shopCatalogProjectionClause.createMany({ data: clauseRows as never[], skipDuplicates: true });
         if (constraintRows.length) await tx.shopCatalogProjectionConstraint.createMany({ data: constraintRows as never[], skipDuplicates: true });
-      });
+      }, { timeout: 120000, maxWait: 30000 });
       processed += products.length;
       applied += pendingProducts.length;
       afterId = products.at(-1)!.id;

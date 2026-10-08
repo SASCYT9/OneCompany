@@ -38,6 +38,7 @@ test("catalog section keeps the phase-1 commerce modules together", () => {
       "/admin/shop",
       "/admin/shop/inventory",
       "/admin/shop/categories",
+      "/admin/shop/category-groups",
       "/admin/shop/collections",
       "/admin/shop/bundles",
       "/admin/shop/wheelforce-wheelsets",
