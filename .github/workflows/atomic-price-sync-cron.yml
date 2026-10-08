@@ -1,9 +1,10 @@
-name: Weekly Atomic Price Sync
+name: Atomic Price Sync
 
 on:
   schedule:
-    # Every Monday at 05:00 UTC, after the monthly full-feed sync's 04:00 UTC slot.
-    - cron: "0 5 * * 1"
+    # Every 3 hours so Atomic retail changes reach the storefront the same day.
+    # Shares the atomic-feed-sync group, so it queues behind the monthly full-feed sync.
+    - cron: "0 */3 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
