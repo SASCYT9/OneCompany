@@ -62,4 +62,11 @@ test("shop category group settings", async (t) => {
     assert.equal(resolveShopCategoryGroupIdFromSettings("вихлопи", settings), "exhaust");
     assert.equal(resolveShopCategoryGroupIdFromSettings("Nothing", settings), null);
   });
+
+  await t.test("rejects titles that collide with another group", () => {
+    const { errors } = normalizeShopCategoryGroupSettingsPayload([
+      { id: "brakes", titleUa: "вихлопні системи", titleEn: "Brakes", sortOrder: 0 },
+    ]);
+    assert.ok(errors.some((message) => message.includes("already used")));
+  });
 });

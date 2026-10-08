@@ -15,13 +15,16 @@ export type ShopCategoryGroupSettingRow = Partial<Omit<ShopCategoryGroupSetting,
 
 const MAX_TITLE_LENGTH = 80;
 
-/** Code taxonomy defaults; `other` sorts last unless an editor moves it. */
+/**
+ * Code taxonomy defaults. Equal sort orders fall back to "biggest group first";
+ * `other` sorts last unless an editor moves it.
+ */
 export function defaultShopCategoryGroupSettings(): ShopCategoryGroupSetting[] {
-  return SHOP_STOCK_CATEGORY_GROUPS.map((group, index) => ({
+  return SHOP_STOCK_CATEGORY_GROUPS.map((group) => ({
     id: group.id,
     titleUa: group.ua,
     titleEn: group.en,
-    sortOrder: group.id === "other" ? 10_000 : index * 10,
+    sortOrder: group.id === "other" ? 10_000 : 0,
     isPublished: true,
   }));
 }
@@ -82,6 +85,18 @@ export function normalizeShopCategoryGroupSettingsPayload(body: unknown): {
       sortOrder,
       isPublished: item.isPublished !== false,
     });
+  }
+  const owners = new Map<string, string>();
+  for (const group of mergeShopCategoryGroupSettings(data)) {
+    for (const title of [group.titleUa, group.titleEn]) {
+      const key = normalizeShopSearchText(title);
+      const owner = owners.get(key);
+      if (owner && owner !== group.id) {
+        errors.push(`${group.id}: title "${title}" is already used by ${owner}`);
+      } else {
+        owners.set(key, group.id);
+      }
+    }
   }
   return { data, errors };
 }
