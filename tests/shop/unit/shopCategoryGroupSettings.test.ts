@@ -22,7 +22,7 @@ test("shop category group settings", async (t) => {
       { id: "ghost", titleUa: "X" },
     ]);
     const exhaust = merged.find((item) => item.id === "exhaust");
-    assert.deepEqual({ ...exhaust }, { id: "exhaust", titleUa: "Вихлопні системи", titleEn: "Exhaust systems", sortOrder: 7, isPublished: false });
+    assert.deepEqual({ ...exhaust }, { id: "exhaust", titleUa: "Вихлопи", titleEn: "Exhaust systems", sortOrder: 7, isPublished: false });
     assert.equal(merged.some((item) => (item.id as string) === "ghost"), false);
   });
 
@@ -34,15 +34,16 @@ test("shop category group settings", async (t) => {
       ]).errors.includes("exhaust: sortOrder must be an integer")
     );
     const ok = normalizeShopCategoryGroupSettingsPayload({
-      groups: [{ id: "exhaust", sortOrder: 5, isPublished: false }],
+      groups: [{ id: "exhaust", titleUa: " Вихлопи ", sortOrder: 5, isPublished: false }],
     });
     assert.deepEqual(ok.errors, []);
+    assert.equal(ok.data[0].titleUa, "Вихлопи");
     assert.equal(ok.data[0].isPublished, false);
   });
 
   await t.test("hides unpublished groups and orders the facet", () => {
     const settings = mergeShopCategoryGroupSettings([
-      { id: "brakes", sortOrder: -1 },
+      { id: "brakes", titleEn: "Brake kits", sortOrder: -1 },
       { id: "merch", isPublished: false },
     ]);
     const items = [
@@ -50,10 +51,15 @@ test("shop category group settings", async (t) => {
       { key: "merch", label: "Мерч", count: 10 },
       { key: "brakes", label: "Гальмівна система", count: 5 },
     ];
-    const result = applyShopCategoryGroupSettingsToFacet(items, settings);
+    const result = applyShopCategoryGroupSettingsToFacet(items, settings, "en");
     assert.deepEqual(result.map((item) => item.key), ["brakes", "exhaust"]);
+    assert.equal(result[0].label, "Brake kits");
   });
 
-
-
+  await t.test("rejects a title already used by another group", () => {
+    const { errors } = normalizeShopCategoryGroupSettingsPayload([
+      { id: "brakes", titleUa: "вихлопні системи", sortOrder: 0 },
+    ]);
+    assert.ok(errors.some((message) => message.includes("already used")));
+  });
 });

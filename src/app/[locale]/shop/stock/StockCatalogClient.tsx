@@ -1303,9 +1303,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const [localCategory, setLocalCategory] = useState(searchParams.get("category") || "");
-  const localCategoryLabel =
-    SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === localCategory)?.[isUa ? "ua" : "en"] ??
-    localCategory;
   const [productTypeFilter, setProductTypeFilter] = useState(
     searchParams.get("productType")?.trim().slice(0, 120) || ""
   );
@@ -2522,6 +2519,25 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       ),
     [filterStats, globalFilterStats, localCategory]
   );
+  // Filters are submitted by the stable group key; labels are display-only (and renameable).
+  const categoryKeyByLabel = useMemo(
+    () =>
+      new Map(
+        [...(filterStats?.categories ?? []), ...(globalFilterStats?.categories ?? [])]
+          .filter((entry) => entry.key)
+          .map((entry) => [entry.label, entry.key as string])
+      ),
+    [filterStats, globalFilterStats]
+  );
+  const isCategorySelected = (label: string) =>
+    Boolean(localCategory) &&
+    (localCategory === label || localCategory === categoryKeyByLabel.get(label));
+  const localCategoryLabel =
+    [...(globalFilterStats?.categories ?? []), ...(filterStats?.categories ?? [])].find(
+      (entry) => entry.key === localCategory
+    )?.label ??
+    SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === localCategory)?.[isUa ? "ua" : "en"] ??
+    localCategory;
   const minPriceParam = normalizeStockPriceParam(minPriceFilter);
   const maxPriceParam = normalizeStockPriceParam(maxPriceFilter);
   const hasPriceFilter = Boolean(minPriceParam || maxPriceParam);
@@ -2530,7 +2546,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const needle = normalizeFacetSearchText(categoryFilterQuery);
     const nonEmptyCategories = localCategories.filter(
       (categoryName) =>
-        categoryName === localCategory ||
+        isCategorySelected(categoryName) ||
         !filterStats ||
         (categoryCountByLabel.get(categoryName) ?? 0) > 0
     );
@@ -2542,9 +2558,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
     // The server already orders groups (editor sort order, then size); only the selection floats up.
     return [...matches].sort(
-      (left, right) => Number(right === localCategory) - Number(left === localCategory)
+      (left, right) =>
+        Number(isCategorySelected(right)) - Number(isCategorySelected(left))
     );
-  }, [categoryFilterQuery, filterStats, localCategories, localCategory, categoryCountByLabel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilterQuery, filterStats, localCategories, localCategory, categoryCountByLabel, categoryKeyByLabel]);
 
   const visibleBrands = useMemo(() => {
     const needle = normalizeFacetSearchText(brandFilterQuery);
@@ -3524,9 +3542,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   <button
                     key={categoryName}
                     type="button"
-                    onClick={() => setLocalCategory(categoryName)}
+                    onClick={() => setLocalCategory(categoryKeyByLabel.get(categoryName) ?? categoryName)}
                     className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left text-xs font-light transition ${
-                      localCategory === categoryName
+                      isCategorySelected(categoryName)
                         ? "border-transparent bg-foreground/[0.07] font-normal text-foreground shadow-[inset_2px_0_0_0_currentColor]"
                         : "border-transparent text-foreground/65 hover:bg-foreground/[0.045] hover:text-foreground"
                     }`}
