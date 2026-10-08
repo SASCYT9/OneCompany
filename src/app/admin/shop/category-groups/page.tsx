@@ -94,7 +94,7 @@ export default function AdminCategoryGroupsPage() {
       <AdminPageHeader
         eyebrow="Каталог"
         title="Групи товарів"
-        description="Назви, порядок і видимість груп у фільтрі «Група товарів». Приховування лише прибирає групу з фільтра — самі товари лишаються в каталозі."
+        description="Порядок і видимість груп у фільтрі «Група товарів» (однакове значення порядку — спершу більша група). Назви поки задаються в коді. Приховування лише прибирає групу з фільтра — самі товари лишаються в каталозі."
         actions={
           <button
             type="button"
@@ -128,22 +128,8 @@ export default function AdminCategoryGroupsPage() {
               .map((group) => (
                 <tr key={group.id} className="border-b border-white/5 align-middle">
                   <td className="px-4 py-3 font-mono text-xs text-zinc-500">{group.id}</td>
-                  <td className="px-4 py-3">
-                    <input
-                      className={inputClass}
-                      value={group.titleUa}
-                      maxLength={80}
-                      onChange={(event) => update(group.id, { titleUa: event.target.value })}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
-                      className={inputClass}
-                      value={group.titleEn}
-                      maxLength={80}
-                      onChange={(event) => update(group.id, { titleEn: event.target.value })}
-                    />
-                  </td>
+                  <td className="px-4 py-3 text-zinc-100">{group.titleUa}</td>
+                  <td className="px-4 py-3 text-zinc-300">{group.titleEn}</td>
                   <td className="px-4 py-3">
                     <input
                       className={inputClass}

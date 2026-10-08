@@ -24,10 +24,7 @@ import {
   tokenizeShopSearchQuery,
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
-import {
-  applyShopCategoryGroupSettingsToFacet,
-  resolveShopCategoryGroupIdFromSettings,
-} from "@/lib/shopCategoryGroupSettings";
+import { applyShopCategoryGroupSettingsToFacet } from "@/lib/shopCategoryGroupSettings";
 import { loadShopCategoryGroupSettings } from "@/lib/shopCategoryGroupSettings.server";
 import {
   getShopStockCategoryLabel,
@@ -163,18 +160,8 @@ function categoryGroupsReady(): Promise<boolean> {
 async function withCategoryGroupMode<T extends ShopCatalogProjectionQueryInput>(
   raw: T
 ): Promise<T> {
-  const categoryGroupsReadyValue = raw.categoryGroupsReady ?? (await categoryGroupsReady());
-  let category = raw.category;
-  // A group renamed in the admin is sent back by the client under its new label.
-  if (categoryGroupsReadyValue && category && !resolveShopStockCategoryGroupId(category)) {
-    const renamedId = resolveShopCategoryGroupIdFromSettings(
-      category,
-      await loadShopCategoryGroupSettings()
-    );
-    if (renamedId) category = renamedId;
-  }
-  if (raw.categoryGroupsReady != null && category === raw.category) return raw;
-  return { ...raw, category, categoryGroupsReady: categoryGroupsReadyValue };
+  if (raw.categoryGroupsReady != null) return raw;
+  return { ...raw, categoryGroupsReady: await categoryGroupsReady() };
 }
 
 export async function countShopCatalogProjection(
@@ -1199,8 +1186,7 @@ export async function queryShopCatalogProjectionFacets(
   facets.category = raw.categoryGroupsReady
     ? applyShopCategoryGroupSettingsToFacet(
         facets.category,
-        await loadShopCategoryGroupSettings(),
-        raw.locale
+        await loadShopCategoryGroupSettings()
       )
     : facets.category.sort((left, right) => right.count - left.count);
   if (raw.make && facets.model.length) {
