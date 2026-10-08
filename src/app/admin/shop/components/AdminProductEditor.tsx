@@ -1,5 +1,6 @@
 "use client";
 
+import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
 import {
   managedAdminPriceChange,
@@ -206,6 +207,7 @@ type ProductFormState = {
   vendor: string;
   productType: string;
   productCategory: string;
+  categoryGroupOverride: string;
   categoryId: string;
   tagsText: string;
   collectionIds: string[];
@@ -279,6 +281,7 @@ type ProductResponse = {
   vendor: string | null;
   productType: string | null;
   productCategory: string | null;
+  categoryGroupOverride?: string | null;
   categoryId: string | null;
   category: CategoryOption | null;
   tags: string[];
@@ -625,6 +628,7 @@ function createEmptyForm(): ProductFormState {
     vendor: "",
     productType: "",
     productCategory: "",
+    categoryGroupOverride: "",
     categoryId: "",
     tagsText: "",
     collectionIds: [],
@@ -695,6 +699,7 @@ function productToForm(product: ProductResponse): ProductFormState {
     vendor: product.vendor ?? "",
     productType: product.productType ?? "",
     productCategory: product.productCategory ?? "",
+    categoryGroupOverride: product.categoryGroupOverride ?? "",
     categoryId: product.categoryId ?? "",
     tagsText: commaList(stripStorefrontTags(product.tags)),
     collectionIds: product.collectionIds ?? product.collections.map((collection) => collection.id),
@@ -860,6 +865,7 @@ function buildPayload(form: ProductFormState) {
     vendor: form.vendor || null,
     productType: form.productType || null,
     productCategory: form.productCategory || null,
+    categoryGroupOverride: form.categoryGroupOverride || null,
     categoryId: form.categoryId || null,
     tags: cleanArrayText(form.tagsText),
     collectionIds: form.collectionIds,
@@ -3360,6 +3366,18 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     label="Категорія товару"
                     value={form.productCategory}
                     onChange={(value) => updateField("productCategory", value)}
+                  />
+                  <SelectField
+                    label="Група товарів у фільтрі каталогу"
+                    value={form.categoryGroupOverride}
+                    onChange={(value) => updateField("categoryGroupOverride", value)}
+                    options={[
+                      { value: "", label: "Автоматично (за таксономією)" },
+                      ...SHOP_STOCK_CATEGORY_GROUPS.map((group) => ({
+                        value: group.id,
+                        label: group.ua,
+                      })),
+                    ]}
                   />
                   <InputField
                     label="Категорія (UA)"

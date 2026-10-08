@@ -143,3 +143,20 @@ test("admin snapshot fails closed when fitment is absent and preserves universal
     values: ["moto"],
   });
 });
+
+test("a manual product group pin wins over the admin category slug", async () => {
+  const { buildShopCatalogProjectionSourceFromAdminRecord } = await snapshotModule;
+  const base = {
+    id: "pin-product", brand: "DO88", scope: "auto", sku: "PIN-1", slug: "pin-1",
+    category: { id: "c1", slug: "exhaust", titleUa: "Вихлоп", titleEn: "Exhaust" },
+    metafields: [], variants: [], options: [], media: [], tags: [], collections: [],
+  };
+  const build = (extra: object) =>
+    buildShopCatalogProjectionSourceFromAdminRecord(
+      { ...base, ...extra } as unknown as Parameters<typeof buildShopCatalogProjectionSourceFromAdminRecord>[0],
+      "1",
+      0
+    );
+  assert.equal(build({}).categoryGroupKey, "exhaust");
+  assert.equal(build({ categoryGroupOverride: "brakes" }).categoryGroupKey, "brakes");
+});

@@ -264,7 +264,8 @@ export function buildShopCatalogProjectionSourceFromAdminRecord(
       : null,
     productTypeKey: record.productType,
     productKindKey: record.productCategory,
-    categoryGroupKey: record.category?.slug ?? null,
+    // A manual pin wins over the admin category slug; unpinned products derive from the taxonomy.
+    categoryGroupKey: record.categoryGroupOverride ?? record.category?.slug ?? null,
     locales: {
       ua: {
         title: record.titleUa,
