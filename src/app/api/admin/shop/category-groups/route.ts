@@ -53,6 +53,8 @@ export async function PUT(request: NextRequest) {
           where: { id: group.id },
           create: group,
           update: {
+            titleUa: group.titleUa,
+            titleEn: group.titleEn,
             sortOrder: group.sortOrder,
             isPublished: group.isPublished,
           },

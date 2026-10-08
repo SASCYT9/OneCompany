@@ -73,7 +73,8 @@ export type StockSuggestion =
 
 export type FilterStats = {
   brands: Array<{ label: string; count: number }>;
-  categories: Array<{ label: string; count: number }>;
+  /** `key` is the stable group id; filters are submitted by key so labels may be renamed. */
+  categories: Array<{ label: string; count: number; key?: string }>;
   stock: {
     all: number;
     inStock: number;

@@ -1186,7 +1186,8 @@ export async function queryShopCatalogProjectionFacets(
   facets.category = raw.categoryGroupsReady
     ? applyShopCategoryGroupSettingsToFacet(
         facets.category,
-        await loadShopCategoryGroupSettings()
+        await loadShopCategoryGroupSettings(),
+        raw.locale
       )
     : facets.category.sort((left, right) => right.count - left.count);
   if (raw.make && facets.model.length) {

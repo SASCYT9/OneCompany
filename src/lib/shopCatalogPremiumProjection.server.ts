@@ -479,7 +479,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     brands: [...brandCounts.entries()]
       .map(([label, count]) => ({ label, count }))
       .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label)),
-    categories: facetResult.facets.category.map(({ label, count }) => ({ label, count })),
+    categories: facetResult.facets.category.map(({ key, label, count }) => ({ key, label, count })),
     stock: {
       all: totalItems,
       inStock: stockSummary.inStock,

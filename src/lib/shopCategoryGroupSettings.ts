@@ -1,3 +1,4 @@
+import { normalizeShopSearchText } from "@/lib/shopSearch";
 import { SHOP_STOCK_CATEGORY_GROUPS, type ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
 
 export type ShopCategoryGroupSetting = {
@@ -7,6 +8,8 @@ export type ShopCategoryGroupSetting = {
   sortOrder: number;
   isPublished: boolean;
 };
+
+const MAX_TITLE_LENGTH = 80;
 
 export type ShopCategoryGroupSettingRow = Partial<Omit<ShopCategoryGroupSetting, "id">> & {
   id: string;
@@ -36,8 +39,8 @@ export function mergeShopCategoryGroupSettings(
     if (!row) return base;
     return {
       id: base.id,
-      titleUa: base.titleUa,
-      titleEn: base.titleEn,
+      titleUa: row.titleUa?.trim() || base.titleUa,
+      titleEn: row.titleEn?.trim() || base.titleEn,
       sortOrder: Number.isFinite(row.sortOrder) ? Number(row.sortOrder) : base.sortOrder,
       isPublished: row.isPublished ?? base.isPublished,
     };
@@ -65,18 +68,33 @@ export function normalizeShopCategoryGroupSettingsPayload(body: unknown): {
       continue;
     }
     seen.add(id);
+    const base = SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === id)!;
+    const titleUa = typeof item.titleUa === "string" && item.titleUa.trim() ? item.titleUa.trim() : base.ua;
+    const titleEn = typeof item.titleEn === "string" && item.titleEn.trim() ? item.titleEn.trim() : base.en;
+    if (titleUa.length > MAX_TITLE_LENGTH || titleEn.length > MAX_TITLE_LENGTH) {
+      errors.push(`${id}: title is too long`);
+    }
     const sortOrder = Number(item.sortOrder);
     if (!Number.isInteger(sortOrder) || Math.abs(sortOrder) > 100_000) {
       errors.push(`${id}: sortOrder must be an integer`);
     }
-    const base = SHOP_STOCK_CATEGORY_GROUPS.find((group) => group.id === id)!;
     data.push({
       id: id as ShopStockCategoryGroupId,
-      titleUa: base.ua,
-      titleEn: base.en,
+      titleUa,
+      titleEn,
       sortOrder,
       isPublished: item.isPublished !== false,
     });
+  }
+  // Two groups sharing a title would be indistinguishable in the facet.
+  const owners = new Map<string, string>();
+  for (const group of mergeShopCategoryGroupSettings(data)) {
+    for (const title of [group.titleUa, group.titleEn]) {
+      const key = normalizeShopSearchText(title);
+      const owner = owners.get(key);
+      if (owner && owner !== group.id) errors.push(`${group.id}: title "${title}" is already used by ${owner}`);
+      else owners.set(key, group.id);
+    }
   }
   return { data, errors };
 }
@@ -84,16 +102,21 @@ export function normalizeShopCategoryGroupSettingsPayload(body: unknown): {
 type FacetItem = { key: string; label: string; count: number };
 
 /**
- * Applies editor visibility and order to the category facet. Labels stay the code
- * taxonomy titles: filter values are submitted as labels, so renaming needs stable keys first.
+ * Applies editor labels, visibility and order to the category facet. Filters are
+ * submitted by `key`, so renaming a label never changes what a filter selects.
  */
 export function applyShopCategoryGroupSettingsToFacet<T extends FacetItem>(
   items: T[],
-  settings: ShopCategoryGroupSetting[]
+  settings: ShopCategoryGroupSetting[],
+  locale: string
 ): T[] {
   const byId = new Map<string, ShopCategoryGroupSetting>(settings.map((item) => [item.id, item]));
   return items
     .filter((item) => byId.get(item.key)?.isPublished !== false)
+    .map((item) => {
+      const setting = byId.get(item.key);
+      return setting ? { ...item, label: locale === "en" ? setting.titleEn : setting.titleUa } : item;
+    })
     .sort((left, right) => {
       const leftOrder = byId.get(left.key)?.sortOrder ?? 5_000;
       const rightOrder = byId.get(right.key)?.sortOrder ?? 5_000;
