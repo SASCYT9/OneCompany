@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
+import { normalizeShopSearchText } from "@/lib/shopSearch";
 import {
+  defaultShopCategoryGroupSettings,
   mergeShopCategoryGroupSettings,
   normalizeShopCategoryGroupSettingsPayload,
 } from "@/lib/shopCategoryGroupSettings";
@@ -47,6 +49,34 @@ export async function PUT(request: NextRequest) {
     const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_WRITE);
     const { data, errors } = normalizeShopCategoryGroupSettingsPayload(await request.json());
     if (errors.length) return NextResponse.json({ error: errors.join(", ") }, { status: 400 });
+    // Filter values that match an admin category slug/label must stay reachable as that category.
+    const categories = await prisma.shopCategory.findMany({
+      select: { slug: true, titleUa: true, titleEn: true },
+    });
+    const reserved = new Set(
+      categories.flatMap((category) =>
+        [category.slug, category.titleUa, category.titleEn].map((value) => normalizeShopSearchText(value))
+      )
+    );
+    // Built-in titles stay allowed so an untouched group can always be saved.
+    const builtIn = new Set(
+      defaultShopCategoryGroupSettings().flatMap((group) => [
+        normalizeShopSearchText(group.titleUa),
+        normalizeShopSearchText(group.titleEn),
+      ])
+    );
+    const clashes = data
+      .flatMap((group) => [group.titleUa, group.titleEn])
+      .filter((title) => {
+        const key = normalizeShopSearchText(title);
+        return reserved.has(key) && !builtIn.has(key);
+      });
+    if (clashes.length) {
+      return NextResponse.json(
+        { error: `Назва збігається з адмін-категорією: ${[...new Set(clashes)].join(", ")}` },
+        { status: 400 }
+      );
+    }
     await prisma.$transaction(
       data.map((group) =>
         prisma.shopCategoryGroup.upsert({

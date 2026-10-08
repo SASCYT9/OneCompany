@@ -187,7 +187,7 @@ async function main() {
   }
   console.log("new group distribution (ua rows):");
   for (const [group, count] of [...groups].sort((a, b) => b[1] - a[1])) console.log(`  ${group}: ${count}`);
-  process.exitCode = identical === products - noRevision && !missingRows && !noRevision ? 0 : 2;
+  process.exitCode = identical === products - noRevision && !missingRows && !noRevision && !unreadable.length ? 0 : 2;
 }
 
 main().catch((error) => {

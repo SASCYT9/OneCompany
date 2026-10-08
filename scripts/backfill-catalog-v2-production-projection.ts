@@ -7,7 +7,7 @@ import { planShopCatalogProjectionPersistence } from "../src/lib/shopCatalogProj
 import { projectionSourceFromRevision } from "../src/lib/shopCatalogProjectionSource.server";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "../src/lib/shopStockTaxonomy";
 
-const SHOP_STOCK_CATEGORY_GROUP_IDS = new Set(SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id));
+const SHOP_STOCK_CATEGORY_GROUP_IDS = new Set<string>(SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id));
 
 const PAGE_SIZE = Number(process.argv.find((argument) => argument.startsWith("--page-size="))?.slice("--page-size=".length)) || 50;
 
@@ -62,11 +62,18 @@ async function main() {
       if (!products.length) break;
 
       const existing = await client.shopCatalogProjection.findMany({
-        where: { locale: "ua", productId: { in: products.map((product) => product.id) } },
-        select: { productId: true, categoryGroupKey: true },
+        where: { productId: { in: products.map((product) => product.id) } },
+        select: { productId: true, locale: true, categoryGroupKey: true },
       });
-      const existingIds = new Set(existing.map((row) => row.productId));
-      const groupedIds = new Set(existing.filter((row) => row.categoryGroupKey && SHOP_STOCK_CATEGORY_GROUP_IDS.has(row.categoryGroupKey)).map((row) => row.productId));
+      const existingIds = new Set(existing.filter((row) => row.locale === "ua").map((row) => row.productId));
+      // Grouped means every locale row carries a valid group id (the readiness probe checks all of them).
+      const validLocales = new Map<string, Set<string>>();
+      for (const row of existing) {
+        if (row.categoryGroupKey && SHOP_STOCK_CATEGORY_GROUP_IDS.has(row.categoryGroupKey)) {
+          validLocales.set(row.productId, (validLocales.get(row.productId) ?? new Set()).add(row.locale));
+        }
+      }
+      const groupedIds = new Set([...validLocales].filter(([, locales]) => locales.has("ua") && locales.has("en")).map(([id]) => id));
       const candidates = onlyUngrouped ? products.filter((product) => !groupedIds.has(product.id)) : products;
       const pendingProducts = replaceExisting ? candidates : candidates.filter((product) => !existingIds.has(product.id));
 
