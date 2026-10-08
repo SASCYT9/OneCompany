@@ -339,3 +339,19 @@ test("a model tag that only lists chassis and engine codes yields to the models 
   );
   assert.deepEqual(tagged.models, ["3 Series"]);
 });
+
+test("a series group tag yields to the exact model the title names", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "Remus",
+      title: {
+        ua: "Racing cat-back exhaust for BMW X3 M F97 & Competition",
+        en: "Racing cat-back exhaust for BMW X3 M F97 & Competition",
+      },
+      tags: ["fits-make:bmw", "fits-model:bmw:x-series", "fits-trim:bmw:x-series:1"],
+    })
+  );
+  // `X3` nested in `X3 M` and the `X Series` group are not added.
+  assert.deepEqual(fitment.models, ["X3 M"]);
+  assert.deepEqual(fitment.chassisCodes, ["F97"]);
+});

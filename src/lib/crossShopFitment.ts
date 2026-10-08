@@ -1932,6 +1932,11 @@ function extractChassisFromText(text: string): string[] {
   return [...found];
 }
 
+/** Supplier group labels that span several models (`X Series`), not a model. */
+function isModelGroupPlaceholder(model: string) {
+  return /^(?:x|z|m)\s*-?\s*series$/i.test(model.trim());
+}
+
 /** A model tag that names chassis codes and no known model of the make. */
 function isChassisListModelTag(model: string, make?: string | null) {
   const tokens = model.toUpperCase().split(/[\s,/]+/).filter(Boolean);
@@ -3208,6 +3213,28 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     models = extractTagModels(product, make);
     if (models.length === 0) {
       models = detectModelsFromText(fitmentEvidenceText, make);
+    } else if (
+      make &&
+      MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length &&
+      models.every(
+        (model) => !isKnownVehicleModelForMake(make!, model) || isModelGroupPlaceholder(model)
+      )
+    ) {
+      // A series placeholder (Remus `fits-model:bmw:x-series`) is no model:
+      // the models the title names (`X3 M`) are the stronger evidence.
+      // Drop group labels and a base model nested in a named variant
+      // (`X3` inside `X3 M`), which would widen the fitment.
+      const detected = detectModelsFromText(fitmentEvidenceText, make).filter(
+        (model) => !isModelGroupPlaceholder(model)
+      );
+      const titleModels = detected.filter(
+        (model) =>
+          !detected.some(
+            (other) =>
+              other !== model && other.toLowerCase().startsWith(`${model.toLowerCase()} `)
+          )
+      );
+      if (titleModels.length > 0) models = titleModels;
     }
   }
 
