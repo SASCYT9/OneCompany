@@ -2540,22 +2540,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         )
       : nonEmptyCategories;
 
-    return [...matches].sort((left, right) => {
-      if (left === localCategory) return -1;
-      if (right === localCategory) return 1;
-      const countDiff =
-        (categoryCountByLabel.get(right) ?? 0) - (categoryCountByLabel.get(left) ?? 0);
-      if (countDiff !== 0) return countDiff;
-      return left.localeCompare(right, locale === "ua" ? "uk" : "en");
-    });
-  }, [
-    categoryCountByLabel,
-    categoryFilterQuery,
-    filterStats,
-    localCategories,
-    localCategory,
-    locale,
-  ]);
+    // The server already orders groups (editor sort order, then size); only the selection floats up.
+    return [...matches].sort(
+      (left, right) => Number(right === localCategory) - Number(left === localCategory)
+    );
+  }, [categoryFilterQuery, filterStats, localCategories, localCategory, categoryCountByLabel]);
 
   const visibleBrands = useMemo(() => {
     const needle = normalizeFacetSearchText(brandFilterQuery);

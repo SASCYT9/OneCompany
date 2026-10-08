@@ -214,6 +214,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "categories",
       },
       {
+        href: "/admin/shop/category-groups",
+        label: "Групи товарів",
+        description: "Назви, порядок і видимість груп у фільтрі каталогу.",
+        icon: "categories",
+      },
+      {
         href: "/admin/shop/collections",
         label: "Колекції",
         description: "Маркетингові колекції та прив’язки до сторінок.",
@@ -395,6 +401,7 @@ const ADMIN_NAV_PERMISSION_BY_HREF: Readonly<Record<string, readonly string[]>> 
   "/admin/shop": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
   "/admin/shop/inventory": [ADMIN_PERMISSIONS.SHOP_INVENTORY_READ],
   "/admin/shop/categories": [ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ],
+  "/admin/shop/category-groups": [ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ],
   "/admin/shop/collections": [ADMIN_PERMISSIONS.SHOP_COLLECTIONS_READ],
   "/admin/shop/bundles": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
   "/admin/shop/catalogs": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],
