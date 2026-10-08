@@ -10,6 +10,7 @@ import {
   parseNormalizedFitment,
   resolveSearchFitment,
   resolveSearchFitments,
+  withTitleChassisCodes,
 } from "../../../src/lib/shopFitmentQuality";
 import { extractProductFitment } from "../../../src/lib/crossShopFitment";
 
@@ -341,5 +342,63 @@ test("manual mapping preserves multiple independent vehicle applications", () =>
   assert.deepEqual(
     searchFitments.map((fitment) => fitment.make),
     ["Toyota", "Subaru"]
+  );
+});
+
+function supplierFitment(chassisCodes: string[], models = ["M5"]) {
+  return JSON.stringify(
+    normalizeManualFitment(
+      {
+        status: "verified",
+        applications: [
+          { vehicleType: "car", make: "BMW", models, chassisCodes, yearRanges: [] },
+        ],
+      },
+      "admin"
+    ).data
+  );
+}
+
+test("title chassis of the same model widen a narrower supplier table", () => {
+  const automatic = extractProductFitment(
+    product({
+      brand: "WheelForce",
+      title: {
+        ua: "Комплект дисків WheelForce R.2-FG Rhodium 22″ для BMW M5 G90/G99",
+        en: "WheelForce R.2-FG Rhodium 22″ wheel set for BMW M5 G90/G99",
+      },
+    })
+  );
+  const [fitment] = resolveSearchFitments(automatic, supplierFitment(["G99"]));
+  assert.deepEqual(fitment.chassisCodes, ["G99", "G90"]);
+});
+
+test("title chassis are not added for another model or an unknown chassis", () => {
+  const automatic = {
+    make: "BMW",
+    models: ["M5"],
+    chassisCodes: ["G90", "G80", "X99"],
+    yearRanges: [],
+    confidence: "high" as const,
+  };
+  // M3 application: the M5 title must not widen it.
+  assert.deepEqual(
+    withTitleChassisCodes({ make: "BMW", models: ["M3"], chassisCodes: ["G80"] }, automatic),
+    ["G80"]
+  );
+  // Only known chassis of the shared model (G80 is an M3, X99 is unknown).
+  assert.deepEqual(
+    withTitleChassisCodes({ make: "BMW", models: ["M5"], chassisCodes: ["F90"] }, automatic),
+    ["F90", "G90"]
+  );
+  // An application without chassis already matches every chassis.
+  assert.deepEqual(
+    withTitleChassisCodes({ make: "BMW", models: ["M5"], chassisCodes: [] }, automatic),
+    []
+  );
+  // Another make never borrows the title codes.
+  assert.deepEqual(
+    withTitleChassisCodes({ make: "Audi", models: ["M5"], chassisCodes: ["C8"] }, automatic),
+    ["C8"]
   );
 });

@@ -490,16 +490,7 @@ async function loadShopBrowseProductsWithFitments() {
     .filter((product) => normalizeShopSearchText(product.brand) === "wheelforce")
     .map((product) => product.id)
     .filter((id): id is string => Boolean(id));
-  const fitmentOverrides = wheelForceIds.length
-    ? await prisma.shopProductMetafield.findMany({
-        where: {
-          productId: { in: wheelForceIds },
-          namespace: NORMALIZED_FITMENT_NAMESPACE,
-          key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-        },
-        select: { productId: true, key: true, value: true },
-      })
-    : [];
+  const fitmentOverrides = await readFitmentMetafieldsInBatches(wheelForceIds);
   const overrides = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
     const current = overrides.get(item.productId) ?? {};
@@ -552,15 +543,20 @@ async function loadShopProductsWithFitments() {
     return cachedProductsWithFitment;
   }
 
+  // Supplier contracts are large: list the owners first, then read the values
+  // in bounded batches so the catalog read never exceeds a response limit.
   const [products, fitmentOverrides] = await Promise.all([
     getShopFitmentCatalogProducts(),
-    prisma.shopProductMetafield.findMany({
-      where: {
-        namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-      },
-      select: { productId: true, key: true, value: true },
-    }),
+    prisma.shopProductMetafield
+      .findMany({
+        where: {
+          namespace: NORMALIZED_FITMENT_NAMESPACE,
+          key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+        },
+        select: { productId: true },
+        distinct: ["productId"],
+      })
+      .then((owners) => readFitmentMetafieldsInBatches(owners.map((owner) => owner.productId))),
   ]);
   const fitmentOverrideByProductId = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
