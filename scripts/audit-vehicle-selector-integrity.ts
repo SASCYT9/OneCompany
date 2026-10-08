@@ -40,8 +40,8 @@ async function getJson<T>(url: string, attempt = 1): Promise<T> {
     if (!response.ok) throw new Error(`${response.status}`);
     return (await response.json()) as T;
   } catch (error) {
-    if (attempt < 5) {
-      await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+    if (attempt < 7) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * 3000));
       return getJson<T>(url, attempt + 1);
     }
     throw new Error(`${(error as Error).message} ${url}`);
