@@ -32,7 +32,7 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     TT: ["TT I", "TT Roadster"],
   },
   Bentley: {
-    Continental: ["Continental GT"],
+    Continental: ["Continental GT", "Continental GTC"],
   },
   Cadillac: {
     ATS: ["ATS-V"],

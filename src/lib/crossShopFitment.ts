@@ -3239,9 +3239,9 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     } else if (
       make &&
       MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length &&
-      models.every(
-        (model) => !isKnownVehicleModelForMake(make!, model) || isModelGroupPlaceholder(model)
-      )
+      // Unknown tag models stay: supplier tags cover more models than the
+      // title patterns. Only a group label is replaced.
+      models.every((model) => isModelGroupPlaceholder(model))
     ) {
       // A series placeholder (Remus `fits-model:bmw:x-series`) is no model:
       // the models the title names (`X3 M`) are the stronger evidence.

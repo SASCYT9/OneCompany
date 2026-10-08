@@ -371,3 +371,26 @@ test("BMW 2 Series MPVs and current platforms keep their own model and chassis",
   ]);
   assert.deepEqual(g60.chassisCodes, ["G60"]);
 });
+
+test("a supplier model tag the title patterns do not know is kept", () => {
+  const bipper = extractProductFitment(
+    product({
+      brand: "RaceChip",
+      title: {
+        ua: "RaceChip GTS 5 — Peugeot Bipper (2008+) 1.3 HDI 75 1248cc",
+        en: "RaceChip GTS 5 — Peugeot Bipper (2008+) 1.3 HDI 75 1248cc",
+      },
+      tags: ["car_make:peugeot", "car_model:bipper-from-2008", "fits-make:peugeot", "fits-model:peugeot:bipper"],
+    })
+  );
+  // The model year `(2008+)` must never become the Peugeot 2008.
+  assert.deepEqual(bipper.models, ["Bipper"]);
+  const volvo = extractProductFitment(
+    product({
+      brand: "DO88",
+      title: { ua: "Volvo 240 740 940 Manual 75-98 Radiator", en: "Volvo 240 740 940 Manual 75-98 Radiator" },
+      tags: ["fits-make:volvo", "fits-model:volvo:240"],
+    })
+  );
+  assert.deepEqual(volvo.models, ["240"]);
+});

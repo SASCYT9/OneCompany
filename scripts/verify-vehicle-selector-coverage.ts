@@ -26,8 +26,8 @@ const CONCURRENCY = Math.max(1, Number(process.env.VERIFY_CONCURRENCY) || 4);
 async function getJson<T>(url: string, attempt = 1): Promise<T> {
   const response = await fetch(url, { headers: { accept: "application/json" } });
   if (!response.ok) {
-    if (attempt < 4 && response.status >= 500) {
-      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    if (attempt < 7 && response.status >= 500) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * 3000));
       return getJson(url, attempt + 1);
     }
     throw new Error(`${response.status} ${url}`);
