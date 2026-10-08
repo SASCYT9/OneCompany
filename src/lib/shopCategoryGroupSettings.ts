@@ -86,7 +86,10 @@ export function normalizeShopCategoryGroupSettingsPayload(body: unknown): {
       isPublished: item.isPublished !== false,
     });
   }
-  const owners = new Map<string, string>();
+  // Group ids resolve as filter values too, so no title may shadow another group's id.
+  const owners = new Map<string, string>(
+    SHOP_STOCK_CATEGORY_GROUPS.map((group) => [normalizeShopSearchText(group.id), group.id])
+  );
   for (const group of mergeShopCategoryGroupSettings(data)) {
     for (const title of [group.titleUa, group.titleEn]) {
       const key = normalizeShopSearchText(title);

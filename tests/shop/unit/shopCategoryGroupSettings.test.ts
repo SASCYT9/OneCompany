@@ -69,4 +69,11 @@ test("shop category group settings", async (t) => {
     ]);
     assert.ok(errors.some((message) => message.includes("already used")));
   });
+
+  await t.test("rejects titles that equal another group's id", () => {
+    const { errors } = normalizeShopCategoryGroupSettingsPayload([
+      { id: "exhaust", titleUa: "Brakes", titleEn: "Exhaust systems", sortOrder: 0 },
+    ]);
+    assert.ok(errors.some((message) => message.includes("already used")));
+  });
 });
