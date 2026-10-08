@@ -87,6 +87,7 @@ test("partial import update preserves every omitted nested relation", () => {
   assert.equal(update.variants, undefined);
   assert.equal(update.metafields, undefined);
   assert.equal(update.category, undefined);
+  assert.equal(update.categoryGroupOverride, undefined, "a supplier sync must not clear a manual group pin");
   assert.equal(update.tags, undefined);
   assert.equal(update.image, undefined);
   assert.equal(update.gallery, undefined);

@@ -1,5 +1,6 @@
 "use client";
 
+import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { isShopSourcePriceBook } from "@/lib/shopPriceBookCurrency";
 import {
   managedAdminPriceChange,
@@ -206,6 +207,7 @@ type ProductFormState = {
   vendor: string;
   productType: string;
   productCategory: string;
+  categoryGroupOverride: string;
   categoryId: string;
   tagsText: string;
   collectionIds: string[];
@@ -279,6 +281,7 @@ type ProductResponse = {
   vendor: string | null;
   productType: string | null;
   productCategory: string | null;
+  categoryGroupOverride?: string | null;
   categoryId: string | null;
   category: CategoryOption | null;
   tags: string[];
@@ -625,6 +628,7 @@ function createEmptyForm(): ProductFormState {
     vendor: "",
     productType: "",
     productCategory: "",
+    categoryGroupOverride: "",
     categoryId: "",
     tagsText: "",
     collectionIds: [],
@@ -695,6 +699,7 @@ function productToForm(product: ProductResponse): ProductFormState {
     vendor: product.vendor ?? "",
     productType: product.productType ?? "",
     productCategory: product.productCategory ?? "",
+    categoryGroupOverride: product.categoryGroupOverride ?? "",
     categoryId: product.categoryId ?? "",
     tagsText: commaList(stripStorefrontTags(product.tags)),
     collectionIds: product.collectionIds ?? product.collections.map((collection) => collection.id),
@@ -860,6 +865,7 @@ function buildPayload(form: ProductFormState) {
     vendor: form.vendor || null,
     productType: form.productType || null,
     productCategory: form.productCategory || null,
+    categoryGroupOverride: form.categoryGroupOverride || null,
     categoryId: form.categoryId || null,
     tags: cleanArrayText(form.tagsText),
     collectionIds: form.collectionIds,
@@ -1042,6 +1048,24 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [success, setSuccess] = useState("");
   const [slugTouched, setSlugTouched] = useState(isEditing);
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
+  // Labels come from the admin-editable group settings; code titles are the fallback.
+  const [groupOptions, setGroupOptions] = useState(
+    SHOP_STOCK_CATEGORY_GROUPS.map((group) => ({ value: String(group.id), label: group.ua }))
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/admin/shop/category-groups")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((groups: Array<{ id: string; titleUa: string }> | null) => {
+        if (!cancelled && Array.isArray(groups)) {
+          setGroupOptions(groups.map((group) => ({ value: group.id, label: group.titleUa })));
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [rates, setRates] = useState<Record<string, number>>(DEFAULT_RATES);
   const [autoConvert, setAutoConvert] = useState<boolean>(true);
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
@@ -3360,6 +3384,15 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     label="Категорія товару"
                     value={form.productCategory}
                     onChange={(value) => updateField("productCategory", value)}
+                  />
+                  <SelectField
+                    label="Група товарів у фільтрі каталогу"
+                    value={form.categoryGroupOverride}
+                    onChange={(value) => updateField("categoryGroupOverride", value)}
+                    options={[
+                      { value: "", label: "Автоматично (за таксономією)" },
+                      ...groupOptions,
+                    ]}
                   />
                   <InputField
                     label="Категорія (UA)"

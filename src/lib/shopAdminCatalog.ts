@@ -7,6 +7,7 @@ import {
   SHOP_STOREFRONT_DISPLAY_NAMESPACE,
   SHOP_STOREFRONT_DISPLAY_KEY,
 } from "@/lib/shopStorefrontDisplay";
+import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import { resolveBundleInventory } from "@/lib/shopBundles";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import {
@@ -439,6 +440,7 @@ export type AdminShopProductPayload = {
   vendor?: string | null;
   productType?: string | null;
   productCategory?: string | null;
+  categoryGroupOverride?: string | null;
   categoryId?: string | null;
   tags: string[];
   collectionIds: string[];
@@ -512,6 +514,7 @@ const adminProductImportProductScalarFields = [
   "vendor",
   "productType",
   "productCategory",
+  "categoryGroupOverride",
   "status",
   "titleUa",
   "titleEn",
@@ -645,6 +648,12 @@ function sanitizeSlug(value: unknown): string {
 function nullableString(value: unknown): string | null {
   const trimmed = String(value ?? "").trim();
   return trimmed ? trimmed : null;
+}
+
+/** A manual group pin must be a known taxonomy group id; anything else clears it. */
+function categoryGroupOverrideValue(value: unknown): string | null {
+  const id = nullableString(value);
+  return id && SHOP_STOCK_CATEGORY_GROUPS.some((group) => group.id === id) ? id : null;
 }
 
 function stringValue(value: unknown, fallback = ""): string {
@@ -926,6 +935,7 @@ export function normalizeAdminProductPayload(input: unknown): NormalizedResult {
     vendor: nullableString(source.vendor),
     productType: nullableString(source.productType),
     productCategory: nullableString(source.productCategory),
+    categoryGroupOverride: categoryGroupOverrideValue(source.categoryGroupOverride),
     categoryId: nullableString(source.categoryId),
     tags: replaceStorefrontTag(rawTags, storefront),
     collectionIds: uniqueStrings(stringArray(source.collectionIds)),
@@ -1139,6 +1149,7 @@ function buildAdminProductScalarMutationData(data: AdminShopProductPayload) {
     vendor: data.vendor ?? null,
     productType: data.productType ?? null,
     productCategory: data.productCategory ?? null,
+    categoryGroupOverride: data.categoryGroupOverride ?? null,
     category: data.categoryId ? { connect: { id: data.categoryId } } : { disconnect: true },
     tags: data.tags,
     status: data.status,
@@ -1336,6 +1347,8 @@ export function buildAdminProductImportUpdateData(
   // CSV has no category-id/highlights columns. Missing values must not detach or
   // erase data that was authored in the admin editor.
   if (!data.categoryId) delete update.category;
+  // Imports and supplier syncs do not carry the manual group pin; keep the stored one.
+  if (!data.categoryGroupOverride) delete update.categoryGroupOverride;
   delete update.highlights;
   if (!mask.tags) delete update.tags;
   if (!mask.media) {
@@ -1836,6 +1849,7 @@ export function serializeAdminProduct(record: AdminShopProductRecord) {
     vendor: record.vendor,
     productType: record.productType,
     productCategory: record.productCategory,
+    categoryGroupOverride: record.categoryGroupOverride,
     categoryId: record.categoryId,
     category: record.category
       ? {

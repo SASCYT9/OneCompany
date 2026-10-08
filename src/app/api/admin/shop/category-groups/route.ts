@@ -31,7 +31,13 @@ async function currentGroups() {
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ);
+    // The product editor reads these labels for its group selector, so product readers qualify too.
+    try {
+      await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CATEGORIES_READ);
+    } catch (error) {
+      if ((error as Error).message !== "FORBIDDEN") throw error;
+      await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ);
+    }
     return NextResponse.json(await currentGroups());
   } catch (error) {
     const response = authError(error);
