@@ -32,13 +32,15 @@ async function main() {
   const force = process.argv.includes("--force");
   const fromRevisions = process.argv.includes("--from-revisions");
   const onlyUngrouped = process.argv.includes("--only-ungrouped");
+  // --only-ungrouped is scoped on its own: it never wipes the tables and replaces just the selected rows.
+  const replaceExisting = force || onlyUngrouped;
   const client = new PrismaClient();
   let afterId: string | undefined;
   let processed = 0;
   let applied = 0;
 
   try {
-    if (!process.argv.includes("--resume")) {
+    if (!process.argv.includes("--resume") && !onlyUngrouped) {
       await client.$transaction(async (tx) => {
         await tx.shopCatalogProjectionConstraint.deleteMany();
         await tx.shopCatalogProjectionClause.deleteMany();
@@ -66,7 +68,7 @@ async function main() {
       const existingIds = new Set(existing.map((row) => row.productId));
       const groupedIds = new Set(existing.filter((row) => row.categoryGroupKey && SHOP_STOCK_CATEGORY_GROUP_IDS.has(row.categoryGroupKey)).map((row) => row.productId));
       const candidates = onlyUngrouped ? products.filter((product) => !groupedIds.has(product.id)) : products;
-      const pendingProducts = force ? candidates : candidates.filter((product) => !existingIds.has(product.id));
+      const pendingProducts = replaceExisting ? candidates : candidates.filter((product) => !existingIds.has(product.id));
 
       const revisions = fromRevisions && pendingProducts.length ? await client.shopCatalogProductRevision.findMany({
         where: { productId: { in: pendingProducts.map((product) => product.id) } },
@@ -102,7 +104,7 @@ async function main() {
         return planShopCatalogProjectionPersistence([], buildShopCatalogProjection(source));
       });
       await client.$transaction(async (tx) => {
-        if (force && pendingProducts.length) {
+        if (replaceExisting && pendingProducts.length) {
           const productIds = pendingProducts.map((product) => product.id);
           await tx.shopCatalogProjectionConstraint.deleteMany({ where: { productId: { in: productIds } } });
           await tx.shopCatalogProjectionClause.deleteMany({ where: { productId: { in: productIds } } });

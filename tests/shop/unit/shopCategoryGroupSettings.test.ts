@@ -6,6 +6,7 @@ import {
   defaultShopCategoryGroupSettings,
   mergeShopCategoryGroupSettings,
   normalizeShopCategoryGroupSettingsPayload,
+  resolveShopCategoryGroupIdFromSettings,
 } from "@/lib/shopCategoryGroupSettings";
 
 test("shop category group settings", async (t) => {
@@ -54,5 +55,11 @@ test("shop category group settings", async (t) => {
     const result = applyShopCategoryGroupSettingsToFacet(items, settings, "en");
     assert.deepEqual(result.map((item) => item.key), ["brakes", "exhaust"]);
     assert.equal(result[0].label, "Brake kits");
+  });
+
+  await t.test("a renamed group title resolves back to its stable id", () => {
+    const settings = mergeShopCategoryGroupSettings([{ id: "exhaust", titleUa: "Вихлопи" }]);
+    assert.equal(resolveShopCategoryGroupIdFromSettings("вихлопи", settings), "exhaust");
+    assert.equal(resolveShopCategoryGroupIdFromSettings("Nothing", settings), null);
   });
 });

@@ -24,7 +24,10 @@ import {
   tokenizeShopSearchQuery,
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
-import { applyShopCategoryGroupSettingsToFacet } from "@/lib/shopCategoryGroupSettings";
+import {
+  applyShopCategoryGroupSettingsToFacet,
+  resolveShopCategoryGroupIdFromSettings,
+} from "@/lib/shopCategoryGroupSettings";
 import { loadShopCategoryGroupSettings } from "@/lib/shopCategoryGroupSettings.server";
 import {
   getShopStockCategoryLabel,
@@ -160,8 +163,18 @@ function categoryGroupsReady(): Promise<boolean> {
 async function withCategoryGroupMode<T extends ShopCatalogProjectionQueryInput>(
   raw: T
 ): Promise<T> {
-  if (raw.categoryGroupsReady != null) return raw;
-  return { ...raw, categoryGroupsReady: await categoryGroupsReady() };
+  const categoryGroupsReadyValue = raw.categoryGroupsReady ?? (await categoryGroupsReady());
+  let category = raw.category;
+  // A group renamed in the admin is sent back by the client under its new label.
+  if (categoryGroupsReadyValue && category && !resolveShopStockCategoryGroupId(category)) {
+    const renamedId = resolveShopCategoryGroupIdFromSettings(
+      category,
+      await loadShopCategoryGroupSettings()
+    );
+    if (renamedId) category = renamedId;
+  }
+  if (raw.categoryGroupsReady != null && category === raw.category) return raw;
+  return { ...raw, category, categoryGroupsReady: categoryGroupsReadyValue };
 }
 
 export async function countShopCatalogProjection(

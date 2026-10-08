@@ -1,3 +1,4 @@
+import { normalizeShopSearchText } from "@/lib/shopSearch";
 import { SHOP_STOCK_CATEGORY_GROUPS, type ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
 
 export type ShopCategoryGroupSetting = {
@@ -105,4 +106,26 @@ export function applyShopCategoryGroupSettingsToFacet<T extends FacetItem>(
       const rightOrder = byId.get(right.key)?.sortOrder ?? 5_000;
       return leftOrder - rightOrder || right.count - left.count;
     });
+}
+
+/**
+ * Maps an editor-renamed group title back to its stable id, so a facet label sent
+ * back as the `category` filter keeps resolving after a rename. Returns null when
+ * the value is not a configured title.
+ */
+export function resolveShopCategoryGroupIdFromSettings(
+  value: string | null | undefined,
+  settings: ShopCategoryGroupSetting[]
+): ShopStockCategoryGroupId | null {
+  const needle = normalizeShopSearchText(value ?? "");
+  if (!needle) return null;
+  for (const setting of settings) {
+    if (
+      normalizeShopSearchText(setting.titleUa) === needle ||
+      normalizeShopSearchText(setting.titleEn) === needle
+    ) {
+      return setting.id;
+    }
+  }
+  return null;
 }
