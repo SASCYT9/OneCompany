@@ -355,3 +355,19 @@ test("a series group tag yields to the exact model the title names", () => {
   assert.deepEqual(fitment.models, ["X3 M"]);
   assert.deepEqual(fitment.chassisCodes, ["F97"]);
 });
+
+test("BMW 2 Series MPVs and current platforms keep their own model and chassis", () => {
+  const read = (title: string, tags: string[]) =>
+    extractProductFitment(product({ brand: "RaceChip", title: { ua: title, en: title }, tags }));
+  const tourer = read("RaceChip GTS 5 — BMW 2 Series Active/Gran Tourer F45 F46 (2014+) 220d", [
+    "fits-make:bmw",
+    "fits-model:bmw:2-series-active-gran-tourer",
+  ]);
+  assert.deepEqual(tourer.models, ["2 Series Active Tourer", "2 Series Gran Tourer"]);
+  assert.deepEqual(tourer.chassisCodes, ["F45", "F46"]);
+  const g60 = read("RaceChip GTS 5 — BMW 5 Series G60 (2023+) 540d", [
+    "fits-make:bmw",
+    "fits-model:bmw:5-series",
+  ]);
+  assert.deepEqual(g60.chassisCodes, ["G60"]);
+});

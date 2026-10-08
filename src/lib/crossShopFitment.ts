@@ -148,6 +148,17 @@ const CHASSIS_CODES = new Set([
   "G99",
   "U10",
   "U11",
+  // 2 Series Gran Coupe / Active Tourer / Gran Tourer, current 5 Series,
+  // X3, X5/X6 M-hybrid platforms and the newest Active Tourer / X1 variants.
+  "F44",
+  "F45",
+  "F46",
+  "G45",
+  "G60",
+  "G61",
+  "G68",
+  "U06",
+  "U25",
   // Audi / VW
   "B5",
   "B6",
@@ -808,6 +819,15 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "G99",
     "U10",
     "U11",
+    "F44",
+    "F45",
+    "F46",
+    "G45",
+    "G60",
+    "G61",
+    "G68",
+    "U06",
+    "U25",
   ]),
   Porsche: new Set([
     "991",
@@ -2864,17 +2884,19 @@ function inferModelFromChassis(make: string, chassis: string): string | null {
 const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> = {
   BMW: {
     "1 Series": ["E81", "E82", "E87", "E88", "F20", "F21", "F40"],
-    "2 Series": ["F22", "F23", "G42"],
+    "2 Series": ["F22", "F23", "F44", "G42"],
+    "2 Series Active Tourer": ["F45", "U06"],
+    "2 Series Gran Tourer": ["F46"],
     "3 Series": ["E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21"],
     "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
-    "5 Series": ["E34", "E39", "E60", "F10", "G30", "G31"],
+    "5 Series": ["E34", "E39", "E60", "F10", "G30", "G31", "G60", "G61"],
     "6 Series": ["E63", "E64", "F06", "F12", "F13", "G32"],
     "7 Series": ["E32", "E38", "E65", "E66", "F01", "F02", "G11", "G12", "G70"],
     "8 Series": ["E31", "G14", "G15", "G16"],
     M2: ["F87", "F87N", "G87"],
     M3: ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
     M4: ["F82", "F83", "G82", "G83"],
-    M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90"],
+    M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90", "G99"],
     M6: ["E63", "E64", "F06", "F12", "F13"],
     M8: ["F91", "F92", "F93"],
     "M135i/M140i": ["F20", "F21", "F40"],
@@ -2886,15 +2908,15 @@ const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> =
     Z4: ["E85", "E86", "E89", "G29"],
     X1: ["E84", "F48", "U11"],
     X2: ["F39", "U10"],
-    X3: ["E83", "F25", "G01", "G08"],
+    X3: ["E83", "F25", "G01", "G08", "G45"],
     X4: ["F26", "G02"],
     X5: ["E53", "E70", "F15", "G05"],
     X6: ["E71", "F16", "G06"],
     X7: ["G07"],
     "X3 M": ["F97"],
     "X4 M": ["F98"],
-    "X5 M": ["F95"],
-    "X6 M": ["F96"],
+    "X5 M": ["E70", "F85", "F95"],
+    "X6 M": ["E71", "F86", "F96"],
     Xm: ["G09"],
   },
   Porsche: {
@@ -3514,6 +3536,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         mapped.add("1 Series M");
       } else if (lower.includes("1 series") || /^1\d{2}[id]?$/i.test(lower)) {
         mapped.add("1 Series");
+      } else if (lower.includes("2 series") && /active|gran tourer/.test(lower)) {
+        // The MPVs are separate selector models (`Active/Gran Tourer F45 F46`).
+        if (lower.includes("active")) mapped.add("2 Series Active Tourer");
+        if (lower.includes("gran tourer")) mapped.add("2 Series Gran Tourer");
       } else if (lower.includes("2 series") || /^2\d{2}[id]?$/i.test(lower)) {
         mapped.add("2 Series");
       } else if (lower.includes("3 series") || /^3\d{2}[id]?$/i.test(lower)) {
