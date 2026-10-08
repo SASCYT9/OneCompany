@@ -1347,6 +1347,8 @@ export function buildAdminProductImportUpdateData(
   // CSV has no category-id/highlights columns. Missing values must not detach or
   // erase data that was authored in the admin editor.
   if (!data.categoryId) delete update.category;
+  // Imports and supplier syncs do not carry the manual group pin; keep the stored one.
+  if (!data.categoryGroupOverride) delete update.categoryGroupOverride;
   delete update.highlights;
   if (!mask.tags) delete update.tags;
   if (!mask.media) {

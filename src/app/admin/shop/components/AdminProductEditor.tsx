@@ -1048,6 +1048,24 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
   const [success, setSuccess] = useState("");
   const [slugTouched, setSlugTouched] = useState(isEditing);
   const [form, setForm] = useState<ProductFormState>(createEmptyForm());
+  // Labels come from the admin-editable group settings; code titles are the fallback.
+  const [groupOptions, setGroupOptions] = useState(
+    SHOP_STOCK_CATEGORY_GROUPS.map((group) => ({ value: String(group.id), label: group.ua }))
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/admin/shop/category-groups")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((groups: Array<{ id: string; titleUa: string }> | null) => {
+        if (!cancelled && Array.isArray(groups)) {
+          setGroupOptions(groups.map((group) => ({ value: group.id, label: group.titleUa })));
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [rates, setRates] = useState<Record<string, number>>(DEFAULT_RATES);
   const [autoConvert, setAutoConvert] = useState<boolean>(true);
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
@@ -3373,10 +3391,7 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     onChange={(value) => updateField("categoryGroupOverride", value)}
                     options={[
                       { value: "", label: "Автоматично (за таксономією)" },
-                      ...SHOP_STOCK_CATEGORY_GROUPS.map((group) => ({
-                        value: group.id,
-                        label: group.ua,
-                      })),
+                      ...groupOptions,
                     ]}
                   />
                   <InputField
