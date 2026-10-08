@@ -49,6 +49,11 @@ const RESOLUTION_CACHE_MAX_ENTRIES = 256;
 type CachedFitmentProducts = Array<{
   id: string | undefined;
   fitments: ReturnType<typeof resolveSearchFitments>;
+  /**
+   * What the product title itself names, kept when persisted evidence replaced
+   * it. A selection matched only by the title is a lower tier.
+   */
+  titleFitment: ReturnType<typeof extractProductFitment> | null;
 }>;
 type VehicleApplication = {
   productId: string;
@@ -250,6 +255,14 @@ async function indexFitmentProducts(
     return {
       id: product.id,
       fitments: resolveSearchFitments(automatic, value),
+      titleFitment:
+        // Never second-guess an administrator's mapping or review flag.
+        value &&
+        manualFitment?.source !== "manual" &&
+        automatic.make &&
+        automatic.confidence === "high"
+          ? automatic
+          : null,
     };
   });
 }
@@ -634,6 +647,16 @@ async function resolveLegacyVehicleProductTiersUncached(
   const { applications: canonicalApplications, clauses: projectionClauses } = evidence;
   const exactIds = new Set<string>();
   const ids = new Set<string>();
+  const [broadModel, ...broadAlternates] = scope.broad;
+  const titleMatches = (fitment: NonNullable<CachedFitmentProducts[number]["titleFitment"]>) =>
+    shopFitmentMatchesVehicleConstraints(fitment, {
+      make: canonicalMake,
+      model: broadModel ?? input.model,
+      modelAlternates: broadAlternates,
+      chassis: input.generation,
+      chassisIncludesAncestors: true,
+      year: input.year,
+    });
   for (const product of products) {
     if (!product.id) continue;
     const matchesAt = (models: readonly string[], includeAncestors: boolean) => {
@@ -653,6 +676,10 @@ async function resolveLegacyVehicleProductTiersUncached(
       exactIds.add(product.id);
       ids.add(product.id);
     } else if (matchesAt(scope.broad, true)) {
+      ids.add(product.id);
+    } else if (product.titleFitment && titleMatches(product.titleFitment)) {
+      // The supplier table is narrower than the product it describes
+      // (WheelForce M5 + M8 set filed under M5 only): lower tier.
       ids.add(product.id);
     }
   }
@@ -812,6 +839,17 @@ export async function listLegacyVehicleChassisOptions(input: {
         continue;
       }
       for (const code of fitment.chassisCodes) add(product.id, code);
+    }
+    const title = product.titleFitment;
+    if (
+      title &&
+      shopFitmentMatchesVehicleConstraints(title, {
+        make: canonicalMake,
+        model: primary ?? input.model,
+        modelAlternates: others,
+      })
+    ) {
+      for (const code of title.chassisCodes) add(product.id, code);
     }
   }
   for (const application of evidence.applications) {

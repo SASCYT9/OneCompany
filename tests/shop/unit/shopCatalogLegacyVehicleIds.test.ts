@@ -247,3 +247,51 @@ test("chassis options come from the listing's own evidence and never offer a dea
   assert.ok(options.codes.every((code: string) => options.counts[code] > 0));
   assert.deepEqual(Object.keys(options.counts).sort(), [...options.codes].sort());
 });
+
+test("a product whose title names the selection but its supplier table does not is a lower tier", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  // Supplier table: M5 only. Title: `... для BMW M5 + M8 F90-F93`.
+  mock.state.supplierFitmentValue = JSON.stringify({
+    version: 1,
+    mode: "vehicle_specific",
+    scope: "auto",
+    applications: [
+      {
+        vehicleType: "car",
+        make: "BMW",
+        model: "M5",
+        chassisCode: "F90",
+        yearFrom: null,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+    ],
+    parentSku: null,
+    source: { supplier: "BMC", sourceRef: "SET-1", sourceUpdatedAt: null },
+    note: null,
+  });
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M8"],
+    chassisCodes: ["F90", "F93"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const m8 = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M8" });
+  assert.ok(m8?.ids.includes("fitment-id"));
+  assert.ok(!m8?.exactIds.includes("fitment-id"));
+
+  // A title read with less than high confidence never adds a lower tier.
+  mock.state.titleFitment = { ...mock.state.titleFitment, confidence: "medium" };
+  const weak = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M8", year: 2021 });
+  assert.ok(!weak?.ids.includes("fitment-id"));
+});

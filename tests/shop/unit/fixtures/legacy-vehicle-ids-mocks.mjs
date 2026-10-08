@@ -13,6 +13,7 @@ export const state =
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
+    titleFitment: null,
   });
 
 export function reset() {
@@ -28,6 +29,7 @@ export function reset() {
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
+  state.titleFitment = null;
 }
 
 export const prisma = {
@@ -110,6 +112,7 @@ export function getExpectedChassisForMakeModel() {
 }
 
 export function extractProductFitment() {
+  if (state.titleFitment) return state.titleFitment;
   return { make: "BMW", model: "M5", chassisCodes: ["G90"], years: [{ from: 2020, to: null }] };
 }
 

@@ -310,3 +310,32 @@ test("GiroDisc Lotus supplier typo normalizes to Emira", () => {
 
   assert.deepEqual(fitment.models, ["Emira"]);
 });
+
+test("a model tag that only lists chassis and engine codes yields to the models in the title", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "DO88",
+      slug: "do88-icm-450-k",
+      title: {
+        ua: "do88 впуск та інтеркулер, BMW M2 M3 M4 G80 G82 G87 (S58)",
+        en: "do88 Intake & Intercooler, BMW M2 M3 M4 G80 G82 G87 (S58)",
+      },
+      tags: ["fits-make:bmw", "fits-model:bmw:g80-g87-s58", "fits:bmw-g80-g87-s58"],
+    })
+  );
+  assert.deepEqual(fitment.models, ["M2", "M3", "M4"]);
+  assert.equal(
+    shopFitmentMatchesVehicleConstraints(fitment, { make: "BMW", model: "M4", chassis: "G82" }),
+    true
+  );
+
+  // A real model tag still wins over free text.
+  const tagged = extractProductFitment(
+    product({
+      brand: "DO88",
+      title: { ua: "do88 BMW 3 Series F30 intercooler", en: "do88 BMW 3 Series F30 intercooler" },
+      tags: ["fits-make:bmw", "fits-model:bmw:3-series"],
+    })
+  );
+  assert.deepEqual(tagged.models, ["3 Series"]);
+});

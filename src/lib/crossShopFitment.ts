@@ -1932,6 +1932,14 @@ function extractChassisFromText(text: string): string[] {
   return [...found];
 }
 
+/** A model tag that names chassis codes and no known model of the make. */
+function isChassisListModelTag(model: string, make?: string | null) {
+  const tokens = model.toUpperCase().split(/[\s,/]+/).filter(Boolean);
+  if (!tokens.some((token) => CHASSIS_CODES.has(token))) return false;
+  if (!make || !MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length) return false;
+  return !isKnownVehicleModelForMake(make, model);
+}
+
 function extractTagModels(product: ShopProduct, expectedMake?: string | null): string[] {
   const tags = product.tags ?? [];
   const productBrand = String(product.brand ?? "")
@@ -1953,6 +1961,10 @@ function extractTagModels(product: ShopProduct, expectedMake?: string | null): s
         continue;
       }
       const model = parts.slice(2).join(":").replace(/[-_]/g, " ").trim();
+      // Some feeds file the platform as the model (DO88
+      // `fits-model:bmw:g80-g87-s58`). A chassis list is not a model: skip it
+      // so the models named in the title (M2 M3 M4) are used instead.
+      if (model && isChassisListModelTag(model, expectedMake)) continue;
       if (model) canonicalModels.push(model);
       continue;
     }
