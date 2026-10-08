@@ -14,6 +14,7 @@ export const state =
     projectionArgs: [],
     rejectApplicationOnce: false,
     titleFitment: null,
+    expectedChassis: null,
   });
 
 export function reset() {
@@ -30,6 +31,7 @@ export function reset() {
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
   state.titleFitment = null;
+  state.expectedChassis = null;
 }
 
 export const prisma = {
@@ -107,8 +109,8 @@ export async function getShopFitmentCatalogProducts(options) {
   return [{ id, brand: "BMC" }];
 }
 
-export function getExpectedChassisForMakeModel() {
-  return null;
+export function getExpectedChassisForMakeModel(_make, model) {
+  return state.expectedChassis?.[model] ?? null;
 }
 
 export function extractProductFitment() {

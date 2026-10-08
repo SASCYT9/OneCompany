@@ -295,3 +295,53 @@ test("a product whose title names the selection but its supplier table does not 
   const weak = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M8", year: 2021 });
   assert.ok(!weak?.ids.includes("fitment-id"));
 });
+
+test("a title naming several cars never pairs one model with another model's chassis", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  mock.state.supplierFitmentValue = JSON.stringify({
+    version: 1,
+    mode: "vehicle_specific",
+    scope: "auto",
+    applications: [
+      {
+        vehicleType: "car",
+        make: "Audi",
+        model: "RS6",
+        chassisCode: null,
+        yearFrom: null,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+    ],
+    parentSku: null,
+    source: { supplier: "BMC", sourceRef: "S63", sourceUpdatedAt: null },
+    note: null,
+  });
+  // `BMS Performance Intake для BMW F10 M5 / F12–F13 M6`
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M6"],
+    chassisCodes: ["F10", "F12", "F13"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  mock.state.expectedChassis = { M5: ["F10", "F90"], M6: ["F06", "F12", "F13"] };
+  const own = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M6", generation: "F12" });
+  assert.ok(own?.ids.includes("fitment-id"));
+  assert.ok(!own?.exactIds.includes("fitment-id"));
+  const foreign = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M6",
+    generation: "F10",
+  });
+  assert.ok(!foreign?.ids.includes("fitment-id"));
+});

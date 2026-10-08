@@ -2325,6 +2325,7 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bm3\b/i,
     /\bm4\b/i,
     /\bm5\b/i,
+    /\bm6\b/i,
     /\bm8\b/i,
     /\bx3\s*m\b/i,
     /\bx4\s*m\b/i,

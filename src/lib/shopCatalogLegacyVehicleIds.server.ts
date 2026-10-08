@@ -252,17 +252,15 @@ async function indexFitmentProducts(
       : supplier
         ? JSON.stringify(supplierContractToNormalizedFitment(supplier))
         : (persisted?.normalized ?? null);
+    // What the title alone names, without supplier tags: a lower-tier net
+    // for feeds whose tags or tables are narrower than the product. Never
+    // second-guess an administrator's mapping or review flag.
+    const titleOnly =
+      manualFitment?.source === "manual" ? null : extractProductFitment({ ...product, tags: [] });
     return {
       id: product.id,
       fitments: resolveSearchFitments(automatic, value),
-      titleFitment:
-        // Never second-guess an administrator's mapping or review flag.
-        value &&
-        manualFitment?.source !== "manual" &&
-        automatic.make &&
-        automatic.confidence === "high"
-          ? automatic
-          : null,
+      titleFitment: titleOnly?.make && titleOnly.confidence === "high" ? titleOnly : null,
     };
   });
 }
@@ -569,6 +567,35 @@ async function getCachedVehicleEvidence(
   return promise;
 }
 
+/**
+ * Whether a chassis belongs to at least one of the models (or their families)
+ * where the expected chassis list is known. Unknown lists do not restrict.
+ */
+function chassisExpectedForModels(
+  canonicalMake: string,
+  models: readonly string[],
+  chassis: string | null | undefined
+) {
+  const code = chassis?.trim();
+  if (!code || models.length === 0) return true;
+  const lists = models
+    .map((model) => getExpectedChassisForMakeModel(canonicalMake, model))
+    .filter((list): list is string[] => Boolean(list));
+  if (lists.length === 0) return true;
+  const lineage = new Set(vehicleChassisSelfAndAncestors(code).map(vehicleChassisKey));
+  return lists.some((list) =>
+    list.some((expected) => {
+      const key = vehicleChassisKey(expected);
+      return (
+        lineage.has(key) ||
+        vehicleChassisSelfAndAncestors(expected)
+          .map(vehicleChassisKey)
+          .includes(vehicleChassisKey(code))
+      );
+    })
+  );
+}
+
 type MatchTier = 0 | 1 | 2;
 
 /** Tier of a stored model / chassis for the requested selection (0 = no match). */
@@ -648,7 +675,16 @@ async function resolveLegacyVehicleProductTiersUncached(
   const exactIds = new Set<string>();
   const ids = new Set<string>();
   const [broadModel, ...broadAlternates] = scope.broad;
+  // A title naming several cars (`F10 M5 / F12 F13 M6`) must not pair one
+  // model with another model's chassis: the chassis has to be expected for
+  // the selected model wherever that list is known.
+  const titleChassisPlausible = chassisExpectedForModels(
+    canonicalMake,
+    scope.broad,
+    input.generation
+  );
   const titleMatches = (fitment: NonNullable<CachedFitmentProducts[number]["titleFitment"]>) =>
+    titleChassisPlausible &&
     shopFitmentMatchesVehicleConstraints(fitment, {
       make: canonicalMake,
       model: broadModel ?? input.model,
@@ -849,7 +885,9 @@ export async function listLegacyVehicleChassisOptions(input: {
         modelAlternates: others,
       })
     ) {
-      for (const code of title.chassisCodes) add(product.id, code);
+      for (const code of title.chassisCodes) {
+        if (chassisExpectedForModels(canonicalMake, scope.exact, code)) add(product.id, code);
+      }
     }
   }
   for (const application of evidence.applications) {
