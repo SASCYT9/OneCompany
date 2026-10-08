@@ -72,7 +72,7 @@ export default function AdminCategoryGroupsPage() {
         return;
       }
       setGroups(data as CategoryGroupRow[]);
-      toast.success("Групи збережено", "Фільтр у каталозі оновиться протягом хвилини.");
+      toast.success("Групи збережено", "Фільтр у каталозі оновиться протягом кількох хвилин (кеш відповідей).");
     } finally {
       setSaving(false);
     }
