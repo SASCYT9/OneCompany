@@ -103,3 +103,24 @@ test("dates use the same Kyiv calendar day in both locales", () => {
   assert.equal(formatBlogDate("2026-10-10T22:30:00Z", "en"), "11 October 2026");
   assert.equal(formatBlogDate("2026-10-10T22:30:00Z", "ua"), "11 жовтня 2026 р.");
 });
+
+test("malformed and impossible publication/update dates are rejected before persistence", () => {
+  for (const field of ["date", "updatedAt"]) {
+    for (const invalid of [
+      "not-a-date",
+      "2026-02-30T12:00:00Z",
+      "2026-10-10T25:00:00Z",
+      "2026-10-10T12:00:00",
+    ]) {
+      const invalidContent = structuredClone(raw);
+      invalidContent.blog.posts[0][field] = invalid;
+      assert.throws(() => validateSiteContentInput(invalidContent), /expected a valid ISO date/);
+    }
+  }
+  const valid = structuredClone(raw);
+  valid.blog.posts[0].updatedAt = "2026-10-10T23:20:00+03:00";
+  assert.equal(
+    validateSiteContentInput(valid).blog.posts[0].updatedAt,
+    valid.blog.posts[0].updatedAt
+  );
+});

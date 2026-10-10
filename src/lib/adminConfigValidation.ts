@@ -92,6 +92,18 @@ function validateLocalizedString(value: unknown, path: string) {
   };
 }
 
+function expectEditorialDate(value: unknown, path: string) {
+  const date = expectString(value, path, { allowEmpty: false });
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/.exec(date);
+  if (!match || !Number.isFinite(Date.parse(date))) fail(path, 'expected a valid ISO date');
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) fail(path, 'expected a valid ISO date');
+  return date;
+}
+
 function expectPositiveDimension(value: unknown, path: string) {
   if (typeof value !== "number" || !Number.isInteger(value) || value <= 0)
     fail(path, "expected positive integer");
@@ -101,7 +113,8 @@ function expectPositiveDimension(value: unknown, path: string) {
 function validateBlogEditorialFields(entry: Record<string, unknown>, path: string) {
   const cover = entry.cover == null ? undefined : expectObject(entry.cover, `${path}.cover`);
   return {
-    updatedAt: expectOptionalString(entry.updatedAt, `${path}.updatedAt`),
+    updatedAt: entry.updatedAt == null || entry.updatedAt === ''
+      ? undefined : expectEditorialDate(entry.updatedAt, `${path}.updatedAt`),
     seoTitle:
       entry.seoTitle == null
         ? undefined
@@ -251,7 +264,7 @@ export function validateSiteContentInput(input: unknown): SiteContent {
         slug: expectString(entry.slug, `blog.posts[${index}].slug`, { allowEmpty: false }),
         title: validateLocalizedString(entry.title, `blog.posts[${index}].title`),
         caption: validateLocalizedString(entry.caption, `blog.posts[${index}].caption`),
-        date: expectString(entry.date, `blog.posts[${index}].date`, { allowEmpty: false }),
+        date: expectEditorialDate(entry.date, `blog.posts[${index}].date`),
         ...validateBlogEditorialFields(entry, `blog.posts[${index}]`),
         location: entry.location == null ? undefined : validateLocalizedString(entry.location, `blog.posts[${index}].location`),
         tags: entry.tags == null ? undefined : expectStringArray(entry.tags, `blog.posts[${index}].tags`),
