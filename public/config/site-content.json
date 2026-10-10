@@ -41,7 +41,13 @@
       "label": "continents weekly"
     }
   ],
-  "values": ["PERFORMANCE", "QUALITY", "SERVICE", "SOUND", "INNOVATION"],
+  "values": [
+    "PERFORMANCE",
+    "QUALITY",
+    "SERVICE",
+    "SOUND",
+    "INNOVATION"
+  ],
   "brandSections": {
     "automotive": [
       {
@@ -262,6 +268,193 @@
     "instagramHandle": "@onecompany.global",
     "posts": [
       {
+        "id": "bonamici-daytona-660-th10-pst3-20261010",
+        "slug": "bonamici-triumph-daytona-660-th10-pst3",
+        "title": {
+          "ua": "Bonamici представила аксесуари для Triumph Daytona 660: підніжки TH10 і траверса PST3",
+          "en": "Bonamici introduces Triumph Daytona 660 accessories: TH10 rearsets and PST3 triple clamp"
+        },
+        "caption": {
+          "ua": "Bonamici Racing розширила асортимент для Triumph Daytona 660. У лінійці, анонсованій 7 вересня 2026 року, є регульовані підніжки TH10, верхня траверса PST3 та додаткові компоненти для налаштування мотоцикла. У каталозі виробника обидва основні артикули зазначені для Daytona 660 2024–2026 років.",
+          "en": "Bonamici Racing has expanded its range for the Triumph Daytona 660. Announced on 7 September 2026, the line includes TH10 adjustable rearsets, the PST3 top triple clamp and additional components for tailoring the motorcycle. The official catalogue lists both main part numbers for the 2024–2026 Daytona 660."
+        },
+        "seoTitle": {
+          "ua": "Bonamici для Triumph Daytona 660: TH10 і PST3 | One Company",
+          "en": "Bonamici for Triumph Daytona 660: TH10 & PST3 | One Company"
+        },
+        "description": {
+          "ua": "Bonamici представила лінійку для Triumph Daytona 660: підніжки TH10 із 9 положеннями та траверса PST3. Сумісність 2024–2026 і підбір у One Company.",
+          "en": "Bonamici accessories for the Triumph Daytona 660: TH10 rearsets with 9 positions and PST3 triple clamp. 2024–2026 fitment and sourcing through One Company."
+        },
+        "date": "2026-10-10T21:02:43Z",
+        "status": "published",
+        "tags": [
+          "Bonamici",
+          "Triumph",
+          "Daytona660"
+        ],
+        "media": [
+          {
+            "id": "bonamici-daytona-660-hero",
+            "type": "image",
+            "src": "/images/blog/bonamici-daytona-660-th10.jpg",
+            "alt": "Регульовані підніжки Bonamici TH10, встановлені на Triumph Daytona 660."
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/bonamici-daytona-660-th10.jpg",
+          "width": 1587,
+          "height": 1130,
+          "alt": {
+            "ua": "Регульовані підніжки Bonamici TH10, встановлені на Triumph Daytona 660.",
+            "en": "Bonamici TH10 adjustable rearsets installed on a Triumph Daytona 660."
+          },
+          "credit": {
+            "ua": "Фото: Bonamici Racing",
+            "en": "Photo: Bonamici Racing"
+          }
+        },
+        "sections": [
+          {
+            "heading": {
+              "ua": "TH10: дев’ять положень для підбору посадки",
+              "en": "TH10: nine positions to adjust rider ergonomics"
+            },
+            "paragraphs": [
+              {
+                "ua": "TH10 — це комплект підніжок і органів керування, виготовлений на CNC-обладнанні з алюмінієвих сплавів. Дев’ять положень регулювання дають змогу підібрати розташування підніжок відповідно до побажань райдера.",
+                "en": "TH10 is a rearset and control assembly CNC-machined from aluminium alloys. Nine adjustment positions allow riders to choose their preferred footpeg position."
+              },
+              {
+                "ua": "У стандартній комплектації виробник зазначає чорне анодування, алюмінієві захисні щитки для п’ят, нерухомі підніжки з насічкою та гумове покриття упорів для ноги. Передбачені варіанти зі стандартною або реверсивною схемою перемикання передач.",
+                "en": "The standard specification includes black anodising, aluminium heel guards, fixed knurled footpegs and rubber-covered toe pegs. Standard and reverse-shift configurations are available."
+              },
+              {
+                "ua": "Серед технічних деталей — подвійні підшипники у шарнірах і окрема опора штатного вала вибору передач. В анонсі Bonamici також вказує можливість збереження штатного вимикача стоп-сигналу.",
+                "en": "Technical details include double bearings at the pivots and dedicated support for the original gear-selector shaft. Bonamici also states that the original brake-light switch can be retained."
+              }
+            ]
+          },
+          {
+            "heading": {
+              "ua": "PST3: верхня траверса з двома варіантами конфігурації",
+              "en": "PST3: a top triple clamp with two configuration options"
+            },
+            "paragraphs": [
+              {
+                "ua": "Верхню траверсу PST3 виготовляють із цільного алюмінієвого сплаву; для затягування використовуються титанові гвинти. В анонсі лінійки передбачені чорний і сріблястий анодовані варіанти.",
+                "en": "The PST3 top triple clamp is machined from solid aluminium alloy and uses titanium tightening screws. The range announcement lists black and silver anodised finishes."
+              },
+              {
+                "ua": "Знімна опора замка запалювання дає змогу зберегти штатний замок або обрати конфігурацію без нього для відповідного проєкту. Виробник також передбачив встановлення оригінальної пластикової накладки навколо замка.",
+                "en": "A removable ignition-lock support allows the original lock to be retained or a configuration without it to be selected for the intended project. The design also accommodates the original plastic ignition-lock cover."
+              },
+              {
+                "ua": "У картці PST3 виробник зазначає масу 0,324 кг. Перед замовленням потрібно погодити колір траверси, конфігурацію замка запалювання та сумісність зі встановленими компонентами.",
+                "en": "Bonamici lists a weight of 0.324 kg for PST3. Before ordering, confirm the finish, ignition-lock configuration and compatibility with any components already installed."
+              }
+            ]
+          },
+          {
+            "heading": {
+              "ua": "Сумісність: орієнтуємося на конкретний артикул",
+              "en": "Fitment: check the exact part number"
+            },
+            "paragraphs": [
+              {
+                "ua": "Для TH10 і PST3 офіційний каталог вказує Triumph Daytona 660 2024–2026 років. Перед вибором деталей варто передати точний рік мотоцикла та повідомити про вже встановлені нештатні компоненти. Артикули підбирають з урахуванням комплектації конкретного проєкту.",
+                "en": "The official catalogue lists TH10 and PST3 for the 2024–2026 Triumph Daytona 660. Provide the exact model year and details of any aftermarket components before choosing parts. Each part number should be checked against the configuration of the individual project."
+              }
+            ],
+            "table": [
+              [
+                {
+                  "ua": "TH10",
+                  "en": "TH10"
+                },
+                {
+                  "ua": "Регульовані підніжки",
+                  "en": "Adjustable rearsets"
+                },
+                {
+                  "ua": "Daytona 660, 2024–2026",
+                  "en": "Daytona 660, 2024–2026"
+                }
+              ],
+              [
+                {
+                  "ua": "PST3",
+                  "en": "PST3"
+                },
+                {
+                  "ua": "Верхня траверса",
+                  "en": "Top triple clamp"
+                },
+                {
+                  "ua": "Daytona 660, 2024–2026",
+                  "en": "Daytona 660, 2024–2026"
+                }
+              ]
+            ]
+          },
+          {
+            "heading": {
+              "ua": "Що ще входить до нової лінійки",
+              "en": "Other components in the new range"
+            },
+            "paragraphs": [
+              {
+                "ua": "Bonamici включила до програми кліпони, комплект важелів гальма й зчеплення, захисти важелів Racing та EVO, масляну пробку, бачок і опори для підкатів. Це перелік окремих компонентів: склад замовлення визначається обраними артикулами.",
+                "en": "The Bonamici programme also includes clip-ons, a brake-and-clutch lever kit, Racing and EVO lever guards, an oil cap, a fluid reservoir and swingarm spools. These are individual components; the contents of an order depend on the selected part numbers."
+              }
+            ]
+          },
+          {
+            "heading": {
+              "ua": "Підбір у One Company",
+              "en": "Parts sourcing through One Company"
+            },
+            "paragraphs": [
+              {
+                "ua": "One Company працює з приватними власниками мотоциклів, майстернями та магазинами. Для підбору Bonamici на Daytona 660 надішліть модель, рік випуску, бажану схему перемикання передач і перелік уже встановлених деталей.",
+                "en": "One Company works with private motorcycle owners, workshops and retailers. To source Bonamici parts for a Daytona 660, send the model, model year, preferred shift pattern and a list of existing modifications."
+              },
+              {
+                "ua": "Після перевірки конфігурації можна уточнити актуальну ціну, доступність і строк постачання. Для бізнесів умови співпраці обговорюються окремо.",
+                "en": "Once the configuration is checked, current pricing, availability and delivery lead time can be confirmed. Business supply terms are discussed individually."
+              }
+            ]
+          }
+        ],
+        "disclosure": {
+          "ua": "Матеріал підготувала One Company — постачальник авто- та мотокомпонентів. Технічні характеристики наведено за офіційними матеріалами Bonamici Racing.",
+          "en": "Prepared by One Company, a supplier of automotive and motorcycle components. Technical specifications are based on official Bonamici Racing materials."
+        },
+        "sources": [
+          {
+            "title": {
+              "ua": "Анонс лінійки Bonamici для Triumph Daytona 660 — 7 вересня 2026",
+              "en": "Bonamici Daytona 660 range announcement — 7 September 2026"
+            },
+            "url": "https://www.bonamiciracing.it/en/news/prodotti/new-bonamici-racing-accessory-line-triumph-daytona-660.html"
+          },
+          {
+            "title": {
+              "ua": "Bonamici TH10: характеристики та сумісність",
+              "en": "Bonamici TH10: specifications and fitment"
+            },
+            "url": "https://www.bonamiciracing.it/en/products/rearsets/TH10.html"
+          },
+          {
+            "title": {
+              "ua": "Bonamici PST3: характеристики та сумісність",
+              "en": "Bonamici PST3: specifications and fitment"
+            },
+            "url": "https://www.bonamiciracing.it/en/products/top-triple-clamps/PST3.html"
+          }
+        ]
+      },
+      {
         "id": "ig-ddbx-hxjlvv",
         "slug": "kline-inconel-exhaust-porsche-992-2-turbo",
         "title": {
@@ -277,7 +470,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["klineinnovation", "onecompany", "porsche992", "992turbo", "autotuning"],
+        "tags": [
+          "klineinnovation",
+          "onecompany",
+          "porsche992",
+          "992turbo",
+          "autotuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -298,7 +497,16 @@
             "src": "/images/blog/DdBx-HXjLVv-v4-3.jpg",
             "alt": "Kline Inconel 625 Exhaust for Porsche 992.2 Turbo"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DdBx-HXjLVv-v4-2.jpg",
+          "width": 1122,
+          "height": 1402,
+          "alt": {
+            "ua": "Kline Inconel 625 exhaust for Porsche 992.2 Turbo",
+            "en": "Kline Inconel 625 Exhaust for Porsche 992.2 Turbo"
+          }
+        }
       },
       {
         "id": "ig-dcbtyb_jo2v",
@@ -316,7 +524,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["stopflex", "lexuslx600", "landcruiser300", "brembo", "onecompany"],
+        "tags": [
+          "stopflex",
+          "lexuslx600",
+          "landcruiser300",
+          "brembo",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -331,7 +545,16 @@
             "src": "/images/blog/DcBTyb_jO2v-v4-2.jpg",
             "alt": "StopFlex and Brembo for Lexus LX600 and Land Cruiser 300"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DcBTyb_jO2v-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "StopFlex і Brembo для Lexus LX600 та Land Cruiser 300",
+            "en": "StopFlex and Brembo for Lexus LX600 and Land Cruiser 300"
+          }
+        }
       },
       {
         "id": "ig-dbkxpeqn0tb",
@@ -349,16 +572,32 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "offroadgroup", "rpmpowersports", "canam", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "offroadgroup",
+          "rpmpowersports",
+          "canam",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dbkxpeqn0tb-1",
             "type": "video",
             "src": "/videos/blog/DbkxPEQN0TB-v4-1.mp4",
-            "alt": "A New Sound for the Can-Am Maverick X3"
+            "alt": "A New Sound for the Can-Am Maverick X3",
+            "poster": "/images/blog/covers/rpm-exhaust-can-am-maverick-x3-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/rpm-exhaust-can-am-maverick-x3-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Новий звук для Can-Am Maverick X3",
+            "en": "A New Sound for the Can-Am Maverick X3"
+          }
+        }
       },
       {
         "id": "ig-dbvr1cajihr",
@@ -376,7 +615,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["hyperpro", "motorbike", "mototuning", "motoperformance", "onecompany"],
+        "tags": [
+          "hyperpro",
+          "motorbike",
+          "mototuning",
+          "motoperformance",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -388,7 +633,7 @@
           {
             "id": "media-ig-dbvr1cajihr-2",
             "type": "image",
-            "src": "/images/blog/DbVr1cAjIhR-v4-2.jpg",
+            "src": "/images/blog/covers/hyperpro-steering-dampers-motorcycles-original.jpg",
             "alt": "HyperPro Steering Dampers for Motorcycles"
           },
           {
@@ -397,7 +642,16 @@
             "src": "/images/blog/DbVr1cAjIhR-v4-3.jpg",
             "alt": "HyperPro Steering Dampers for Motorcycles"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/hyperpro-steering-dampers-motorcycles-original.jpg",
+          "width": 3213,
+          "height": 4016,
+          "alt": {
+            "ua": "Рульові демпфери HyperPro для мотоциклів",
+            "en": "HyperPro Steering Dampers for Motorcycles"
+          }
+        }
       },
       {
         "id": "ig-dbdpzp_dgpp",
@@ -415,7 +669,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["кованідиски", "customwheels", "forgedwheels", "тюнінг", "onecompany"],
+        "tags": [
+          "кованідиски",
+          "customwheels",
+          "forgedwheels",
+          "тюнінг",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -427,7 +687,7 @@
           {
             "id": "media-ig-dbdpzp_dgpp-2",
             "type": "image",
-            "src": "/images/blog/DbDpzp_DGPp-v4-2.jpg",
+            "src": "/images/blog/covers/one-company-forged-custom-wheels-original.jpg",
             "alt": "One Company Forged Custom Wheels"
           },
           {
@@ -448,7 +708,16 @@
             "src": "/images/blog/DbDpzp_DGPp-v4-5.jpg",
             "alt": "One Company Forged Custom Wheels"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/one-company-forged-custom-wheels-original.jpg",
+          "width": 3000,
+          "height": 3763,
+          "alt": {
+            "ua": "Ковані диски One Company Forged",
+            "en": "One Company Forged Custom Wheels"
+          }
+        }
       },
       {
         "id": "ig-daxtsues117",
@@ -466,16 +735,32 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["ferrari", "purosangue", "capristoexhaust", "автотюнінг", "onecompany"],
+        "tags": [
+          "ferrari",
+          "purosangue",
+          "capristoexhaust",
+          "автотюнінг",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-daxtsues117-1",
             "type": "video",
             "src": "/videos/blog/DaxtsUes117-v4-1.mp4",
-            "alt": "Capristo Carbon Kit for Ferrari Purosangue"
+            "alt": "Capristo Carbon Kit for Ferrari Purosangue",
+            "poster": "/images/blog/covers/capristo-carbon-kit-ferrari-purosangue-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/capristo-carbon-kit-ferrari-purosangue-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Карбоновий комплект Capristo для Ferrari Purosangue",
+            "en": "Capristo Carbon Kit for Ferrari Purosangue"
+          }
+        }
       },
       {
         "id": "ig-dafoxl3jmp9",
@@ -493,7 +778,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["fiexhaust", "lamborghiniurus", "urusse", "tuningcar", "onecompany"],
+        "tags": [
+          "fiexhaust",
+          "lamborghiniurus",
+          "urusse",
+          "tuningcar",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -508,7 +799,16 @@
             "src": "/images/blog/DafoXl3jMP9-v4-2.jpg",
             "alt": "Fi EXHAUST for Lamborghini Urus SE"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DafoXl3jMP9-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Вихлопна система Fi EXHAUST для Lamborghini Urus SE",
+            "en": "Fi EXHAUST for Lamborghini Urus SE"
+          }
+        }
       },
       {
         "id": "ig-dali-objbct",
@@ -526,13 +826,19 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "fmic", "2jz", "2jzge", "toyotatuning"],
+        "tags": [
+          "onecompany",
+          "fmic",
+          "2jz",
+          "2jzge",
+          "toyotatuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dali-objbct-1",
             "type": "image",
-            "src": "/images/blog/DaLI-oBjBCt-v4-1.jpg",
+            "src": "/images/blog/covers/fmic-pro-intake-manifold-toyota-2jz-ge-original.jpg",
             "alt": "FMIC.Pro Intake Manifold for Toyota 2JZ-GE"
           },
           {
@@ -565,7 +871,16 @@
             "src": "/images/blog/DaLI-oBjBCt-v4-6.jpg",
             "alt": "FMIC.Pro Intake Manifold for Toyota 2JZ-GE"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/fmic-pro-intake-manifold-toyota-2jz-ge-original.jpg",
+          "width": 3277,
+          "height": 4096,
+          "alt": {
+            "ua": "Впускний колектор FMIC.Pro для Toyota 2JZ-GE",
+            "en": "FMIC.Pro Intake Manifold for Toyota 2JZ-GE"
+          }
+        }
       },
       {
         "id": "ig-daaxiivdpzr",
@@ -583,7 +898,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["unpluggedperformance", "tesla", "teslamodel3", "cybertruck", "onecompany"],
+        "tags": [
+          "unpluggedperformance",
+          "tesla",
+          "teslamodel3",
+          "cybertruck",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -604,7 +925,16 @@
             "src": "/images/blog/DaAXIIvDPZR-v4-3.jpg",
             "alt": "Unplugged Performance — Tuning for Tesla"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DaAXIIvDPZR-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Unplugged Performance — тюнінг для Tesla",
+            "en": "Unplugged Performance — Tuning for Tesla"
+          }
+        }
       },
       {
         "id": "ig-dzwxxxlsbib",
@@ -622,16 +952,32 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "whipplesuperchargers", "mustang", "darkhorse", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "whipplesuperchargers",
+          "mustang",
+          "darkhorse",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dzwxxxlsbib-1",
             "type": "video",
             "src": "/videos/blog/DZwxxxlsbIb-v4-1.mp4",
-            "alt": "Whipple Supercharger Systems"
+            "alt": "Whipple Supercharger Systems",
+            "poster": "/images/blog/covers/whipple-superchargers-american-muscle-cars-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/whipple-superchargers-american-muscle-cars-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Компресорні системи Whipple",
+            "en": "Whipple Supercharger Systems"
+          }
+        }
       },
       {
         "id": "ig-dzm27fjjgmu",
@@ -649,7 +995,9 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["тренування_за_підтримки_спонсора_beton"],
+        "tags": [
+          "тренування_за_підтримки_спонсора_beton"
+        ],
         "status": "published",
         "media": [
           {
@@ -682,7 +1030,16 @@
             "src": "/images/blog/DZm27fjjGmU-v4-5.jpg",
             "alt": "First Round of the Ukrainian Motorcycle Racing Championship"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DZm27fjjGmU-v4-1.jpg",
+          "width": 1170,
+          "height": 1036,
+          "alt": {
+            "ua": "Перший етап Чемпіонату України з мотоперегонів",
+            "en": "First Round of the Ukrainian Motorcycle Racing Championship"
+          }
+        }
       },
       {
         "id": "ig-dzcb4kkdnfp",
@@ -700,7 +1057,11 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning", "tuningukraine"],
+        "tags": [
+          "onecompany",
+          "tuning",
+          "tuningukraine"
+        ],
         "status": "published",
         "media": [
           {
@@ -739,7 +1100,16 @@
             "src": "/images/blog/DZcb4kkDNFP-v4-6.jpg",
             "alt": "Fresh Delivery of Genuine Tuning Parts from the USA"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DZcb4kkDNFP-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Свіжа поставка оригінального тюнінгу зі США",
+            "en": "Fresh Delivery of Genuine Tuning Parts from the USA"
+          }
+        }
       },
       {
         "id": "ig-dzkptkasonz",
@@ -757,16 +1127,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dzkptkasonz-1",
             "type": "video",
             "src": "/videos/blog/DZKptKAsONz-v4-1.mp4",
-            "alt": "One Company - DZKptKAsONz"
+            "alt": "One Company - DZKptKAsONz",
+            "poster": "/images/blog/covers/brand-case-dzkptkasonz-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dzkptkasonz-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "X Shift Gearboxes - професійні секвентальні коробки передач",
+            "en": "X Shift Gearboxes — Sequential Transmissions"
+          }
+        }
       },
       {
         "id": "ig-dze_ptkdebt",
@@ -784,13 +1167,16 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dze_ptkdebt-1",
             "type": "image",
-            "src": "/images/blog/DZE_PtkDEbt-v4-1.jpg",
+            "src": "/images/blog/covers/brand-case-dze_ptkdebt-original.jpg",
             "alt": "One Company - DZE_PtkDEbt"
           },
           {
@@ -799,7 +1185,16 @@
             "src": "/images/blog/DZE_PtkDEbt-v4-2.jpg",
             "alt": "One Company - DZE_PtkDEbt"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dze_ptkdebt-original.jpg",
+          "width": 1200,
+          "height": 1200,
+          "alt": {
+            "ua": "RaceChip GTS 5 Black для двигунів BMW B48 / B46",
+            "en": "RaceChip GTS 5 Black for BMW B48 / B46"
+          }
+        }
       },
       {
         "id": "ig-dy4t-cxdfep",
@@ -817,7 +1212,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -832,7 +1230,16 @@
             "src": "/images/blog/DY4t-CxDFEp-v4-2.jpg",
             "alt": "One Company - DY4t-CxDFEp"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DY4t-CxDFEp-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "KW Height Adjustable Springs для нового BMW M5 G90",
+            "en": "KW Height Adjustable Springs for BMW M5 G90"
+          }
+        }
       },
       {
         "id": "ig-dy1l7iumrwf",
@@ -850,16 +1257,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dy1l7iumrwf-1",
             "type": "video",
             "src": "/videos/blog/DY1l7iUMRwf-v4-1.mp4",
-            "alt": "One Company - DY1l7iUMRwf"
+            "alt": "One Company - DY1l7iUMRwf",
+            "poster": "/images/blog/covers/brand-case-dy1l7iumrwf-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dy1l7iumrwf-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Akrapovič для Ducati Panigale V4 R",
+            "en": "Akrapovič Exhaust for Ducati Panigale V4 R"
+          }
+        }
       },
       {
         "id": "ig-dyc4xbasc1s",
@@ -877,16 +1297,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dyc4xbasc1s-1",
             "type": "video",
             "src": "/videos/blog/DYc4XBAsC1s-v4-1.mp4",
-            "alt": "One Company - DYc4XBAsC1s"
+            "alt": "One Company - DYc4XBAsC1s",
+            "poster": "/images/blog/covers/brand-case-dyc4xbasc1s-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dyc4xbasc1s-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Nissan 370Z на Kyiv Car Fest 2026",
+            "en": "Nissan 370Z at Kyiv Car Fest"
+          }
+        }
       },
       {
         "id": "ig-dyutmkamy6s",
@@ -904,16 +1337,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dyutmkamy6s-1",
             "type": "video",
             "src": "/videos/blog/DYUTmKAMy6s-v4-1.mp4",
-            "alt": "One Company - DYUTmKAMy6s"
+            "alt": "One Company - DYUTmKAMy6s",
+            "poster": "/images/blog/covers/brand-case-dyutmkamy6s-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dyutmkamy6s-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "STOPFLEX для BMW 7 G12 - карбоново-керамічні гальмівні диски",
+            "en": "STOPFLEX carbon-ceramic brakes for BMW 7 G12"
+          }
+        }
       },
       {
         "id": "ig-dysd4qndcvi",
@@ -931,7 +1377,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -949,7 +1398,7 @@
           {
             "id": "media-ig-dysd4qndcvi-3",
             "type": "image",
-            "src": "/images/blog/DYSD4QNDCvi-v4-3.jpg",
+            "src": "/images/blog/covers/brand-case-dysd4qndcvi-original.jpg",
             "alt": "One Company - DYSD4QNDCvi"
           },
           {
@@ -970,7 +1419,16 @@
             "src": "/images/blog/DYSD4QNDCvi-v4-6.jpg",
             "alt": "One Company - DYSD4QNDCvi"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dysd4qndcvi-original.jpg",
+          "width": 3277,
+          "height": 4096,
+          "alt": {
+            "ua": "IPE Exhaust для Porsche 992 GT3 - система, де кожна деталь говорить сама за себе",
+            "en": "IPE Exhaust for Porsche 992 GT3"
+          }
+        }
       },
       {
         "id": "ig-dx9n9mfdpgs",
@@ -988,7 +1446,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1000,10 +1461,19 @@
           {
             "id": "media-ig-dx9n9mfdpgs-2",
             "type": "image",
-            "src": "/images/blog/DX9N9mFDPGs-v4-2.jpg",
+            "src": "/images/blog/covers/brand-case-dx9n9mfdpgs-original.jpg",
             "alt": "One Company - DX9N9mFDPGs"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dx9n9mfdpgs-original.jpg",
+          "width": 1638,
+          "height": 2048,
+          "alt": {
+            "ua": "KW Height Adjustable Springs для BMW M5 F90 - в наявності",
+            "en": "KW Height Adjustable Springs for BMW M5 F90 — in stock"
+          }
+        }
       },
       {
         "id": "ig-dxyrwk6sv1b",
@@ -1021,16 +1491,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dxyrwk6sv1b-1",
             "type": "video",
             "src": "/videos/blog/DXyrwK6sV1b-v4-1.mp4",
-            "alt": "One Company - DXyrwK6sV1b"
+            "alt": "One Company - DXyrwK6sV1b",
+            "poster": "/images/blog/covers/brand-case-dxyrwk6sv1b-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dxyrwk6sv1b-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "RIZOMA - італійські преміальні мотоаксесуари",
+            "en": "RIZOMA — premium Italian motorcycle accessories"
+          }
+        }
       },
       {
         "id": "ig-dxqyweedmzc",
@@ -1048,7 +1531,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1063,7 +1549,16 @@
             "src": "/images/blog/DXqyWeeDMzC-v4-2.jpg",
             "alt": "One Company - DXqyWeeDMzC"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DXqyWeeDMzC-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "NITRON - британська точність у кожному повороті",
+            "en": "NITRON — British suspension precision for BMW M2"
+          }
+        }
       },
       {
         "id": "ig-dxbfmkodara",
@@ -1081,16 +1576,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dxbfmkodara-1",
             "type": "video",
             "src": "/videos/blog/DXbfmkoDArA-v4-1.mp4",
-            "alt": "One Company - DXbfmkoDArA"
+            "alt": "One Company - DXbfmkoDArA",
+            "poster": "/images/blog/covers/brand-case-dxbfmkodara-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dxbfmkodara-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "BMW M4 G82 з ARMYTRIX Valvetronic Exhaust",
+            "en": "ARMYTRIX Valvetronic Exhaust for BMW M4 G82"
+          }
+        }
       },
       {
         "id": "ig-dxwm2kojj4o",
@@ -1108,7 +1616,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["darwinpro", "audirs", "cartuning", "onecompany", "тюнінг"],
+        "tags": [
+          "darwinpro",
+          "audirs",
+          "cartuning",
+          "onecompany",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -1135,7 +1649,16 @@
             "src": "/images/blog/DXWM2KOJJ4O-4.jpg",
             "alt": "DarwinPRO Wide Body Kit for Audi RS7 C8"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DXWM2KOJJ4O-1.jpg",
+          "width": 1080,
+          "height": 1341,
+          "alt": {
+            "ua": "DarwinPRO Wide Body Kit змінює RS7 повністю: ширший силует, агресивніший front-end,…",
+            "en": "DarwinPRO Wide Body Kit for Audi RS7 C8"
+          }
+        }
       },
       {
         "id": "ig-dxrcqjodms5",
@@ -1153,7 +1676,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["klineinnovation", "porschegt3", "onecompany", "tuningcar", "тюнінг"],
+        "tags": [
+          "klineinnovation",
+          "porschegt3",
+          "onecompany",
+          "tuningcar",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -1163,7 +1692,16 @@
             "poster": "/images/blog/DXRCQJODMS5.jpg",
             "alt": "Kline Innovation exhaust for Porsche 911 GT3"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/kline-innovation-exhaust-porsche-911-gt3-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Зразкова вихлопна система Kline Innovation на Porsche 911 GT3",
+            "en": "Kline Innovation exhaust for Porsche 911 GT3"
+          }
+        }
       },
       {
         "id": "ig-dxmgrsjdbnf",
@@ -1181,7 +1719,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["scproject", "yamahar9", "onecompany", "scprojectexhaust", "motorcycletuning"],
+        "tags": [
+          "scproject",
+          "yamahar9",
+          "onecompany",
+          "scprojectexhaust",
+          "motorcycletuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1196,7 +1740,16 @@
             "src": "/images/blog/DXMGRSJDBNF-2.jpg",
             "alt": "SC-Project exhaust for the new Yamaha R9"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DXMGRSJDBNF-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Максимальна продуктивність та еталонне звучання для нового Yamaha R9 🏍️",
+            "en": "SC-Project exhaust for the new Yamaha R9"
+          }
+        }
       },
       {
         "id": "ig-dxhcwg4dfqj",
@@ -1214,7 +1767,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "lartedesign", "premiumcars", "тюнінг", "cartuning"],
+        "tags": [
+          "onecompany",
+          "lartedesign",
+          "premiumcars",
+          "тюнінг",
+          "cartuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1224,7 +1783,16 @@
             "poster": "/images/blog/DXHCWG4DFQJ.jpg",
             "alt": "LARTE Design carbon aero kit with character"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/larte-design-carbon-aero-kit-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Ваше авто має відображати ваш характер",
+            "en": "LARTE Design carbon aero kit with character"
+          }
+        }
       },
       {
         "id": "ig-dxd_w7pdpfx",
@@ -1242,7 +1810,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["techartporsche", "carbonfiber", "widebody", "тюнінг", "onecompany"],
+        "tags": [
+          "techartporsche",
+          "carbonfiber",
+          "widebody",
+          "тюнінг",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -1275,7 +1849,16 @@
             "src": "/images/blog/DXD_W7PDPFX-5.jpg",
             "alt": "TECHART Porsche styling and aerodynamic upgrades"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DXD_W7PDPFX-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Бездоганність має багато форм",
+            "en": "TECHART Porsche styling and aerodynamic upgrades"
+          }
+        }
       },
       {
         "id": "ig-dw3qrqddo4l",
@@ -1293,7 +1876,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "libertywalk", "lbworks", "landcruiser250", "tuning"],
+        "tags": [
+          "onecompany",
+          "libertywalk",
+          "lbworks",
+          "landcruiser250",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1320,7 +1909,16 @@
             "src": "/images/blog/DW3qRqdDO4l-v2-4.jpg",
             "alt": "Liberty Walk LB-WORKS for Toyota Land Cruiser 250"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DW3qRqdDO4l-v2-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Liberty Walk LB-WORKS для Toyota Land Cruiser 250",
+            "en": "Liberty Walk LB-WORKS for Toyota Land Cruiser 250"
+          }
+        }
       },
       {
         "id": "ig-dwzaiiodhb4",
@@ -1338,13 +1936,18 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "al13wheels", "ferrari", "tuning"],
+        "tags": [
+          "onecompany",
+          "al13wheels",
+          "ferrari",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dwzaiiodhb4-1",
             "type": "image",
-            "src": "/images/blog/DWzAIIoDHb4-v2-1.jpg",
+            "src": "/images/blog/covers/exclusive-forged-wheels-al13-style-and-quality-original.jpg",
             "alt": "Exclusive forged AL13 wheels - style and perfect quality"
           },
           {
@@ -1359,7 +1962,16 @@
             "src": "/images/blog/DWzAIIoDHb4-v2-3.jpg",
             "alt": "Exclusive forged AL13 wheels - style and perfect quality"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/exclusive-forged-wheels-al13-style-and-quality-original.jpg",
+          "width": 1440,
+          "height": 1919,
+          "alt": {
+            "ua": "Ексклюзивні ковані диски AL13 - стиль та досконала якість",
+            "en": "Exclusive forged AL13 wheels - style and perfect quality"
+          }
+        }
       },
       {
         "id": "ig-dwvkrabdknw",
@@ -1377,17 +1989,31 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "ilmbergercarbon", "motorcycle", "carbonfiber"],
+        "tags": [
+          "onecompany",
+          "ilmbergercarbon",
+          "motorcycle",
+          "carbonfiber"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dwvkrabdknw-1",
             "type": "video",
             "src": "/videos/blog/DWvkRABDKnw-1.mp4",
-            "poster": "",
+            "poster": "/images/blog/covers/ilmberger-carbon-premium-details-dwvkrabdknw-frame.jpg",
             "alt": "Ilmberger Carbon Video"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/ilmberger-carbon-premium-details-dwvkrabdknw-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Ilmberger Carbon - преміальні деталі для мото",
+            "en": "Ilmberger Carbon - premium details for moto"
+          }
+        }
       },
       {
         "id": "ig-dw6o-tojlsv",
@@ -1405,16 +2031,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dw6o-tojlsv-1",
             "type": "video",
             "src": "/videos/blog/DW6O-TOjLSv-v4-1.mp4",
-            "alt": "One Company"
+            "alt": "One Company",
+            "poster": "/images/blog/covers/brand-case-dw6o-tojlsv-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dw6o-tojlsv-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Коли мова йде про преміальний тюнінг, деталі вирішують все. Brixton Forged",
+            "en": "When it comes to premium tuning, details matter. Here's why Brixton Forged des..."
+          }
+        }
       },
       {
         "id": "ig-dwn0fwmjb1t",
@@ -1432,7 +2071,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["jb4", "burgermotorsports", "cartuning", "tuning", "onecompany"],
+        "tags": [
+          "jb4",
+          "burgermotorsports",
+          "cartuning",
+          "tuning",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -1441,7 +2086,16 @@
             "src": "/images/blog/DWn0fWMjB1t-v2-1.jpg",
             "alt": "JB4 tuner - a modern solution for upgrading car performance"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DWn0fWMjB1t-v2-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "JB4 tuner - сучасне рішення для підвищення продуктивності авто",
+            "en": "JB4 tuner - a modern solution for upgrading car performance"
+          }
+        }
       },
       {
         "id": "ig-dwlatxvjbno",
@@ -1459,7 +2113,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["brabus", "widestar", "mercedesg63", "tuning", "onecompany"],
+        "tags": [
+          "brabus",
+          "widestar",
+          "mercedesg63",
+          "tuning",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -1486,7 +2146,16 @@
             "src": "/images/blog/DWlaTXVjBNO-v2-4.jpg",
             "alt": "BRABUS Widestar for Mercedes G63 (W465)"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DWlaTXVjBNO-v2-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "BRABUS Widestar для Mercedes G63 (W465)",
+            "en": "BRABUS Widestar for Mercedes G63 (W465)"
+          }
+        }
       },
       {
         "id": "ig-dweba1mjnjq",
@@ -1504,16 +2173,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dweba1mjnjq-1",
             "type": "video",
             "src": "/videos/blog/DWebA1mjNjq-v4-1.mp4",
-            "alt": "One Company - DWebA1mjNjq"
+            "alt": "One Company - DWebA1mjNjq",
+            "poster": "/images/blog/covers/brand-case-dweba1mjnjq-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dweba1mjnjq-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Urban Automotive відкриває нову главу для Lamborghini Urus SE.",
+            "en": "Urban Automotive opens a new chapter for Lamborghini Urus SE"
+          }
+        }
       },
       {
         "id": "ig-dwbybfkjhxp",
@@ -1531,7 +2213,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1543,7 +2228,7 @@
           {
             "id": "media-ig-dwbybfkjhxp-2",
             "type": "image",
-            "src": "/images/blog/DWbybFkjHXp-v4-2.jpg",
+            "src": "/images/blog/covers/brand-case-dwbybfkjhxp-original.jpg",
             "alt": "One Company - DWbybFkjHXp"
           },
           {
@@ -1558,7 +2243,16 @@
             "src": "/images/blog/DWbybFkjHXp-v4-4.jpg",
             "alt": "One Company - DWbybFkjHXp"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dwbybfkjhxp-original.jpg",
+          "width": 1440,
+          "height": 1800,
+          "alt": {
+            "ua": "Карбонокерамічні гальмівні диски @stopflexcarbonceramicdiscs - стабільність і...",
+            "en": "Carbon-ceramic brake discs by Stopflex - stability and control"
+          }
+        }
       },
       {
         "id": "ig-dwwgptejkmd",
@@ -1576,16 +2270,29 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dwwgptejkmd-1",
             "type": "video",
             "src": "/videos/blog/DWWGptejKmd-v4-1.mp4",
-            "alt": "One Company - DWWGptejKmd"
+            "alt": "One Company - DWWGptejKmd",
+            "poster": "/images/blog/covers/brand-case-dwwgptejkmd-frame.jpg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dwwgptejkmd-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Неповторне звучання вихлопної системи @novitecgroup 🔥",
+            "en": "The unique sound of Novitec exhaust system 🔥"
+          }
+        }
       },
       {
         "id": "ig-dwtu9bsdejc",
@@ -1630,7 +2337,16 @@
             "src": "/images/blog/DWTU9BsDEJC-v2-3.jpg",
             "alt": "KW Variant 3, 4, 5 - three levels of suspension tuning"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DWTU9BsDEJC-v2-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "KW Variant 3, 4, 5 - три рівні налаштування підвіски",
+            "en": "KW Variant 3, 4, 5 - three levels of suspension tuning"
+          }
+        }
       },
       {
         "id": "ig-dwplj-pjawz",
@@ -1648,13 +2364,16 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dwplj-pjawz-1",
             "type": "image",
-            "src": "/images/blog/DWPLJ-PjAwZ-v4-1.jpg",
+            "src": "/images/blog/covers/brand-case-dwplj-pjawz-original.jpg",
             "alt": "One Company"
           },
           {
@@ -1687,7 +2406,16 @@
             "src": "/images/blog/DWPLJ-PjAwZ-v4-6.jpg",
             "alt": "One Company"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dwplj-pjawz-original.jpg",
+          "width": 1080,
+          "height": 1067,
+          "alt": {
+            "ua": "Vörsteiner wheels - ідеальний баланс форми, стилю та характеру.",
+            "en": "Vörsteiner wheels - the perfect balance of form, style and character"
+          }
+        }
       },
       {
         "id": "ig-dvg3s66dagx",
@@ -1705,7 +2433,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "quicksilverexhaust", "exhaustsystem", "tuning"],
+        "tags": [
+          "onecompany",
+          "quicksilverexhaust",
+          "exhaustsystem",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1714,7 +2447,16 @@
             "src": "/images/blog/DVG3S66DAgX-v2-1.jpg",
             "alt": "QuickSilver - an exhaust system combining traditions and advanced technologies"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DVG3S66DAgX-v2-1.jpg",
+          "width": 1080,
+          "height": 1080,
+          "alt": {
+            "ua": "QuickSilver - вихлопна система, що поєднує традиції та передові технології",
+            "en": "QuickSilver - an exhaust system combining traditions and advanced technologies"
+          }
+        }
       },
       {
         "id": "ig-dvbossajmkr",
@@ -1732,7 +2474,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1768,10 +2513,19 @@
           {
             "id": "media-ig-dvbossajmkr-6",
             "type": "image",
-            "src": "/images/blog/DVBOSsajMKr-v4-6.jpg",
+            "src": "/images/blog/covers/brand-case-dvbossajmkr-original.jpg",
             "alt": "One Company - DVBOSsajMKr"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-dvbossajmkr-original.jpg",
+          "width": 1440,
+          "height": 1795,
+          "alt": {
+            "ua": "Зустрічайте індивідуальну програму доопрацювання для найпотужнішого Urus в іс...",
+            "en": "Meet the exclusive BRABUS upgrade programme for the most powerful Urus ever"
+          }
+        }
       },
       {
         "id": "ig-du8slwwdp1c",
@@ -1789,14 +2543,18 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-du8slwwdp1c-1",
             "type": "video",
             "src": "/videos/blog/DU8slwwDP1C-v4-1.mp4",
-            "alt": "One Company - DU8slwwDP1C"
+            "alt": "One Company - DU8slwwDP1C",
+            "poster": "/images/blog/DU8slwwDP1C-v4-2.jpg"
           },
           {
             "id": "media-ig-du8slwwdp1c-2",
@@ -1816,7 +2574,16 @@
             "src": "/images/blog/DU8slwwDP1C-v4-4.jpg",
             "alt": "One Company - DU8slwwDP1C"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DU8slwwDP1C-v4-2.jpg",
+          "width": 960,
+          "height": 1280,
+          "alt": {
+            "ua": "Вихлопна система - це голос вашого авто. І якщо ми говоримо про IPE, то цей г...",
+            "en": "IPE exhaust system - the voice of your car"
+          }
+        }
       },
       {
         "id": "ig-du56j1ejlfg",
@@ -1834,13 +2601,16 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-du56j1ejlfg-1",
             "type": "image",
-            "src": "/images/blog/DU56J1EjLFg-v4-1.jpg",
+            "src": "/images/blog/covers/brand-case-du56j1ejlfg-original.jpg",
             "alt": "One Company - DU56J1EjLFg"
           },
           {
@@ -1849,7 +2619,16 @@
             "src": "/images/blog/DU56J1EjLFg-v4-2.jpg",
             "alt": "One Company - DU56J1EjLFg"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/brand-case-du56j1ejlfg-original.jpg",
+          "width": 1440,
+          "height": 1800,
+          "alt": {
+            "ua": "Бажаєте відчути потенціал свого двигуна на повну, не втручаючись у заводські ...",
+            "en": "RaceChip - unlock the full potential of your engine"
+          }
+        }
       },
       {
         "id": "ig-du3a9ygdgjr",
@@ -1867,7 +2646,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1876,7 +2658,16 @@
             "src": "/images/blog/DU3a9YgDGjR-v4-1.jpg",
             "alt": "One Company - DU3a9YgDGjR"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DU3a9YgDGjR-v4-1.jpg",
+          "width": 1080,
+          "height": 1346,
+          "alt": {
+            "ua": "Якщо ваша мета-мінімальна непідресорена маса та максимальна жорсткість у пово...",
+            "en": "VPX TrackWheels - minimum weight, maximum rigidity"
+          }
+        }
       },
       {
         "id": "ig-du0nuwgdndv",
@@ -1894,7 +2685,11 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "mtstechnik", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "mtstechnik",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -1904,7 +2699,16 @@
             "poster": "/images/blog/DU0NUWGDNDV.jpg",
             "alt": "Looking for the perfect balance between style, handling and price"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/looking-for-the-perfect-balance-between-style-handling-du0nuwgdndv-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Шукаєте ідеальний баланс між стилем, керованістю та ціною",
+            "en": "Looking for the perfect balance between style, handling and price"
+          }
+        }
       },
       {
         "id": "ig-duuv-rjjalg",
@@ -1922,7 +2726,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "gsport", "gesi", "catalyticconverter", "tuning"],
+        "tags": [
+          "onecompany",
+          "gsport",
+          "gesi",
+          "catalyticconverter",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -1932,7 +2742,16 @@
             "poster": "/images/blog/DUUV-RJJALG.jpg",
             "alt": "When you're building a powerful project, the choice between \"cut the gutters\" and \"leave…"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/when-you-re-building-a-powerful-project-the-choice-duuv-rjjalg-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Коли ви будуєте потужний проєкт, вибір між «вирізати катали» та «залишити сток» завжди…",
+            "en": "When you're building a powerful project, the choice between \"cut the gutters\" and \"leave…"
+          }
+        }
       },
       {
         "id": "ig-duqansjdp8u",
@@ -1950,7 +2769,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "ipe", "ipeexhaust", "titaniumexhaustpipes", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "ipe",
+          "ipeexhaust",
+          "titaniumexhaustpipes",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -1960,7 +2785,16 @@
             "poster": "/images/blog/DUQANSJDP8U.jpg",
             "alt": "This Cold Start leaves no chance to go unnoticed"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/this-cold-start-leaves-no-chance-to-go-unnoticed-duqansjdp8u-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Цей Cold Start не залишає шансів залишитися непоміченим",
+            "en": "This Cold Start leaves no chance to go unnoticed"
+          }
+        }
       },
       {
         "id": "ig-dun2xledkvq",
@@ -1978,7 +2812,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "hrewheels", "hre", "s101sc", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "hrewheels",
+          "hre",
+          "s101sc",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -1988,7 +2828,16 @@
             "poster": "/images/blog/DUN2XLEDKVQ.jpg",
             "alt": "A legendary model from the world leader in forged discs can become part of your project"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/a-legendary-model-from-the-world-leader-in-forged-discs-dun2xledkvq-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Легендарна модель від світового лідера кованих дисків може стати частиною вашого проєкту",
+            "en": "A legendary model from the world leader in forged discs can become part of your project"
+          }
+        }
       },
       {
         "id": "ig-dulqrivdhic",
@@ -2006,7 +2855,11 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning", "onecompanyglobal"],
+        "tags": [
+          "onecompany",
+          "tuning",
+          "onecompanyglobal"
+        ],
         "status": "published",
         "media": [
           {
@@ -2039,7 +2892,16 @@
             "src": "/images/blog/DULQRIVDHIC-5.jpg",
             "alt": "We know how important it is for you to be sure of the quality of every detail for your car"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DULQRIVDHIC-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Ми знаємо, наскільки важливо для вас бути впевненими в якості кожної деталі для вашого авто",
+            "en": "We know how important it is for you to be sure of the quality of every detail for your car"
+          }
+        }
       },
       {
         "id": "ig-duipnh6dbek",
@@ -2057,7 +2919,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "ctcarbon", "bmwx5m", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "ctcarbon",
+          "bmwx5m",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2096,7 +2963,16 @@
             "src": "/images/blog/DUIPNH6DBEK-6.jpg",
             "alt": "Want to add even more aggression and personality to your X5M"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DUIPNH6DBEK-1.jpg",
+          "width": 1080,
+          "height": 1080,
+          "alt": {
+            "ua": "Бажаєте додати своєму X5M ще більше агресії та індивідуальності",
+            "en": "Want to add even more aggression and personality to your X5M"
+          }
+        }
       },
       {
         "id": "ig-dubis32dotx",
@@ -2114,7 +2990,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "darwinpro", "bmw8", "tuning", "carbon"],
+        "tags": [
+          "onecompany",
+          "darwinpro",
+          "bmw8",
+          "tuning",
+          "carbon"
+        ],
         "status": "published",
         "media": [
           {
@@ -2126,7 +3008,7 @@
           {
             "id": "media-ig-dubis32dotx-2",
             "type": "image",
-            "src": "/images/blog/DUBIS32DOTX-2.jpg",
+            "src": "/images/blog/covers/turn-your-bmw-g14-g15-g16-into-an-exclusive-project-dubis32dotx-original.jpg",
             "alt": "Turn your BMW (G14/G15/G16) into an exclusive project with a complete kit from DarwinPro"
           },
           {
@@ -2159,7 +3041,16 @@
             "src": "/images/blog/DUBIS32DOTX-7.jpg",
             "alt": "Turn your BMW (G14/G15/G16) into an exclusive project with a complete kit from DarwinPro"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/turn-your-bmw-g14-g15-g16-into-an-exclusive-project-dubis32dotx-original.jpg",
+          "width": 1440,
+          "height": 1795,
+          "alt": {
+            "ua": "Перетворіть свою BMW (G14/G15/G16) на ексклюзивний проєкт з повним комплектом від DarwinPro",
+            "en": "Turn your BMW (G14/G15/G16) into an exclusive project with a complete kit from DarwinPro"
+          }
+        }
       },
       {
         "id": "ig-duyuhjfdbsq",
@@ -2177,7 +3068,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "urbanautomotive", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "urbanautomotive",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2187,7 +3083,16 @@
             "poster": "/images/blog/DUYUHJFDBSQ.jpg",
             "alt": "Urban Automotive is a modern take on British style and aggressive sophistication"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/urban-automotive-is-a-modern-take-on-british-style-and-aggressiv-duyuhjfdbsq-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Urban Automotive-це сучасний погляд на британський стиль та агресивну витонченість",
+            "en": "Urban Automotive is a modern take on British style and aggressive sophistication"
+          }
+        }
       },
       {
         "id": "ig-duvvmlqdkcq",
@@ -2205,7 +3110,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "eventuri", "bmwm5", "g90", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "eventuri",
+          "bmwm5",
+          "g90",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2215,7 +3126,16 @@
             "poster": "/images/blog/DUVVMLQDKCQ.jpg",
             "alt": "Eventuri for the new BMW M5 G90"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/eventuri-for-the-new-bmw-m5-g90-duvvmlqdkcq-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Eventuri для нової BMW M5 G90",
+            "en": "Eventuri for the new BMW M5 G90"
+          }
+        }
       },
       {
         "id": "ig-dutf_x9dpil",
@@ -2233,13 +3153,19 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
+        "tags": [
+          "bmw",
+          "mperfomance",
+          "onecompany",
+          "3ddesign",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
             "id": "media-ig-dutf_x9dpil-1",
             "type": "image",
-            "src": "/images/blog/DUTF_X9DPIL-1.jpg",
+            "src": "/images/blog/covers/even-such-a-nuance-as-the-nozzles-of-the-exhaust-system-can-comp-dutf_x9dpil-original.jpg",
             "alt": "Even such a nuance as the nozzles of the exhaust system can completely change the character…"
           },
           {
@@ -2266,7 +3192,16 @@
             "src": "/images/blog/DUTF_X9DPIL-5.jpg",
             "alt": "Even such a nuance as the nozzles of the exhaust system can completely change the character…"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/covers/even-such-a-nuance-as-the-nozzles-of-the-exhaust-system-can-comp-dutf_x9dpil-original.jpg",
+          "width": 1440,
+          "height": 1795,
+          "alt": {
+            "ua": "Навіть такий нюанс, як насадки вихлопної системи, може повністю змінити характер задньої…",
+            "en": "Even such a nuance as the nozzles of the exhaust system can completely change the character…"
+          }
+        }
       },
       {
         "id": "ig-2026-02-03-3d-design",
@@ -2284,7 +3219,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
+        "tags": [
+          "bmw",
+          "mperfomance",
+          "onecompany",
+          "3ddesign",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2293,7 +3234,16 @@
             "src": "/images/blog/DUTF_x9DPIl-4.jpg",
             "alt": "3D Design BMW exhaust tips"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DUTF_x9DPIl-4.jpg",
+          "width": 1080,
+          "height": 1346,
+          "alt": {
+            "ua": "3D Design · Насадки вихлопу BMW G8X/G9X",
+            "en": "3D Design · BMW G8X/G9X Exhaust Tips"
+          }
+        }
       },
       {
         "id": "ig-2026-01-30-urban-automotive",
@@ -2311,7 +3261,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["rangerovertuning", "widetrack", "onecompanyglobal", "onecompany"],
+        "tags": [
+          "rangerovertuning",
+          "widetrack",
+          "onecompanyglobal",
+          "onecompany"
+        ],
         "status": "published",
         "media": [
           {
@@ -2320,7 +3275,16 @@
             "src": "/images/blog/DUImF4bjCgv-1.jpg",
             "alt": "Urban Range Rover Widetrack Kit"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DUImF4bjCgv-1.jpg",
+          "width": 481,
+          "height": 600,
+          "alt": {
+            "ua": "Urban · Range Rover Widetrack Kit",
+            "en": "Urban · Range Rover Widetrack Kit"
+          }
+        }
       },
       {
         "id": "ig-2026-01-29-brabus",
@@ -2338,7 +3302,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "brabus", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "brabus",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2347,7 +3316,16 @@
             "src": "/images/blog/DUGFrvdDCzP-1.jpg",
             "alt": "Brabus premium tuning"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DUGFrvdDCzP-1.jpg",
+          "width": 481,
+          "height": 600,
+          "alt": {
+            "ua": "Brabus · Нова реальність потужності",
+            "en": "Brabus · A New Reality of Power"
+          }
+        }
       },
       {
         "id": "ig-2026-01-26-ct-carbon",
@@ -2365,7 +3343,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["RSQ8Facelift", "CTCarbon", "onecompanyglobal", "тюнінг", "carbonbodykit"],
+        "tags": [
+          "RSQ8Facelift",
+          "CTCarbon",
+          "onecompanyglobal",
+          "тюнінг",
+          "carbonbodykit"
+        ],
         "status": "published",
         "media": [
           {
@@ -2374,7 +3358,16 @@
             "src": "/images/blog/DT-4lpxDFRy-2.jpg",
             "alt": "CT Carbon Audi RSQ8 Facelift tuning kit"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DT-4lpxDFRy-2.jpg",
+          "width": 1080,
+          "height": 1080,
+          "alt": {
+            "ua": "CT Carbon · Audi RSQ8 Facelift тюнінг",
+            "en": "CT Carbon · Audi RSQ8 Facelift Tuning"
+          }
+        }
       },
       {
         "id": "ig-2026-01-26-ipe",
@@ -2392,7 +3385,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "iPE", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "iPE",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2401,7 +3399,16 @@
             "src": "/images/blog/DT-XLbLjQEb-1.jpg",
             "alt": "iPE Valvetronic exhaust system"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DT-XLbLjQEb-1.jpg",
+          "width": 1391,
+          "height": 1364,
+          "alt": {
+            "ua": "iPE · Valvetronic вихлопна система",
+            "en": "iPE · Valvetronic Exhaust System"
+          }
+        }
       },
       {
         "id": "ig-2026-01-22-eventuri",
@@ -2419,7 +3426,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "eventuri", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "eventuri",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2428,7 +3440,16 @@
             "src": "/images/blog/DT0NWC8DCsl-1.jpg",
             "alt": "Eventuri air intake system"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DT0NWC8DCsl-1.jpg",
+          "width": 1440,
+          "height": 1920,
+          "alt": {
+            "ua": "Eventuri · Системи впуску повітря",
+            "en": "Eventuri · Air Intake Systems"
+          }
+        }
       },
       {
         "id": "ig-2026-01-21-adro",
@@ -2446,7 +3467,13 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "adro", "bmwm3", "bmwm4"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "adro",
+          "bmwm3",
+          "bmwm4"
+        ],
         "status": "published",
         "media": [
           {
@@ -2455,7 +3482,16 @@
             "src": "/images/blog/DTx1PMAjARI-2.jpg",
             "alt": "ADRO BMW G8X carbon aero kit"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DTx1PMAjARI-2.jpg",
+          "width": 1080,
+          "height": 1080,
+          "alt": {
+            "ua": "ADRO · Карбоновий обвіс BMW G8X",
+            "en": "ADRO · BMW G8X Carbon Aero Kit"
+          }
+        }
       },
       {
         "id": "ig-2026-01-20-akrapovic",
@@ -2473,7 +3509,12 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "onecompanyglobal", "akrapovic", "тюнінг"],
+        "tags": [
+          "onecompany",
+          "onecompanyglobal",
+          "akrapovic",
+          "тюнінг"
+        ],
         "status": "published",
         "media": [
           {
@@ -2482,7 +3523,16 @@
             "src": "/images/blog/DTu98JODL1s-1.jpg",
             "alt": "Akrapovič titanium exhaust system"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DTu98JODL1s-1.jpg",
+          "width": 1440,
+          "height": 1920,
+          "alt": {
+            "ua": "Akrapovič · Титанова вихлопна система",
+            "en": "Akrapovič · Titanium Exhaust System"
+          }
+        }
       },
       {
         "id": "ig-dtskmdmjfgf",
@@ -2500,7 +3550,10 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": ["onecompany", "tuning"],
+        "tags": [
+          "onecompany",
+          "tuning"
+        ],
         "status": "published",
         "media": [
           {
@@ -2509,7 +3562,16 @@
             "src": "/images/blog/DTsKmdmjFgF-v4-1.jpg",
             "alt": "One Company - DTsKmdmjFgF"
           }
-        ]
+        ],
+        "cover": {
+          "src": "/images/blog/DTsKmdmjFgF-v4-1.jpg",
+          "width": 1080,
+          "height": 1080,
+          "alt": {
+            "ua": "One Company - Професійний імпорт преміального тюнінгу",
+            "en": "One Company — Professional Import Since 2007"
+          }
+        }
       }
     ]
   }

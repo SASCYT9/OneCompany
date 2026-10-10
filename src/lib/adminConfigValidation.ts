@@ -92,6 +92,90 @@ function validateLocalizedString(value: unknown, path: string) {
   };
 }
 
+function expectEditorialDate(value: unknown, path: string) {
+  const date = expectString(value, path, { allowEmpty: false });
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$/.exec(date);
+  if (!match || !Number.isFinite(Date.parse(date))) fail(path, 'expected a valid ISO date');
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth) fail(path, 'expected a valid ISO date');
+  return date;
+}
+
+function expectPositiveDimension(value: unknown, path: string) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0)
+    fail(path, "expected positive integer");
+  return value;
+}
+
+function validateBlogEditorialFields(entry: Record<string, unknown>, path: string) {
+  const cover = entry.cover == null ? undefined : expectObject(entry.cover, `${path}.cover`);
+  return {
+    updatedAt: entry.updatedAt == null || entry.updatedAt === ''
+      ? undefined : expectEditorialDate(entry.updatedAt, `${path}.updatedAt`),
+    seoTitle:
+      entry.seoTitle == null
+        ? undefined
+        : validateLocalizedString(entry.seoTitle, `${path}.seoTitle`),
+    description:
+      entry.description == null
+        ? undefined
+        : validateLocalizedString(entry.description, `${path}.description`),
+    disclosure:
+      entry.disclosure == null
+        ? undefined
+        : validateLocalizedString(entry.disclosure, `${path}.disclosure`),
+    cover: cover
+      ? {
+          src: expectAssetReference(cover.src, `${path}.cover.src`),
+          width: expectPositiveDimension(cover.width, `${path}.cover.width`),
+          height: expectPositiveDimension(cover.height, `${path}.cover.height`),
+          alt: validateLocalizedString(cover.alt, `${path}.cover.alt`),
+          credit:
+            cover.credit == null
+              ? undefined
+              : validateLocalizedString(cover.credit, `${path}.cover.credit`),
+        }
+      : undefined,
+    sections:
+      entry.sections == null
+        ? undefined
+        : expectObjectArray(entry.sections, `${path}.sections`).map((section, index) => {
+            const sectionPath = `${path}.sections[${index}]`;
+            if (!Array.isArray(section.paragraphs))
+              fail(`${sectionPath}.paragraphs`, "expected array");
+            if (section.table != null && !Array.isArray(section.table))
+              fail(`${sectionPath}.table`, "expected array");
+            return {
+              heading: validateLocalizedString(section.heading, `${sectionPath}.heading`),
+              paragraphs: section.paragraphs.map((paragraph, i) =>
+                validateLocalizedString(paragraph, `${sectionPath}.paragraphs[${i}]`)
+              ),
+              table:
+                section.table == null
+                  ? undefined
+                  : (section.table as unknown[]).map((row, i) => {
+                      if (!Array.isArray(row)) fail(`${sectionPath}.table[${i}]`, "expected array");
+                      return row.map((cell, j) =>
+                        validateLocalizedString(cell, `${sectionPath}.table[${i}][${j}]`)
+                      );
+                    }),
+            };
+          }),
+    sources:
+      entry.sources == null
+        ? undefined
+        : expectObjectArray(entry.sources, `${path}.sources`).map((source, index) => {
+            const sourcePath = `${path}.sources[${index}]`;
+            const url = expectString(source.url, `${sourcePath}.url`);
+            if (!/^https:\/\//i.test(url)) fail(`${sourcePath}.url`, "expected HTTPS source");
+            return { title: validateLocalizedString(source.title, `${sourcePath}.title`), url };
+          }),
+  };
+}
+
 export function validateSiteContentInput(input: unknown): SiteContent {
   const source = expectObject(input, 'siteContent');
   const hero = expectObject(source.hero, 'hero');
@@ -180,7 +264,8 @@ export function validateSiteContentInput(input: unknown): SiteContent {
         slug: expectString(entry.slug, `blog.posts[${index}].slug`, { allowEmpty: false }),
         title: validateLocalizedString(entry.title, `blog.posts[${index}].title`),
         caption: validateLocalizedString(entry.caption, `blog.posts[${index}].caption`),
-        date: expectString(entry.date, `blog.posts[${index}].date`, { allowEmpty: false }),
+        date: expectEditorialDate(entry.date, `blog.posts[${index}].date`),
+        ...validateBlogEditorialFields(entry, `blog.posts[${index}]`),
         location: entry.location == null ? undefined : validateLocalizedString(entry.location, `blog.posts[${index}].location`),
         tags: entry.tags == null ? undefined : expectStringArray(entry.tags, `blog.posts[${index}].tags`),
         pinned: entry.pinned == null ? undefined : expectBoolean(entry.pinned, `blog.posts[${index}].pinned`),
