@@ -111,8 +111,13 @@ export default function AutoBreadcrumbs() {
   for (let i = startIdx; i < segments.length; i++) {
     const slug = segments[i];
 
-    // Skip pagination segments or utility segments if needed
-    if (slug === "page" && !isNaN(Number(segments[i + 1]))) continue;
+    // `/page/N` is pagination, not a place in the hierarchy: skip both
+    // segments. Skipping only `page` used to leave the number behind as a
+    // crumb pointing at a URL that does not exist (`.../products/2`).
+    if (slug === "page" && /^\d+$/.test(segments[i + 1] ?? "")) {
+      i += 1;
+      continue;
+    }
 
     currentPath += `/${slug}`;
     items.push({

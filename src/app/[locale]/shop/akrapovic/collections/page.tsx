@@ -1,6 +1,7 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
 import Link from "next/link";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { getAkrapovicProductsServer, projectShopProductForListGrid } from "@/lib/shopCatalogServer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
@@ -8,6 +9,16 @@ import { BreadcrumbSchema } from "@/components/seo/StructuredData";
 import { JsonLd, generateProductItemListSchema } from "@/lib/jsonLd";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { localizeShopProductTitle } from "@/lib/shopText";
+import {
+  AKRAPOVIC_LISTING_BASE_SLUG,
+  AKRAPOVIC_LISTING_PAGE_SIZE,
+  buildAkrapovicInitialQuery,
+  buildAkrapovicListingPath,
+  isAkrapovicMotoScope,
+  resolveAkrapovicPagination,
+  sortAkrapovicProducts,
+  type AkrapovicListingSearchParams,
+} from "@/lib/akrapovicListing";
 import AkrapovicVehicleFilter from "../../components/AkrapovicVehicleFilter";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
@@ -16,15 +27,14 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ scope?: string; segment?: string }>;
+  searchParams: Promise<AkrapovicListingSearchParams>;
 };
 
 export async function generateMetadata({ params, searchParams }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const { scope, segment } = await searchParams;
-  const isMoto = scope === "moto" || segment === "moto";
-  return buildPageMetadata(resolvedLocale, "shop/akrapovic/collections", {
+  const isMoto = isAkrapovicMotoScope(await searchParams);
+  return buildPageMetadata(resolvedLocale, AKRAPOVIC_LISTING_BASE_SLUG, {
     title:
       resolvedLocale === "ua"
         ? isMoto
@@ -44,25 +54,49 @@ export async function generateMetadata({ params, searchParams }: Props) {
   });
 }
 
-export default async function AkrapovicCollectionsPage({ params, searchParams }: Props) {
+/**
+ * The catalog list. `requestedPage` > 1 is used by the crawlable
+ * `/collections/page/N` routes: they render this same page, starting at that
+ * page of the default (car) listing, so the products beyond the first
+ * "Show more" step are reachable through plain links.
+ */
+export default async function AkrapovicCollectionsPage(
+  { params, searchParams }: Props,
+  requestedPage = 1
+) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const { scope, segment } = await searchParams;
-  const isMoto = scope === "moto" || segment === "moto";
+  const query = await searchParams;
+  const isMoto = isAkrapovicMotoScope(query);
 
   const [settingsRecord, akrapovicRows] = await Promise.all([
     getPublicShopSettingsRuntime(),
     getAkrapovicProductsServer(),
   ]);
   const akrapovicProducts = akrapovicRows.map(projectShopProductForListGrid);
+  const carProducts = akrapovicProducts.filter((product) => product.scope !== "moto");
+  const motoProducts = akrapovicProducts.filter((product) => product.scope === "moto");
+
+  const pagination = resolveAkrapovicPagination(carProducts.length, requestedPage);
+  if (!pagination.isValidPage) notFound();
 
   const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
-  const listingPath = buildLocalizedPath(resolvedLocale, "/shop/akrapovic/collections");
+  // ItemList describes the products this URL actually opens with, in the order
+  // the grid shows them (same comparator and default currency as the client).
+  const sorted = sortAkrapovicProducts(isMoto ? motoProducts : carProducts, "default", {
+    viewerContext,
+    currency: "UAH",
+    rates: settingsRecord.currencyRates,
+  });
+  const pageStart = isMoto ? 0 : (requestedPage - 1) * AKRAPOVIC_LISTING_PAGE_SIZE;
+  const listedProducts = sorted.slice(pageStart, pageStart + AKRAPOVIC_LISTING_PAGE_SIZE);
+
+  const listingPath = buildAkrapovicListingPath(resolvedLocale, isMoto ? 1 : requestedPage);
   const itemListSchema = generateProductItemListSchema(
     isMoto ? "Akrapovič Motorcycle Exhausts Catalog" : "Akrapovič Car Exhausts Catalog",
     listingPath,
-    akrapovicProducts.map((product) => ({
+    listedProducts.map((product) => ({
       slug: product.slug,
       title: localizeShopProductTitle(resolvedLocale, product),
       path: buildShopStorefrontProductPathForProduct(resolvedLocale, product),
@@ -146,6 +180,16 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
             products={akrapovicProducts}
             viewerContext={viewerContext}
             productPathPrefix={`/${locale}/shop/akrapovic/products`}
+            initialQuery={buildAkrapovicInitialQuery(query)}
+            scope={isMoto ? "moto" : "auto"}
+            pagination={
+              isMoto
+                ? undefined
+                : {
+                    page: requestedPage,
+                    basePath: `/${resolvedLocale}/${AKRAPOVIC_LISTING_BASE_SLUG}`,
+                  }
+            }
           />
         </div>
       </div>

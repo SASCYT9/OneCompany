@@ -142,6 +142,7 @@ const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
 
 const PAGED_LISTING_PATHS = [
   "/shop/adro/collections",
+  "/shop/akrapovic/collections",
   "/shop/brabus/products",
   "/shop/burger/products",
   "/shop/csf/collections",

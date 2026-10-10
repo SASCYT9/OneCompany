@@ -1,23 +1,20 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import {
-  computeShopDisplayPrices,
-  hasAnyShopPrice,
-  pickShopSortableAmount,
-} from "@/lib/shopDisplayPrices";
+import { computeShopDisplayPrices, hasAnyShopPrice } from "@/lib/shopDisplayPrices";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import type { ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
+import { UrlSearchParamsBridge } from "@/components/shop/UrlSearchParamsBridge";
 import { ShopCardPriceTag } from "@/components/shop/ShopCardPriceTag";
 import AkrapovicSpotlightGrid from "./AkrapovicSpotlightGrid";
 import { MobileFilterDrawerCTA } from "./MobileFilterDrawerCTA";
@@ -32,6 +29,7 @@ import {
   extractChassisForBrandAndModel,
   compareVehicleModelKeys,
 } from "@/lib/akrapovicFilterUtils";
+import { AKRAPOVIC_LISTING_PAGE_SIZE, sortAkrapovicProducts } from "@/lib/akrapovicListing";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -40,10 +38,19 @@ type AkrapovicVehicleFilterProps = {
   productPathPrefix: string;
   filterOnly?: boolean;
   heroCompact?: boolean;
+  /** Query string known on the server, so the server HTML matches the first client render. */
+  initialQuery?: string;
+  /** Explicit scope; when omitted it is read from `scope`/`segment` in the URL query. */
+  scope?: "auto" | "moto";
+  /**
+   * Crawlable continuation of the listing: the page this render starts on and
+   * the base path of the `/page/N` routes. "Show more" then links to the next one.
+   */
+  pagination?: { page: number; basePath: string };
 };
 
 type SortOrder = "default" | "price_desc" | "price_asc";
-const PAGE_SIZE = 30;
+const PAGE_SIZE = AKRAPOVIC_LISTING_PAGE_SIZE;
 
 /* Brand/line constants imported from @/lib/akrapovicFilterUtils */
 
@@ -70,16 +77,28 @@ export default function AkrapovicVehicleFilter({
   productPathPrefix,
   filterOnly = false,
   heroCompact = false,
+  initialQuery,
+  scope,
+  pagination,
 }: AkrapovicVehicleFilterProps) {
   // SSR receives an anonymous viewer context (so the page is ISR-cached);
   // the live B2B-aware context is hydrated client-side from the session.
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const isUa = locale === "ua";
   const { currency, rates } = useShopCurrency();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // The URL query reaches this component through a Suspense-isolated bridge
+  // (see UrlSearchParamsBridge). Calling useSearchParams() here would bail the
+  // whole page out of static rendering and ship only the loading screen, and
+  // an `if (!mounted) return null` guard would hide the grid from the server
+  // HTML; both kept Googlebot from seeing any product link.
+  const [urlQuery, setUrlQuery] = useState(initialQuery ?? "");
+  const searchParams = useMemo(() => new URLSearchParams(urlQuery), [urlQuery]);
+  const urlBridge = (
+    <Suspense fallback={null}>
+      <UrlSearchParamsBridge onChange={setUrlQuery} />
+    </Suspense>
+  );
 
   const [activeBrand, setActiveBrand] = useState<string>(() => searchParams.get("brand") || "all");
   const [activeModel, setActiveModel] = useState<string>(() => searchParams.get("model") || "all");
@@ -95,7 +114,7 @@ export default function AkrapovicVehicleFilter({
   const prevModelRef = useRef(activeModel);
 
   const rawScope = searchParams.get("scope") || searchParams.get("segment");
-  const isMoto = rawScope === "moto";
+  const isMoto = scope ? scope === "moto" : rawScope === "moto";
 
   const scopedProducts = useMemo(() => {
     return products.filter((p) => {
@@ -310,12 +329,13 @@ export default function AkrapovicVehicleFilter({
       if (q.trim()) params.set("q", q.trim());
       if (isMoto) params.set("scope", "moto");
       const qs = params.toString();
-      const nextPath = qs ? `${pathname}?${qs}` : pathname || "";
+      // Filtered views live on the base listing URL, never on `/page/N`.
+      const nextPath = qs ? `${pagination?.basePath ?? pathname}?${qs}` : pathname || "";
       if (typeof window !== "undefined") {
         window.history.replaceState(window.history.state, "", nextPath);
       }
     },
-    [pathname, filterOnly, isMoto]
+    [pathname, filterOnly, isMoto, pagination?.basePath]
   );
 
   useEffect(() => {
@@ -398,25 +418,7 @@ export default function AkrapovicVehicleFilter({
         return words.every((w) => haystack.includes(w));
       });
     }
-    result = [...result].sort((a, b) => {
-      const priceA = pickShopSortableAmount(
-        viewerContext ? resolveShopProductPricing(a, viewerContext).effectivePrice : a.price,
-        currency,
-        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
-      );
-      const priceB = pickShopSortableAmount(
-        viewerContext ? resolveShopProductPricing(b, viewerContext).effectivePrice : b.price,
-        currency,
-        rates && { EUR: rates.EUR, USD: rates.USD, UAH: rates.UAH }
-      );
-      if (sortOrder === "price_desc") return priceB - priceA;
-      if (sortOrder === "price_asc") return priceA - priceB;
-      const hasImgA = a.image && a.image.length > 5 ? 1 : 0;
-      const hasImgB = b.image && b.image.length > 5 ? 1 : 0;
-      if (hasImgA !== hasImgB) return hasImgB - hasImgA;
-      return priceB - priceA;
-    });
-    return result;
+    return sortAkrapovicProducts(result, sortOrder, { viewerContext, currency, rates });
   }, [
     activeBrand,
     activeModel,
@@ -426,6 +428,7 @@ export default function AkrapovicVehicleFilter({
     sortOrder,
     scopedProducts,
     productBrandMap,
+    isMoto,
     locale,
     viewerContext,
     currency,
@@ -433,10 +436,6 @@ export default function AkrapovicVehicleFilter({
   ]);
 
   const totalCount = scopedProducts.length;
-  const displayedProducts = useMemo(
-    () => filteredProducts.slice(0, visibleCount),
-    [filteredProducts, visibleCount]
-  );
 
   const hasActiveFilters =
     activeBrand !== "all" ||
@@ -444,6 +443,22 @@ export default function AkrapovicVehicleFilter({
     activeModel !== "all" ||
     activeBody !== "all" ||
     searchQuery.trim() !== "";
+
+  // On a `/page/N` continuation the unfiltered list starts at that page, so
+  // every crawlable page carries its own slice of products. Any active filter
+  // (or the moto scope, which has no page routes) starts from the top again.
+  const usesPageRoutes = Boolean(pagination) && !hasActiveFilters && !isMoto;
+  const pageOffset =
+    usesPageRoutes && pagination ? (Math.max(1, pagination.page) - 1) * PAGE_SIZE : 0;
+  const displayedProducts = useMemo(
+    () => filteredProducts.slice(pageOffset, pageOffset + visibleCount),
+    [filteredProducts, pageOffset, visibleCount]
+  );
+  const remainingCount = Math.max(0, filteredProducts.length - pageOffset - visibleCount);
+  const nextPageHref =
+    usesPageRoutes && pagination
+      ? `${pagination.basePath}/page/${pagination.page + Math.ceil(visibleCount / PAGE_SIZE)}`
+      : null;
   const catalogHref = useMemo(() => {
     const params = new URLSearchParams();
     if (activeBrand !== "all") params.set("brand", activeBrand);
@@ -458,8 +473,6 @@ export default function AkrapovicVehicleFilter({
     return `/${locale}/shop/akrapovic/collections${query ? `?${query}` : ""}`;
   }, [activeBrand, activeModel, activeBody, activeLine, searchQuery, locale, isMoto]);
 
-  if (!mounted) return null;
-
   if (filterOnly && heroCompact) {
     return (
       <div
@@ -467,6 +480,7 @@ export default function AkrapovicVehicleFilter({
         role="search"
         aria-label={isUa ? "Підбір Akrapovič" : "Akrapovič finder"}
       >
+        {urlBridge}
         <div className="ak-hero-filter__select-wrap">
           <select
             value={activeBrand}
@@ -683,6 +697,7 @@ export default function AkrapovicVehicleFilter({
       id="catalog"
       className={`bg-transparent text-foreground dark:text-white relative z-30 ${filterOnly ? "" : "min-h-screen"}`}
     >
+      {urlBridge}
       <div
         className={`max-w-[1700px] mx-auto px-6 md:px-12 lg:px-16 ${filterOnly ? "pb-8 pt-4" : "pb-20 pt-4"}`}
       >
@@ -1045,16 +1060,33 @@ export default function AkrapovicVehicleFilter({
                     );
                   })}
                 </AkrapovicSpotlightGrid>
-                {visibleCount < filteredProducts.length ? (
+                {remainingCount > 0 ? (
                   <div className="mt-8 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
-                      className="rounded-full border border-[#e50000]/35 bg-[#e50000]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white transition hover:border-[#e50000]/70 hover:bg-[#e50000]/20"
-                    >
-                      {isUa ? "Показати ще" : "Show more"} ({filteredProducts.length - visibleCount}
-                      )
-                    </button>
+                    {nextPageHref ? (
+                      // Same look and behaviour as the button below for visitors
+                      // (the click only reveals more cards); the href lets
+                      // crawlers follow the listing to its next page.
+                      <Link
+                        href={nextPageHref}
+                        prefetch={false}
+                        scroll={false}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setVisibleCount((current) => current + PAGE_SIZE);
+                        }}
+                        className="rounded-full border border-[#e50000]/35 bg-[#e50000]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white transition hover:border-[#e50000]/70 hover:bg-[#e50000]/20"
+                      >
+                        {isUa ? "Показати ще" : "Show more"} ({remainingCount})
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
+                        className="rounded-full border border-[#e50000]/35 bg-[#e50000]/10 px-7 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground dark:text-white transition hover:border-[#e50000]/70 hover:bg-[#e50000]/20"
+                      >
+                        {isUa ? "Показати ще" : "Show more"} ({remainingCount})
+                      </button>
+                    )}
                   </div>
                 ) : null}
               </>

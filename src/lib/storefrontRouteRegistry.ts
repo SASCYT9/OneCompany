@@ -53,7 +53,7 @@ export const STOREFRONT_ROUTE_REGISTRY = [
     brandAliases: ["akrapovic"],
     legacySlugPrefixes: ["akrapovic-", "ducati-akrapovic-"],
     listingSurface: "collections",
-    paginated: false,
+    paginated: true,
   },
   {
     segment: "ilmberger",
