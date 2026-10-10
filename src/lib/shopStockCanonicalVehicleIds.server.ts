@@ -135,7 +135,14 @@ export async function resolveCanonicalVehicleProductIds(input: {
   try {
     const exactTextConstraint = (
       dimension:
-        "SCOPE" | "MAKE" | "MODEL" | "GENERATION" | "CHASSIS" | "ENGINE" | "FUEL" | "OPF_GPF",
+        | "SCOPE"
+        | "MAKE"
+        | "MODEL"
+        | "GENERATION"
+        | "CHASSIS"
+        | "ENGINE"
+        | "FUEL"
+        | "OPF_GPF",
       value: string
     ) => ({
       dimension,
@@ -226,7 +233,18 @@ export async function resolveCanonicalVehicleProductIds(input: {
             : {}),
           ...(input.model ? { model: { in: uniqueModelAliases, mode: "insensitive" } } : {}),
           ...(input.chassis
-            ? { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } }
+            ? {
+                // The generation and its facelifts, as in the clause query.
+                OR: [
+                  { chassisCode: { in: uniqueChassisAliases, mode: "insensitive" } },
+                  ...[".", " "].map((separator) => ({
+                    chassisCode: {
+                      startsWith: `${input.chassis}${separator}`,
+                      mode: "insensitive" as const,
+                    },
+                  })),
+                ],
+              }
             : {}),
           ...(input.engine ? { engine: { equals: input.engine, mode: "insensitive" } } : {}),
           ...(input.fuel ? { fuel: { equals: input.fuel, mode: "insensitive" } } : {}),

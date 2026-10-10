@@ -235,9 +235,7 @@ async function withHierarchyDetails<T extends { type?: string; data?: unknown }>
     const selected = input.chassis;
     const listed = await Promise.all(
       models.map((model) =>
-        getCanonicalFitmentOptions({ ...input, model, chassis: null, details: false }).catch(
-          () => null
-        )
+        getCanonicalFitmentOptions({ ...input, model, chassis: null, details: false })
       )
     );
     // Only combinations a model really lists, so no read limit is needed.
@@ -257,13 +255,10 @@ async function withHierarchyDetails<T extends { type?: string; data?: unknown }>
   for (let start = 0; start < reads.length; start += DETAIL_HIERARCHY_READ_BATCH) {
     extra.push(
       ...(await Promise.all(
-        reads
-          .slice(start, start + DETAIL_HIERARCHY_READ_BATCH)
-          .map(({ model, chassis }) =>
-            getCanonicalFitmentOptions({ ...input, model, chassis, details: true }).catch(
-              () => null
-            )
-          )
+        reads.slice(start, start + DETAIL_HIERARCHY_READ_BATCH).map(({ model, chassis }) =>
+          // A failed read must fail the request: a partial merge would be cached.
+          getCanonicalFitmentOptions({ ...input, model, chassis, details: true })
+        )
       ))
     );
   }
