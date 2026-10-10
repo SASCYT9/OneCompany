@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { validateSiteContentInput } from "../../../src/lib/adminConfigValidation";
-import { formatBlogDate, getBlogCover } from "../../../src/lib/blogPresentation";
+import { formatBlogDate, getBlogCover, updateBlogMedia } from "../../../src/lib/blogPresentation";
 
 const raw = JSON.parse(
   readFileSync(path.join(process.cwd(), "public/config/site-content.json"), "utf8")
@@ -41,11 +41,43 @@ test("published blog keeps editorial fields through the production content valid
 
 test("unsafe editorial source URLs and malformed image dimensions cannot enter public content", () => {
   const badSource = structuredClone(raw);
-  badSource.blog.posts[0].sources[0].url = "javascript:alert(1)";
+  badSource.blog.posts.find(
+    (post: { slug: string }) => post.slug === "bonamici-triumph-daytona-660-th10-pst3"
+  ).sources[0].url = "javascript:alert(1)";
   assert.throws(() => validateSiteContentInput(badSource), /expected HTTPS source/);
   const badCover = structuredClone(raw);
-  badCover.blog.posts[0].cover.width = -1200;
+  badCover.blog.posts.find(
+    (post: { slug: string }) => post.slug === "bonamici-triumph-daytona-660-th10-pst3"
+  ).cover.width = -1200;
   assert.throws(() => validateSiteContentInput(badCover), /expected positive integer/);
+});
+
+test("admin media edits retain relevant covers and discard removed or replaced sources", () => {
+  const post = validateSiteContentInput(raw).blog.posts.find(
+    (post) => post.slug === "bonamici-triumph-daytona-660-th10-pst3"
+  )!;
+  const added = { id: "additional", type: "image" as const, src: "/images/new.jpg" };
+  assert.equal(updateBlogMedia(post, [...post.media, added]).cover?.src, post.cover?.src);
+  const removed = updateBlogMedia(post, [added]);
+  assert.equal(removed.cover, undefined);
+  assert.equal(getBlogCover(removed), added.src);
+  const replaced = updateBlogMedia(post, [{ ...post.media[0], src: added.src }]);
+  assert.equal(replaced.cover, undefined);
+  assert.equal(getBlogCover(replaced), added.src);
+});
+
+test("replacing a video also discards its extracted poster, but preserves an explicitly changed poster", () => {
+  const post = validateSiteContentInput(raw).blog.posts.find(
+    (post) => post.slug === "rpm-exhaust-can-am-maverick-x3"
+  )!;
+  const replaced = updateBlogMedia(post, [{ ...post.media[0], src: "/videos/replacement.mp4" }]);
+  assert.equal(replaced.cover, undefined);
+  assert.equal(replaced.media[0].poster, undefined);
+  assert.equal(getBlogCover(replaced), undefined);
+  const newPoster = updateBlogMedia(post, [
+    { ...post.media[0], src: "/videos/replacement.mp4", poster: "/images/new-poster.jpg" },
+  ]);
+  assert.equal(getBlogCover(newPoster), "/images/new-poster.jpg");
 });
 
 test("dates use the same Kyiv calendar day in both locales", () => {

@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/types/site-content";
+import type { BlogMedia, BlogPost } from "@/types/site-content";
 
 export const blogAuthorName = "One Company";
 
@@ -8,6 +8,34 @@ export function getBlogCover(post: BlogPost) {
     post.media.find((item) => item.type === "image")?.src ??
     post.media.find((item) => item.type === "video" && item.poster)?.poster
   );
+}
+
+// A cover belongs to the media it was selected/extracted from. Keep it when
+// unrelated media are added; discard it when its source is removed or replaced.
+export function updateBlogMedia(post: BlogPost, media: BlogMedia[]): BlogPost {
+  if (!post.cover) return { ...post, media };
+  const coverSrc = post.cover.src;
+  const sources = post.media.filter((item) => item.src === coverSrc || item.poster === coverSrc);
+  const unchangedSource = sources.some((source) =>
+    media.some(
+      (item) =>
+        item.id === source.id &&
+        item.type === source.type &&
+        item.src === source.src &&
+        item.poster === source.poster
+    )
+  );
+  if (unchangedSource) return { ...post, media };
+  return {
+    ...post,
+    cover: undefined,
+    media: media.map((item) => {
+      const source = sources.find((source) => source.id === item.id);
+      return source && source.src !== item.src && item.poster === coverSrc
+        ? { ...item, poster: undefined }
+        : item;
+    }),
+  };
 }
 
 export function formatBlogDate(date: string, locale: "ua" | "en") {
