@@ -15,6 +15,11 @@ test("chassis keys ignore case, spaces and dashes", () => {
   assert.equal(vehicleChassisKey("992.1"), "992.1");
 });
 
+test("BMW M3 and M5 include their Touring", () => {
+  assert.ok(vehicleModelScope("BMW", "M5").exact.includes("M5 Touring"));
+  assert.ok(vehicleModelScope("BMW", "M3").exact.includes("M3 Touring"));
+});
+
 test("BMW M2 F87N is the F87 chassis", () => {
   assert.equal(vehicleChassisMatchLevel("F87N", "F87"), "exact");
   assert.deepEqual(vehicleChassisKeyVariants("F87"), ["f87", "f87n"]);

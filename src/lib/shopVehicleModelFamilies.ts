@@ -32,6 +32,11 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     RS5: ["RS5 Coupé", "RS5 Sportback"],
     TT: ["TT I", "TT Roadster"],
   },
+  // Other BMW body styles (3 Touring, 4 Coupe, Z4 Roadster) are model aliases.
+  BMW: {
+    M3: ["M3 Touring"],
+    M5: ["M5 Touring"],
+  },
   Bentley: {
     Continental: ["Continental GT", "Continental GTC"],
   },
