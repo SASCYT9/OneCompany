@@ -23,6 +23,9 @@ export function reset() {
     { id: "shared-duplicate", sku: "SHARED", slug: "duplicate-shared", showInCarousel: false },
   ];
   state.legacyCalls = 0;
+  state.legacyTiers = null;
+  state.nativeLowerTier = false;
+  state.nativeExactIds = new Set();
   state.queries.length = 0;
   state.facetQueries.length = 0;
   state.countQueries.length = 0;
@@ -57,9 +60,12 @@ export function getShopSettingsRuntime(value) {
 export async function getCurrentShopCustomerSession() {
   return null;
 }
-export async function resolveLegacyVehicleProductIds() {
+export async function resolveLegacyVehicleProductTiers() {
   state.legacyCalls += 1;
-  return ["legacy-id"];
+  return state.legacyTiers ?? { ids: ["legacy-id"], exactIds: ["legacy-id"] };
+}
+export async function resolveLegacyVehicleProductIds() {
+  return (await resolveLegacyVehicleProductTiers()).ids;
 }
 export function isEuropePricingCountry() {
   return false;
@@ -126,6 +132,12 @@ export async function queryShopCatalogProjectionFacets(query) {
       fuel: [],
     },
   };
+}
+export function shopCatalogProjectionVehicleLowerTierApplies() {
+  return state.nativeLowerTier;
+}
+export async function queryShopCatalogProjectionExactVehicleIds() {
+  return state.nativeExactIds;
 }
 export async function queryShopCatalogProjectionStockSummary(query) {
   state.countQueries.push(query);

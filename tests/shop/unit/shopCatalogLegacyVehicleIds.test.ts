@@ -204,3 +204,161 @@ test("vehicle results expire and unrelated vehicle keys do not share answers", a
   // The original vehicle answer expires after one minute and is refreshed.
   assert.equal(mock.state.applicationCalls, 3);
 });
+
+test("products filed on a broader generation are a lower tier, facelifts of the selection are exact", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  // Evidence is filed on `G90`; the visitor selected the facelift `G90.1`.
+  const broad = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M5",
+    generation: "G90.1",
+    year: 2025,
+  });
+  assert.ok(broad?.ids.includes("application-id"));
+  assert.ok(broad?.ids.includes("projection-id"));
+  assert.ok(!broad?.exactIds.includes("application-id"));
+  assert.ok(!broad?.exactIds.includes("projection-id"));
+  // The evidence queries also fetch the parent generation.
+  assert.match(JSON.stringify(mock.state.applicationArgs[0].where.OR), /"equals":"G90"/);
+
+  mock.reset();
+  const exact = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M5",
+    generation: "G90",
+    year: 2024,
+  });
+  assert.ok(exact?.exactIds.includes("application-id"));
+  assert.ok(exact?.exactIds.includes("projection-id"));
+  // Facelifts of the selected generation are fetched as well (`G90` -> `G90.1`).
+  assert.match(JSON.stringify(mock.state.applicationArgs[0].where.OR), /"startsWith":"G90\./);
+});
+
+test("chassis options come from the listing's own evidence and never offer a dead end", async () => {
+  const { listLegacyVehicleChassisOptions } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  const options = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M5" });
+  assert.ok(options);
+  assert.ok(options.codes.includes("G90"));
+  assert.ok(options.codes.every((code: string) => options.counts[code] > 0));
+  assert.deepEqual(Object.keys(options.counts).sort(), [...options.codes].sort());
+});
+
+test("a product whose title names the selection but its supplier table does not is a lower tier", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  // Supplier table: M5 only. Title: `... для BMW M5 + M8 F90-F93`.
+  mock.state.supplierFitmentValue = JSON.stringify({
+    version: 1,
+    mode: "vehicle_specific",
+    scope: "auto",
+    applications: [
+      {
+        vehicleType: "car",
+        make: "BMW",
+        model: "M5",
+        chassisCode: "F90",
+        yearFrom: null,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+    ],
+    parentSku: null,
+    source: { supplier: "BMC", sourceRef: "SET-1", sourceUpdatedAt: null },
+    note: null,
+  });
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M8"],
+    chassisCodes: ["F90", "F93"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const m8 = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M8" });
+  assert.ok(m8?.ids.includes("fitment-id"));
+  assert.ok(!m8?.exactIds.includes("fitment-id"));
+
+  // A title read with less than high confidence never adds a lower tier.
+  mock.state.titleFitment = { ...mock.state.titleFitment, confidence: "medium" };
+  const weak = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M8", year: 2021 });
+  assert.ok(!weak?.ids.includes("fitment-id"));
+});
+
+test("a title naming several cars never pairs one model with another model's chassis", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  mock.state.supplierFitmentValue = JSON.stringify({
+    version: 1,
+    mode: "vehicle_specific",
+    scope: "auto",
+    applications: [
+      {
+        vehicleType: "car",
+        make: "Audi",
+        model: "RS6",
+        chassisCode: null,
+        yearFrom: null,
+        yearTo: null,
+        engine: null,
+        fuel: null,
+        bodyStyle: null,
+        drivetrain: null,
+        transmission: null,
+        market: null,
+        opfGpf: "unknown",
+      },
+    ],
+    parentSku: null,
+    source: { supplier: "BMC", sourceRef: "S63", sourceUpdatedAt: null },
+    note: null,
+  });
+  // `BMS Performance Intake для BMW F10 M5 / F12–F13 M6`
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M6"],
+    chassisCodes: ["F10", "F12", "F13"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  mock.state.expectedChassis = { M5: ["F10", "F90"], M6: ["F06", "F12", "F13"] };
+  const own = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M6", generation: "F12" });
+  assert.ok(own?.ids.includes("fitment-id"));
+  assert.ok(!own?.exactIds.includes("fitment-id"));
+  const foreign = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M6",
+    generation: "F10",
+  });
+  assert.ok(!foreign?.ids.includes("fitment-id"));
+});
+
+test("a yearless fitment stays eligible for a year request but is never exact", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5"],
+    chassisCodes: ["G90"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const tiers = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M5", year: 2019 });
+  assert.ok(tiers?.ids.includes("fitment-id"));
+  assert.ok(!tiers?.exactIds.includes("fitment-id"));
+});

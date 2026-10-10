@@ -37,8 +37,13 @@ export function isEventuriSharedV8Intake(
 
 export function matchesEventuriSharedV8Application(
   make: string | null | undefined,
-  model: string | null | undefined
+  model: string | null | undefined,
+  generation?: string | null
 ): boolean {
+  // The shared V8 intake lists its own applications by model. A selected
+  // generation without a model names some other car of that make (`Porsche`
+  // 992.1 is not a Cayenne), so it must not pull the intake in.
+  if (generation?.trim() && !model?.trim()) return false;
   const normalizedMake = make?.trim().toLowerCase() ?? "";
   const normalizedModel = model?.trim().toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
   const applications: Record<string, ReadonlySet<string>> = {

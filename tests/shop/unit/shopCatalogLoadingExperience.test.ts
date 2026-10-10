@@ -52,7 +52,7 @@ test("the initial browse keeps every product while avoiding rich joins and shari
   assert.match(stockSearch, /includeVariants: false,[\s\S]*includeCollections: false/);
   assert.match(stockSearch, /getShopProductsWithFitmentsByIds\([\s\S]*paginatedItems\.map/);
   assert.match(fitmentCatalog, /pageSize:[\s\S]*!includeVariants[\s\S]*1_000/);
-  assert.match(fitmentCatalog, /cacheStrategy: \{ ttl: 300, swr: 60, tags: \["shop-products"\] \}/);
+  assert.match(fitmentCatalog, /cacheStrategy: \{ ttl: 300, swr: 60, tags: \["shop_products"\] \}/);
   assert.match(storefrontRevalidation, /invalidateShopStockSearchCaches\(\)/);
 });
 

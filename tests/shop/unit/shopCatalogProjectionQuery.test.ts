@@ -499,3 +499,106 @@ test("title and named-brand matches outrank incidental searchText rank", async (
   assert.doesNotMatch(exhaust.sql, new RegExp(`THEN ${weights.namedBrandToken} ELSE`));
   assert.match(exhaust.sql, new RegExp(`THEN ${weights.titleToken} ELSE`));
 });
+
+test("exact vehicle matches lead the listing and explicit sorts keep their order", async () => {
+  const { buildShopCatalogProjectionOrderedQuerySql } = await queryModule;
+  const base = { locale: "ua" as const, make: "Porsche", model: "911" };
+  const withPriority = buildShopCatalogProjectionOrderedQuerySql({
+    ...base,
+    order: "brand_interleave",
+    priorityProductIds: ["exact-1", "exact-2"],
+  });
+  assert.ok(withPriority);
+  assert.match(withPriority.sql, /ORDER BY \(projection\."productId" IN \(\?,\?\)\) DESC, /);
+  assert.ok(withPriority.values.includes("exact-1"));
+
+  const priced = buildShopCatalogProjectionOrderedQuerySql({
+    ...base,
+    order: "price_asc",
+    priorityProductIds: ["exact-1"],
+  });
+  assert.ok(priced);
+  assert.doesNotMatch(priced.sql, /\) DESC, \s*(?:ordered_price|CASE|\()/);
+  assert.doesNotMatch(priced.sql, /ORDER BY \(projection\."productId" IN/);
+
+  // A priority list alone forces the SQL path even for the default order.
+  assert.ok(
+    buildShopCatalogProjectionOrderedQuerySql({ locale: "ua", priorityProductIds: ["exact-1"] })
+  );
+  assert.equal(buildShopCatalogProjectionOrderedQuerySql({ locale: "ua" }), null);
+});
+
+test("native vehicle SQL selects a model family and a generation with its facelifts", async () => {
+  const { buildShopCatalogProjectionVehicleCondition } = await queryModule;
+  const condition = buildShopCatalogProjectionVehicleCondition({
+    locale: "ua",
+    make: "Porsche",
+    model: "911",
+    generation: "992",
+  });
+  assert.ok(condition);
+  assert.ok(condition.values.includes("911gt3rs"));
+  assert.ok(condition.values.includes("911carrera"));
+  assert.ok(condition.values.includes("992.%"));
+  assert.ok(condition.values.includes("992 %"));
+  assert.match(condition.sql, /"dimension" IN \('GENERATION', 'CHASSIS'\)/);
+});
+
+test("lower tier adds broader labels and ranks exact matches first in SQL", async () => {
+  const {
+    buildShopCatalogProjectionVehicleCondition,
+    buildShopCatalogProjectionOrderedQuerySql,
+    shopCatalogProjectionVehicleLowerTierApplies,
+  } = await queryModule;
+  const selection = {
+    locale: "ua" as const,
+    make: "Porsche",
+    model: "911 Carrera",
+    generation: "992.1",
+  };
+
+  const strict = buildShopCatalogProjectionVehicleCondition(selection);
+  assert.ok(strict);
+  assert.ok(!strict.values.includes("911"));
+  assert.ok(!strict.values.includes("992"));
+
+  const broad = buildShopCatalogProjectionVehicleCondition({
+    ...selection,
+    vehicleLowerTier: true,
+  });
+  assert.ok(broad);
+  assert.ok(broad.values.includes("911"), "family base label");
+  assert.ok(broad.values.includes("992"), "generation ancestor");
+
+  assert.equal(shopCatalogProjectionVehicleLowerTierApplies(selection), false);
+  assert.equal(
+    shopCatalogProjectionVehicleLowerTierApplies({ ...selection, vehicleLowerTier: true }),
+    true
+  );
+
+  const ordered = buildShopCatalogProjectionOrderedQuerySql({
+    ...selection,
+    vehicleLowerTier: true,
+  });
+  assert.ok(ordered, "lower tier forces the SQL path");
+  assert.match(ordered.sql, /ORDER BY \(\s*EXISTS/);
+
+  const priced = buildShopCatalogProjectionOrderedQuerySql({
+    ...selection,
+    vehicleLowerTier: true,
+    order: "price_asc",
+  });
+  assert.ok(priced);
+  assert.doesNotMatch(priced.sql, /ORDER BY \(\s*EXISTS/);
+
+  // A selection with no broader label is not re-ranked.
+  assert.equal(
+    shopCatalogProjectionVehicleLowerTierApplies({
+      locale: "ua",
+      make: "Porsche",
+      model: "911",
+      vehicleLowerTier: true,
+    }),
+    false
+  );
+});

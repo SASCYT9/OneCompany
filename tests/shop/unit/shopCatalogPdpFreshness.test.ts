@@ -63,8 +63,8 @@ test("catalog invalidation evicts local and tagged Accelerate caches", () => {
   assert.match(server, /shopCatalogMemoryCacheGeneration \+= 1/);
   assert.match(server, /brandProductsCache\.clear\(\)/);
   assert.match(server, /relatedProductsCache\.clear\(\)/);
-  assert.match(server, /\$accelerate\.invalidate\(\{ tags: \["shop-products"\] \}\)/);
-  assert.match(server, /tags: \["shop-products"\]/);
+  assert.match(server, /\$accelerate\.invalidate\(\{ tags: \["shop_products"\] \}\)/);
+  assert.match(server, /tags: \["shop_products"\]/);
   // A query that started before invalidation may finish afterwards. It must
   // not win the cache race or erase a newer in-flight promise.
   assert.match(server, /cached\.generation === generation/);

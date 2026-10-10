@@ -1,5 +1,10 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { isKnownVehicleModelForMake, type Fitment } from "@/lib/crossShopFitment";
+import {
+  getExpectedChassisForMakeModel,
+  isKnownVehicleModelForMake,
+  type Fitment,
+} from "@/lib/crossShopFitment";
+import { canonicalVehicleMakeLabel, vehicleModelKey } from "@/lib/shopVehicleTaxonomy";
 import type { VehicleYearRange } from "@/lib/shopVehicleYears";
 import { classifyAutomaticFitmentDisposition } from "@/lib/shopFitmentDisposition";
 
@@ -398,6 +403,43 @@ export function resolveSearchFitment(
   return resolveSearchFitments(automatic, persistedValue)[0];
 }
 
+/**
+ * Chassis codes of a persisted application, plus the codes the product title
+ * names for the same make and model. Supplier tables are sometimes narrower
+ * than the product they describe (WheelForce lists `M5 G99` twice for a set
+ * titled `BMW M5 G90/G99`), which hid the product from the G90 selection.
+ * A title code is added only when it is a known chassis of that model.
+ */
+export function withTitleChassisCodes(
+  application: { make: string | null; models: readonly string[]; chassisCodes: string[] },
+  automatic: Fitment
+): string[] {
+  const current = application.chassisCodes;
+  // An application without chassis already matches every chassis.
+  if (current.length === 0 || !application.make || !automatic.make) return current;
+  if (automatic.chassisCodes.length === 0) return current;
+  const make = canonicalVehicleMakeLabel(application.make);
+  if (canonicalVehicleMakeLabel(automatic.make) !== make) return current;
+  const titleModels = new Set(automatic.models.map(vehicleModelKey));
+  const sharedModels = application.models.filter((model) =>
+    titleModels.has(vehicleModelKey(model))
+  );
+  if (sharedModels.length === 0) return current;
+  const expected = new Set(
+    sharedModels.flatMap((model) =>
+      (getExpectedChassisForMakeModel(make, model) ?? []).map((code) => code.toUpperCase())
+    )
+  );
+  const seen = new Set(current.map((code) => code.toUpperCase()));
+  const added = automatic.chassisCodes.filter((code) => {
+    const key = code.toUpperCase();
+    if (seen.has(key) || !expected.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return added.length ? [...current, ...added] : current;
+}
+
 export function resolveSearchFitments(
   automatic: Fitment,
   persistedValue: string | null | undefined
@@ -416,10 +458,15 @@ export function resolveSearchFitments(
     ];
   }
   const confidence = persisted.status === "verified" ? "high" : persisted.confidence;
+  // An administrator's mapping is a decision, never widened from the title.
+  const chassisFor = (application: Parameters<typeof withTitleChassisCodes>[0]) =>
+    persisted.source === "manual"
+      ? application.chassisCodes
+      : withTitleChassisCodes(application, automatic);
   const fitments = persisted.applications.map((application) => ({
     make: application.make,
     models: application.models,
-    chassisCodes: application.chassisCodes,
+    chassisCodes: chassisFor(application),
     yearRanges: application.yearRanges,
     confidence,
     engines: application.engines,
@@ -436,7 +483,7 @@ export function resolveSearchFitments(
         {
           make: persisted.make,
           models: persisted.models,
-          chassisCodes: persisted.chassisCodes,
+          chassisCodes: chassisFor(persisted),
           yearRanges: persisted.yearRanges,
           confidence,
           engines: [],

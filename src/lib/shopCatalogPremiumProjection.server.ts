@@ -10,6 +10,8 @@ import {
   queryShopCatalogProjection,
   queryShopCatalogProjectionFacets,
   queryShopCatalogProjectionIdsByText,
+  queryShopCatalogProjectionExactVehicleIds,
+  shopCatalogProjectionVehicleLowerTierApplies,
   type ShopCatalogProjectionQueryInput,
 } from "@/lib/shopCatalogProjectionQuery.server";
 import { getKwCardTitle } from "@/lib/shopKwCardPresentation";
@@ -25,7 +27,7 @@ import {
   wheelForceSetMoney,
 } from "@/lib/wheelforceFamily";
 import { prisma } from "@/lib/prisma";
-import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
+import { resolveLegacyVehicleProductTiers } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 import {
   getShopConfirmedAvailability,
@@ -144,7 +146,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     "vehicle",
     vehiclePlan.canonical || vehicleInferredFromQueryOnly
       ? Promise.resolve(null)
-      : resolveLegacyVehicleProductIds({
+      : resolveLegacyVehicleProductTiers({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
           brand: firstBrand(params),
@@ -152,7 +154,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   );
   timings.push(`reader;desc=${vehiclePlan.canonical ? "native" : "legacy"}`);
   const warehouseProductsPromise = measure("warehouse", getShopInStockProducts());
-  const [settings, warehouseProducts, session, vehicleProductIds] = await Promise.all([
+  const [settings, warehouseProducts, session, vehicleTiers] = await Promise.all([
     // Catalog reads only need public pricing/settings data. The tagged cache
     // avoids a settings row query on every anonymous search while admin
     // mutations still invalidate `shop-settings`.
@@ -234,6 +236,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.excludeProductIds = [...new Set([...query.excludeProductIds, ...warehouseProductIds])];
   }
 
+  let lowerTierVehicle = false;
   const hasVehicleSelection = Boolean(query.make || query.model || query.generation || query.year);
   query.orderSeed = [
     query.make,
@@ -261,7 +264,8 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   // preserve the complete product-owned vehicle coverage. Engine/fuel/OPF remain
   // projection-native because legacy evidence does not model them reliably.
   if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
-    if (vehicleProductIds) {
+    if (vehicleTiers) {
+      const vehicleProductIds = vehicleTiers.ids;
       // A selected vehicle plus typed words (`Touareg III` + `racechip`) must not
       // hide products that name the vehicle only in their title: widen the
       // structured fitment ids with products whose text states make and model.
@@ -284,8 +288,12 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
             })
           )
         : [];
+      const sharedEventuriApplies = Boolean(
+        canonicalSharedEventuriId &&
+          matchesEventuriSharedV8Application(query.make, query.model, query.generation)
+      );
       const effectiveVehicleProductIds =
-        canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
+        sharedEventuriApplies && canonicalSharedEventuriId
           ? [
               ...new Set([
                 ...vehicleProductIds,
@@ -297,6 +305,17 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       query.productIds = query.productIds
         ? effectiveVehicleProductIds.filter((productId) => query.productIds?.includes(productId))
         : effectiveVehicleProductIds;
+      // Products filed on the exact model and generation lead; the rest only
+      // match a broader label (`992` for a `992.1` selection).
+      // The curated shared intake is a known fit for its supported models.
+      const exactVehicleProductIds =
+        sharedEventuriApplies && canonicalSharedEventuriId
+          ? [...new Set([...vehicleTiers.exactIds, canonicalSharedEventuriId])]
+          : vehicleTiers.exactIds;
+      if (exactVehicleProductIds.length < effectiveVehicleProductIds.length) {
+        query.priorityProductIds = exactVehicleProductIds;
+        lowerTierVehicle = true;
+      }
     }
     query.make = null;
     query.model = null;
@@ -305,6 +324,11 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.year = null;
   }
 
+  // Native reader: the SQL itself admits broader labels and ranks exact first.
+  if (vehiclePlan.canonical && hasVehicleSelection) query.vehicleLowerTier = true;
+  const nativeLowerTier =
+    Boolean(query.vehicleLowerTier) && shopCatalogProjectionVehicleLowerTierApplies(query);
+  let exactVehicleIds = lowerTierVehicle ? new Set(query.priorityProductIds ?? []) : null;
   const [result, facetResult, stockSummary] = await Promise.all([
     measure("products", queryShopCatalogProjection(query)),
     measure("facets", queryShopCatalogProjectionFacets(query)),
@@ -312,6 +336,16 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   ]);
   const totalItems = stockSummary.totalItems;
   const items = result.items;
+  if (nativeLowerTier) {
+    lowerTierVehicle = true;
+    exactVehicleIds = await measure(
+      "vehicle_tiers",
+      queryShopCatalogProjectionExactVehicleIds(
+        query,
+        items.map((item) => item.productId)
+      )
+    );
+  }
   const rawSearch = params.get("q")?.trim();
   const requestedWheelSku =
     isExactWheelForceSkuSearch(rawSearch) &&
@@ -459,6 +493,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         : productHref,
       variantId: cardPrice?.defaultVariantId ?? null,
       source: "catalog_v2_projection" as const,
+      ...(lowerTierVehicle && !exactVehicleIds?.has(item.productId)
+        ? { matchStatus: "requires_verification" as const }
+        : {}),
     };
   });
 

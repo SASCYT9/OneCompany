@@ -19,10 +19,15 @@ import {
 } from "@/lib/shopCatalogReaderFlag.server";
 import { SHOP_CATALOG_CANARY_REQUEST_HEADER } from "@/lib/shopCatalogCanary";
 import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
+import { getVehicleSelectorModelAliases } from "@/lib/shopVehicleSearch";
 import {
-  getVehicleSelectorChassisAliases,
-  getVehicleSelectorModelAliases,
-} from "@/lib/shopVehicleSearch";
+  listLegacyVehicleChassisOptions,
+  resolveLegacyVehicleProductIds,
+} from "@/lib/shopCatalogLegacyVehicleIds.server";
+import {
+  listProjectionVehicleChassisOptions,
+  withModelFamilyBases,
+} from "@/lib/shopVehicleSelectorProjectionOptions.server";
 import {
   filterShopStockItemsByVehicleScope,
   isVehicleMakeCompatibleWithScope,
@@ -32,7 +37,9 @@ import {
   canonicalizeVehicleMakes,
   canonicalizeVehicleChassisCodes,
   canonicalizeVehicleModels,
+  vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
+import { vehicleChassisMatchLevel, vehicleModelScope } from "@/lib/shopVehicleHierarchy";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -147,7 +154,6 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
         ...forMake
           .map((application) => application.model)
           .filter((value): value is string => Boolean(value)),
-        ...getVehicleSelectorModelAliases(input.make),
       ]),
     };
   }
@@ -170,7 +176,6 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
           ...forModel
             .map((application) => application.chassisCode)
             .filter((value): value is string => Boolean(value)),
-          ...getVehicleSelectorChassisAliases(input.make, input.model),
         ],
         input.make,
         input.model
@@ -208,18 +213,174 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
 
 type SelectorOptionsInput = Parameters<typeof getCanonicalFitmentOptions>[0];
 
+/** Detail reads run in parallel batches of this size. */
+const DETAIL_HIERARCHY_READ_BATCH = 8;
+
+/**
+ * Years and engines of a selection follow the listing's hierarchy: a base
+ * model includes its trims and a generation (`992`) its facelifts (`992.1`).
+ */
+async function withHierarchyDetails<T extends { type?: string; data?: unknown }>(
+  result: T,
+  input: SelectorOptionsInput
+): Promise<T> {
+  if (result.type !== "details" || !input.make || !input.model) return result;
+  if (!result.data || typeof result.data !== "object") return result;
+  const models = vehicleModelScope(input.make, input.model).exact;
+  let reads: { model: string; chassis: string | null }[] = models.map((model) => ({
+    model,
+    chassis: null,
+  }));
+  if (input.chassis) {
+    const selected = input.chassis;
+    const listed = await Promise.all(
+      models.map((model) =>
+        getCanonicalFitmentOptions({ ...input, model, chassis: null, details: false })
+      )
+    );
+    // Only combinations a model really lists, so no read limit is needed.
+    reads = models.flatMap((model, index) => {
+      const options = listed[index];
+      const codes = (Array.isArray(options?.data) ? options.data : []).filter(
+        (code): code is string =>
+          typeof code === "string" &&
+          ["exact", "descendant"].includes(vehicleChassisMatchLevel(code, selected) ?? "")
+      );
+      return [...new Set(codes)].map((chassis) => ({ model, chassis }));
+    });
+  }
+  reads = reads.filter(({ model, chassis }) => model !== input.model || chassis !== input.chassis);
+  if (reads.length === 0) return result;
+  const extra: Awaited<ReturnType<typeof getCanonicalFitmentOptions>>[] = [];
+  for (let start = 0; start < reads.length; start += DETAIL_HIERARCHY_READ_BATCH) {
+    extra.push(
+      ...(await Promise.all(
+        reads.slice(start, start + DETAIL_HIERARCHY_READ_BATCH).map(({ model, chassis }) =>
+          // A failed read must fail the request: a partial merge would be cached.
+          getCanonicalFitmentOptions({ ...input, model, chassis, details: true })
+        )
+      ))
+    );
+  }
+  const data = result.data as { years?: unknown; engines?: unknown };
+  const years = new Set<number>(Array.isArray(data.years) ? data.years : []);
+  const engines = new Set<string>(Array.isArray(data.engines) ? data.engines : []);
+  for (const options of extra) {
+    const value = options?.type === "details" ? (options.data as typeof data) : null;
+    for (const year of Array.isArray(value?.years) ? value.years : []) years.add(year);
+    for (const engine of Array.isArray(value?.engines) ? value.engines : []) engines.add(engine);
+  }
+  return {
+    ...result,
+    data: {
+      ...data,
+      years: [...years].sort((left, right) => right - left),
+      engines: [...engines].sort((left, right) => left.localeCompare(right)),
+    },
+  };
+}
+
+function isProjectionVehicleReader() {
+  return process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE?.trim().toLowerCase() === "projection";
+}
+
+/** Projection reader: options follow the verified clauses, no legacy bridge. */
+async function refineProjectionSelectorOptions<
+  T extends { type?: string; data?: unknown; make?: string },
+>(result: T, input: SelectorOptionsInput): Promise<T | (T & { counts: Record<string, number> })> {
+  if (result.type === "chassis" && result.make && input.model) {
+    const options = await listProjectionVehicleChassisOptions({
+      make: result.make,
+      model: input.model,
+      scope: input.scope,
+    }).catch(() => null);
+    return options?.codes.length
+      ? { ...result, data: options.codes, counts: options.counts }
+      : result;
+  }
+  if (result.type === "models" && result.make && Array.isArray(result.data)) {
+    return {
+      ...result,
+      data: canonicalizeVehicleModels(
+        result.make,
+        withModelFamilyBases(
+          result.make,
+          result.data.filter((value): value is string => typeof value === "string")
+        )
+      ),
+    };
+  }
+  return result;
+}
+
+/**
+ * The picker may only offer what the listing can open. Chassis options come
+ * from the listing's own matching rules (a facelift also makes its generation
+ * selectable); model labels the vehicle search merely recognises are offered
+ * only when they return products.
+ */
+async function refineSelectorOptions<T extends { type?: string; data?: unknown; make?: string }>(
+  result: T | null,
+  input: SelectorOptionsInput,
+  readerMode: string
+): Promise<T | (T & { counts: Record<string, number> }) | null> {
+  // Moto pickers keep their canonical options: the refinements below read
+  // automotive evidence.
+  if (!result || input.brand || input.scope === "moto") return result;
+  if (result.type === "details") return withHierarchyDetails(result, input);
+  if (readerMode === "projection") return refineProjectionSelectorOptions(result, input);
+  if (result.type === "chassis" && result.make && input.model) {
+    const options = await listLegacyVehicleChassisOptions({
+      make: result.make,
+      model: input.model,
+    }).catch(() => null);
+    return options?.codes.length
+      ? { ...result, data: options.codes, counts: options.counts }
+      : result;
+  }
+  if (result.type === "models" && result.make && Array.isArray(result.data)) {
+    const make = result.make;
+    const present = new Set(
+      result.data.filter((value): value is string => typeof value === "string").map(vehicleModelKey)
+    );
+    const recognised = getVehicleSelectorModelAliases(make).filter(
+      (label) => !present.has(vehicleModelKey(label))
+    );
+    const verified = await Promise.all(
+      recognised.map(async (label) => {
+        const ids = await resolveLegacyVehicleProductIds({ make, model: label }).catch(() => null);
+        return ids?.length ? label : null;
+      })
+    );
+    return {
+      ...result,
+      data: canonicalizeVehicleModels(make, [
+        ...result.data.filter((value): value is string => typeof value === "string"),
+        ...verified.filter((label): label is string => Boolean(label)),
+      ]),
+    };
+  }
+  return result;
+}
+
 // Shared across requests and instances (Next data cache). Errors are not
 // cached; a null result (selector artifact unavailable) is, for the same TTL.
+// The reader mode is an argument so it is part of the cache key: switching
+// readers never serves options computed by the other one.
 const readCachedSelectorOptions = unstable_cache(
-  async (input: SelectorOptionsInput) =>
-    supplementBmcSupplierFitment(await getCanonicalFitmentOptions(input), {
-      make: input.make,
-      model: input.model,
-      chassis: input.chassis,
-      brand: input.brand,
-      scope: input.scope,
-    }),
-  ["shop-fitment-selector-options-v2"],
+  async (input: SelectorOptionsInput, readerMode: string) =>
+    refineSelectorOptions(
+      await supplementBmcSupplierFitment(await getCanonicalFitmentOptions(input), {
+        make: input.make,
+        model: input.model,
+        chassis: input.chassis,
+        brand: input.brand,
+        scope: input.scope,
+      }),
+      input,
+      readerMode
+    ),
+  ["shop-fitment-selector-options-v5"],
   { revalidate: SHOP_CATALOG_SELECTOR_CACHE_SECONDS, tags: [SHOP_CATALOG_SELECTOR_CACHE_TAG] }
 );
 
@@ -242,25 +403,25 @@ export async function GET(request: NextRequest) {
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await readCachedSelectorOptions({
-      make,
-      model,
-      chassis,
-      year,
-      brand,
-      scope: vehicleScope,
-      details,
-    });
+    const canonical = await readCachedSelectorOptions(
+      {
+        make,
+        model,
+        chassis,
+        year,
+        brand,
+        scope: vehicleScope,
+        details,
+      },
+      isProjectionVehicleReader() ? "projection" : "legacy"
+    );
     if (
       canonical?.type === "models" &&
       isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)
     ) {
       return cachedJson({
         ...canonical,
-        data: canonicalizeVehicleModels(canonical.make, [
-          ...canonical.data,
-          ...getVehicleSelectorModelAliases(canonical.make),
-        ]),
+        data: canonicalizeVehicleModels(canonical.make, canonical.data),
       });
     }
     if (
@@ -269,11 +430,7 @@ export async function GET(request: NextRequest) {
     ) {
       return cachedJson({
         ...canonical,
-        data: canonicalizeVehicleChassisCodes(
-          [...canonical.data, ...getVehicleSelectorChassisAliases(canonical.make, canonical.model)],
-          canonical.make,
-          canonical.model
-        ),
+        data: canonicalizeVehicleChassisCodes(canonical.data, canonical.make, canonical.model),
       });
     }
     if (canonical) return cachedJson(canonical);
@@ -415,11 +572,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      const chassis = canonicalizeVehicleChassisCodes(
-        [...chassisSet, ...getVehicleSelectorChassisAliases(make, model)],
-        make,
-        model
-      );
+      const chassis = canonicalizeVehicleChassisCodes([...chassisSet], make, model);
       return legacyFallbackJson({ type: "chassis", make, model, data: chassis });
     }
 

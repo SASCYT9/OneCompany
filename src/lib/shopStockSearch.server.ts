@@ -97,7 +97,7 @@ import {
 } from "@/lib/shopCatalogShadowTelemetry.server";
 import { queryPremiumCatalogProjection } from "@/lib/shopCatalogPremiumProjection.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
-import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
+import { resolveLegacyVehicleProductTiers } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
   getShopConfirmedAvailability,
   isShopInStockProduct,
@@ -105,6 +105,7 @@ import {
 } from "@/lib/shopWarehouseInventory";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
+  EVENTURI_SHARED_V8_INTAKE_SKU,
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
@@ -419,6 +420,37 @@ function consolidateEventuriSharedV8IntakeItems(
   });
 }
 
+const FITMENT_METAFIELD_BATCH_SIZE = 10;
+const FITMENT_METAFIELD_PARALLEL_BATCHES = 6;
+
+/** Supplier contracts are large: keep every response bounded for wide selections. */
+async function readFitmentMetafieldsInBatches(
+  productIds: readonly string[],
+  { batchSize = FITMENT_METAFIELD_BATCH_SIZE, parallel = FITMENT_METAFIELD_PARALLEL_BATCHES } = {}
+) {
+  const batches: string[][] = [];
+  for (let index = 0; index < productIds.length; index += batchSize) {
+    batches.push(productIds.slice(index, index + batchSize));
+  }
+  const rows: Array<{ productId: string; key: string; value: string }> = [];
+  for (let start = 0; start < batches.length; start += parallel) {
+    const group = await Promise.all(
+      batches.slice(start, start + parallel).map((ids) =>
+        prisma.shopProductMetafield.findMany({
+          where: {
+            productId: { in: ids },
+            namespace: NORMALIZED_FITMENT_NAMESPACE,
+            key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+          },
+          select: { productId: true, key: true, value: true },
+        })
+      )
+    );
+    rows.push(...group.flat());
+  }
+  return rows;
+}
+
 async function getShopProductsWithFitmentsByIds(productIds: string[]) {
   const uniqueIds = [...new Set(productIds)];
   if (uniqueIds.length === 0) return [];
@@ -432,14 +464,7 @@ async function getShopProductsWithFitmentsByIds(productIds: string[]) {
     // bundle graphs for every result. Search cards only need the scalar card
     // fields plus variants for SKU/fitment evidence.
     getShopFitmentCatalogProducts({ productIds: uniqueIds }),
-    prisma.shopProductMetafield.findMany({
-      where: {
-        productId: { in: uniqueIds },
-        namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-      },
-      select: { productId: true, key: true, value: true },
-    }),
+    readFitmentMetafieldsInBatches(uniqueIds),
   ]);
   const overrides = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
@@ -471,16 +496,7 @@ async function loadShopBrowseProductsWithFitments() {
     .filter((product) => normalizeShopSearchText(product.brand) === "wheelforce")
     .map((product) => product.id)
     .filter((id): id is string => Boolean(id));
-  const fitmentOverrides = wheelForceIds.length
-    ? await prisma.shopProductMetafield.findMany({
-        where: {
-          productId: { in: wheelForceIds },
-          namespace: NORMALIZED_FITMENT_NAMESPACE,
-          key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-        },
-        select: { productId: true, key: true, value: true },
-      })
-    : [];
+  const fitmentOverrides = await readFitmentMetafieldsInBatches(wheelForceIds);
   const overrides = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
     const current = overrides.get(item.productId) ?? {};
@@ -533,15 +549,26 @@ async function loadShopProductsWithFitments() {
     return cachedProductsWithFitment;
   }
 
+  // Supplier contracts are large: list the owners first, then read the values
+  // in bounded batches so the catalog read never exceeds a response limit.
   const [products, fitmentOverrides] = await Promise.all([
     getShopFitmentCatalogProducts(),
-    prisma.shopProductMetafield.findMany({
-      where: {
-        namespace: NORMALIZED_FITMENT_NAMESPACE,
-        key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
-      },
-      select: { productId: true, key: true, value: true },
-    }),
+    prisma.shopProductMetafield
+      .findMany({
+        where: {
+          namespace: NORMALIZED_FITMENT_NAMESPACE,
+          key: { in: [NORMALIZED_FITMENT_KEY, SUPPLIER_FITMENT_KEY] },
+        },
+        select: { productId: true },
+        distinct: ["productId"],
+      })
+      // Few, wider batches: this full read is cached and off the hot path.
+      .then((owners) =>
+        readFitmentMetafieldsInBatches(
+          owners.map((owner) => owner.productId),
+          { batchSize: 50, parallel: 8 }
+        )
+      ),
   ]);
   const fitmentOverrideByProductId = new Map<string, { manual?: string; supplier?: string }>();
   for (const item of fitmentOverrides) {
@@ -1085,14 +1112,14 @@ export async function searchShopStock(request: { url: string }) {
       searchParams.get("carousel") !== "1"
     );
 
-    const [settings, session, canonicalVehicleProductIds, strictCatalogResolution] =
+    const [settings, session, vehicleProductResolution, strictCatalogResolution] =
       await Promise.all([
         // Public catalog settings are tag-cached and invalidated by the admin
         // settings routes. This removes one live DB read from every search.
         getPublicShopSettingsRuntime(),
         getCurrentShopCustomerSession(),
         !queryVehiclePlan.canonical && !isLocalStorefrontMode() && resolvedVehicleMake
-          ? resolveLegacyVehicleProductIds({
+          ? resolveLegacyVehicleProductTiers({
               ...queryVehiclePlan.constraints,
               modelAlternates: queryVehiclePlan.modelAlternates,
             })
@@ -1108,6 +1135,15 @@ export async function searchShopStock(request: { url: string }) {
         }),
         strictCatalogPromise,
       ]);
+    // The legacy reader also reports which ids match the exact selection;
+    // the rest match only a broader label and need verification.
+    const canonicalVehicleProductIds = Array.isArray(vehicleProductResolution)
+      ? vehicleProductResolution
+      : (vehicleProductResolution?.ids ?? null);
+    const vehicleExactIds =
+      vehicleProductResolution && !Array.isArray(vehicleProductResolution)
+        ? new Set(vehicleProductResolution.exactIds)
+        : null;
     mark("context");
     const pricingContextPromise = buildShopViewerPricingContextServer({
       prisma,
@@ -1134,12 +1170,17 @@ export async function searchShopStock(request: { url: string }) {
     if (
       canonicalVehicleProductIds !== null &&
       !requestedFuel &&
-      matchesEventuriSharedV8Application(make, model)
+      matchesEventuriSharedV8Application(make, model, resolvedVehicleChassis)
     ) {
+      // One known SKU: never load the whole fitment catalog for it.
+      const sharedIntake = await prisma.shopProduct.findMany({
+        where: { sku: { equals: EVENTURI_SHARED_V8_INTAKE_SKU, mode: "insensitive" } },
+        select: { id: true },
+      });
+      // A known fit for its supported models: keep it in the exact tier.
+      for (const product of sharedIntake) vehicleExactIds?.add(product.id);
       const sharedIntakeItems = filterShopStockItemsByVehicleScope(
-        (await getShopProductsWithFitments()).filter((item) =>
-          isEventuriSharedV8Intake(item.product.sku)
-        ),
+        await getShopProductsWithFitmentsByIds(sharedIntake.map((product) => product.id)),
         vehicleScope
       );
       scopedProductsWithFitments = [
@@ -1576,6 +1617,13 @@ export async function searchShopStock(request: { url: string }) {
         !(item.product.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG)
       );
     }
+    if (vehicleExactIds && sort === "default" && !strictCatalogEffective) {
+      // Exact vehicle matches lead; broader-label matches follow (stable).
+      scoredItems = [
+        ...scoredItems.filter((item) => vehicleExactIds.has(item.product.id ?? "")),
+        ...scoredItems.filter((item) => !vehicleExactIds.has(item.product.id ?? "")),
+      ];
+    }
     const totalItems = scoredItems.length;
     const totalPages = Math.ceil(totalItems / limit);
     const paginatedItems = all ? scoredItems : scoredItems.slice((page - 1) * limit, page * limit);
@@ -1752,7 +1800,9 @@ export async function searchShopStock(request: { url: string }) {
                 matchReason: strictCatalogMatch.matchReason,
                 matchedApplicationId: strictCatalogMatch.matchedApplicationId,
               }
-            : {}),
+            : vehicleExactIds && !vehicleExactIds.has(product.id ?? "")
+              ? { matchStatus: "requires_verification" as const }
+              : {}),
           ...(includeFitment
             ? {
                 fitmentStatus,

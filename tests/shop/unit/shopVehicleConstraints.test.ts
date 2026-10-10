@@ -81,3 +81,11 @@ test("all requested vehicle fields must match one fitment record", () => {
     false
   );
 });
+
+test("a generation request includes its facelifts, the reverse is a lower tier", () => {
+  assert.equal(shopVehicleChassisMatches("992.1", "992"), true);
+  assert.equal(shopVehicleChassisMatches("992.2", "992.1"), false);
+  assert.equal(shopVehicleChassisMatches("992", "992.1"), false);
+  assert.equal(shopVehicleChassisMatches("992", "992.1", { includeAncestors: true }), true);
+  assert.equal(shopVehicleChassisMatches("W 463A", "W463A"), true);
+});

@@ -215,6 +215,52 @@ test("legacy vehicle reader resolves once and restricts the projection to return
   }
 });
 
+test("products matching only a broader vehicle label rank last and ask for verification", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  mock.state.legacyTiers = { ids: ["exact-id", "broad-id"], exactIds: ["exact-id"] };
+  mock.state.items = ["exact-id", "broad-id"].map((id) => ({
+    productId: id,
+    slug: id,
+    title: id,
+    brandLabel: "Fixture",
+    brandKey: "fixture",
+    normalizedSku: "NO-MATCH",
+    primaryMediaUrl: "/a.jpg",
+  }));
+  const oldMode = process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+  delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+  try {
+    const body = await (
+      await queryPremiumCatalogProjection(
+        params({ make: "Porsche", model: "911", chassis: "992.1" })
+      )
+    ).json();
+    assert.deepEqual(mock.state.queries[0]?.priorityProductIds, ["exact-id"]);
+    assert.deepEqual(new Set(mock.state.queries[0]?.productIds), new Set(["exact-id", "broad-id"]));
+    const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
+    assert.equal((byId.get("exact-id") as { matchStatus?: string }).matchStatus, undefined);
+    assert.equal(
+      (byId.get("broad-id") as { matchStatus?: string }).matchStatus,
+      "requires_verification"
+    );
+
+    // When every product is exact nothing is reordered or flagged.
+    const [firstItem] = mock.state.items;
+    mock.reset();
+    mock.state.items = [firstItem];
+    const clean = await (
+      await queryPremiumCatalogProjection(params({ make: "BMW", model: "M5", generation: "G90" }))
+    ).json();
+    assert.equal(mock.state.queries[0]?.priorityProductIds, undefined);
+    assert.equal(clean.data[0]?.matchStatus, undefined);
+  } finally {
+    if (oldMode === undefined) delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+    else process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = oldMode;
+  }
+});
+
 test("pre-order selection excludes warehouse products in native and legacy queries", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");
@@ -344,4 +390,42 @@ test("KW cards reuse bounded pricing media without a separate gallery query", as
     "/variant.jpg",
     "/gallery.jpg",
   ]);
+});
+
+test("native reader admits broader labels in SQL and flags non-exact cards", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  mock.state.nativeLowerTier = true;
+  mock.state.nativeExactIds = new Set(["exact-id"]);
+  mock.state.items = ["exact-id", "broad-id"].map((id) => ({
+    productId: id,
+    slug: id,
+    title: id,
+    brandLabel: "Fixture",
+    brandKey: "fixture",
+    normalizedSku: "NO-MATCH",
+    primaryMediaUrl: "/a.jpg",
+  }));
+  const oldMode = process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+  process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = "projection";
+  try {
+    const body = await (
+      await queryPremiumCatalogProjection(
+        params({ make: "Porsche", model: "911", chassis: "992.1" })
+      )
+    ).json();
+    assert.equal(mock.state.legacyCalls, 0);
+    assert.equal(mock.state.queries[0]?.vehicleLowerTier, true);
+    assert.equal(mock.state.queries[0]?.generation, "992.1");
+    const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
+    assert.equal((byId.get("exact-id") as { matchStatus?: string }).matchStatus, undefined);
+    assert.equal(
+      (byId.get("broad-id") as { matchStatus?: string }).matchStatus,
+      "requires_verification"
+    );
+  } finally {
+    if (oldMode === undefined) delete process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE;
+    else process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE = oldMode;
+  }
 });

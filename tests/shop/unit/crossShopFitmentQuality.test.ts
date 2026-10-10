@@ -310,3 +310,87 @@ test("GiroDisc Lotus supplier typo normalizes to Emira", () => {
 
   assert.deepEqual(fitment.models, ["Emira"]);
 });
+
+test("a model tag that only lists chassis and engine codes yields to the models in the title", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "DO88",
+      slug: "do88-icm-450-k",
+      title: {
+        ua: "do88 впуск та інтеркулер, BMW M2 M3 M4 G80 G82 G87 (S58)",
+        en: "do88 Intake & Intercooler, BMW M2 M3 M4 G80 G82 G87 (S58)",
+      },
+      tags: ["fits-make:bmw", "fits-model:bmw:g80-g87-s58", "fits:bmw-g80-g87-s58"],
+    })
+  );
+  assert.deepEqual(fitment.models, ["M2", "M3", "M4"]);
+  assert.equal(
+    shopFitmentMatchesVehicleConstraints(fitment, { make: "BMW", model: "M4", chassis: "G82" }),
+    true
+  );
+
+  // A real model tag still wins over free text.
+  const tagged = extractProductFitment(
+    product({
+      brand: "DO88",
+      title: { ua: "do88 BMW 3 Series F30 intercooler", en: "do88 BMW 3 Series F30 intercooler" },
+      tags: ["fits-make:bmw", "fits-model:bmw:3-series"],
+    })
+  );
+  assert.deepEqual(tagged.models, ["3 Series"]);
+});
+
+test("a series group tag yields to the exact model the title names", () => {
+  const fitment = extractProductFitment(
+    product({
+      brand: "Remus",
+      title: {
+        ua: "Racing cat-back exhaust for BMW X3 M F97 & Competition",
+        en: "Racing cat-back exhaust for BMW X3 M F97 & Competition",
+      },
+      tags: ["fits-make:bmw", "fits-model:bmw:x-series", "fits-trim:bmw:x-series:1"],
+    })
+  );
+  // `X3` nested in `X3 M` and the `X Series` group are not added.
+  assert.deepEqual(fitment.models, ["X3 M"]);
+  assert.deepEqual(fitment.chassisCodes, ["F97"]);
+});
+
+test("BMW 2 Series MPVs and current platforms keep their own model and chassis", () => {
+  const read = (title: string, tags: string[]) =>
+    extractProductFitment(product({ brand: "RaceChip", title: { ua: title, en: title }, tags }));
+  const tourer = read("RaceChip GTS 5 — BMW 2 Series Active/Gran Tourer F45 F46 (2014+) 220d", [
+    "fits-make:bmw",
+    "fits-model:bmw:2-series-active-gran-tourer",
+  ]);
+  assert.deepEqual(tourer.models, ["2 Series Active Tourer", "2 Series Gran Tourer"]);
+  assert.deepEqual(tourer.chassisCodes, ["F45", "F46"]);
+  const g60 = read("RaceChip GTS 5 — BMW 5 Series G60 (2023+) 540d", [
+    "fits-make:bmw",
+    "fits-model:bmw:5-series",
+  ]);
+  assert.deepEqual(g60.chassisCodes, ["G60"]);
+});
+
+test("a supplier model tag the title patterns do not know is kept", () => {
+  const bipper = extractProductFitment(
+    product({
+      brand: "RaceChip",
+      title: {
+        ua: "RaceChip GTS 5 — Peugeot Bipper (2008+) 1.3 HDI 75 1248cc",
+        en: "RaceChip GTS 5 — Peugeot Bipper (2008+) 1.3 HDI 75 1248cc",
+      },
+      tags: ["car_make:peugeot", "car_model:bipper-from-2008", "fits-make:peugeot", "fits-model:peugeot:bipper"],
+    })
+  );
+  // The model year `(2008+)` must never become the Peugeot 2008.
+  assert.deepEqual(bipper.models, ["Bipper"]);
+  const volvo = extractProductFitment(
+    product({
+      brand: "DO88",
+      title: { ua: "Volvo 240 740 940 Manual 75-98 Radiator", en: "Volvo 240 740 940 Manual 75-98 Radiator" },
+      tags: ["fits-make:volvo", "fits-model:volvo:240"],
+    })
+  );
+  assert.deepEqual(volvo.models, ["240"]);
+});

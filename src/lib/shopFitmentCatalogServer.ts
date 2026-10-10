@@ -29,7 +29,7 @@ function withProductCache<T extends Record<string, unknown>>(query: T): T {
   if (!isAccelerateEnabled) return query;
   return {
     ...query,
-    cacheStrategy: { ttl: 300, swr: 60, tags: ["shop-products"] },
+    cacheStrategy: { ttl: 300, swr: 60, tags: ["shop_products"] },
   };
 }
 

@@ -29,7 +29,7 @@ import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.se
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
 import { getShopInStockProducts } from "@/lib/shopWarehouseInventory.server";
 import { buildShopCatalogVehicleSearchPlan } from "@/lib/shopCatalogVehicleSearchPlan";
-import { resolveLegacyVehicleProductIds } from "@/lib/shopCatalogLegacyVehicleIds.server";
+import { resolveLegacyVehicleProductTiers } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
   EVENTURI_SHARED_V8_INTAKE_SLUG,
   EVENTURI_SHARED_V8_INTAKE_SLUGS,
@@ -145,7 +145,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   try {
     const vehicleProductIdsPromise = vehiclePlan.canonical
       ? Promise.resolve(null)
-      : resolveLegacyVehicleProductIds({
+      : resolveLegacyVehicleProductTiers({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
         });
@@ -158,7 +158,8 @@ export default async function CatalogPage({ params, searchParams }: Props) {
     const shouldReadSharedEventuri =
       query.stock === "all" &&
       (!query.brand || query.brand.toLowerCase() === "eventuri") &&
-      (!query.make || matchesEventuriSharedV8Application(query.make, query.model));
+      (!query.make ||
+        matchesEventuriSharedV8Application(query.make, query.model, query.generation));
     const sharedEventuriProductsPromise =
       shouldReadSharedEventuri && query.stock === "all"
         ? prisma.shopProduct.findMany({
@@ -173,7 +174,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
             select: { id: true, sku: true, slug: true },
           })
         : Promise.resolve([] as Array<{ id: string; sku: string | null; slug: string }>);
-    const [settingsRecord, session, warehouseProducts, vehicleProductIds, sharedEventuriProducts] =
+    const [settingsRecord, session, warehouseProducts, vehicleTiers, sharedEventuriProducts] =
       await Promise.all([
         getPublicShopSettingsRuntime(),
         getCurrentShopCustomerSession(),
@@ -230,11 +231,16 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       ]),
     ];
     if (!vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
-      if (vehicleProductIds) {
+      if (vehicleTiers) {
+        const vehicleProductIds = vehicleTiers.ids;
         const effectiveVehicleProductIds =
-          canonicalSharedEventuriId && matchesEventuriSharedV8Application(query.make, query.model)
+          canonicalSharedEventuriId &&
+          matchesEventuriSharedV8Application(query.make, query.model, query.generation)
             ? [...new Set([...vehicleProductIds, canonicalSharedEventuriId])]
             : vehicleProductIds;
+        if (vehicleTiers.exactIds.length < effectiveVehicleProductIds.length) {
+          projectionQuery.priorityProductIds = vehicleTiers.exactIds;
+        }
         projectionQuery.productIds = projectionQuery.productIds
           ? effectiveVehicleProductIds.filter((productId) =>
               projectionQuery.productIds?.includes(productId)
@@ -246,6 +252,11 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       projectionQuery.modelAlternates = [];
       projectionQuery.generation = null;
       projectionQuery.year = null;
+    }
+    // Native reader: the SQL admits broader labels and ranks exact matches
+    // first, as the search API does.
+    if (vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
+      projectionQuery.vehicleLowerTier = true;
     }
     const [listingRead, facetRead] = await Promise.all([
       observeShopCatalogRead({

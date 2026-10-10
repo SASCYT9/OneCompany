@@ -13,6 +13,8 @@ export const state =
     applicationArgs: [],
     projectionArgs: [],
     rejectApplicationOnce: false,
+    titleFitment: null,
+    expectedChassis: null,
   });
 
 export function reset() {
@@ -28,6 +30,8 @@ export function reset() {
   state.applicationArgs.length = 0;
   state.projectionArgs.length = 0;
   state.rejectApplicationOnce = false;
+  state.titleFitment = null;
+  state.expectedChassis = null;
 }
 
 export const prisma = {
@@ -105,8 +109,18 @@ export async function getShopFitmentCatalogProducts(options) {
   return [{ id, brand: "BMC" }];
 }
 
+export function getExpectedChassisForMakeModel(_make, model) {
+  return state.expectedChassis?.[model] ?? null;
+}
+
 export function extractProductFitment() {
-  return { make: "BMW", model: "M5", chassisCodes: ["G90"], years: [{ from: 2020, to: null }] };
+  if (state.titleFitment) return state.titleFitment;
+  return {
+    make: "BMW",
+    model: "M5",
+    chassisCodes: ["G90"],
+    yearRanges: [{ from: 2020, to: null }],
+  };
 }
 
 export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
@@ -127,6 +141,10 @@ export function normalizeShopSearchText(value) {
 
 export function canonicalVehicleMakeLabel(value) {
   return String(value ?? "").trim() === "bmw" ? "BMW" : String(value ?? "").trim();
+}
+
+export function canonicalizeVehicleChassisCodes(values) {
+  return [...new Set(values)].sort();
 }
 
 export function canonicalVehicleModelLabel(_make, value) {

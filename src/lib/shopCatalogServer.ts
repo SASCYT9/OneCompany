@@ -90,7 +90,7 @@ let shopCatalogMemoryCacheGeneration = 0;
 export async function invalidateShopCatalogAccelerateCache(): Promise<boolean> {
   if (!isAccelerateEnabled) return false;
   try {
-    await getPrismaCachedClient().$accelerate.invalidate({ tags: ["shop-products"] });
+    await getPrismaCachedClient().$accelerate.invalidate({ tags: ["shop_products"] });
     return true;
   } catch (error) {
     // Next/path and process-local invalidation still run when Accelerate's
@@ -2671,7 +2671,7 @@ export async function getShopProductsByBrandServer(
           },
         };
         if (isAccelerateEnabled) {
-          queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+          queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop_products"] };
         }
         dbRows = (await getPrismaCachedClient().shopProduct.findMany(
           queryParams
@@ -2965,7 +2965,7 @@ export const getRacechipProductBySlugLightServer = cache(
         },
       };
       if (isAccelerateEnabled) {
-        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop_products"] };
       }
       const row: any = await getPrismaCachedClient().shopProduct.findFirst(queryParams);
       if (!row) return undefined;
@@ -3152,7 +3152,7 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         orderBy: { updatedAt: "desc" },
       };
       if (isAccelerateEnabled) {
-        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+        queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop_products"] };
       }
       rows = (await getPrismaCachedClient().shopProduct.findMany(
         queryParams
@@ -3540,7 +3540,7 @@ export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitem
       },
     };
     if (isAccelerateEnabled) {
-      queryParams.cacheStrategy = { ttl: 3600, swr: 300, tags: ["shop-products"] };
+      queryParams.cacheStrategy = { ttl: 3600, swr: 300, tags: ["shop_products"] };
     }
     const raw = await getPrismaCachedClient().shopProduct.findMany(queryParams);
     rows = raw.map((r) => ({
@@ -3852,7 +3852,7 @@ export async function getShopProductsBySlugsServer(slugs: string[]): Promise<Sho
     include: storefrontProductInclude,
   };
   if (isAccelerateEnabled) {
-    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop_products"] };
   }
 
   const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
@@ -3877,7 +3877,7 @@ export async function getShopProductsByIdsServer(ids: string[]): Promise<ShopPro
     include: storefrontProductInclude,
   };
   if (isAccelerateEnabled) {
-    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop-products"] };
+    queryParams.cacheStrategy = { ttl: 300, swr: 60, tags: ["shop_products"] };
   }
 
   const rows = await getPrismaCachedClient().shopProduct.findMany(queryParams);
