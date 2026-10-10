@@ -3,7 +3,8 @@
  * body styles and generations. Selecting the base includes every member.
  * Generated from the public selector (2026-10-07) and reviewed by hand: separate
  * models (Range Rover Sport/Evoque/Velar, 2 Series Tourers, X5 M, Cross/Sport
- * derivatives) are intentionally not members of their namesake.
+ * derivatives, MPV/van/crossover spin-offs such as Corolla Verso, Almera Tino,
+ * Golf Plus, Ram Van) are intentionally not members of their namesake.
  */
 export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
   Record<string, Readonly<Record<string, readonly string[]>>>
@@ -49,9 +50,7 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     D100: ["D100 Pickup"],
     D200: ["D200 Pickup"],
     D300: ["D300 Pickup"],
-    "Ram 1500": ["Ram 1500 Van"],
-    "Ram 2500": ["Ram 2500 Van"],
-    "Ram 3500": ["Ram 3500 Van"],
+    // Ram Vans are B-series vans, not the Ram pickups.
     W100: ["W100 Pickup", "W100 Series"],
     W200: ["W200 Series", "W200 Pickup"],
     W300: ["W300 Pickup", "W300 Series"],
@@ -62,7 +61,7 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     SF90: ["SF90 Stradale"],
   },
   Ford: {
-    Bronco: ["Bronco Raptor", "Bronco II"],
+    Bronco: ["Bronco Raptor"],
     Courier: ["Courier II"],
     Custom: ["Custom 500"],
     Escape: ["Escape IV"],
@@ -93,14 +92,8 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     Probe: ["Probe I"],
     Puma: ["Puma II"],
     "S-Max": ["S-Max II"],
-    Taurus: ["Taurus Sho", "Taurus X"],
-    Tourneo: [
-      "Tourneo Connect III",
-      "Tourneo Connect II / Grand Tourneo Connect",
-      "Tourneo Custom 2012",
-      "Tourneo Connect III / Grand Tourneo Connect",
-      "Tourneo Connect",
-    ],
+    Taurus: ["Taurus Sho"],
+    // Tourneo Connect and Tourneo Custom are separate vans, not Tourneo trims.
     "Tourneo Connect": [
       "Tourneo Connect III",
       "Tourneo Connect II / Grand Tourneo Connect",
@@ -227,15 +220,15 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     Vito: ["Vito I", "Vito III"],
   },
   Nissan: {
-    Almera: ["Almera II", "Almera Tino", "Almera I"],
+    Almera: ["Almera II", "Almera I"],
     Avenir: ["Avenir/Expert"],
-    Bluebird: ["Bluebird Sylphy", "Bluebird/Stanza"],
+    Bluebird: ["Bluebird/Stanza"],
     Navara: ["Navara II", "Navara NP 300", "Navara/Frontier"],
     Pathfinder: ["Pathfinder III"],
     Pulsar: ["Pulsar III", "Pulsar V", "Pulsar IV"],
     Qashqai: ["Qashqai II"],
     Terrano: ["Terrano I", "Terrano III", "Terrano II"],
-    Tiida: ["Tiida III", "Tiida Qida", "Tiida Yida"],
+    Tiida: ["Tiida III"],
     Wingroad: ["Wingroad / Ad Van"],
     "X-Trail": ["X-Trail III", "X-Trail II"],
   },
@@ -303,13 +296,13 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     Fortuner: ["Fortuner I", "Fortuner II"],
     Hilux: ["Hilux Rangga", "Hilux Champ", "Hilux Stout"],
     Innova: ["Innova III"],
-    "Land Cruiser": ["Land Cruiser 150", "Land Cruiser 300", "Land Cruiser FJ"],
+    // Land Cruiser 150 is a Prado; the new Land Cruiser FJ is its own model.
+    "Land Cruiser": ["Land Cruiser 300"],
     "Land Cruiser Prado": ["Land Cruiser Prado 250"],
     Matrix: ["Matrix II"],
     "Premio/Allion": ["Premio/Allion II"],
     Proace: ["Proace II / Proace City"],
     Vans: ["Vans Dyna"],
-    Verso: ["Verso-S"],
     Vista: ["Vista / Camry"],
     Vitz: ["Vitz II"],
     Yaris: ["Yaris III", "Yaris I / Yaris Verso", "Yaris II"],
@@ -328,9 +321,7 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
       "Golf II",
       "Golf R",
       "Golf III",
-      "Golf Plus",
       "Golf IV",
-      "Golf Sportsvan",
       "Golf VI",
       "Golf V / Golf Plus",
       "Golf V",
@@ -359,7 +350,7 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
     Santana: ["Santana 1"],
     Scirocco: ["Scirocco II"],
     "T-Roc": ["T-Roc / T-Roc Cabrio", "T-Roc R", "T-Roc Cabrio", "T-Roc II"],
-    Teramont: ["Teramont Pro", "Teramont X"],
+    Teramont: ["Teramont Pro"],
     Tiguan: ["Tiguan R", "Tiguan III", "Tiguan Allspace"],
     Touran: ["Touran I", "Touran II"],
     Transporter: [

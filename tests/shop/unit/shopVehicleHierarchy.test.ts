@@ -45,8 +45,25 @@ test("a base model includes its trims, a trim includes its sub-trims", () => {
   assert.ok(carrera.broad.includes("911"));
 });
 
-test("Corolla Verso is not a Corolla", () => {
-  assert.ok(!vehicleModelScope("Toyota", "Corolla").exact.includes("Corolla Verso II"));
+test("MPV, van and crossover spin-offs are not members of their namesake", () => {
+  const separate: [string, string, string][] = [
+    ["Toyota", "Corolla", "Corolla Verso II"],
+    ["Toyota", "Land Cruiser", "Land Cruiser 150"],
+    ["Toyota", "Land Cruiser", "Land Cruiser FJ"],
+    ["Toyota", "Verso", "Verso-S"],
+    ["Nissan", "Almera", "Almera Tino"],
+    ["Nissan", "Bluebird", "Bluebird Sylphy"],
+    ["Dodge", "Ram 1500", "Ram 1500 Van"],
+    ["Ford", "Bronco", "Bronco II"],
+    ["Ford", "Taurus", "Taurus X"],
+    ["Ford", "Tourneo", "Tourneo Custom 2012"],
+    ["Volkswagen", "Golf", "Golf Plus"],
+    ["Volkswagen", "Golf", "Golf Sportsvan"],
+    ["Volkswagen", "Teramont", "Teramont X"],
+  ];
+  for (const [make, model, other] of separate) {
+    assert.ok(!vehicleModelScope(make, model).exact.includes(other), `${model} ⊅ ${other}`);
+  }
 });
 
 test("distinct models are not folded into their namesake", () => {
