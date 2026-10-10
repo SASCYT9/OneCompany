@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
-import { vehicleModelScope } from "@/lib/shopVehicleHierarchy";
+import { vehicleChassisKey, vehicleModelScope } from "@/lib/shopVehicleHierarchy";
 import {
   splitVehicleChassisCodes,
   vehicleMakeAliases,
@@ -81,8 +81,9 @@ async function getDynamicChassisAliases(value: string): Promise<string[]> {
         .map((row) => row.textValue)
         .filter((candidate): candidate is string => {
           if (!candidate) return false;
+          // Same identity as the listing (`F87N` is `F87`).
           return splitVehicleChassisCodes(candidate).some(
-            (code) => code.toLocaleLowerCase() === value.toLocaleLowerCase()
+            (code) => vehicleChassisKey(code) === vehicleChassisKey(value)
           );
         })
     );

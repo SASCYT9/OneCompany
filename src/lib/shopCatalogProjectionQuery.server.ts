@@ -19,7 +19,7 @@ import {
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
 import {
-  vehicleChassisKey,
+  vehicleChassisKeyVariants,
   vehicleChassisSelfAndAncestors,
   vehicleModelScope,
 } from "./shopVehicleHierarchy";
@@ -724,7 +724,7 @@ function correlatedTextConstraintSql(
     ? [
         ...new Set(
           [value, ...(lowerTier ? vehicleChassisSelfAndAncestors(value).slice(1) : [])]
-            .map(vehicleChassisKey)
+            .flatMap(vehicleChassisKeyVariants)
             .filter(Boolean)
         ),
       ]

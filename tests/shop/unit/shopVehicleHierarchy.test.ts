@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  vehicleChassisKeyVariants,
   vehicleChassisKey,
   vehicleChassisMatchLevel,
   vehicleChassisSelfAndAncestors,
@@ -12,6 +13,11 @@ import {
 test("chassis keys ignore case, spaces and dashes", () => {
   assert.equal(vehicleChassisKey("W 463A"), vehicleChassisKey("w-463a"));
   assert.equal(vehicleChassisKey("992.1"), "992.1");
+});
+
+test("BMW M2 F87N is the F87 chassis", () => {
+  assert.equal(vehicleChassisMatchLevel("F87N", "F87"), "exact");
+  assert.deepEqual(vehicleChassisKeyVariants("F87"), ["f87", "f87n"]);
 });
 
 test("chassis lineage separates facelifts without mixing siblings", () => {

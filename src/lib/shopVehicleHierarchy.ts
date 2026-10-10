@@ -15,12 +15,32 @@ import {
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
 
-/** Case, spacing and dash insensitive identity: `W 463A` === `w-463a`. */
-export function vehicleChassisKey(value: string | null | undefined) {
+/** Established spellings of one chassis (BMW M2 `F87N` is shown as `F87`). */
+const CHASSIS_KEY_ALIASES: Readonly<Record<string, string>> = { f87n: "f87" };
+
+function rawChassisKey(value: string | null | undefined) {
   return String(value ?? "")
     .toLowerCase()
     .replace(/[^a-z0-9.]+/g, "")
     .replace(/^\.+|\.+$/g, "");
+}
+
+/** Case, spacing and dash insensitive identity: `W 463A` === `w-463a`. */
+export function vehicleChassisKey(value: string | null | undefined) {
+  const key = rawChassisKey(value);
+  return CHASSIS_KEY_ALIASES[key] ?? key;
+}
+
+/** Every raw stored key that means this chassis (for SQL on raw values). */
+export function vehicleChassisKeyVariants(value: string | null | undefined) {
+  const key = vehicleChassisKey(value);
+  if (!key) return [];
+  return [
+    key,
+    ...Object.entries(CHASSIS_KEY_ALIASES)
+      .filter(([, canonical]) => canonical === key)
+      .map(([alias]) => alias),
+  ];
 }
 
 /** `992.1` -> `992`, `mk7.5` -> `mk7`, `g20lci` -> `g20`; null for a root code. */
