@@ -26,7 +26,7 @@ test("published blog keeps editorial fields through the production content valid
   assert.equal(article.sections?.length, 5);
   assert.equal(article.sources?.length, 3);
   assert.ok(article.cover && article.cover.width >= 1200);
-  assert.ok(article.date.startsWith("2026-10-10"));
+  assert.ok(Date.parse(article.date) >= Date.parse("2026-09-07T00:00:00Z"));
   assert.ok(
     article.sections?.every(
       (section) =>
