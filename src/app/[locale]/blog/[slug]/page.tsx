@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
+import { blogAuthorName, formatBlogDate, getBlogSocialCover } from "@/lib/blogPresentation";
 import {
   absoluteUrl,
   buildLocalizedPath,
@@ -105,7 +106,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const l = resolveLocale(locale);
   const content = await readSiteContent();
-  const post = content.blog.posts.find((item) => item.slug === slug);
+  const post = content.blog.posts.find((item) => item.slug === slug && item.status === "published");
 
   if (!post) {
     notFound();
@@ -115,21 +116,59 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const cover =
-    post.media.find((item) => item.type === "image")?.src ??
-    post.media.find((item) => item.type === "video" && item.poster)?.poster;
+  const socialCover = getBlogSocialCover(post);
   const localizedTitle = getLocalized(post.title, l);
   const localizedCaption = getLocalized(post.caption, l);
   const queryVariant =
     slugQueryVariant[post.slug]?.[l] ??
     (l === "ua" ? "кейс тюнінгу авто та мото" : "auto and moto tuning case");
 
-  return buildPageMetadata(l, `blog/${post.slug}`, {
-    title: `${localizedTitle} | ${queryVariant} | OneCompany`,
-    description: buildCommercialSnippet(l, localizedCaption, localizedTitle),
-    image: cover,
+  const metadata = buildPageMetadata(l, `blog/${post.slug}`, {
+    title: post.seoTitle
+      ? getLocalized(post.seoTitle, l)
+      : `${localizedTitle} | ${queryVariant} | One Company`,
+    description: post.description
+      ? getLocalized(post.description, l)
+      : buildCommercialSnippet(l, localizedCaption, localizedTitle),
+    image: socialCover?.src,
     type: "article",
   });
+  return {
+    ...metadata,
+    authors: [{ name: blogAuthorName, url: absoluteUrl(buildLocalizedPath(l, "/about")) }],
+    openGraph: {
+      ...metadata.openGraph,
+      type: "article",
+      publishedTime: post.date,
+      modifiedTime: post.updatedAt ?? post.date,
+      authors: [absoluteUrl(buildLocalizedPath(l, "/about"))],
+      ...(socialCover
+        ? {
+            images: [
+              {
+                url: socialCover.src.startsWith("http")
+                  ? socialCover.src
+                  : absoluteUrl(socialCover.src),
+                width: socialCover.width,
+                height: socialCover.height,
+                alt: post.cover ? getLocalized(post.cover.alt, l) : localizedTitle,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      ...metadata.twitter,
+      card: "summary_large_image",
+      ...(socialCover
+        ? {
+            images: [
+              socialCover.src.startsWith("http") ? socialCover.src : absoluteUrl(socialCover.src),
+            ],
+          }
+        : {}),
+    },
+  };
 }
 
 export default async function BlogPostPage({ params }: Props) {
@@ -155,9 +194,8 @@ export default async function BlogPostPage({ params }: Props) {
   const localizedTitle = getLocalized(post.title, l);
   const postUrl = absoluteUrl(buildLocalizedPath(l, `/blog/${post.slug}`));
   const articleDescription = toExcerpt(captionText, localizedTitle, 170, localizedTitle);
-  const coverPath =
-    mediaItems.find((item) => item.type === "image")?.src ??
-    mediaItems.find((item) => item.type === "video" && item.poster)?.poster;
+  const socialCover = getBlogSocialCover(post);
+  const coverPath = socialCover?.src;
   const coverImage = coverPath
     ? coverPath.startsWith("http")
       ? coverPath
@@ -180,8 +218,11 @@ export default async function BlogPostPage({ params }: Props) {
         description={articleDescription}
         url={postUrl}
         image={coverImage}
+        imageWidth={socialCover?.width}
+        imageHeight={socialCover?.height}
+        articleType={post.sections ? "NewsArticle" : "Article"}
         datePublished={post.date}
-        dateModified={post.date}
+        dateModified={post.updatedAt ?? post.date}
         locale={l}
       />
       {shouldRenderProductSchema && (
@@ -228,14 +269,20 @@ export default async function BlogPostPage({ params }: Props) {
                     }))}
                   />
                 ) : (
-                  <div className="relative aspect-4/5 overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03] sm:aspect-3/4 lg:rounded-3xl">
+                  <div
+                    className={`relative overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03] lg:rounded-3xl ${post.sections ? "aspect-video" : "aspect-4/5 sm:aspect-3/4"}`}
+                  >
                     {mediaItems[0].type === "image" ? (
                       <Image
                         src={mediaItems[0].src}
-                        alt={mediaItems[0].alt ?? localizedTitle}
+                        alt={
+                          post.cover
+                            ? getLocalized(post.cover.alt, l)
+                            : (mediaItems[0].alt ?? localizedTitle)
+                        }
                         fill
                         sizes="(max-width: 1024px) 100vw, 55vw"
-                        className="object-cover"
+                        className={post.sections ? "object-contain" : "object-cover"}
                         priority
                         unoptimized={mediaItems[0].src.startsWith("http")}
                         loader={mediaItems[0].src.startsWith("http") ? ({ src }) => src : undefined}
@@ -255,6 +302,11 @@ export default async function BlogPostPage({ params }: Props) {
                     )}
                   </div>
                 )}
+                {post.cover?.credit ? (
+                  <p className="mt-3 text-xs text-foreground/60">
+                    {getLocalized(post.cover.credit, l)}
+                  </p>
+                ) : null}
               </div>
             )}
           </div>
@@ -273,6 +325,25 @@ export default async function BlogPostPage({ params }: Props) {
               <h1 className="mt-5 font-display text-2xl font-light leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                 {localizedTitle}
               </h1>
+
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/70">
+                <span>
+                  {l === "ua" ? "Матеріал:" : "By:"}{" "}
+                  <Link href="/about" rel="author" className="underline underline-offset-4">
+                    {blogAuthorName}
+                  </Link>
+                </span>
+                <span>
+                  {l === "ua" ? "Опубліковано:" : "Published:"}{" "}
+                  <time dateTime={post.date}>{formatBlogDate(post.date, l)}</time>
+                </span>
+                {post.updatedAt && post.updatedAt !== post.date ? (
+                  <span>
+                    {l === "ua" ? "Оновлено:" : "Updated:"}{" "}
+                    <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt, l)}</time>
+                  </span>
+                ) : null}
+              </div>
 
               {/* Divider */}
               <div className="my-6 h-px bg-linear-to-r from-foreground/20 via-foreground/10 to-transparent" />
@@ -295,6 +366,89 @@ export default async function BlogPostPage({ params }: Props) {
                   );
                 })}
               </div>
+
+              {post.sections?.map((section, index) => (
+                <section key={index} className="mt-7 space-y-4">
+                  <h2 className="font-display text-xl leading-snug text-foreground">
+                    {getLocalized(section.heading, l)}
+                  </h2>
+                  {section.paragraphs.map((paragraph, i) => (
+                    <p
+                      key={i}
+                      className="text-[15px] leading-relaxed text-foreground/75 dark:text-foreground/60 sm:text-base"
+                    >
+                      {getLocalized(paragraph, l)}
+                    </p>
+                  ))}
+                  {section.table ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <caption className="sr-only">{getLocalized(section.heading, l)}</caption>
+                        <thead>
+                          <tr>
+                            {(l === "ua"
+                              ? ["Артикул", "Компонент", "Сумісність"]
+                              : ["Part number", "Component", "Fitment"]
+                            ).map((label) => (
+                              <th
+                                key={label}
+                                scope="col"
+                                className="border-b border-foreground/20 py-3 pr-3"
+                              >
+                                {label}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.table.map((row, i) => (
+                            <tr key={i}>
+                              {row.map((cell, j) => (
+                                <td key={j} className="border-b border-foreground/10 py-3 pr-3">
+                                  {getLocalized(cell, l)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : null}
+                </section>
+              ))}
+
+              {post.sections ? (
+                <Link
+                  href="/contact#selection-form"
+                  className="mt-7 inline-flex rounded-full border border-foreground/20 px-5 py-3 text-sm transition-colors hover:bg-foreground/10"
+                >
+                  {l === "ua" ? "Надіслати запит на підбір" : "Request a parts consultation"} →
+                </Link>
+              ) : null}
+              {post.disclosure ? (
+                <p className="mt-8 text-sm leading-relaxed text-foreground/65">
+                  {getLocalized(post.disclosure, l)}
+                </p>
+              ) : null}
+              {post.sources?.length ? (
+                <section className="mt-6">
+                  <h2 className="text-base font-medium">{l === "ua" ? "Джерела" : "Sources"}</h2>
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {post.sources.map((source) => (
+                      <li key={source.url}>
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-foreground/75 underline underline-offset-4 hover:text-foreground"
+                        >
+                          {getLocalized(source.title, l)}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
 
               {/* Tags */}
               {post.tags?.length ? (

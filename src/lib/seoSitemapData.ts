@@ -44,7 +44,7 @@ export async function loadBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       const pageSlug = `/blog/${post.slug}`;
       return {
         url: absoluteUrl(buildLocalizedPath(locale, pageSlug)),
-        lastModified: new Date(post.date),
+        lastModified: new Date(post.updatedAt ?? post.date),
         alternates: { languages: buildAlternateLinks(pageSlug) },
       } satisfies MetadataRoute.Sitemap[number];
     })

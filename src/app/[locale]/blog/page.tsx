@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
+import { blogAuthorName, formatBlogDate } from "@/lib/blogPresentation";
 import {
   absoluteUrl,
   buildLocalizedPath,
@@ -93,6 +94,14 @@ export default async function BlogPage({ params }: Props) {
 
   /* First post is featured (hero card), rest are grid */
   const [featured, ...rest] = posts;
+  const featuredMedia = featured?.cover
+    ? {
+        type: "image" as const,
+        src: featured.cover.src,
+        alt: getLocalized(featured.cover.alt, l),
+        poster: undefined,
+      }
+    : featured?.media[0];
 
   const breadcrumbs = [
     { name: l === "ua" ? "Головна" : "Home", url: absoluteUrl(buildLocalizedPath(l)) },
@@ -149,24 +158,22 @@ export default async function BlogPage({ params }: Props) {
             <div className="flex flex-col md:flex-row">
               {/* Image */}
               <div className="relative aspect-4/3 w-full md:aspect-auto md:w-1/2 lg:w-[55%]">
-                {featured.media[0] ? (
-                  featured.media[0].type === "image" ? (
+                {featuredMedia ? (
+                  featuredMedia.type === "image" ? (
                     <Image
-                      src={featured.media[0].src}
-                      alt={featured.media[0].alt ?? getLocalized(featured.title, l)}
+                      src={featuredMedia.src}
+                      alt={featuredMedia.alt ?? getLocalized(featured.title, l)}
                       fill
                       sizes="(max-width: 768px) 100vw, 55vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-105"
                       priority
-                      unoptimized={featured.media[0].src.startsWith("http")}
-                      loader={
-                        featured.media[0].src.startsWith("http") ? ({ src }) => src : undefined
-                      }
+                      unoptimized={featuredMedia.src.startsWith("http")}
+                      loader={featuredMedia.src.startsWith("http") ? ({ src }) => src : undefined}
                     />
                   ) : (
                     <video
-                      src={featured.media[0].src}
-                      poster={featured.media[0].poster}
+                      src={featuredMedia.src}
+                      poster={featuredMedia.poster}
                       muted
                       loop
                       autoPlay
@@ -198,6 +205,10 @@ export default async function BlogPage({ params }: Props) {
                 <h2 className="font-display text-2xl font-light leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                   {getLocalized(featured.title, l)}
                 </h2>
+                <p className="text-xs text-foreground/65">
+                  {blogAuthorName} ·{" "}
+                  <time dateTime={featured.date}>{formatBlogDate(featured.date, l)}</time>
+                </p>
 
                 <p className="line-clamp-4 text-sm leading-relaxed text-foreground/70 dark:text-foreground/55 sm:text-base">
                   {getPreviewText(
@@ -239,7 +250,14 @@ export default async function BlogPage({ params }: Props) {
         <section className="relative mx-auto mt-12 max-w-6xl px-4 sm:px-6">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((post) => {
-              const media = post.media[0];
+              const media = post.cover
+                ? {
+                    type: "image" as const,
+                    src: post.cover.src,
+                    alt: getLocalized(post.cover.alt, l),
+                    poster: undefined,
+                  }
+                : post.media[0];
               const isExternalImage = media?.type === "image" && media.src.startsWith("http");
               return (
                 <Link
@@ -276,7 +294,7 @@ export default async function BlogPage({ params }: Props) {
                     ) : (
                       <div className="h-full w-full bg-linear-to-br from-foreground/5 via-foreground/[0.04] to-foreground/[0.06]" />
                     )}
-                    {media?.type === "video" && (
+                    {post.media[0]?.type === "video" && (
                       <div className="absolute left-3 top-3 rounded-full border border-foreground/20 bg-card/85 dark:bg-background/60 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-foreground/90 dark:text-foreground/75 backdrop-blur-md">
                         Reel
                       </div>
@@ -295,6 +313,10 @@ export default async function BlogPage({ params }: Props) {
                     <h3 className="font-display text-lg font-light leading-snug tracking-tight text-foreground">
                       {getLocalized(post.title, l)}
                     </h3>
+                    <p className="text-xs text-foreground/65">
+                      {blogAuthorName} ·{" "}
+                      <time dateTime={post.date}>{formatBlogDate(post.date, l)}</time>
+                    </p>
 
                     <p className="line-clamp-2 text-sm leading-relaxed text-foreground/65 dark:text-foreground/45">
                       {getPreviewText(

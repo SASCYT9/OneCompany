@@ -575,6 +575,9 @@ interface ArticleSchemaProps {
   description: string;
   url: string;
   image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  articleType?: "Article" | "NewsArticle";
   datePublished: string;
   dateModified?: string;
   locale?: "ua" | "en";
@@ -586,13 +589,16 @@ export function ArticleSchema({
   description,
   url,
   image,
+  imageWidth,
+  imageHeight,
+  articleType = "Article",
   datePublished,
   dateModified,
   locale = "ua",
 }: ArticleSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": articleType,
     headline,
     description,
     url,
@@ -600,17 +606,20 @@ export function ArticleSchema({
       "@type": "WebPage",
       "@id": url,
     },
-    image: image ? [image] : undefined,
+    image: image
+      ? [{ "@type": "ImageObject", url: image, width: imageWidth, height: imageHeight }]
+      : undefined,
     datePublished,
     dateModified: dateModified ?? datePublished,
     inLanguage: locale === "ua" ? "uk-UA" : "en-US",
     author: {
       "@type": "Organization",
-      name: "One Company Global",
+      name: "One Company",
+      url: `https://onecompany.global/${locale}/about`,
     },
     publisher: {
       "@type": "Organization",
-      name: "One Company Global",
+      name: "One Company",
       logo: {
         "@type": "ImageObject",
         url: "https://onecompany.global/branding/one-company-logo.svg",
@@ -622,7 +631,7 @@ export function ArticleSchema({
     <script
       id={id}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
     />
   );
 }

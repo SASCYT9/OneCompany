@@ -37,7 +37,7 @@ export type ContactChannel = {
   label: string;
   value: string;
   note: string;
-  type: 'email' | 'phone' | 'telegram' | 'whatsapp';
+  type: "email" | "phone" | "telegram" | "whatsapp";
 };
 
 export type ContactSuccessStory = {
@@ -56,7 +56,7 @@ export type LocalizedString = {
 
 export type BlogMedia = {
   id: string;
-  type: 'image' | 'video';
+  type: "image" | "video";
   src: string;
   poster?: string;
   alt?: string;
@@ -68,10 +68,27 @@ export type BlogPost = {
   title: LocalizedString;
   caption: LocalizedString;
   date: string;
+  updatedAt?: string;
+  seoTitle?: LocalizedString;
+  description?: LocalizedString;
+  cover?: {
+    src: string;
+    width: number;
+    height: number;
+    alt: LocalizedString;
+    credit?: LocalizedString;
+  };
+  sections?: {
+    heading: LocalizedString;
+    paragraphs: LocalizedString[];
+    table?: LocalizedString[][];
+  }[];
+  sources?: { title: LocalizedString; url: string }[];
+  disclosure?: LocalizedString;
   location?: LocalizedString;
   tags?: string[];
   pinned?: boolean;
-  status: 'draft' | 'published';
+  status: "draft" | "published";
   media: BlogMedia[];
 };
 
