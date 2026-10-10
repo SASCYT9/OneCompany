@@ -8,6 +8,7 @@ import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker
 import { StopflexDescriptionCallout } from "@/components/shop/StopflexDescriptionCallout";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
 import { buildProductSeoDescription, buildProductSeoTitle } from "@/lib/seoProductMeta";
+import { resolveLegacyProductPath } from "@/lib/legacyProductSlugs.server";
 import { getBrandLogo } from "@/lib/brandLogos";
 import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
@@ -114,7 +115,14 @@ export async function requireCanonicalStorefrontProduct({
   mode = "default",
 }: Props): Promise<ShopProduct> {
   const product = await getShopProductBySlugServer(slug);
-  if (!product) notFound();
+  if (!product) {
+    // A renamed slug that was already indexed (iPE "-titanium-exhaust" became
+    // "-exhaust"): send visitors and crawlers to the product it became rather
+    // than dropping the page's ranking with a 404.
+    const successorPath = await resolveLegacyProductPath(resolveLocale(locale), slug);
+    if (successorPath) permanentRedirect(successorPath);
+    notFound();
+  }
 
   const expectedSegment = mode === "default" ? null : mode;
   const actualSegment = resolveShopStorefrontSegment(product);

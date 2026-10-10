@@ -632,6 +632,18 @@ const nextConfig: NextConfig = {
         destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
         permanent: true,
       },
+      // Former brand URLs that Search Console still reports as 404 (GSC
+      // not-found drilldown 2026-10-10) and that have an obvious storefront.
+      {
+        source: "/:locale(ua|en)/shop/ipeexhaust",
+        destination: "/:locale/shop/ipe",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/burgermotorsports",
+        destination: "/:locale/shop/burger",
+        permanent: true,
+      },
     ];
 
     return [
