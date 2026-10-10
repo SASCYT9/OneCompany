@@ -22,6 +22,7 @@ import {
   resolveShopProductPricing,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
+import { buildProductSeoDescription, buildProductSeoTitle } from "@/lib/seoProductMeta";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -105,13 +106,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonicalSlug = canonicalPath.replace(`/${resolvedLocale}/`, "");
 
   const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
-  const pageTitle =
-    product.brand?.trim().toLowerCase() === "wheelforce"
-      ? `${localizedTitle} | One Company Shop`
-      : `${localizedTitle} | ${product.brand} | One Company Shop`;
+  // Same builders as the storefront product routes: honour the admin SEO
+  // fields (previously ignored here, which left UA pages with English text),
+  // and put the SKU in the title so same-name products stay distinct.
+  const pageTitle = buildProductSeoTitle({
+    explicitTitle: product.seoTitle?.[resolvedLocale],
+    title: localizedTitle,
+    sku: product.sku,
+    brand: product.brand,
+  });
   return buildPageMetadata(resolvedLocale, canonicalSlug, {
     title: pageTitle,
-    description: localizeShopDescription(resolvedLocale, product.shortDescription),
+    description: buildProductSeoDescription({
+      locale: resolvedLocale,
+      explicitDescription: product.seoDescription?.[resolvedLocale],
+      description: localizeShopDescription(resolvedLocale, product.shortDescription),
+      title: localizedTitle,
+      sku: product.sku,
+      brand: product.brand,
+      category: product.category?.[resolvedLocale] || product.category?.en,
+    }),
     image: product.image,
     type: "product",
   });
