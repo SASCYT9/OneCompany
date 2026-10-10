@@ -107,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const path = buildLocalizedPath(locale, pageSlug);
         return {
           url: absoluteUrl(path),
-          lastModified: new Date(post.date),
+          lastModified: new Date(post.updatedAt ?? post.date),
           changeFrequency: "weekly" as const,
           priority: 0.6,
           alternates: {
