@@ -103,6 +103,26 @@ export function buildShopStorefrontBrandPath(locale: string, brand: string | nul
 }
 
 /**
+ * Indexable landing page of a brand that has its own storefront (or the
+ * curated Eventuri page), or `null` for every other brand.
+ *
+ * Brand tiles on `/brands` and category pages are modal triggers, so their
+ * crawlable link is a hidden anchor. Pointing it at a storefront gives each
+ * store internal links from the brand hubs; brands without a storefront keep
+ * their current target instead of a noindex `?brand=` catalog filter.
+ */
+export function resolveShopStorefrontBrandLandingPath(
+  locale: string,
+  brand: string | null | undefined
+): string | null {
+  const normalizedBrand = normalizeStorefrontKey(brand);
+  if (!normalizedBrand) return null;
+  if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
+  if (!STOREFRONT_SEGMENT_BY_BRAND.has(normalizedBrand)) return null;
+  return buildShopStorefrontBrandPath(locale, brand);
+}
+
+/**
  * Prefer the canonical storefront URL returned by the catalog API, but never
  * allow an unexpected locale or a non-shop URL to become a client-side
  * navigation target. Older API responses without `href` continue to use the

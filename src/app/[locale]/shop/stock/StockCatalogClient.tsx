@@ -4314,7 +4314,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       </CatalogOverlayPortal>
 
       <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
-        <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
         {/* Desktop: filters own the whole left column from the top of the page. */}
         <div className="lg:grid lg:grid-cols-[288px_minmax(0,1fr)] lg:items-start lg:gap-5 xl:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside

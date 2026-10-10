@@ -5,6 +5,7 @@ import {
   buildShopStorefrontProductPath,
   buildShopStorefrontBrandPath,
   resolveShopCatalogProductHref,
+  resolveShopStorefrontBrandLandingPath,
   resolveShopStorefrontSegment,
 } from "../../../src/lib/shopStorefrontRouting";
 import {
@@ -168,4 +169,25 @@ test("catalog product links fall back safely for missing or unexpected hrefs", (
     "/ua/shop/safe-product"
   );
   assert.equal(resolveShopCatalogProductHref("ua", "javascript:alert(1)", ""), "/ua/shop");
+});
+
+test("brand landing path exists only for brands with their own storefront", () => {
+  assert.equal(
+    resolveShopStorefrontBrandLandingPath("ua", "Akrapovič"),
+    "/ua/shop/akrapovic/collections"
+  );
+  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Brabus"), "/en/shop/brabus/products");
+  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Öhlins"), "/en/shop/ohlins/catalog");
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Eventuri"), "/ua/shop/eventuri");
+  assert.equal(
+    resolveShopStorefrontBrandLandingPath("ua", "Burger Motorsports"),
+    "/ua/shop/burger/products"
+  );
+});
+
+test("brand landing path is null for brands that would only reach a noindex filter", () => {
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Mansory"), null);
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Remus"), null);
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", ""), null);
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", null), null);
 });

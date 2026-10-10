@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,6 +20,7 @@ import { getBrandStoryForBrand } from "@/lib/brandStories";
 import { BrandModal } from "@/components/ui/BrandModal";
 import { BrandItem } from "@/components/sections/BrandLogosGrid";
 import { absoluteUrl, buildLocalizedPath } from "@/lib/seo";
+import { resolveShopStorefrontBrandLandingPath } from "@/lib/shopStorefrontRouting";
 
 interface Props {
   category: CategoryData;
@@ -156,90 +157,99 @@ export default function CategoryPageClient({ category, brands, locale }: Props) 
             const country = meta ? getLocalizedCountry(meta.country, lang) : undefined;
             const logo = getBrandLogo(brand.name);
             const isFeatured = index === 0 || index === 1;
+            const storefrontPath = resolveShopStorefrontBrandLandingPath(locale, brand.name);
 
             return (
-              <motion.button
-                key={brand.name}
-                onClick={() => handleBrandClick(brand)}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className={`group relative cursor-pointer overflow-hidden rounded-3xl sm:rounded-4xl text-left ${
-                  isFeatured ? "lg:row-span-2 min-h-[320px] sm:min-h-[380px]" : "min-h-[240px]"
-                }`}
-              >
-                <div className="absolute inset-0 rounded-3xl sm:rounded-4xl border border-foreground/20 bg-foreground/10 backdrop-blur-3xl" />
-                <div className="absolute inset-0 bg-linear-to-br from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                <div
-                  className={`relative h-full flex flex-col ${
-                    isFeatured ? "p-6 sm:p-8 lg:p-12" : "p-6 sm:p-8"
+              <Fragment key={brand.name}>
+                <motion.button
+                  onClick={() => handleBrandClick(brand)}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  className={`group relative cursor-pointer overflow-hidden rounded-3xl sm:rounded-4xl text-left ${
+                    isFeatured ? "lg:row-span-2 min-h-[320px] sm:min-h-[380px]" : "min-h-[240px]"
                   }`}
                 >
-                  <div className="flex-1 flex items-center justify-center py-6">
-                    <div
-                      className={`relative w-full max-w-[200px] ${
-                        isFeatured ? "h-28 sm:h-36 lg:h-44" : "h-24 sm:h-32"
-                      } ${getBrandLogoSurfaceClass(brand.name)} ${
-                        brandLogoNeedsLightSurface(brand.name) ? "p-3" : ""
-                      }`}
-                    >
-                      <Image
-                        src={logo}
-                        alt={brand.name}
-                        fill
-                        className={`object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        unoptimized
-                      />
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 rounded-3xl sm:rounded-4xl border border-foreground/20 bg-foreground/10 backdrop-blur-3xl" />
+                  <div className="absolute inset-0 bg-linear-to-br from-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                  {country && (
-                    <div className="flex justify-center -mt-2 mb-2">
-                      <span className="text-[10px] uppercase tracking-widest text-foreground/65 dark:text-foreground/50">
-                        {country}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-end justify-between gap-4 mt-4">
-                    <div>
-                      <p
-                        className={`font-light text-foreground tracking-wide ${
-                          isFeatured ? "text-2xl sm:text-3xl lg:text-4xl" : "text-lg sm:text-xl"
+                  <div
+                    className={`relative h-full flex flex-col ${
+                      isFeatured ? "p-6 sm:p-8 lg:p-12" : "p-6 sm:p-8"
+                    }`}
+                  >
+                    <div className="flex-1 flex items-center justify-center py-6">
+                      <div
+                        className={`relative w-full max-w-[200px] ${
+                          isFeatured ? "h-28 sm:h-36 lg:h-44" : "h-24 sm:h-32"
+                        } ${getBrandLogoSurfaceClass(brand.name)} ${
+                          brandLogoNeedsLightSurface(brand.name) ? "p-3" : ""
                         }`}
                       >
-                        {brand.name}
-                      </p>
-                      {/* Optional: Add short description or category if available */}
-                    </div>
-
-                    <div
-                      className={`flex items-center justify-center rounded-full bg-foreground/10 border border-foreground/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-foreground/40 group-hover:bg-foreground/20 shrink-0 ${
-                        isFeatured ? "h-14 w-14 sm:h-16 sm:w-16" : "h-10 w-10 sm:h-12 sm:w-12"
-                      }`}
-                    >
-                      <svg
-                        className={`text-foreground transition-transform duration-500 group-hover:-rotate-45 ${
-                          isFeatured ? "h-6 w-6 sm:h-7 sm:w-7" : "h-4 w-4 sm:h-5 sm:w-5"
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
+                        <Image
+                          src={logo}
+                          alt={brand.name}
+                          fill
+                          className={`object-contain transition-all duration-500 group-hover:scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] ${shouldInvertBrand(brand.name) && !brandLogoNeedsLightSurface(brand.name) ? "filter brightness-0 invert" : ""}`}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          unoptimized
                         />
-                      </svg>
+                      </div>
+                    </div>
+
+                    {country && (
+                      <div className="flex justify-center -mt-2 mb-2">
+                        <span className="text-[10px] uppercase tracking-widest text-foreground/65 dark:text-foreground/50">
+                          {country}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-end justify-between gap-4 mt-4">
+                      <div>
+                        <p
+                          className={`font-light text-foreground tracking-wide ${
+                            isFeatured ? "text-2xl sm:text-3xl lg:text-4xl" : "text-lg sm:text-xl"
+                          }`}
+                        >
+                          {brand.name}
+                        </p>
+                        {/* Optional: Add short description or category if available */}
+                      </div>
+
+                      <div
+                        className={`flex items-center justify-center rounded-full bg-foreground/10 border border-foreground/20 backdrop-blur-sm transition-all duration-500 group-hover:scale-110 group-hover:border-foreground/40 group-hover:bg-foreground/20 shrink-0 ${
+                          isFeatured ? "h-14 w-14 sm:h-16 sm:w-16" : "h-10 w-10 sm:h-12 sm:w-12"
+                        }`}
+                      >
+                        <svg
+                          className={`text-foreground transition-transform duration-500 group-hover:-rotate-45 ${
+                            isFeatured ? "h-6 w-6 sm:h-7 sm:w-7" : "h-4 w-4 sm:h-5 sm:w-5"
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={1.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.button>
+                </motion.button>
+                {/* Tiles open a modal, so give crawlers a real link to the brand's
+                  storefront. Visually hidden: it does not take a grid cell. */}
+                {storefrontPath ? (
+                  <Link href={storefrontPath} className="sr-only" tabIndex={-1}>
+                    {brand.name}
+                  </Link>
+                ) : null}
+              </Fragment>
             );
           })}
         </div>
