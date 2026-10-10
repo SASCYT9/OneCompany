@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { shopVehicleModelsMatch } from "@/lib/shopVehicleConstraints";
+import { vehicleModelScope } from "@/lib/shopVehicleHierarchy";
 import {
   splitVehicleChassisCodes,
   vehicleMakeAliases,
@@ -150,8 +151,15 @@ export async function resolveCanonicalVehicleProductIds(input: {
       input.model ? getDynamicModelAliases(input.make, input.model) : Promise.resolve<string[]>([]),
       input.chassis ? getDynamicChassisAliases(input.chassis) : Promise.resolve<string[]>([]),
     ]);
+    // A base model includes its trims (`911` -> `911 Carrera`), as in the
+    // listing's own vehicle matching.
     const modelAliases = input.model
-      ? [...vehicleModelAliases(input.make, input.model), ...dynamicModelAliases]
+      ? [
+          ...vehicleModelScope(input.make, input.model).exact.flatMap((model) =>
+            vehicleModelAliases(input.make, model)
+          ),
+          ...dynamicModelAliases,
+        ]
       : [];
     const uniqueModelAliases = [...new Set(modelAliases)];
     const chassisAliases = input.chassis ? [input.chassis, ...dynamicChassisAliases] : [];
@@ -171,18 +179,22 @@ export async function resolveCanonicalVehicleProductIds(input: {
       ...(input.chassis
         ? [
             {
-              OR: [
+              // The generation and its facelifts (`992` -> `992.1`, `G20 LCI`).
+              OR: (["GENERATION", "CHASSIS"] as const).flatMap((dimension) => [
                 {
-                  dimension: "GENERATION" as const,
+                  dimension,
                   state: "EXACT" as const,
                   textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
                 },
-                {
-                  dimension: "CHASSIS" as const,
+                ...[".", " "].map((separator) => ({
+                  dimension,
                   state: "EXACT" as const,
-                  textValue: { in: uniqueChassisAliases, mode: "insensitive" as const },
-                },
-              ],
+                  textValue: {
+                    startsWith: `${input.chassis}${separator}`,
+                    mode: "insensitive" as const,
+                  },
+                })),
+              ]),
             },
           ]
         : []),

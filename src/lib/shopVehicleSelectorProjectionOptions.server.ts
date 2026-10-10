@@ -77,7 +77,12 @@ export async function listProjectionVehicleChassisOptions(
       AND option_constraint."textValue" IS NOT NULL
       AND policy."mode" = 'VEHICLE_SPECIFIC'
       AND clause."verification" = 'VERIFIED'
-      ${input.scope ? Prisma.sql`AND projection."scopeKey" = ${input.scope}` : Prisma.empty}
+      ${
+        // Moto is a partition; auto is the unpartitioned catalog minus moto.
+        input.scope === "moto"
+          ? Prisma.sql`AND projection."scopeKey" = 'moto'`
+          : Prisma.sql`AND projection."scopeKey" IS DISTINCT FROM 'moto'`
+      }
       AND ${correlated("MAKE", Prisma.sql`lower(selected_constraint."textValue") IN (${Prisma.join(makeKeys)})`)}
       AND ${correlated("MODEL", Prisma.sql`regexp_replace(translate(lower(selected_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join(modelKeys)})`)}
     LIMIT ${ROW_LIMIT}

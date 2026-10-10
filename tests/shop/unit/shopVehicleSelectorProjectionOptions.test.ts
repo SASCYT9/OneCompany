@@ -47,7 +47,8 @@ test("a base model owns the chassis of its trims and a facelift makes its genera
 
   const [call] = (fake as unknown as { calls: Array<{ sql: string; values: unknown[] }> }).calls;
   assert.ok(call!.values.includes("911gt3rs"), "trims of the selected base are in scope");
-  assert.ok(call!.values.includes("auto"));
+  // Auto is the unpartitioned catalog minus moto, not a literal `auto` key.
+  assert.match(call!.sql, /"scopeKey" IS DISTINCT FROM 'moto'/);
   assert.match(call!.sql, /"verification" = 'VERIFIED'/);
 });
 

@@ -39,6 +39,7 @@ import {
   canonicalizeVehicleModels,
   vehicleModelKey,
 } from "@/lib/shopVehicleTaxonomy";
+import { vehicleChassisMatchLevel, vehicleModelScope } from "@/lib/shopVehicleHierarchy";
 
 const cachedJson = (body: unknown) =>
   NextResponse.json(body, {
@@ -212,6 +213,65 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
 
 type SelectorOptionsInput = Parameters<typeof getCanonicalFitmentOptions>[0];
 
+/** At most this many (model, chassis) detail reads are merged per request. */
+const DETAIL_HIERARCHY_READ_LIMIT = 24;
+
+/**
+ * Years and engines of a selection follow the listing's hierarchy: a base
+ * model includes its trims and a generation (`992`) its facelifts (`992.1`).
+ */
+async function withHierarchyDetails<T extends { type?: string; data?: unknown }>(
+  result: T,
+  input: SelectorOptionsInput
+): Promise<T> {
+  if (result.type !== "details" || !input.make || !input.model) return result;
+  if (!result.data || typeof result.data !== "object") return result;
+  const models = vehicleModelScope(input.make, input.model).exact;
+  let chassisCodes: (string | null)[] = [input.chassis];
+  if (input.chassis) {
+    const listed = await Promise.all(
+      models.map((model) =>
+        getCanonicalFitmentOptions({ ...input, model, chassis: null, details: false }).catch(
+          () => null
+        )
+      )
+    );
+    const descendants = listed
+      .flatMap((options) => (Array.isArray(options?.data) ? options.data : []))
+      .filter(
+        (code): code is string =>
+          typeof code === "string" && vehicleChassisMatchLevel(code, input.chassis) === "descendant"
+      );
+    chassisCodes = [...new Set([input.chassis, ...descendants])];
+  }
+  const reads = models
+    .flatMap((model) => chassisCodes.map((chassis) => ({ model, chassis })))
+    .filter(({ model, chassis }) => model !== input.model || chassis !== input.chassis)
+    .slice(0, DETAIL_HIERARCHY_READ_LIMIT);
+  if (reads.length === 0) return result;
+  const extra = await Promise.all(
+    reads.map(({ model, chassis }) =>
+      getCanonicalFitmentOptions({ ...input, model, chassis, details: true }).catch(() => null)
+    )
+  );
+  const data = result.data as { years?: unknown; engines?: unknown };
+  const years = new Set<number>(Array.isArray(data.years) ? data.years : []);
+  const engines = new Set<string>(Array.isArray(data.engines) ? data.engines : []);
+  for (const options of extra) {
+    const value = options?.type === "details" ? (options.data as typeof data) : null;
+    for (const year of Array.isArray(value?.years) ? value.years : []) years.add(year);
+    for (const engine of Array.isArray(value?.engines) ? value.engines : []) engines.add(engine);
+  }
+  return {
+    ...result,
+    data: {
+      ...data,
+      years: [...years].sort((left, right) => right - left),
+      engines: [...engines].sort((left, right) => left.localeCompare(right)),
+    },
+  };
+}
+
 function isProjectionVehicleReader() {
   return process.env.SHOP_CATALOG_V2_VEHICLE_READER_MODE?.trim().toLowerCase() === "projection";
 }
@@ -253,10 +313,14 @@ async function refineProjectionSelectorOptions<
  */
 async function refineSelectorOptions<T extends { type?: string; data?: unknown; make?: string }>(
   result: T | null,
-  input: SelectorOptionsInput
+  input: SelectorOptionsInput,
+  readerMode: string
 ): Promise<T | (T & { counts: Record<string, number> }) | null> {
-  if (!result || input.brand) return result;
-  if (isProjectionVehicleReader()) return refineProjectionSelectorOptions(result, input);
+  // Moto pickers keep their canonical options: the refinements below read
+  // automotive evidence.
+  if (!result || input.brand || input.scope === "moto") return result;
+  if (result.type === "details") return withHierarchyDetails(result, input);
+  if (readerMode === "projection") return refineProjectionSelectorOptions(result, input);
   if (result.type === "chassis" && result.make && input.model) {
     const options = await listLegacyVehicleChassisOptions({
       make: result.make,
@@ -293,8 +357,10 @@ async function refineSelectorOptions<T extends { type?: string; data?: unknown; 
 
 // Shared across requests and instances (Next data cache). Errors are not
 // cached; a null result (selector artifact unavailable) is, for the same TTL.
+// The reader mode is an argument so it is part of the cache key: switching
+// readers never serves options computed by the other one.
 const readCachedSelectorOptions = unstable_cache(
-  async (input: SelectorOptionsInput) =>
+  async (input: SelectorOptionsInput, readerMode: string) =>
     refineSelectorOptions(
       await supplementBmcSupplierFitment(await getCanonicalFitmentOptions(input), {
         make: input.make,
@@ -303,9 +369,10 @@ const readCachedSelectorOptions = unstable_cache(
         brand: input.brand,
         scope: input.scope,
       }),
-      input
+      input,
+      readerMode
     ),
-  ["shop-fitment-selector-options-v4"],
+  ["shop-fitment-selector-options-v5"],
   { revalidate: SHOP_CATALOG_SELECTOR_CACHE_SECONDS, tags: [SHOP_CATALOG_SELECTOR_CACHE_TAG] }
 );
 
@@ -328,15 +395,18 @@ export async function GET(request: NextRequest) {
     const details = searchParams.get("details") === "1";
     const vehicleScope = parseShopStockVehicleScope(searchParams.get("scope"));
 
-    const canonical = await readCachedSelectorOptions({
-      make,
-      model,
-      chassis,
-      year,
-      brand,
-      scope: vehicleScope,
-      details,
-    });
+    const canonical = await readCachedSelectorOptions(
+      {
+        make,
+        model,
+        chassis,
+        year,
+        brand,
+        scope: vehicleScope,
+        details,
+      },
+      isProjectionVehicleReader() ? "projection" : "legacy"
+    );
     if (
       canonical?.type === "models" &&
       isVehicleMakeCompatibleWithScope(canonical.make, vehicleScope)

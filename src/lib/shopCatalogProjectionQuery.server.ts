@@ -18,7 +18,11 @@ import {
   vehicleMakeAliases,
   vehicleModelKey,
 } from "./shopVehicleTaxonomy";
-import { vehicleChassisSelfAndAncestors, vehicleModelScope } from "./shopVehicleHierarchy";
+import {
+  vehicleChassisKey,
+  vehicleChassisSelfAndAncestors,
+  vehicleModelScope,
+} from "./shopVehicleHierarchy";
 import {
   isShopSearchBrandToken,
   normalizeShopSearchText,
@@ -712,6 +716,17 @@ function correlatedTextConstraintSql(
           .slice(1)
           .map((ancestor) => ancestor.toLowerCase())
       : [];
+  // Spelling variants share one key (`W 463A` = `W-463A` = `W463A`), as in
+  // the selector options.
+  const generationKeys = isGeneration
+    ? [
+        ...new Set(
+          [value, ...(lowerTier ? vehicleChassisSelfAndAncestors(value).slice(1) : [])]
+            .map(vehicleChassisKey)
+            .filter(Boolean)
+        ),
+      ]
+    : [];
   const exactMatch =
     dimension === ShopCatalogCompatibilityDimension.MODEL
       ? Prisma.sql`regexp_replace(translate(lower(compatibility_constraint."textValue"), 'áàâäãåéèêëíìîïóòôöõúùûüýÿçñ', 'aaaaaaeeeeiiiiooooouuuuyycn'), '[^a-z0-9]+', '', 'g') IN (${Prisma.join(modelKeys)})`
@@ -721,6 +736,11 @@ function correlatedTextConstraintSql(
           ? // The generation and its facelifts (`992` -> `992.1`, `G20 LCI`).
             Prisma.sql`(
               lower(compatibility_constraint."textValue") = lower(${value})
+              ${
+                generationKeys.length
+                  ? Prisma.sql`OR regexp_replace(lower(compatibility_constraint."textValue"), '[^a-z0-9.]+', '', 'g') IN (${Prisma.join(generationKeys)})`
+                  : Prisma.empty
+              }
               OR lower(compatibility_constraint."textValue") LIKE ${`${generationLike}.%`} ESCAPE '\\'
               OR lower(compatibility_constraint."textValue") LIKE ${`${generationLike} %`} ESCAPE '\\'
               ${
