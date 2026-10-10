@@ -53,6 +53,16 @@ test("unsafe editorial source URLs and malformed image dimensions cannot enter p
 });
 
 test("admin media edits retain relevant covers and discard removed or replaced sources", () => {
+  const published = validateSiteContentInput(raw).blog.posts.filter(
+    (post) => post.status === "published"
+  );
+  for (const archived of published) {
+    const appended = updateBlogMedia(archived, [
+      ...archived.media,
+      { id: "unrelated", type: "image", src: "/images/added.jpg" },
+    ]);
+    assert.equal(appended.cover?.src, archived.cover?.src, archived.slug);
+  }
   const post = validateSiteContentInput(raw).blog.posts.find(
     (post) => post.slug === "bonamici-triumph-daytona-660-th10-pst3"
   )!;
@@ -78,6 +88,15 @@ test("replacing a video also discards its extracted poster, but preserves an exp
     { ...post.media[0], src: "/videos/replacement.mp4", poster: "/images/new-poster.jpg" },
   ]);
   assert.equal(getBlogCover(newPoster), "/images/new-poster.jpg");
+  const separateFrame = validateSiteContentInput(raw).blog.posts.find(
+    (post) => post.slug === "kline-innovation-exhaust-porsche-911-gt3"
+  )!;
+  assert.notEqual(separateFrame.cover?.src, separateFrame.media[0].poster);
+  const replacedSeparateFrame = updateBlogMedia(separateFrame, [
+    { ...separateFrame.media[0], src: "/videos/replacement.mp4" },
+  ]);
+  assert.equal(replacedSeparateFrame.cover, undefined);
+  assert.equal(replacedSeparateFrame.media[0].poster, undefined);
 });
 
 test("dates use the same Kyiv calendar day in both locales", () => {

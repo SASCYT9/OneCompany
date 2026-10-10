@@ -16,22 +16,28 @@ export function updateBlogMedia(post: BlogPost, media: BlogMedia[]): BlogPost {
   if (!post.cover) return { ...post, media };
   const coverSrc = post.cover.src;
   const sources = post.media.filter((item) => item.src === coverSrc || item.poster === coverSrc);
-  const unchangedSource = sources.some((source) =>
+  const sourceUnchanged = (source: BlogMedia) =>
     media.some(
       (item) =>
         item.id === source.id &&
         item.type === source.type &&
         item.src === source.src &&
         item.poster === source.poster
-    )
-  );
+    );
+  // Older video posts store the extracted cover separately from their poster.
+  // Appending media is safe if all original media are still unchanged.
+  const unchangedSource = sources.length
+    ? sources.some(sourceUnchanged)
+    : post.media.every(sourceUnchanged);
   if (unchangedSource) return { ...post, media };
   return {
     ...post,
     cover: undefined,
     media: media.map((item) => {
-      const source = sources.find((source) => source.id === item.id);
-      return source && source.src !== item.src && item.poster === coverSrc
+      const source = post.media.find((source) => source.id === item.id);
+      return source &&
+        source.src !== item.src &&
+        (item.poster === coverSrc || item.poster === source.poster)
         ? { ...item, poster: undefined }
         : item;
     }),
