@@ -79,8 +79,9 @@ async function rows(params: Record<string, string>, maxPages = 50) {
   return found;
 }
 
+/** Every result id (reachability needs all pages, not the diagnostic cap). */
 async function ids(params: Record<string, string>) {
-  return (await rows(params)).map((row) => row.id);
+  return (await rows(params, Number.POSITIVE_INFINITY)).map((row) => row.id);
 }
 
 /** Upper-case alphanumeric tokens of a title (`G90/G99` -> `G90`, `G99`). */

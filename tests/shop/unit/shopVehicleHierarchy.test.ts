@@ -59,3 +59,13 @@ test("Mercedes AMG trims belong to their class", () => {
   assert.equal(vehicleModelFamilyBase("Porsche", "911 GT3 RS"), "911");
   assert.equal(vehicleModelFamilyBase("Porsche", "Taycan"), null);
 });
+
+test("a base model never absorbs a model that has its own family", () => {
+  const rangeRover = vehicleModelScope("Land Rover", "Range Rover").exact;
+  assert.ok(rangeRover.includes("Range Rover IV"));
+  assert.ok(!rangeRover.some((model) => model.startsWith("Range Rover Sport")));
+  assert.ok(!vehicleModelScope("Toyota", "Land Cruiser").exact.includes("Land Cruiser Prado 250"));
+  const transit = vehicleModelScope("Ford", "Transit").exact;
+  assert.ok(!transit.some((model) => /connect|custom|courier/i.test(model)));
+  assert.deepEqual(vehicleModelScope("Ford", "Ka+").exact, ["Ka+"]);
+});

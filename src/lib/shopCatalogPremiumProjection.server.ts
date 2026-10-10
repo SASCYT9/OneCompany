@@ -288,9 +288,12 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
             })
           )
         : [];
-      const effectiveVehicleProductIds =
+      const sharedEventuriApplies = Boolean(
         canonicalSharedEventuriId &&
-        matchesEventuriSharedV8Application(query.make, query.model, query.generation)
+          matchesEventuriSharedV8Application(query.make, query.model, query.generation)
+      );
+      const effectiveVehicleProductIds =
+        sharedEventuriApplies && canonicalSharedEventuriId
           ? [
               ...new Set([
                 ...vehicleProductIds,
@@ -304,8 +307,13 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         : effectiveVehicleProductIds;
       // Products filed on the exact model and generation lead; the rest only
       // match a broader label (`992` for a `992.1` selection).
-      if (vehicleTiers.exactIds.length < effectiveVehicleProductIds.length) {
-        query.priorityProductIds = vehicleTiers.exactIds;
+      // The curated shared intake is a known fit for its supported models.
+      const exactVehicleProductIds =
+        sharedEventuriApplies && canonicalSharedEventuriId
+          ? [...new Set([...vehicleTiers.exactIds, canonicalSharedEventuriId])]
+          : vehicleTiers.exactIds;
+      if (exactVehicleProductIds.length < effectiveVehicleProductIds.length) {
+        query.priorityProductIds = exactVehicleProductIds;
         lowerTierVehicle = true;
       }
     }

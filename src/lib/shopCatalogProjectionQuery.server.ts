@@ -347,6 +347,10 @@ export function normalizeShopCatalogProjectionQuery(
   if (input.after && (offset !== 0 || (input.order && input.order !== "default"))) {
     throw new TypeError("stable-rank cursor requires default order and no offset");
   }
+  // Exact-first vehicle ordering is not a stable-rank order: page by offset.
+  if (input.after && (input.priorityProductIds?.length || input.vehicleLowerTier)) {
+    throw new TypeError("stable-rank cursor cannot follow exact-first vehicle ordering");
+  }
   return Object.freeze({
     locale: input.locale,
     limit,
@@ -1637,7 +1641,12 @@ export async function queryShopCatalogProjection(
     items: Object.freeze(visible),
     hasMore,
     nextCursor:
-      last && hasMore && input.order === "default" && !input.text
+      last &&
+      hasMore &&
+      input.order === "default" &&
+      !input.text &&
+      !input.priorityProductIds?.length &&
+      !vehicleLowerTierApplies(input)
         ? { stableRank: last.stableRank, productId: last.productId }
         : null,
   });

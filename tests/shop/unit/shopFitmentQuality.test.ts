@@ -345,18 +345,16 @@ test("manual mapping preserves multiple independent vehicle applications", () =>
   );
 });
 
+/** A supplier table as the importer persists it (`source: "import"`). */
 function supplierFitment(chassisCodes: string[], models = ["M5"]) {
-  return JSON.stringify(
-    normalizeManualFitment(
-      {
-        status: "verified",
-        applications: [
-          { vehicleType: "car", make: "BMW", models, chassisCodes, yearRanges: [] },
-        ],
-      },
-      "admin"
-    ).data
-  );
+  const normalized = normalizeManualFitment(
+    {
+      status: "verified",
+      applications: [{ vehicleType: "car", make: "BMW", models, chassisCodes, yearRanges: [] }],
+    },
+    "admin"
+  ).data;
+  return JSON.stringify({ ...normalized, source: "import" });
 }
 
 test("title chassis of the same model widen a narrower supplier table", () => {
@@ -401,4 +399,16 @@ test("title chassis are not added for another model or an unknown chassis", () =
     withTitleChassisCodes({ make: "Audi", models: ["M5"], chassisCodes: ["C8"] }, automatic),
     ["C8"]
   );
+});
+
+test("an administrator's verified mapping is never widened from the title", () => {
+  const automatic = extractProductFitment(
+    product({ title: { ua: "Диски для BMW M5 G90/G99", en: "Wheels for BMW M5 G90/G99" } })
+  );
+  const manual = JSON.stringify({
+    ...JSON.parse(supplierFitment(["G99"])),
+    source: "manual",
+  });
+  const [fitment] = resolveSearchFitments(automatic, manual);
+  assert.deepEqual(fitment.chassisCodes, ["G99"]);
 });

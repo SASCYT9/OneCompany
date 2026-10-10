@@ -125,6 +125,12 @@ async function main() {
       if ((await search(baseB, { make, model })).meta.totalItems === 0) {
         deadInB.push(`${make} / ${model}`);
       }
+      // ...and so must every chassis B offers for that model.
+      for (const chassis of (await options(baseB, { make, model })).data) {
+        if ((await search(baseB, { make, model, chassis })).meta.totalItems === 0) {
+          deadInB.push(`${make} / ${model} / ${chassis}`);
+        }
+      }
     });
     const mine = rows.filter((row) => row.query.make === make);
     const lost = mine.reduce((sum, row) => sum + row.lost, 0);

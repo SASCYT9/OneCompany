@@ -140,8 +140,17 @@ export function vehicleModelScope(make: string, model: string): VehicleModelScop
   const family = index.membersByBase.get(requestedKey);
   // A trim also owns the trims named after it (`911 Carrera` -> `911 Carrera S`).
   const prefix = `${requestedKey} `;
+  // A member owned by a more specific family (`Range Rover Sport II` under
+  // `Range Rover Sport`) is a distinct vehicle, not a descendant.
   const descendants = [...index.memberLabels.entries()]
-    .filter(([memberKey]) => memberKey.startsWith(prefix))
+    .filter(
+      ([memberKey]) =>
+        memberKey.startsWith(prefix) &&
+        !(index.basesByMember.get(memberKey) ?? []).some((base) => {
+          const baseKey = normalizeShopSearchText(base);
+          return baseKey !== requestedKey && baseKey.startsWith(prefix);
+        })
+    )
     .map(([, memberLabel]) => memberLabel);
   const exact = uniqueLabels([requested, ...(family?.members ?? []), ...descendants]);
   const parents = index.basesByMember.get(requestedKey) ?? [];

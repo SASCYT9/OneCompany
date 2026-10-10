@@ -345,3 +345,20 @@ test("a title naming several cars never pairs one model with another model's cha
   });
   assert.ok(!foreign?.ids.includes("fitment-id"));
 });
+
+test("a yearless fitment stays eligible for a year request but is never exact", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5"],
+    chassisCodes: ["G90"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const tiers = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M5", year: 2019 });
+  assert.ok(tiers?.ids.includes("fitment-id"));
+  assert.ok(!tiers?.exactIds.includes("fitment-id"));
+});

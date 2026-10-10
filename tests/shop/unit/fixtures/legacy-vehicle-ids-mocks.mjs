@@ -115,7 +115,12 @@ export function getExpectedChassisForMakeModel(_make, model) {
 
 export function extractProductFitment() {
   if (state.titleFitment) return state.titleFitment;
-  return { make: "BMW", model: "M5", chassisCodes: ["G90"], years: [{ from: 2020, to: null }] };
+  return {
+    make: "BMW",
+    model: "M5",
+    chassisCodes: ["G90"],
+    yearRanges: [{ from: 2020, to: null }],
+  };
 }
 
 export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {

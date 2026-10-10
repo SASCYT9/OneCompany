@@ -421,7 +421,9 @@ export function withTitleChassisCodes(
   const make = canonicalVehicleMakeLabel(application.make);
   if (canonicalVehicleMakeLabel(automatic.make) !== make) return current;
   const titleModels = new Set(automatic.models.map(vehicleModelKey));
-  const sharedModels = application.models.filter((model) => titleModels.has(vehicleModelKey(model)));
+  const sharedModels = application.models.filter((model) =>
+    titleModels.has(vehicleModelKey(model))
+  );
   if (sharedModels.length === 0) return current;
   const expected = new Set(
     sharedModels.flatMap((model) =>
@@ -456,10 +458,15 @@ export function resolveSearchFitments(
     ];
   }
   const confidence = persisted.status === "verified" ? "high" : persisted.confidence;
+  // An administrator's mapping is a decision, never widened from the title.
+  const chassisFor = (application: Parameters<typeof withTitleChassisCodes>[0]) =>
+    persisted.source === "manual"
+      ? application.chassisCodes
+      : withTitleChassisCodes(application, automatic);
   const fitments = persisted.applications.map((application) => ({
     make: application.make,
     models: application.models,
-    chassisCodes: withTitleChassisCodes(application, automatic),
+    chassisCodes: chassisFor(application),
     yearRanges: application.yearRanges,
     confidence,
     engines: application.engines,
@@ -476,7 +483,7 @@ export function resolveSearchFitments(
         {
           make: persisted.make,
           models: persisted.models,
-          chassisCodes: withTitleChassisCodes(persisted, automatic),
+          chassisCodes: chassisFor(persisted),
           yearRanges: persisted.yearRanges,
           confidence,
           engines: [],

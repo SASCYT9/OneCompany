@@ -695,20 +695,28 @@ async function resolveLegacyVehicleProductTiersUncached(
     });
   for (const product of products) {
     if (!product.id) continue;
-    const matchesAt = (models: readonly string[], includeAncestors: boolean) => {
+    const matchesAt = (
+      models: readonly string[],
+      includeAncestors: boolean,
+      requireYearEvidence = false
+    ) => {
       const [first, ...rest] = models;
-      return product.fitments.some((fitment) =>
-        shopFitmentMatchesVehicleConstraints(fitment, {
-          make: canonicalMake,
-          model: first ?? input.model,
-          modelAlternates: rest,
-          chassis: input.generation,
-          chassisIncludesAncestors: includeAncestors,
-          year: input.year,
-        })
+      return product.fitments.some(
+        (fitment) =>
+          // A yearless record stays eligible for a year request, but only
+          // affirmative year evidence makes it an exact match.
+          (!requireYearEvidence || !input.year || fitment.yearRanges.length > 0) &&
+          shopFitmentMatchesVehicleConstraints(fitment, {
+            make: canonicalMake,
+            model: first ?? input.model,
+            modelAlternates: rest,
+            chassis: input.generation,
+            chassisIncludesAncestors: includeAncestors,
+            year: input.year,
+          })
       );
     };
-    if (matchesAt(scope.exact, false)) {
+    if (matchesAt(scope.exact, false, true)) {
       exactIds.add(product.id);
       ids.add(product.id);
     } else if (matchesAt(scope.broad, true)) {
@@ -741,7 +749,8 @@ async function resolveLegacyVehicleProductTiersUncached(
     ) {
       continue;
     }
-    record(application.productId, Math.max(model, chassis) as MatchTier);
+    const yearless = input.year && application.yearFrom == null && application.yearTo == null;
+    record(application.productId, (yearless ? 2 : Math.max(model, chassis)) as MatchTier);
   }
   for (const clause of projectionClauses) {
     const exactTextValues = (dimensions: readonly string[]) =>

@@ -1954,7 +1954,7 @@ function extractChassisFromText(text: string): string[] {
 
 /** Supplier group labels that span several models (`X Series`), not a model. */
 function isModelGroupPlaceholder(model: string) {
-  return /^(?:x|z|m)\s*-?\s*series$/i.test(model.trim());
+  return /^[xzm][\s-]*series$/i.test(model.trim());
 }
 
 /** A model tag that names chassis codes and no known model of the make. */

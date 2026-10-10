@@ -253,6 +253,11 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       projectionQuery.generation = null;
       projectionQuery.year = null;
     }
+    // Native reader: the SQL admits broader labels and ranks exact matches
+    // first, as the search API does.
+    if (vehiclePlan.canonical && (query.make || query.model || query.generation || query.year)) {
+      projectionQuery.vehicleLowerTier = true;
+    }
     const [listingRead, facetRead] = await Promise.all([
       observeShopCatalogRead({
         operation: "listing",
