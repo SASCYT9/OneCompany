@@ -2558,11 +2558,17 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
     // The server already orders groups (editor sort order, then size); only the selection floats up.
     return [...matches].sort(
-      (left, right) =>
-        Number(isCategorySelected(right)) - Number(isCategorySelected(left))
+      (left, right) => Number(isCategorySelected(right)) - Number(isCategorySelected(left))
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryFilterQuery, filterStats, localCategories, localCategory, categoryCountByLabel, categoryKeyByLabel]);
+  }, [
+    categoryFilterQuery,
+    filterStats,
+    localCategories,
+    localCategory,
+    categoryCountByLabel,
+    categoryKeyByLabel,
+  ]);
 
   const visibleBrands = useMemo(() => {
     const needle = normalizeFacetSearchText(brandFilterQuery);
@@ -3542,7 +3548,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   <button
                     key={categoryName}
                     type="button"
-                    onClick={() => setLocalCategory(categoryKeyByLabel.get(categoryName) ?? categoryName)}
+                    onClick={() =>
+                      setLocalCategory(categoryKeyByLabel.get(categoryName) ?? categoryName)
+                    }
                     className={`flex min-h-9 w-full items-center justify-between gap-3 rounded-[4px] border px-3 text-left text-xs font-light transition ${
                       isCategorySelected(categoryName)
                         ? "border-transparent bg-foreground/[0.07] font-normal text-foreground shadow-[inset_2px_0_0_0_currentColor]"
@@ -4306,7 +4314,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       </CatalogOverlayPortal>
 
       <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
-        <h1 className="sr-only">{isUa ? "Каталог товарів" : "Product catalog"}</h1>
         {/* Desktop: filters own the whole left column from the top of the page. */}
         <div className="lg:grid lg:grid-cols-[288px_minmax(0,1fr)] lg:items-start lg:gap-5 xl:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside

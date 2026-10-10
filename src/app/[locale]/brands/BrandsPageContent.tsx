@@ -6,10 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND_LOGO_MAP } from "@/lib/brandLogos";
 import { shouldInvertBrand } from "@/lib/invertBrands";
-import {
-  brandLogoNeedsLightSurface,
-  getBrandLogoSurfaceClass,
-} from "@/lib/brandLogoPresentation";
+import { brandLogoNeedsLightSurface, getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import {
   getBrandMetadata,
   countryNames,
@@ -23,6 +20,7 @@ import { BrandItem } from "@/components/sections/BrandLogosGrid";
 import { getTypography, resolveLocale } from "@/lib/typography";
 import { BreadcrumbSchema, CollectionPageSchema } from "@/components/seo/StructuredData";
 import { absoluteUrl, buildLocalizedPath } from "@/lib/seo";
+import { resolveShopStorefrontBrandLandingPath } from "@/lib/shopStorefrontRouting";
 
 export default function BrandsPageContent() {
   const locale = useLocale();
@@ -161,7 +159,10 @@ export default function BrandsPageContent() {
                 </span>
               </div>
               <Link
-                href={`/${locale}/${motoBrandSet.has(name) ? "moto" : "auto"}`}
+                href={
+                  resolveShopStorefrontBrandLandingPath(locale, name) ??
+                  `/${locale}/${motoBrandSet.has(name) ? "moto" : "auto"}`
+                }
                 className="sr-only"
                 aria-label={
                   locale === "ua"

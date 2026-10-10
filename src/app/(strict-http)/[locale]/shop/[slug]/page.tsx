@@ -22,6 +22,7 @@ import {
   resolveShopProductPricing,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
+import { buildProductSeoDescription, buildProductSeoTitle } from "@/lib/seoProductMeta";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -105,12 +106,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonicalSlug = canonicalPath.replace(`/${resolvedLocale}/`, "");
 
   const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
-  const pageTitle = product.brand?.trim().toLowerCase() === "wheelforce"
-    ? `${localizedTitle} | One Company Shop`
-    : `${localizedTitle} | ${product.brand} | One Company Shop`;
+  // Same builders as the storefront product routes: honour the admin SEO
+  // fields (previously ignored here, which left UA pages with English text),
+  // and put the SKU in the title so same-name products stay distinct.
+  const pageTitle = buildProductSeoTitle({
+    explicitTitle: product.seoTitle?.[resolvedLocale],
+    title: localizedTitle,
+    sku: product.sku,
+    brand: product.brand,
+  });
   return buildPageMetadata(resolvedLocale, canonicalSlug, {
     title: pageTitle,
-    description: localizeShopDescription(resolvedLocale, product.shortDescription),
+    description: buildProductSeoDescription({
+      locale: resolvedLocale,
+      explicitDescription: product.seoDescription?.[resolvedLocale],
+      description: localizeShopDescription(resolvedLocale, product.shortDescription),
+      title: localizedTitle,
+      sku: product.sku,
+      brand: product.brand,
+      category: product.category?.[resolvedLocale] || product.category?.en,
+    }),
     image: product.image,
     type: "product",
   });
@@ -164,9 +179,16 @@ export default async function ShopProductPage({ params }: Props) {
   // bottom of the page. Main path only awaits shop settings.
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
-    priceCountry: isUa ? "Ukraine" : null,
-  });
+  const viewerContext = buildShopViewerPricingContext(
+    settingsRuntime,
+    null,
+    false,
+    null,
+    undefined,
+    {
+      priceCountry: isUa ? "Ukraine" : null,
+    }
+  );
   const pricing = resolveShopProductPricing(product, viewerContext);
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
@@ -295,12 +317,14 @@ async function RelatedProductsSection({
   // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
   // the Suspense subtree so it doesn't block the main PDP first byte.
   const brandPool = await getShopRelatedProductsByBrandServer(product.brand);
-  const relatedPool = product.brand.trim().toLowerCase() === "wheelforce"
-    ? brandPool.filter((item) =>
-        !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
-        item.slug !== product.wheelForceFamily?.parentSlug
-      )
-    : brandPool;
+  const relatedPool =
+    product.brand.trim().toLowerCase() === "wheelforce"
+      ? brandPool.filter(
+          (item) =>
+            !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
+            item.slug !== product.wheelForceFamily?.parentSlug
+        )
+      : brandPool;
   const isWheelForceBrand = product.brand.trim().toLowerCase() === "wheelforce";
   const wheelSetRecommendations = isWheelForceBrand
     ? findRelatedProducts(product, relatedPool.filter(isWheelForceWheelSet), 3)
@@ -372,4 +396,3 @@ async function RelatedProductsSection({
     </section>
   );
 }
-

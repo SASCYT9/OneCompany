@@ -9,101 +9,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getShopProductsServer } from "@/lib/shopCatalogServer";
-import { buildShopProductPath } from "@/lib/urbanCollectionMatcher";
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
-import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { siteConfig } from "@/lib/seo";
-import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
-import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function localize(
-  product: ShopProduct,
-  locale: "ua" | "en"
-): { title: string; description: string } {
-  const title = localizeShopProductTitle(locale, product);
-  const description = localizeShopDescription(locale, product.shortDescription);
-  return {
-    title: (title || product.slug).trim().slice(0, 150),
-    description: (description || "").trim().slice(0, 5000),
-  };
-}
-
-function formatPrice(amount: number, currency: string): string {
-  return `${Number(amount).toFixed(2)} ${currency}`;
-}
-
-function buildItemXml(
-  product: ShopProduct,
-  locale: "ua" | "en",
-  currency: "EUR" | "USD" | "UAH",
-  rates: Record<"EUR" | "USD" | "UAH", number>
-): string {
-  if (product.tags?.includes("internal-test")) return "";
-  const id =
-    (product.sku || product.slug).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50) || product.slug;
-  const { title, description } = localize(product, locale);
-  const path = buildShopProductPath(locale, product, true);
-  const link = `${siteConfig.url}${path}`;
-  const imageUrl = product.image.startsWith("http")
-    ? product.image
-    : `${siteConfig.url}${product.image}`;
-
-  // Cross-currency expansion: use whatever currency is set on the product
-  // (USD for iPE, EUR for Brabus, UAH for some) and convert to the requested
-  // feed currency via the same rate table the storefront uses.
-  const variantPrice =
-    product.variants?.find((v) => v.isDefault)?.price ?? product.variants?.[0]?.price;
-  const wheelSet = isWheelForceWheel(product);
-  const unitExpanded = expandShopPrices(product.price ?? variantPrice ?? null, rates);
-  const unitCompareExpanded = expandShopPrices(product.compareAt ?? null, rates);
-  const expanded = wheelSet ? wheelForceSetMoney(unitExpanded) : unitExpanded;
-  const compareExpanded = wheelSet ? wheelForceSetMoney(unitCompareExpanded) : unitCompareExpanded;
-  const currencyKey = currency.toLowerCase() as "usd" | "eur" | "uah";
-  const priceValue = expanded[currencyKey];
-  if (!priceValue || priceValue <= 0) {
-    return ""; // Skip items with no resolvable price (Merchant rejects 0).
-  }
-  const price = formatPrice(priceValue, currency);
-  const compareValue = compareExpanded[currencyKey];
-  const salePrice =
-    compareValue && compareValue > priceValue ? formatPrice(priceValue, currency) : null;
-  const listPrice = salePrice ? formatPrice(compareValue!, currency) : null;
-  const { availability, availabilityDate } = googleProductAvailability(product.stock, product.availabilityDate);
-
-  return [
-    "<item>",
-    `<g:id>${escapeXml(id)}</g:id>`,
-    `<title>${escapeXml(title)}</title>`,
-    `<link>${escapeXml(link)}</link>`,
-    `<description>${escapeXml(description)}</description>`,
-    `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
-    `<g:availability>${availability}</g:availability>`,
-    availabilityDate ? `<g:availability_date>${escapeXml(availabilityDate)}</g:availability_date>` : "",
-    listPrice
-      ? `<g:price>${escapeXml(listPrice)}</g:price>`
-      : `<g:price>${escapeXml(price)}</g:price>`,
-    salePrice ? `<g:sale_price>${escapeXml(salePrice)}</g:sale_price>` : "",
-    "<g:condition>new</g:condition>",
-    "<g:identifier_exists>false</g:identifier_exists>",
-    product.brand ? `<g:brand>${escapeXml(product.brand)}</g:brand>` : "",
-    product.sku ? `<g:mpn>${escapeXml(product.sku)}</g:mpn>` : "",
-    "<g:google_product_category>Vehicles &amp; Parts &gt; Vehicle Parts &amp; Accessories</g:google_product_category>",
-    "</item>",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
+import { buildMerchantFeedItemXml, escapeXml } from "@/lib/shopMerchantFeed";
 
 export async function GET(request: NextRequest) {
   const locale =
@@ -138,7 +47,7 @@ export async function GET(request: NextRequest) {
           ) ??
             false))
     )
-    .map((p) => buildItemXml(p, locale, currency, rates))
+    .map((p) => buildMerchantFeedItemXml(p, locale, currency, rates))
     .filter(Boolean)
     .join("\n");
 

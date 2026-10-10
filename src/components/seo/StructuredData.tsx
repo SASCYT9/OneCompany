@@ -80,7 +80,17 @@ export function OrganizationSchema({ locale = "ua" }: OrganizationSchemaProps) {
         availableLanguage: ["Ukrainian", "English"],
       },
     ],
-    sameAs: ["https://www.instagram.com/onecompany.global", "https://t.me/onecompany_global"],
+    // Same profiles as the site footer, so search engines can join the brand's
+    // accounts to this organization (brand queries are the main entry point).
+    sameAs: [
+      "https://www.instagram.com/onecompany.global",
+      "https://t.me/onecompany_global",
+      "https://t.me/onecompany_moto",
+      "https://www.tiktok.com/@onecompanyglobal",
+      "https://www.youtube.com/@OneCompanyGlobal",
+      "https://www.linkedin.com/company/onecompany-global/",
+      "https://x.com/OneCompany_gl",
+    ],
     hasMerchantReturnPolicy: SHARED_RETURN_POLICY,
     knowsAbout: [
       "Automotive tuning",
@@ -446,32 +456,18 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
         : "Auto and moto tuning in Kyiv: OEM and performance parts, official supply, logistics and technical support.",
   };
 
+  // One entity with two types. It used to be three separate nodes with the same
+  // name, address and phone, none tied to the organization, repeated on every
+  // page; that reads as three competing businesses at one address.
   const schema = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "LocalBusiness",
-        "@id": "https://onecompany.global/#localbusiness",
-        ...commonBusinessFields,
-      },
-      {
-        "@type": "AutoPartsStore",
-        "@id": "https://onecompany.global/#autopartsstore",
-        ...commonBusinessFields,
-        makesOffer: {
-          "@type": "OfferCatalog",
-          name: "Premium auto tuning parts",
-        },
-      },
-      {
-        "@type": "MotorcycleDealer",
-        "@id": "https://onecompany.global/#motorcycledealer",
-        ...commonBusinessFields,
-        makesOffer: {
-          "@type": "OfferCatalog",
-          name: "Motorcycle tuning parts",
-        },
-      },
+    "@type": ["AutoPartsStore", "MotorcycleDealer"],
+    "@id": "https://onecompany.global/#localbusiness",
+    ...commonBusinessFields,
+    parentOrganization: { "@id": "https://onecompany.global/#organization" },
+    makesOffer: [
+      { "@type": "OfferCatalog", name: "Premium auto tuning parts" },
+      { "@type": "OfferCatalog", name: "Motorcycle tuning parts" },
     ],
   };
 

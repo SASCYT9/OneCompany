@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const LISTING_PATHS = new Set([
   "adro/collections",
+  "akrapovic/collections",
   "brabus/products",
   "burger/products",
   "csf/collections",

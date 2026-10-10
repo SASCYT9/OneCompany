@@ -1,5 +1,7 @@
 import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import { buildRacechipSeoMeta } from "@/lib/seoProductMeta";
+import { getRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation.server";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import {
   getRacechipProductBySlugLightServer,
@@ -39,14 +41,36 @@ export async function generateMetadata({
     (await requireCanonicalStorefrontProduct({ locale: resolvedLocale, slug, mode: "racechip" }));
 
   const title = localizeShopProductTitle(resolvedLocale, product);
-  return buildPageMetadata(resolvedLocale, `shop/racechip/products/${slug}`, {
-    title: `${title} | RaceChip Ukraine`,
-    description:
-      localizeShopDescription(resolvedLocale, product.shortDescription) ||
-      `Buy ${title} tuning module. Maximum performance and efficiency with RaceChip app control.`,
+  // Variants of one car differ only by engine output, which the product name
+  // omits. The builder adds hp/kW/Nm from the slug so each page is distinct.
+  const seo = buildRacechipSeoMeta({
+    locale: resolvedLocale,
+    slug,
+    title,
+    description: localizeShopDescription(resolvedLocale, product.shortDescription),
+    sku: product.sku,
+  });
+  const metadata = buildPageMetadata(resolvedLocale, `shop/racechip/products/${slug}`, {
+    title: seo.title,
+    description: seo.description,
     image: product.image || undefined,
     type: "product",
   });
+
+  // Near-duplicate engine variants: one per make/model stays indexed (see
+  // seoRacechipConsolidation). The page remains reachable and links onward.
+  const noindexSlugs = await getRacechipNoindexSlugs();
+  if (noindexSlugs.has(product.slug)) {
+    return {
+      ...metadata,
+      robots: {
+        index: false,
+        follow: true,
+        googleBot: { index: false, follow: true },
+      },
+    };
+  }
+  return metadata;
 }
 
 export default async function RacechipProductPage({
