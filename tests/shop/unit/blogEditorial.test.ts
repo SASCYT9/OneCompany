@@ -7,6 +7,7 @@ import {
   formatBlogDate,
   getBlogDateInput,
   getBlogCover,
+  getBlogSocialCover,
   updateBlogMedia,
 } from "../../../src/lib/blogPresentation";
 
@@ -109,6 +110,20 @@ test("dates use the same Kyiv calendar day in both locales", () => {
   assert.equal(formatBlogDate("2026-10-10T22:30:00Z", "ua"), "11 жовтня 2026 р.");
   assert.equal(getBlogDateInput("2026-10-10T22:30:00Z"), "2026-10-11");
   assert.equal(getBlogDateInput("2026-10-10T20:30:00Z"), "2026-10-10");
+});
+
+test("social previews use genuine 1200px sources without upscaling smaller covers", () => {
+  const posts = validateSiteContentInput(raw).blog.posts;
+  for (const post of posts) {
+    const cover = getBlogSocialCover(post)!;
+    if (post.cover!.width >= 1200) {
+      assert.equal(cover.width, 1200);
+      assert.ok(cover.src.startsWith("/_next/image?url="));
+    } else {
+      assert.equal(cover.src, post.cover!.src);
+      assert.equal(cover.width, post.cover!.width);
+    }
+  }
 });
 
 test("malformed and impossible publication/update dates are rejected before persistence", () => {

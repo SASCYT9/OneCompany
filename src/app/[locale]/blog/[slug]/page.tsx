@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
-import { blogAuthorName, formatBlogDate, getBlogCover } from "@/lib/blogPresentation";
+import { blogAuthorName, formatBlogDate, getBlogSocialCover } from "@/lib/blogPresentation";
 import {
   absoluteUrl,
   buildLocalizedPath,
@@ -116,7 +116,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const cover = getBlogCover(post);
+  const socialCover = getBlogSocialCover(post);
   const localizedTitle = getLocalized(post.title, l);
   const localizedCaption = getLocalized(post.caption, l);
   const queryVariant =
@@ -130,7 +130,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: post.description
       ? getLocalized(post.description, l)
       : buildCommercialSnippet(l, localizedCaption, localizedTitle),
-    image: cover,
+    image: socialCover?.src,
     type: "article",
   });
   return {
@@ -142,17 +142,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.date,
       modifiedTime: post.updatedAt ?? post.date,
       authors: [absoluteUrl(buildLocalizedPath(l, "/about"))],
-      ...(post.cover
+      ...(socialCover
         ? {
             images: [
               {
-                url: post.cover.src.startsWith("http")
-                  ? post.cover.src
-                  : absoluteUrl(post.cover.src),
-                width: post.cover.width,
-                height: post.cover.height,
-                alt: getLocalized(post.cover.alt, l),
+                url: socialCover.src.startsWith("http")
+                  ? socialCover.src
+                  : absoluteUrl(socialCover.src),
+                width: socialCover.width,
+                height: socialCover.height,
+                alt: post.cover ? getLocalized(post.cover.alt, l) : localizedTitle,
               },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      ...metadata.twitter,
+      card: "summary_large_image",
+      ...(socialCover
+        ? {
+            images: [
+              socialCover.src.startsWith("http") ? socialCover.src : absoluteUrl(socialCover.src),
             ],
           }
         : {}),
@@ -183,7 +194,8 @@ export default async function BlogPostPage({ params }: Props) {
   const localizedTitle = getLocalized(post.title, l);
   const postUrl = absoluteUrl(buildLocalizedPath(l, `/blog/${post.slug}`));
   const articleDescription = toExcerpt(captionText, localizedTitle, 170, localizedTitle);
-  const coverPath = getBlogCover(post);
+  const socialCover = getBlogSocialCover(post);
+  const coverPath = socialCover?.src;
   const coverImage = coverPath
     ? coverPath.startsWith("http")
       ? coverPath
@@ -206,8 +218,8 @@ export default async function BlogPostPage({ params }: Props) {
         description={articleDescription}
         url={postUrl}
         image={coverImage}
-        imageWidth={post.cover?.width}
-        imageHeight={post.cover?.height}
+        imageWidth={socialCover?.width}
+        imageHeight={socialCover?.height}
         articleType={post.sections ? "NewsArticle" : "Article"}
         datePublished={post.date}
         dateModified={post.updatedAt ?? post.date}

@@ -10,6 +10,19 @@ export function getBlogCover(post: BlogPost) {
   );
 }
 
+export function getBlogSocialCover(post: BlogPost) {
+  const src = getBlogCover(post);
+  if (!src) return undefined;
+  if (post.cover && src.startsWith("/") && post.cover.width >= 1200) {
+    return {
+      src: `/_next/image?url=${encodeURIComponent(src)}&w=1200&q=75`,
+      width: 1200,
+      height: Math.round((post.cover.height * 1200) / post.cover.width),
+    };
+  }
+  return { src, width: post.cover?.width, height: post.cover?.height };
+}
+
 // A cover belongs to the media it was selected/extracted from. Keep it when
 // unrelated media are added; discard it when its source is removed or replaced.
 export function updateBlogMedia(post: BlogPost, media: BlogMedia[]): BlogPost {
