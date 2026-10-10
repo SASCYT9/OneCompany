@@ -3,7 +3,12 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { validateSiteContentInput } from "../../../src/lib/adminConfigValidation";
-import { formatBlogDate, getBlogCover, updateBlogMedia } from "../../../src/lib/blogPresentation";
+import {
+  formatBlogDate,
+  getBlogDateInput,
+  getBlogCover,
+  updateBlogMedia,
+} from "../../../src/lib/blogPresentation";
 
 const raw = JSON.parse(
   readFileSync(path.join(process.cwd(), "public/config/site-content.json"), "utf8")
@@ -102,6 +107,8 @@ test("replacing a video also discards its extracted poster, but preserves an exp
 test("dates use the same Kyiv calendar day in both locales", () => {
   assert.equal(formatBlogDate("2026-10-10T22:30:00Z", "en"), "11 October 2026");
   assert.equal(formatBlogDate("2026-10-10T22:30:00Z", "ua"), "11 жовтня 2026 р.");
+  assert.equal(getBlogDateInput("2026-10-10T22:30:00Z"), "2026-10-11");
+  assert.equal(getBlogDateInput("2026-10-10T20:30:00Z"), "2026-10-10");
 });
 
 test("malformed and impossible publication/update dates are rejected before persistence", () => {

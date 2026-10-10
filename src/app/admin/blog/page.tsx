@@ -11,7 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { BlogMedia, BlogPost, SiteContent } from "@/types/site-content";
-import { updateBlogMedia } from "@/lib/blogPresentation";
+import { formatBlogDate, getBlogDateInput, updateBlogMedia } from "@/lib/blogPresentation";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
 
@@ -43,7 +43,7 @@ const slugify = (value: string) =>
 
 const formatDateInput = (value?: string) => {
   if (!value) return "";
-  return value.slice(0, 10);
+  return getBlogDateInput(value);
 };
 
 export default function AdminBlogPage() {
@@ -377,7 +377,7 @@ export default function AdminBlogPage() {
                         {post.title.ua || post.title.en || "Untitled post"}
                     </p>
                     <p className="text-xs text-white/40 mt-1">
-                      {new Date(post.date).toLocaleDateString()}
+                      {formatBlogDate(post.date, 'en')}
                     </p>
                   </div>
                   <span

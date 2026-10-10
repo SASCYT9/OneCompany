@@ -52,3 +52,14 @@ export function formatBlogDate(date: string, locale: "ua" | "en") {
     timeZone: "Europe/Kyiv",
   }).format(new Date(date));
 }
+
+export function getBlogDateInput(date: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Europe/Kyiv",
+  }).formatToParts(new Date(date));
+  const value = (type: string) => parts.find((part) => part.type === type)!.value;
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
