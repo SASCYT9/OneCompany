@@ -386,6 +386,18 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // The root layout hard-codes <html lang="uk"> so every localized page
+        // stays statically cacheable, which makes /en pages declare Ukrainian in
+        // the HTML. Declare the real language at the HTTP level instead; search
+        // engines that read Content-Language (Bing, Yandex) get the right value.
+        source: "/ua/:path*",
+        headers: [{ key: "Content-Language", value: "uk" }],
+      },
+      {
+        source: "/en/:path*",
+        headers: [{ key: "Content-Language", value: "en" }],
+      },
       ...STOREFRONT_FILTER_QUERY_KEYS.map((key) => ({
         // Query filters share the cacheable canonical listing HTML, while the
         // routing layer keeps every filtered permutation out of the index.

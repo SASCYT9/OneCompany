@@ -20,6 +20,15 @@ const AI_TRAINING_CRAWLERS = [
   "Google-Extended",
 ] as const;
 
+/**
+ * Public, read-only JSON endpoints the storefront calls on page load to fill
+ * catalog grids and recommendation blocks. Googlebot's renderer needs them to
+ * see those blocks. They stay out of the index: `/api/*` responses carry
+ * `X-Robots-Tag: noindex` (see next.config.ts), and `Allow` only lifts the
+ * fetch block because the longer path wins over `Disallow: /api`.
+ */
+const RENDER_CRITICAL_API_PATHS = ["/api/shop/stock/search", "/api/shop/recommendations"] as const;
+
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = absoluteUrl("/sitemap.xml");
   const disallowRules = noindexPrefixes.flatMap((prefix) => [prefix, `${prefix}/*`]);
@@ -28,7 +37,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", ...RENDER_CRITICAL_API_PATHS],
         disallow: disallowRules,
       },
       {
