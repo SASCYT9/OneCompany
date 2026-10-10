@@ -245,9 +245,11 @@ function DetailSpecPanel({
               {spec.label}
             </dt>
             <dd className="text-pretty text-foreground/95 dark:text-foreground/82">
-              {/^(артикул|sku|part number)$/i.test(spec.label.trim())
-                ? <ShopVariantSkuText fallbackSku={spec.value} />
-                : spec.value}
+              {/^(артикул|sku|part number)$/i.test(spec.label.trim()) ? (
+                <ShopVariantSkuText fallbackSku={spec.value} />
+              ) : (
+                spec.value
+              )}
             </dd>
           </div>
         ))}
@@ -527,7 +529,10 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const shortDescription = do88Enriched
     ? do88Enriched.shortDescription
     : localizeShopDescription(resolvedLocale, product.shortDescription);
-  const localizedSupplierLongDescription = localizeShopDescription(resolvedLocale, product.longDescription);
+  const localizedSupplierLongDescription = localizeShopDescription(
+    resolvedLocale,
+    product.longDescription
+  );
   const supplierLongDescription = isDo88Mode
     ? sanitizeDo88StoredDescription(localizedSupplierLongDescription)
     : localizedSupplierLongDescription;
@@ -654,8 +659,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
         extractDo88CategoryLeafToken(do88CategoryBreadcrumb),
         // Title gate uses lowercased substring match — feed it the English
         // title so phrases like "EA888" / "Mk7 Golf" hit regardless of locale.
-        do88FitmentProduct.title?.en ||
-          localizeShopProductTitle(resolvedLocale, do88FitmentProduct)
+        do88FitmentProduct.title?.en || localizeShopProductTitle(resolvedLocale, do88FitmentProduct)
       )
     : [];
 
@@ -881,10 +885,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
             {product.bundle.items.map((item) => (
               <Link
                 key={item.id}
-                href={buildShopStorefrontProductPathForProduct(
-                  resolvedLocale,
-                  item.product
-                )}
+                href={buildShopStorefrontProductPathForProduct(resolvedLocale, item.product)}
                 className="flex items-center justify-between gap-3 rounded-2xl border border-foreground/12 bg-foreground/10 dark:bg-black/20 px-4 py-3 text-sm text-foreground/90 dark:text-foreground/75 transition hover:border-foreground/30 hover:text-foreground"
               >
                 <div>
@@ -909,253 +910,254 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   return (
     <ShopVariantImageProvider key={product.slug} enabled={isDo88Mode}>
-    <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
-      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
-      <ShopProductViewTracker
-        slug={product.slug}
-        name={productTitle}
-        priceEur={computeCrossPrices(pricing.effectivePrice).eur}
-      />
-
-      {product.brand === "Brabus" || mode === "brabus" ? (
-        <BrabusShopProductDetailLayout
-          locale={locale}
-          resolvedLocale={resolvedLocale}
-          product={product}
-          pricing={pricing}
-          viewerContext={viewerContext}
-          rates={rates}
-          defaultVariant={defaultVariant}
-          relatedProducts={relatedProducts}
+      <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
+        <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
+        <ShopProductViewTracker
+          slug={product.slug}
+          name={productTitle}
+          priceEur={computeCrossPrices(pricing.effectivePrice).eur}
         />
-      ) : mode === "burger" || product.brand === "Burger Motorsports" ? (
-        <BurgerShopProductDetailLayout
-          locale={locale}
-          resolvedLocale={resolvedLocale}
-          product={product}
-          pricing={pricing}
-          viewerContext={viewerContext}
-          rates={rates}
-          defaultVariant={defaultVariant}
-        />
-      ) : (
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
-          <div className="flex flex-wrap items-center gap-3">
-            <ShopBackToCatalogLink
-              fallbackHref={backLinkHref}
-              label={backLinkLabel}
-              className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
-            />
 
-            {contextLinkHref && contextLinkLabel ? (
-              <Link
-                href={contextLinkHref}
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground/72 transition hover:border-foreground/35 hover:text-foreground"
-              >
-                {contextLinkLabel}
-              </Link>
-            ) : null}
-
-            {isUrbanMode ? (
-              <Link
-                href={`/${resolvedLocale}/shop/urban`}
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
-              >
-                {isUa ? "Urban Home" : "Urban home"}
-              </Link>
-            ) : null}
-
-            {isDo88Mode ? (
-              <Link
-                href={`/${resolvedLocale}/shop/do88`}
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
-              >
-                {isUa ? "DO88 Home" : "DO88 home"}
-              </Link>
-            ) : null}
-
-            <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/65">
-              {product.scope === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
-            </span>
-          </div>
-
-          <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="min-w-0 lg:sticky lg:top-32">
-              <ShopProductGallery
-                images={[
-                  safeImageUrl,
-                  ...resolvedGallery.filter((img) => img !== safeImageUrl && img && img.length > 0),
-                ]}
-                productTitle={productTitle}
-                category={productCategory}
-                isInStock={isInStock}
-                isUa={isUa}
-                compatibleVehicles={do88CompatibleVehicles}
+        {product.brand === "Brabus" || mode === "brabus" ? (
+          <BrabusShopProductDetailLayout
+            locale={locale}
+            resolvedLocale={resolvedLocale}
+            product={product}
+            pricing={pricing}
+            viewerContext={viewerContext}
+            rates={rates}
+            defaultVariant={defaultVariant}
+            relatedProducts={relatedProducts}
+          />
+        ) : mode === "burger" || product.brand === "Burger Motorsports" ? (
+          <BurgerShopProductDetailLayout
+            locale={locale}
+            resolvedLocale={resolvedLocale}
+            product={product}
+            pricing={pricing}
+            viewerContext={viewerContext}
+            rates={rates}
+            defaultVariant={defaultVariant}
+          />
+        ) : (
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
+            <div className="flex flex-wrap items-center gap-3">
+              <ShopBackToCatalogLink
+                fallbackHref={backLinkHref}
+                label={backLinkLabel}
+                className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
               />
+
+              {contextLinkHref && contextLinkLabel ? (
+                <Link
+                  href={contextLinkHref}
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground/72 transition hover:border-foreground/35 hover:text-foreground"
+                >
+                  {contextLinkLabel}
+                </Link>
+              ) : null}
+
+              {isUrbanMode ? (
+                <Link
+                  href={`/${resolvedLocale}/shop/urban`}
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
+                >
+                  {isUa ? "Urban Home" : "Urban home"}
+                </Link>
+              ) : null}
+
+              {isDo88Mode ? (
+                <Link
+                  href={`/${resolvedLocale}/shop/do88`}
+                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
+                >
+                  {isUa ? "DO88 Home" : "DO88 home"}
+                </Link>
+              ) : null}
+
+              <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/65">
+                {product.scope === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
+              </span>
             </div>
 
-            <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={getBrandLogo(product.brand)}
-                    alt={product.brand}
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <ShopBrandLink
-                    brand={product.brand}
-                    locale={resolvedLocale}
-                    className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
-                  />
-                  {product.vendor && (!isDo88Mode || product.vendor.trim().toLowerCase() !== product.brand.trim().toLowerCase()) ? (
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
-                      {product.vendor}
-                    </p>
-                  ) : null}
-                </div>
+            <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+              <div className="min-w-0 lg:sticky lg:top-32">
+                <ShopProductGallery
+                  images={[
+                    safeImageUrl,
+                    ...resolvedGallery.filter(
+                      (img) => img !== safeImageUrl && img && img.length > 0
+                    ),
+                  ]}
+                  productTitle={productTitle}
+                  category={productCategory}
+                  isInStock={isInStock}
+                  isUa={isUa}
+                  compatibleVehicles={do88CompatibleVehicles}
+                />
               </div>
 
-              <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
-                {productTitle}
-              </h1>
-              {primaryPartNumber ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
-                    {isUa ? "Артикул" : "Part number"}
-                  </span>
-                  <span className="min-w-0 break-all rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 font-mono text-xs tracking-[0.04em] text-foreground/85">
-                    <ShopVariantSkuText fallbackSku={primaryPartNumber} />
-                  </span>
-                </div>
-              ) : null}
-
-              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
-              ) : null}
-
-              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                <Do88CompatibleVehiclesBlock
-                  vehicles={do88CompatibleVehicles}
-                  locale={locale}
-                  isUa={isUa}
-                />
-              ) : null}
-
-              {isDo88Mode ? purchaseSection : null}
-
-              {product.sounds && product.sounds.length > 0 ? (
-                <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/85 dark:text-white/80">
-                    {isUa ? "Звук вихлопної системи" : "Exhaust Sound"}
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {product.sounds.map((sound) => {
-                      const title = sound.Title || "";
-
-                      // Split by semicolon (e.g. "Stock exhaust; BMW S 1000 RR")
-                      const parts = title.split(";").map((p) => p.trim());
-                      const hasSemicolon = parts.length > 1;
-                      const exhaustName = parts[0];
-                      const bikeModel = hasSemicolon ? parts[1] : "";
-
-                      const isStock = /stock/i.test(exhaustName);
-
-                      const bikeMake = bikeModel ? bikeModel.split(" ")[0].toUpperCase() : "";
-                      const makeLabel = isStock
-                        ? bikeMake || (isUa ? "СТАНДАРТНИЙ ВИХЛОП" : "STOCK EXHAUST")
-                        : "AKRAPOVIČ";
-
-                      const modelLabel = isStock
-                        ? isUa
-                          ? "Стандартний вихлоп"
-                          : "Stock exhaust"
-                        : isUa
-                          ? exhaustName
-                              .replace(/Complete/i, "Повний вихлоп")
-                              .replace(/Evolution Line/i, "Evolution Line")
-                              .replace(/Slip-On/i, "Slip-On Line")
-                              .replace(/Racing Line/i, "Racing Line")
-                          : exhaustName;
-
-                      const subLabel =
-                        bikeModel || product.title[resolvedLocale as "en" | "ua"] || "";
-
-                      return (
-                        <AkrapovicSoundPlayer
-                          key={`product-sound-${sound.Id}`}
-                          entry={{
-                            id: `product-sound-${sound.Id}`,
-                            make: makeLabel,
-                            model: modelLabel,
-                            image: product.image,
-                            exhaustType: subLabel,
-                            exhaustTypeUk: subLabel,
-                            soundUrl: sound.Url,
-                          }}
-                          isUa={isUa}
-                        />
-                      );
-                    })}
+              <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getBrandLogo(product.brand)}
+                      alt={product.brand}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <ShopBrandLink
+                      brand={product.brand}
+                      locale={resolvedLocale}
+                      className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+                    />
+                    {product.vendor &&
+                    (!isDo88Mode ||
+                      product.vendor.trim().toLowerCase() !==
+                        product.brand.trim().toLowerCase()) ? (
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
+                        {product.vendor}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
-              ) : null}
 
+                <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
+                  {productTitle}
+                </h1>
+                {primaryPartNumber ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
+                      {isUa ? "Артикул" : "Part number"}
+                    </span>
+                    <span className="min-w-0 break-all rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 font-mono text-xs tracking-[0.04em] text-foreground/85">
+                      <ShopVariantSkuText fallbackSku={primaryPartNumber} />
+                    </span>
+                  </div>
+                ) : null}
 
+                {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                  <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
+                ) : null}
 
-              {isStopflexProduct ||
-              descriptionSections.introHtml ||
-              detailFeatureItems.length > 0 ||
-              detailSpecs.length > 0 ? (
-                <MobileProductDisclosure
-                  title={isUa ? "Опис і характеристики" : "Description & specs"}
-                  contentClassName="space-y-4"
-                >
-                  {isStopflexProduct ? (
-                    <StopflexDescriptionCallout isUa={isUa} isLongFiber={isStopflexLongFiber} />
-                  ) : null}
-                  {descriptionSections.introHtml ? (
-                    <div
-                      className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
-                      dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
-                    />
-                  ) : null}
-                  {detailFeatureItems.length > 0 ? (
-                    <DetailListPanel title={detailListTitle} items={detailFeatureItems} />
-                  ) : null}
-                  {detailSpecs.length > 0 ? (
-                    <DetailSpecPanel
-                      title={isDo88Mode ? undefined : isUa ? "Характеристики" : "Specifications"}
-                      specs={detailSpecs}
-                    />
-                  ) : null}
-                </MobileProductDisclosure>
-              ) : null}
+                {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                  <Do88CompatibleVehiclesBlock
+                    vehicles={do88CompatibleVehicles}
+                    locale={locale}
+                    isUa={isUa}
+                  />
+                ) : null}
 
+                {isDo88Mode ? purchaseSection : null}
 
+                {product.sounds && product.sounds.length > 0 ? (
+                  <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/85 dark:text-white/80">
+                      {isUa ? "Звук вихлопної системи" : "Exhaust Sound"}
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {product.sounds.map((sound) => {
+                        const title = sound.Title || "";
 
-              {product.externalVideos?.length ? (
-                <ShopProductVideos
-                  videos={product.externalVideos}
-                  title={productTitle}
-                  isUa={isUa}
-                />
-              ) : null}
+                        // Split by semicolon (e.g. "Stock exhaust; BMW S 1000 RR")
+                        const parts = title.split(";").map((p) => p.trim());
+                        const hasSemicolon = parts.length > 1;
+                        const exhaustName = parts[0];
+                        const bikeModel = hasSemicolon ? parts[1] : "";
 
-              {!isDo88Mode ? purchaseSection : null}
-            </div>
-          </section>
-        </div>
-      )}
+                        const isStock = /stock/i.test(exhaustName);
 
-      {crossShopFitment ? (
-        <CrossShopFitmentDeferredSection product={product} locale={resolvedLocale} />
-      ) : null}
-    </div>
+                        const bikeMake = bikeModel ? bikeModel.split(" ")[0].toUpperCase() : "";
+                        const makeLabel = isStock
+                          ? bikeMake || (isUa ? "СТАНДАРТНИЙ ВИХЛОП" : "STOCK EXHAUST")
+                          : "AKRAPOVIČ";
+
+                        const modelLabel = isStock
+                          ? isUa
+                            ? "Стандартний вихлоп"
+                            : "Stock exhaust"
+                          : isUa
+                            ? exhaustName
+                                .replace(/Complete/i, "Повний вихлоп")
+                                .replace(/Evolution Line/i, "Evolution Line")
+                                .replace(/Slip-On/i, "Slip-On Line")
+                                .replace(/Racing Line/i, "Racing Line")
+                            : exhaustName;
+
+                        const subLabel =
+                          bikeModel || product.title[resolvedLocale as "en" | "ua"] || "";
+
+                        return (
+                          <AkrapovicSoundPlayer
+                            key={`product-sound-${sound.Id}`}
+                            entry={{
+                              id: `product-sound-${sound.Id}`,
+                              make: makeLabel,
+                              model: modelLabel,
+                              image: product.image,
+                              exhaustType: subLabel,
+                              exhaustTypeUk: subLabel,
+                              soundUrl: sound.Url,
+                            }}
+                            isUa={isUa}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {isStopflexProduct ||
+                descriptionSections.introHtml ||
+                detailFeatureItems.length > 0 ||
+                detailSpecs.length > 0 ? (
+                  <MobileProductDisclosure
+                    title={isUa ? "Опис і характеристики" : "Description & specs"}
+                    contentClassName="space-y-4"
+                  >
+                    {isStopflexProduct ? (
+                      <StopflexDescriptionCallout isUa={isUa} isLongFiber={isStopflexLongFiber} />
+                    ) : null}
+                    {descriptionSections.introHtml ? (
+                      <div
+                        className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
+                        dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+                      />
+                    ) : null}
+                    {detailFeatureItems.length > 0 ? (
+                      <DetailListPanel title={detailListTitle} items={detailFeatureItems} />
+                    ) : null}
+                    {detailSpecs.length > 0 ? (
+                      <DetailSpecPanel
+                        title={isDo88Mode ? undefined : isUa ? "Характеристики" : "Specifications"}
+                        specs={detailSpecs}
+                      />
+                    ) : null}
+                  </MobileProductDisclosure>
+                ) : null}
+
+                {product.externalVideos?.length ? (
+                  <ShopProductVideos
+                    videos={product.externalVideos}
+                    title={productTitle}
+                    isUa={isUa}
+                  />
+                ) : null}
+
+                {!isDo88Mode ? purchaseSection : null}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {crossShopFitment ? (
+          <CrossShopFitmentDeferredSection product={product} locale={resolvedLocale} />
+        ) : null}
+      </div>
     </ShopVariantImageProvider>
   );
 }

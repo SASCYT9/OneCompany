@@ -350,8 +350,16 @@ export function ShopProductStructuredData({
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
     primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];
-  const resolvedStock = resolveShopConfirmedStock(product.sku, product.slug, product.stock, product.storefrontDisplay);
-  const availabilityDate = googleProductAvailability(resolvedStock, product.availabilityDate).availabilityDate;
+  const resolvedStock = resolveShopConfirmedStock(
+    product.sku,
+    product.slug,
+    product.stock,
+    product.storefrontDisplay
+  );
+  const availabilityDate = googleProductAvailability(
+    resolvedStock,
+    product.availabilityDate
+  ).availabilityDate;
   const offers = currencyOrder
     .map((c) => {
       const key = c.toLowerCase() as "usd" | "eur" | "uah";

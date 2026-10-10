@@ -86,10 +86,7 @@ export function buildShopStorefrontRootPath(locale: string, segment: StorefrontS
  * has a curated landing page that contains the complete brand line, while
  * every other valid brand stays in the main catalog with a brand filter.
  */
-export function buildShopStorefrontBrandPath(
-  locale: string,
-  brand: string | null | undefined
-) {
+export function buildShopStorefrontBrandPath(locale: string, brand: string | null | undefined) {
   const normalizedBrand = normalizeStorefrontKey(brand);
   const normalizedLabel = brand?.trim();
 

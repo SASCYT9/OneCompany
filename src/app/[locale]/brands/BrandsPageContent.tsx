@@ -6,10 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND_LOGO_MAP } from "@/lib/brandLogos";
 import { shouldInvertBrand } from "@/lib/invertBrands";
-import {
-  brandLogoNeedsLightSurface,
-  getBrandLogoSurfaceClass,
-} from "@/lib/brandLogoPresentation";
+import { brandLogoNeedsLightSurface, getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import {
   getBrandMetadata,
   countryNames,

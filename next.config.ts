@@ -236,9 +236,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   // This Windows checkout shares node_modules with a sibling checkout.
   // Turbopack needs a root containing both for the database-free local preview.
-  turbopack: !isProd && !isVercel && process.env.SHOP_LOCAL_CATALOG_SNAPSHOT === "1"
-    ? { root: path.resolve(process.cwd(), "..") }
-    : undefined,
+  turbopack:
+    !isProd && !isVercel && process.env.SHOP_LOCAL_CATALOG_SNAPSHOT === "1"
+      ? { root: path.resolve(process.cwd(), "..") }
+      : undefined,
 
   // Для Docker standalone output
   output: isVercel ? undefined : "standalone",
@@ -650,13 +651,13 @@ const nextConfig: NextConfig = {
       // product brand is known. A static `/shop/do88-*` redirect loops for
       // third-party products that were reclassified after import (for example
       // BMC SKUs that retain their legacy `do88-` slug).
-      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES
-        .filter(({ segment }) => segment !== "do88")
-        .map(({ prefix, segment }) => ({
+      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.filter(({ segment }) => segment !== "do88").map(
+        ({ prefix, segment }) => ({
           source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
           destination: `/:locale/shop/${segment}/products/:slug`,
           permanent: true,
-        })),
+        })
+      ),
       // The Turn14 live catalogue was retired; send old links to the shop hub.
       {
         source: "/:locale(ua|en)/shop/turn14/:path*",

@@ -56,12 +56,7 @@ export default async function AkrapovicCollectionsPage({ params, searchParams }:
   ]);
   const akrapovicProducts = akrapovicRows.map(projectShopProductForListGrid);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const listingPath = buildLocalizedPath(resolvedLocale, "/shop/akrapovic/collections");
   const itemListSchema = generateProductItemListSchema(

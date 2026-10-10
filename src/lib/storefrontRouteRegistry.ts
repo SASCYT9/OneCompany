@@ -1,10 +1,34 @@
 export type StorefrontListingSurface = "catalog" | "collections" | "products";
 
 export const STOREFRONT_ROUTE_REGISTRY = [
-  { segment: "racechip", brandAliases: ["racechip"], legacySlugPrefixes: ["racechip-"], listingSurface: "catalog", paginated: true },
-  { segment: "do88", brandAliases: ["do88"], legacySlugPrefixes: ["do88-"], listingSurface: "collections", paginated: false },
-  { segment: "brabus", brandAliases: ["brabus"], legacySlugPrefixes: ["brabus-"], listingSurface: "products", paginated: true },
-  { segment: "girodisc", brandAliases: ["girodisc"], legacySlugPrefixes: ["girodisc-"], listingSurface: "catalog", paginated: true },
+  {
+    segment: "racechip",
+    brandAliases: ["racechip"],
+    legacySlugPrefixes: ["racechip-"],
+    listingSurface: "catalog",
+    paginated: true,
+  },
+  {
+    segment: "do88",
+    brandAliases: ["do88"],
+    legacySlugPrefixes: ["do88-"],
+    listingSurface: "collections",
+    paginated: false,
+  },
+  {
+    segment: "brabus",
+    brandAliases: ["brabus"],
+    legacySlugPrefixes: ["brabus-"],
+    listingSurface: "products",
+    paginated: true,
+  },
+  {
+    segment: "girodisc",
+    brandAliases: ["girodisc"],
+    legacySlugPrefixes: ["girodisc-"],
+    listingSurface: "catalog",
+    paginated: true,
+  },
   {
     segment: "burger",
     brandAliases: [
@@ -17,7 +41,13 @@ export const STOREFRONT_ROUTE_REGISTRY = [
     listingSurface: "products",
     paginated: true,
   },
-  { segment: "ohlins", brandAliases: ["ohlins"], legacySlugPrefixes: ["ohlins-"], listingSurface: "catalog", paginated: true },
+  {
+    segment: "ohlins",
+    brandAliases: ["ohlins"],
+    legacySlugPrefixes: ["ohlins-"],
+    listingSurface: "catalog",
+    paginated: true,
+  },
   {
     segment: "akrapovic",
     brandAliases: ["akrapovic"],
@@ -32,7 +62,13 @@ export const STOREFRONT_ROUTE_REGISTRY = [
     listingSurface: "collections",
     paginated: false,
   },
-  { segment: "csf", brandAliases: ["csf"], legacySlugPrefixes: ["csf-"], listingSurface: "collections", paginated: true },
+  {
+    segment: "csf",
+    brandAliases: ["csf"],
+    legacySlugPrefixes: ["csf-"],
+    listingSurface: "collections",
+    paginated: true,
+  },
   {
     segment: "urban",
     brandAliases: ["urban", "urban automotive"],
@@ -40,7 +76,13 @@ export const STOREFRONT_ROUTE_REGISTRY = [
     listingSurface: "products",
     paginated: false,
   },
-  { segment: "adro", brandAliases: ["adro"], legacySlugPrefixes: ["adro-"], listingSurface: "collections", paginated: true },
+  {
+    segment: "adro",
+    brandAliases: ["adro"],
+    legacySlugPrefixes: ["adro-"],
+    listingSurface: "collections",
+    paginated: true,
+  },
   {
     segment: "ipe",
     brandAliases: ["ipe", "ipe exhaust", "innotech performance exhaust"],

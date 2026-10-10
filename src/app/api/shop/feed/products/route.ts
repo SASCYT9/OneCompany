@@ -79,7 +79,10 @@ function buildItemXml(
   const salePrice =
     compareValue && compareValue > priceValue ? formatPrice(priceValue, currency) : null;
   const listPrice = salePrice ? formatPrice(compareValue!, currency) : null;
-  const { availability, availabilityDate } = googleProductAvailability(product.stock, product.availabilityDate);
+  const { availability, availabilityDate } = googleProductAvailability(
+    product.stock,
+    product.availabilityDate
+  );
 
   return [
     "<item>",
@@ -89,7 +92,9 @@ function buildItemXml(
     `<description>${escapeXml(description)}</description>`,
     `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
     `<g:availability>${availability}</g:availability>`,
-    availabilityDate ? `<g:availability_date>${escapeXml(availabilityDate)}</g:availability_date>` : "",
+    availabilityDate
+      ? `<g:availability_date>${escapeXml(availabilityDate)}</g:availability_date>`
+      : "",
     listPrice
       ? `<g:price>${escapeXml(listPrice)}</g:price>`
       : `<g:price>${escapeXml(price)}</g:price>`,

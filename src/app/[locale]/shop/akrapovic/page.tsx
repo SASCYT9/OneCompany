@@ -38,12 +38,7 @@ export default async function ShopAkrapovicPage({ params }: Props) {
     getAkrapovicProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const description =
     resolvedLocale === "ua"

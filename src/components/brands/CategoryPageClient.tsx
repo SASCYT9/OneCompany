@@ -5,10 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { getBrandLogo } from "@/lib/brandLogos";
-import {
-  brandLogoNeedsLightSurface,
-  getBrandLogoSurfaceClass,
-} from "@/lib/brandLogoPresentation";
+import { brandLogoNeedsLightSurface, getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { shouldInvertBrand } from "@/lib/invertBrands";
 import {
   getBrandMetadata,

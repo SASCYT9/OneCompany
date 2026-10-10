@@ -105,9 +105,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonicalSlug = canonicalPath.replace(`/${resolvedLocale}/`, "");
 
   const localizedTitle = localizeShopProductTitle(resolvedLocale, product);
-  const pageTitle = product.brand?.trim().toLowerCase() === "wheelforce"
-    ? `${localizedTitle} | One Company Shop`
-    : `${localizedTitle} | ${product.brand} | One Company Shop`;
+  const pageTitle =
+    product.brand?.trim().toLowerCase() === "wheelforce"
+      ? `${localizedTitle} | One Company Shop`
+      : `${localizedTitle} | ${product.brand} | One Company Shop`;
   return buildPageMetadata(resolvedLocale, canonicalSlug, {
     title: pageTitle,
     description: localizeShopDescription(resolvedLocale, product.shortDescription),
@@ -164,9 +165,16 @@ export default async function ShopProductPage({ params }: Props) {
   // bottom of the page. Main path only awaits shop settings.
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
-  const viewerContext = buildShopViewerPricingContext(settingsRuntime, null, false, null, undefined, {
-    priceCountry: isUa ? "Ukraine" : null,
-  });
+  const viewerContext = buildShopViewerPricingContext(
+    settingsRuntime,
+    null,
+    false,
+    null,
+    undefined,
+    {
+      priceCountry: isUa ? "Ukraine" : null,
+    }
+  );
   const pricing = resolveShopProductPricing(product, viewerContext);
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
@@ -295,12 +303,14 @@ async function RelatedProductsSection({
   // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
   // the Suspense subtree so it doesn't block the main PDP first byte.
   const brandPool = await getShopRelatedProductsByBrandServer(product.brand);
-  const relatedPool = product.brand.trim().toLowerCase() === "wheelforce"
-    ? brandPool.filter((item) =>
-        !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
-        item.slug !== product.wheelForceFamily?.parentSlug
-      )
-    : brandPool;
+  const relatedPool =
+    product.brand.trim().toLowerCase() === "wheelforce"
+      ? brandPool.filter(
+          (item) =>
+            !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
+            item.slug !== product.wheelForceFamily?.parentSlug
+        )
+      : brandPool;
   const isWheelForceBrand = product.brand.trim().toLowerCase() === "wheelforce";
   const wheelSetRecommendations = isWheelForceBrand
     ? findRelatedProducts(product, relatedPool.filter(isWheelForceWheelSet), 3)
@@ -372,4 +382,3 @@ async function RelatedProductsSection({
     </section>
   );
 }
-

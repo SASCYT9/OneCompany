@@ -85,7 +85,10 @@ test("brand labels link to the complete dedicated storefront or a filtered catal
 });
 
 test("storefront route registry is the complete declarative routing and listing configuration", () => {
-  assert.equal(new Set(STOREFRONT_ROUTE_REGISTRY.map(({ segment }) => segment)).size, STOREFRONT_ROUTE_REGISTRY.length);
+  assert.equal(
+    new Set(STOREFRONT_ROUTE_REGISTRY.map(({ segment }) => segment)).size,
+    STOREFRONT_ROUTE_REGISTRY.length
+  );
   assert.equal(
     new Set(STOREFRONT_ROUTE_REGISTRY.flatMap(({ brandAliases }) => brandAliases)).size,
     STOREFRONT_ROUTE_REGISTRY.flatMap(({ brandAliases }) => brandAliases).length
