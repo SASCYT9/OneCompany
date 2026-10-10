@@ -105,7 +105,8 @@ async function main() {
         .split("|")
         .map((value) => value.trim())
         .filter(Boolean)
-    : (await options(baseA, {})).data;
+    : // B-only makes must be audited too: every option B offers has to open results.
+      [...new Set([...(await options(baseA, {})).data, ...(await options(baseB, {})).data])];
   const rows: Row[] = [];
   const deadInB: string[] = [];
   for (const make of makes) {

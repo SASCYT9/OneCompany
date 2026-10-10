@@ -213,8 +213,8 @@ async function supplementBmcSupplierFitment<T extends { type?: string; data?: un
 
 type SelectorOptionsInput = Parameters<typeof getCanonicalFitmentOptions>[0];
 
-/** At most this many (model, chassis) detail reads are merged per request. */
-const DETAIL_HIERARCHY_READ_LIMIT = 24;
+/** Detail reads run in parallel batches of this size. */
+const DETAIL_HIERARCHY_READ_BATCH = 8;
 
 /**
  * Years and engines of a selection follow the listing's hierarchy: a base
@@ -227,8 +227,12 @@ async function withHierarchyDetails<T extends { type?: string; data?: unknown }>
   if (result.type !== "details" || !input.make || !input.model) return result;
   if (!result.data || typeof result.data !== "object") return result;
   const models = vehicleModelScope(input.make, input.model).exact;
-  let chassisCodes: (string | null)[] = [input.chassis];
+  let reads: { model: string; chassis: string | null }[] = models.map((model) => ({
+    model,
+    chassis: null,
+  }));
   if (input.chassis) {
+    const selected = input.chassis;
     const listed = await Promise.all(
       models.map((model) =>
         getCanonicalFitmentOptions({ ...input, model, chassis: null, details: false }).catch(
@@ -236,24 +240,33 @@ async function withHierarchyDetails<T extends { type?: string; data?: unknown }>
         )
       )
     );
-    const descendants = listed
-      .flatMap((options) => (Array.isArray(options?.data) ? options.data : []))
-      .filter(
+    // Only combinations a model really lists, so no read limit is needed.
+    reads = models.flatMap((model, index) => {
+      const options = listed[index];
+      const codes = (Array.isArray(options?.data) ? options.data : []).filter(
         (code): code is string =>
-          typeof code === "string" && vehicleChassisMatchLevel(code, input.chassis) === "descendant"
+          typeof code === "string" &&
+          ["exact", "descendant"].includes(vehicleChassisMatchLevel(code, selected) ?? "")
       );
-    chassisCodes = [...new Set([input.chassis, ...descendants])];
+      return [...new Set(codes)].map((chassis) => ({ model, chassis }));
+    });
   }
-  const reads = models
-    .flatMap((model) => chassisCodes.map((chassis) => ({ model, chassis })))
-    .filter(({ model, chassis }) => model !== input.model || chassis !== input.chassis)
-    .slice(0, DETAIL_HIERARCHY_READ_LIMIT);
+  reads = reads.filter(({ model, chassis }) => model !== input.model || chassis !== input.chassis);
   if (reads.length === 0) return result;
-  const extra = await Promise.all(
-    reads.map(({ model, chassis }) =>
-      getCanonicalFitmentOptions({ ...input, model, chassis, details: true }).catch(() => null)
-    )
-  );
+  const extra: Awaited<ReturnType<typeof getCanonicalFitmentOptions>>[] = [];
+  for (let start = 0; start < reads.length; start += DETAIL_HIERARCHY_READ_BATCH) {
+    extra.push(
+      ...(await Promise.all(
+        reads
+          .slice(start, start + DETAIL_HIERARCHY_READ_BATCH)
+          .map(({ model, chassis }) =>
+            getCanonicalFitmentOptions({ ...input, model, chassis, details: true }).catch(
+              () => null
+            )
+          )
+      ))
+    );
+  }
   const data = result.data as { years?: unknown; engines?: unknown };
   const years = new Set<number>(Array.isArray(data.years) ? data.years : []);
   const engines = new Set<string>(Array.isArray(data.engines) ? data.engines : []);

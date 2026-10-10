@@ -292,7 +292,6 @@ export const SHOP_VEHICLE_MODEL_FAMILIES: Readonly<
       "Corolla GR",
       "Corolla Altis",
       "Corolla IX",
-      "Corolla Verso II",
       "Corolla V",
       "Corolla VIII",
       "Corolla XI",

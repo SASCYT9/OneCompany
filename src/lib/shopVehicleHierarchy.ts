@@ -168,6 +168,16 @@ export function vehicleModelFamilyBase(make: string, model: string) {
   return bases?.[0] ?? null;
 }
 
+/** Every enclosing base (`911 Carrera S` -> `911`, `911 Carrera`). */
+export function vehicleModelFamilyBases(make: string, model: string): string[] {
+  const index = familyIndexFor(make);
+  if (!index) return [];
+  return [
+    ...(index.basesByMember.get(normalizeShopSearchText(canonicalVehicleModelLabel(make, model))) ??
+      []),
+  ];
+}
+
 /** Labels of one family, base first; the model itself when it has no family. */
 export function vehicleModelFamilyLabels(make: string, model: string) {
   return vehicleModelScope(make, model).exact;

@@ -77,3 +77,10 @@ test("a trim is offered with its base model", async () => {
   assert.ok(withModelFamilyBases("Porsche", ["911 GT3", "Cayenne"]).includes("911"));
   assert.deepEqual(withModelFamilyBases("Porsche", ["911", "911 GT3"]), ["911", "911 GT3"]);
 });
+
+test("a nested trim is offered with every enclosing base", async () => {
+  const { withModelFamilyBases } = await modulePromise;
+  const offered = withModelFamilyBases("Porsche", ["911 Carrera S"]);
+  assert.ok(offered.includes("911"));
+  assert.ok(offered.includes("911 Carrera"));
+});

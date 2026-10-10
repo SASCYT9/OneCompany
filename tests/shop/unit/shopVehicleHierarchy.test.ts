@@ -45,6 +45,10 @@ test("a base model includes its trims, a trim includes its sub-trims", () => {
   assert.ok(carrera.broad.includes("911"));
 });
 
+test("Corolla Verso is not a Corolla", () => {
+  assert.ok(!vehicleModelScope("Toyota", "Corolla").exact.includes("Corolla Verso II"));
+});
+
 test("distinct models are not folded into their namesake", () => {
   const rangeRover = vehicleModelScope("Land Rover", "Range Rover").exact;
   assert.ok(rangeRover.includes("Range Rover IV"));

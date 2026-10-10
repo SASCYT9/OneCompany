@@ -1170,7 +1170,7 @@ export async function searchShopStock(request: { url: string }) {
     if (
       canonicalVehicleProductIds !== null &&
       !requestedFuel &&
-      matchesEventuriSharedV8Application(make, model)
+      matchesEventuriSharedV8Application(make, model, resolvedVehicleChassis)
     ) {
       // One known SKU: never load the whole fitment catalog for it.
       const sharedIntake = await prisma.shopProduct.findMany({

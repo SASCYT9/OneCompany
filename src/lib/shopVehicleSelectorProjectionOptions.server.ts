@@ -7,7 +7,7 @@ import { SHOP_CATALOG_PROJECTION_SCHEMA_VERSION } from "@/lib/shopCatalogProject
 import {
   vehicleChassisKey,
   vehicleChassisSelfAndAncestors,
-  vehicleModelFamilyBase,
+  vehicleModelFamilyBases,
   vehicleModelScope,
 } from "@/lib/shopVehicleHierarchy";
 import {
@@ -120,8 +120,8 @@ export function withModelFamilyBases(make: string, models: readonly string[]) {
   const seen = new Set(models.map(vehicleModelKey));
   const result = [...models];
   for (const model of models) {
-    const base = vehicleModelFamilyBase(make, model);
-    if (base && !seen.has(vehicleModelKey(base))) {
+    for (const base of vehicleModelFamilyBases(make, model)) {
+      if (seen.has(vehicleModelKey(base))) continue;
       seen.add(vehicleModelKey(base));
       result.push(base);
     }
