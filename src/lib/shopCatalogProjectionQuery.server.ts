@@ -29,6 +29,8 @@ import {
   tokenizeShopSearchQuery,
 } from "./shopSearch";
 import { shopSearchTokenConditionSql } from "./shopSearchSql";
+import { applyShopCategoryGroupSettingsToFacet } from "@/lib/shopCategoryGroupSettings";
+import { loadShopCategoryGroupSettings } from "@/lib/shopCategoryGroupSettings.server";
 import {
   getShopStockCategoryLabel,
   resolveShopStockCategoryGroupId,
@@ -1291,11 +1293,14 @@ export async function queryShopCatalogProjectionFacets(
       yearTo: row.yearTo,
     });
   }
-  // The catch-all group always goes last, whatever its size.
-  facets.category.sort(
-    (left, right) =>
-      Number(left.key === "other") - Number(right.key === "other") || right.count - left.count
-  );
+  // Editor labels/order/visibility apply to groups only; the catch-all stays last by default.
+  facets.category = raw.categoryGroupsReady
+    ? applyShopCategoryGroupSettingsToFacet(
+        facets.category,
+        await loadShopCategoryGroupSettings(),
+        raw.locale
+      )
+    : facets.category.sort((left, right) => right.count - left.count);
   if (raw.make && facets.model.length) {
     const canonicalModels = new Map<string, ShopCatalogProjectionFacetItem>();
     for (const item of facets.model) {

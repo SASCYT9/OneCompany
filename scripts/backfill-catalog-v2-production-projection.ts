@@ -5,8 +5,11 @@ import { buildShopCatalogProjectionSourceFromAdminRecord } from "../src/lib/shop
 import { buildShopCatalogProjection } from "../src/lib/shopCatalogProjection.server";
 import { planShopCatalogProjectionPersistence } from "../src/lib/shopCatalogProjectionPersistence.server";
 import { projectionSourceFromRevision } from "../src/lib/shopCatalogProjectionSource.server";
+import { SHOP_STOCK_CATEGORY_GROUPS } from "../src/lib/shopStockTaxonomy";
 
-const PAGE_SIZE = 50;
+const SHOP_STOCK_CATEGORY_GROUP_IDS = new Set<string>(SHOP_STOCK_CATEGORY_GROUPS.map((group) => group.id));
+
+const PAGE_SIZE = Number(process.argv.find((argument) => argument.startsWith("--page-size="))?.slice("--page-size=".length)) || 50;
 
 function assertAuthorized() {
   if (!process.argv.includes("--commit")) {
@@ -28,13 +31,16 @@ async function main() {
   const brand = process.argv.find((argument) => argument.startsWith("--brand="))?.slice("--brand=".length).trim() || null;
   const force = process.argv.includes("--force");
   const fromRevisions = process.argv.includes("--from-revisions");
+  const onlyUngrouped = process.argv.includes("--only-ungrouped");
+  // --only-ungrouped is scoped on its own: it never wipes the tables and replaces just the selected rows.
+  const replaceExisting = force || onlyUngrouped;
   const client = new PrismaClient();
   let afterId: string | undefined;
   let processed = 0;
   let applied = 0;
 
   try {
-    if (!process.argv.includes("--resume")) {
+    if (!process.argv.includes("--resume") && !onlyUngrouped) {
       await client.$transaction(async (tx) => {
         await tx.shopCatalogProjectionConstraint.deleteMany();
         await tx.shopCatalogProjectionClause.deleteMany();
@@ -56,11 +62,20 @@ async function main() {
       if (!products.length) break;
 
       const existing = await client.shopCatalogProjection.findMany({
-        where: { locale: "ua", productId: { in: products.map((product) => product.id) } },
-        select: { productId: true },
+        where: { productId: { in: products.map((product) => product.id) } },
+        select: { productId: true, locale: true, categoryGroupKey: true },
       });
-      const existingIds = new Set(existing.map((row) => row.productId));
-      const pendingProducts = force ? products : products.filter((product) => !existingIds.has(product.id));
+      const existingIds = new Set(existing.filter((row) => row.locale === "ua").map((row) => row.productId));
+      // Grouped means every locale row carries a valid group id (the readiness probe checks all of them).
+      const validLocales = new Map<string, Set<string>>();
+      for (const row of existing) {
+        if (row.categoryGroupKey && SHOP_STOCK_CATEGORY_GROUP_IDS.has(row.categoryGroupKey)) {
+          validLocales.set(row.productId, (validLocales.get(row.productId) ?? new Set()).add(row.locale));
+        }
+      }
+      const groupedIds = new Set([...validLocales].filter(([, locales]) => locales.has("ua") && locales.has("en")).map(([id]) => id));
+      const candidates = onlyUngrouped ? products.filter((product) => !groupedIds.has(product.id)) : products;
+      const pendingProducts = replaceExisting ? candidates : candidates.filter((product) => !existingIds.has(product.id));
 
       const revisions = fromRevisions && pendingProducts.length ? await client.shopCatalogProductRevision.findMany({
         where: { productId: { in: pendingProducts.map((product) => product.id) } },
@@ -96,7 +111,7 @@ async function main() {
         return planShopCatalogProjectionPersistence([], buildShopCatalogProjection(source));
       });
       await client.$transaction(async (tx) => {
-        if (force && pendingProducts.length) {
+        if (replaceExisting && pendingProducts.length) {
           const productIds = pendingProducts.map((product) => product.id);
           await tx.shopCatalogProjectionConstraint.deleteMany({ where: { productId: { in: productIds } } });
           await tx.shopCatalogProjectionClause.deleteMany({ where: { productId: { in: productIds } } });
@@ -114,7 +129,7 @@ async function main() {
         if (policyRows.length) await tx.shopCatalogProjectionPolicy.createMany({ data: policyRows as never[], skipDuplicates: true });
         if (clauseRows.length) await tx.shopCatalogProjectionClause.createMany({ data: clauseRows as never[], skipDuplicates: true });
         if (constraintRows.length) await tx.shopCatalogProjectionConstraint.createMany({ data: constraintRows as never[], skipDuplicates: true });
-      });
+      }, { timeout: 120000, maxWait: 30000 });
       processed += products.length;
       applied += pendingProducts.length;
       afterId = products.at(-1)!.id;

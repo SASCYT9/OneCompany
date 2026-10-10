@@ -200,6 +200,7 @@ model RequestRateLimit {
 }
 
 model ShopProduct {
+  categoryGroupOverride           String?
   priceSourceCurrency             String?
   compareAtSourceCurrency         String?
   b2bPriceSourceCurrency          String?
@@ -1028,6 +1029,19 @@ model ShopCategory {
   @@index([parentId, sortOrder])
   @@index([isPublished, sortOrder])
   @@index([slug], map: "ShopCategory_slug_idx")
+}
+
+/// Editable presentation settings for the storefront product-group facet.
+/// Group ids are fixed by the code taxonomy; this table only overrides labels,
+/// order and visibility. A missing row means "use the code default".
+model ShopCategoryGroup {
+  id          String   @id
+  titleUa     String
+  titleEn     String
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ShopProductCollection {

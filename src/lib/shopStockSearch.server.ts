@@ -1,4 +1,6 @@
 import "server-only";
+import { applyShopCategoryGroupSettingsToFacet } from "@/lib/shopCategoryGroupSettings";
+import { loadShopCategoryGroupSettings } from "@/lib/shopCategoryGroupSettings.server";
 import { getShopSearchFallbackQuery } from "./shopSearchRecovery";
 import { SHOP_SEARCH_QUERY_MAX_LENGTH } from "./shopSearch";
 import {
@@ -47,6 +49,7 @@ import {
 } from "@/lib/shopVehicleSearch";
 import {
   getShopStockCategoryGroupForProduct,
+  getShopStockCategoryLabel,
   getShopStockCategoryLabelForProduct,
   matchesShopStockCategory,
 } from "@/lib/shopStockTaxonomy";
@@ -644,6 +647,7 @@ function buildFilterStats(
 ) {
   const brands = new Map<string, number>();
   const categories = new Map<string, number>();
+  const categoryKeys = new Map<string, string>();
   let inStock = 0;
   let preOrder = 0;
   let minPrice = Number.POSITIVE_INFINITY;
@@ -651,7 +655,10 @@ function buildFilterStats(
 
   for (const item of productsWithFitments) {
     incrementCount(brands, getProductDisplayBrand(item.product.brand));
-    incrementCount(categories, getShopStockCategoryLabelForProduct(item, locale));
+    const categoryGroup = getShopStockCategoryGroupForProduct(item, locale);
+    const categoryLabel = getShopStockCategoryLabel(categoryGroup.id, locale);
+    categoryKeys.set(categoryLabel, categoryGroup.id);
+    incrementCount(categories, categoryLabel);
 
     if (isShopInStockProduct(item.product.sku, item.product.slug, item.product.storefrontDisplay)) {
       inStock += 1;
@@ -676,7 +683,11 @@ function buildFilterStats(
 
   return {
     brands: Array.from(brands, ([label, count]) => ({ label, count })).sort(byCountThenLabel),
-    categories: Array.from(categories, ([label, count]) => ({ label, count })).sort(
+    categories: Array.from(categories, ([label, count]) => ({
+      label,
+      count,
+      key: categoryKeys.get(label),
+    })).sort(
       byCountThenLabel
     ),
     stock: {
@@ -1857,13 +1868,27 @@ export async function searchShopStock(request: { url: string }) {
       !hasVehicleConstraints &&
       !strictCatalogEffective &&
       fallbackApplied === null;
-    const filterStats = filterPopulationIsGlobal
+    // Editor labels/order/visibility for product groups; the cached stats stay untouched.
+    const groupSettings = await loadShopCategoryGroupSettings();
+    const withGroupSettings = <S extends { categories: Array<{ key?: string; label: string; count: number }> }>(
+      stats: S
+    ): S => ({
+      ...stats,
+      categories: applyShopCategoryGroupSettingsToFacet(
+        stats.categories.map((entry) => ({ ...entry, key: entry.key ?? entry.label })),
+        groupSettings,
+        locale
+      ),
+    });
+    const baseFilterStats = filterPopulationIsGlobal
       ? globalFilterStats
       : buildFilterStats(statsItems, locale, getProductPriceForFilter, priceCurrency);
+    const filterStats = withGroupSettings(baseFilterStats);
+    const publicGlobalFilterStats = withGroupSettings(globalFilterStats);
 
     // Extract all unique brands and curated product groups for filter menus
     const brands = globalFilterStats.brands.map((entry) => entry.label);
-    const categories = globalFilterStats.categories.map((entry) => entry.label);
+    const categories = publicGlobalFilterStats.categories.map((entry) => entry.label);
 
     mark("filter_rank_price");
     if (shadowPromise) {
@@ -1955,7 +1980,7 @@ export async function searchShopStock(request: { url: string }) {
         price: globalFilterStats.price,
       },
       filterStats,
-      globalFilterStats,
+      globalFilterStats: publicGlobalFilterStats,
     });
     response.headers.set(
       "Cache-Control",
