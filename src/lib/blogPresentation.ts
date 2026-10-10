@@ -13,11 +13,17 @@ export function getBlogCover(post: BlogPost) {
 export function getBlogSocialCover(post: BlogPost) {
   const src = getBlogCover(post);
   if (!src) return undefined;
-  if (post.cover && src.startsWith("/") && post.cover.width >= 1200) {
+  if (
+    (post.cover && src.startsWith("/") && post.cover.width >= 1200) ||
+    /^https?:\/\//i.test(src)
+  ) {
+    const knownLargeCover = post.cover && post.cover.width >= 1200;
     return {
       src: `/_next/image?url=${encodeURIComponent(src)}&w=1200&q=75`,
-      width: 1200,
-      height: Math.round((post.cover.height * 1200) / post.cover.width),
+      width: knownLargeCover ? 1200 : undefined,
+      height: knownLargeCover
+        ? Math.round((post.cover!.height * 1200) / post.cover!.width)
+        : undefined,
     };
   }
   return { src, width: post.cover?.width, height: post.cover?.height };

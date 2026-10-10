@@ -124,6 +124,18 @@ test("social previews use genuine 1200px sources without upscaling smaller cover
       assert.equal(cover.width, post.cover!.width);
     }
   }
+  const external = {
+    ...posts[0],
+    cover: undefined,
+    media: [{ id: "external", type: "image" as const, src: "https://example.com/large.jpg" }],
+  };
+  const optimizedExternal = getBlogSocialCover(external)!;
+  assert.equal(
+    optimizedExternal.src,
+    "/_next/image?url=https%3A%2F%2Fexample.com%2Flarge.jpg&w=1200&q=75"
+  );
+  assert.equal(optimizedExternal.width, undefined);
+  assert.equal(optimizedExternal.height, undefined);
 });
 
 test("malformed and impossible publication/update dates are rejected before persistence", () => {
