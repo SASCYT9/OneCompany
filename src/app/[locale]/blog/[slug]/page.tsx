@@ -4,7 +4,12 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
-import { blogAuthorName, formatBlogDate, getBlogSocialCover } from "@/lib/blogPresentation";
+import {
+  blogAuthorName,
+  formatBlogDate,
+  getBlogSocialCover,
+  isEditorialNewsPost,
+} from "@/lib/blogPresentation";
 import {
   absoluteUrl,
   buildLocalizedPath,
@@ -220,7 +225,7 @@ export default async function BlogPostPage({ params }: Props) {
         image={coverImage}
         imageWidth={socialCover?.width}
         imageHeight={socialCover?.height}
-        articleType={post.sections ? "NewsArticle" : "Article"}
+        articleType={isEditorialNewsPost(post) ? "NewsArticle" : "Article"}
         datePublished={post.date}
         dateModified={post.updatedAt ?? post.date}
         locale={l}
