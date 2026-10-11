@@ -1381,7 +1381,7 @@ export async function runShopCsvImport(
     },
   });
 
-  revalidateShopStorefrontProducts(productsToRevalidate);
+  await revalidateShopStorefrontProducts(productsToRevalidate);
 
   return {
     created,

@@ -62,3 +62,37 @@ test("a failed load is not cached and the next caller retries", async () => {
   assert.equal(await get(), "ok");
   assert.equal(calls, 2);
 });
+
+test("reset forces the next caller to load again", async () => {
+  let calls = 0;
+  const get = memoizeAsyncWithTtl(async () => {
+    calls += 1;
+    return calls;
+  }, 60_000);
+
+  assert.equal(await get(), 1);
+  assert.equal(await get(), 1);
+  get.reset();
+  assert.equal(await get(), 2);
+  assert.equal(calls, 2);
+});
+
+test("a load that was running during reset does not repopulate the cache", async () => {
+  const gates = [deferred<string>(), deferred<string>()];
+  let calls = 0;
+  const get = memoizeAsyncWithTtl(() => gates[calls++].promise, 60_000);
+
+  const stale = get();
+  get.reset();
+  const fresh = get();
+  assert.equal(calls, 2);
+
+  gates[1].resolve("fresh");
+  assert.equal(await fresh, "fresh");
+  // The pre-reset load finishing late must neither overwrite the fresh value
+  // nor clear the cache entry that belongs to the newer load.
+  gates[0].resolve("stale");
+  assert.equal(await stale, "stale");
+  assert.equal(await get(), "fresh");
+  assert.equal(calls, 2);
+});
