@@ -114,7 +114,10 @@ test("filter URL updates keep the open panel's entry so closing it leaves no dea
 test("a filter URL update outside any panel carries no state, so Next.js syncs it", () => {
   assert.equal(catalogOverlayReplaceState({ __NA: true }), null);
   assert.equal(catalogOverlayReplaceState(null), null);
-  assert.deepEqual(catalogOverlayReplaceState({ __NA: true, __oneCompanyCatalogOverlay: "make:1" }), {
-    __oneCompanyCatalogOverlay: "make:1",
-  });
+  assert.deepEqual(
+    catalogOverlayReplaceState({ __NA: true, __oneCompanyCatalogOverlay: "make:1" }),
+    {
+      __oneCompanyCatalogOverlay: "make:1",
+    }
+  );
 });

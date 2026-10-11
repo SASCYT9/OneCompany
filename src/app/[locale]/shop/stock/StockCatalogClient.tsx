@@ -1935,11 +1935,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         // Let Next.js synchronize useSearchParams and pagination links. Passing
         // its internal history state makes the router skip that synchronization;
         // an open filter panel keeps its own marker.
-        window.history.replaceState(
-          catalogOverlayReplaceState(window.history.state),
-          "",
-          nextUrl
-        );
+        window.history.replaceState(catalogOverlayReplaceState(window.history.state), "", nextUrl);
       }
     },
     [
@@ -3749,9 +3745,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 of "Show 0", which reads as "nothing fits this car". */}
             <button
               type="button"
-              onClick={() =>
-                error && !loading ? void doSearch(1) : setMobileFiltersOpen(false)
-              }
+              onClick={() => (error && !loading ? void doSearch(1) : setMobileFiltersOpen(false))}
               className="flex h-11 min-w-0 items-center justify-center rounded-[8px] border border-foreground bg-foreground px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-background transition hover:bg-transparent hover:text-foreground"
             >
               <span className="truncate">

@@ -272,12 +272,14 @@ type MakeCandidatePoolRow = { id: string; tags: string[]; text: string[] };
 
 const MAKE_POOL_CACHE_MS = 60_000;
 const MAKE_POOL_MAX_ENTRIES = 8;
-const makePoolCache = ((globalThis as typeof globalThis & {
-  __oneCompanyLegacyMakePools?: {
-    pools: Map<string, { value: MakeCandidatePoolRow[]; expiresAt: number }>;
-    pending: Map<string, Promise<MakeCandidatePoolRow[]>>;
-  };
-}).__oneCompanyLegacyMakePools ??= { pools: new Map(), pending: new Map() });
+const makePoolCache = ((
+  globalThis as typeof globalThis & {
+    __oneCompanyLegacyMakePools?: {
+      pools: Map<string, { value: MakeCandidatePoolRow[]; expiresAt: number }>;
+      pending: Map<string, Promise<MakeCandidatePoolRow[]>>;
+    };
+  }
+).__oneCompanyLegacyMakePools ??= { pools: new Map(), pending: new Map() });
 
 async function getMakeCandidatePool(
   canonicalMake: string,
