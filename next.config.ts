@@ -142,6 +142,7 @@ const SHOP_PRODUCT_ROUTE_TRACE_EXCLUDES = [
 
 const PAGED_LISTING_PATHS = [
   "/shop/adro/collections",
+  "/shop/akrapovic/collections",
   "/shop/brabus/products",
   "/shop/burger/products",
   "/shop/csf/collections",
@@ -236,9 +237,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   // This Windows checkout shares node_modules with a sibling checkout.
   // Turbopack needs a root containing both for the database-free local preview.
-  turbopack: !isProd && !isVercel && process.env.SHOP_LOCAL_CATALOG_SNAPSHOT === "1"
-    ? { root: path.resolve(process.cwd(), "..") }
-    : undefined,
+  turbopack:
+    !isProd && !isVercel && process.env.SHOP_LOCAL_CATALOG_SNAPSHOT === "1"
+      ? { root: path.resolve(process.cwd(), "..") }
+      : undefined,
 
   // Для Docker standalone output
   output: isVercel ? undefined : "standalone",
@@ -384,6 +386,18 @@ const nextConfig: NextConfig = {
             value: "noindex, nofollow, noarchive",
           },
         ],
+      },
+      {
+        // The root layout hard-codes <html lang="uk"> so every localized page
+        // stays statically cacheable, which makes /en pages declare Ukrainian in
+        // the HTML. Declare the real language at the HTTP level instead; search
+        // engines that read Content-Language (Bing, Yandex) get the right value.
+        source: "/ua/:path*",
+        headers: [{ key: "Content-Language", value: "uk" }],
+      },
+      {
+        source: "/en/:path*",
+        headers: [{ key: "Content-Language", value: "en" }],
       },
       ...STOREFRONT_FILTER_QUERY_KEYS.map((key) => ({
         // Query filters share the cacheable canonical listing HTML, while the
@@ -631,6 +645,18 @@ const nextConfig: NextConfig = {
         destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
         permanent: true,
       },
+      // Former brand URLs that Search Console still reports as 404 (GSC
+      // not-found drilldown 2026-10-10) and that have an obvious storefront.
+      {
+        source: "/:locale(ua|en)/shop/ipeexhaust",
+        destination: "/:locale/shop/ipe",
+        permanent: true,
+      },
+      {
+        source: "/:locale(ua|en)/shop/burgermotorsports",
+        destination: "/:locale/shop/burger",
+        permanent: true,
+      },
     ];
 
     return [
@@ -650,13 +676,13 @@ const nextConfig: NextConfig = {
       // product brand is known. A static `/shop/do88-*` redirect loops for
       // third-party products that were reclassified after import (for example
       // BMC SKUs that retain their legacy `do88-` slug).
-      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES
-        .filter(({ segment }) => segment !== "do88")
-        .map(({ prefix, segment }) => ({
+      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.filter(({ segment }) => segment !== "do88").map(
+        ({ prefix, segment }) => ({
           source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
           destination: `/:locale/shop/${segment}/products/:slug`,
           permanent: true,
-        })),
+        })
+      ),
       // The Turn14 live catalogue was retired; send old links to the shop hub.
       {
         source: "/:locale(ua|en)/shop/turn14/:path*",

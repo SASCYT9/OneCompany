@@ -75,5 +75,7 @@ test("catalog invalidation evicts local and tagged Accelerate caches", () => {
 
   const helper = read("src/lib/shopStorefrontRevalidation.ts");
   assert.match(helper, /invalidateShopCatalogCaches/);
-  assert.match(helper, /void invalidateShopCatalogCaches\(\)/);
+  // Started before any path work; the promise is kept so RaceChip sibling
+  // revalidation can wait for the tagged Accelerate entries to be dropped.
+  assert.match(helper, /const catalogCachesInvalidated = invalidateShopCatalogCaches\(\)/);
 });

@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
       }
     });
     try {
-      revalidateShopStorefrontProduct(product);
+      await revalidateShopStorefrontProduct(product);
     } catch (e) {
       console.error("[revalidate] Error:", e);
     }

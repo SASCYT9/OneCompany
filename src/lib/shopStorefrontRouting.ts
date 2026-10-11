@@ -86,10 +86,7 @@ export function buildShopStorefrontRootPath(locale: string, segment: StorefrontS
  * has a curated landing page that contains the complete brand line, while
  * every other valid brand stays in the main catalog with a brand filter.
  */
-export function buildShopStorefrontBrandPath(
-  locale: string,
-  brand: string | null | undefined
-) {
+export function buildShopStorefrontBrandPath(locale: string, brand: string | null | undefined) {
   const normalizedBrand = normalizeStorefrontKey(brand);
   const normalizedLabel = brand?.trim();
 
@@ -103,6 +100,26 @@ export function buildShopStorefrontBrandPath(
   }
 
   return `/${locale}/shop/catalog?brand=${encodeURIComponent(normalizedLabel)}`;
+}
+
+/**
+ * Indexable landing page of a brand that has its own storefront (or the
+ * curated Eventuri page), or `null` for every other brand.
+ *
+ * Brand tiles on `/brands` and category pages are modal triggers, so their
+ * crawlable link is a hidden anchor. Pointing it at a storefront gives each
+ * store internal links from the brand hubs; brands without a storefront keep
+ * their current target instead of a noindex `?brand=` catalog filter.
+ */
+export function resolveShopStorefrontBrandLandingPath(
+  locale: string,
+  brand: string | null | undefined
+): string | null {
+  const normalizedBrand = normalizeStorefrontKey(brand);
+  if (!normalizedBrand) return null;
+  if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
+  if (!STOREFRONT_SEGMENT_BY_BRAND.has(normalizedBrand)) return null;
+  return buildShopStorefrontBrandPath(locale, brand);
 }
 
 /**

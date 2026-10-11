@@ -3505,10 +3505,17 @@ const MIN_SAFE_SITEMAP_PRODUCT_COUNT = 10_000;
  * Selects only the fields `buildShopStorefrontProductPathForProduct` needs
  * (slug/brand/vendor/tags/productType) — avoids loading 25 MB of media /
  * variants / metafields / bundle just to emit a few hundred URLs.
+ *
+ * `fresh` skips the process-local copy (the Accelerate layer is still used and
+ * is invalidated by catalog mutations). Callers that cache the derived result
+ * themselves, such as the RaceChip consolidation set, pass it so a stale local
+ * list cannot leak into a cache that was just invalidated.
  */
-export async function listShopProductSlugsForSitemap(): Promise<ShopProductSitemapEntry[]> {
+export async function listShopProductSlugsForSitemap(
+  options: { fresh?: boolean } = {}
+): Promise<ShopProductSitemapEntry[]> {
   const now = Date.now();
-  if (sitemapEntriesCache && now - sitemapEntriesCache.ts < SITEMAP_CACHE_TTL_MS) {
+  if (!options.fresh && sitemapEntriesCache && now - sitemapEntriesCache.ts < SITEMAP_CACHE_TTL_MS) {
     return sitemapEntriesCache.entries;
   }
 

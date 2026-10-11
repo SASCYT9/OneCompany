@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { verifySitemapArtifactXml } from "../src/lib/seoSitemapVerify";
 
 const root = process.cwd();
 const sitemapPath = path.join(root, ".next", "server", "app", "sitemap.xml.body");
@@ -8,34 +9,27 @@ const fallbackDir = path.join(root, "public", "catalog-fallback");
 const manifestPath = path.join(fallbackDir, "manifest.json");
 const serverAppDir = path.join(root, ".next", "server", "app");
 
-assert.ok(fs.existsSync(sitemapPath), `Missing post-build sitemap: ${sitemapPath}`);
-assert.ok(fs.existsSync(manifestPath), `Missing catalog fallback manifest: ${manifestPath}`);
-
-const sitemapBytes = fs.statSync(sitemapPath).size;
-assert.ok(sitemapBytes < 50 * 1024 * 1024, `Sitemap is ${sitemapBytes} bytes (limit: 50 MB)`);
-
-const xml = fs.readFileSync(sitemapPath, "utf8");
-const urlBlocks = xml.match(/<url>[\s\S]*?<\/url>/g) ?? [];
-assert.ok(urlBlocks.length > 0, "Sitemap contains no URLs");
-assert.ok(urlBlocks.length < 50_000, `Sitemap contains ${urlBlocks.length} URLs`);
-
-const locations = new Set<string>();
-for (const block of urlBlocks) {
-  const location = block.match(/<loc>([^<]+)<\/loc>/)?.[1];
-  assert.ok(location, "Sitemap URL is missing <loc>");
-  assert.ok(
-    location.startsWith("https://onecompany.global/"),
-    `Unexpected sitemap host: ${location}`
-  );
-  assert.ok(!/[?#]/.test(location), `Query/hash URL in sitemap: ${location}`);
-  assert.ok(!locations.has(location), `Duplicate sitemap URL: ${location}`);
-  locations.add(location);
-
-  const hreflangs = new Set([...block.matchAll(/hreflang="([^"]+)"/g)].map((match) => match[1]));
-  for (const required of ["uk", "en", "x-default"]) {
-    assert.ok(hreflangs.has(required), `${location} is missing ${required} hreflang`);
+// Read each file once instead of checking existence first and reading later,
+// so the content that is validated is the content that was read.
+function readRequiredFile(filePath: string, description: string): Buffer {
+  try {
+    return fs.readFileSync(filePath);
+  } catch (error) {
+    assert.fail(
+      `Missing ${description}: ${filePath} (${error instanceof Error ? error.message : String(error)})`
+    );
   }
 }
+
+const sitemapBuffer = readRequiredFile(sitemapPath, "post-build sitemap");
+const manifestBuffer = readRequiredFile(manifestPath, "catalog fallback manifest");
+
+const sitemapBytes = sitemapBuffer.length;
+assert.ok(sitemapBytes < 50 * 1024 * 1024, `Sitemap is ${sitemapBytes} bytes (limit: 50 MB)`);
+
+// `/sitemap.xml` is a sitemap index; its product children are rendered on demand
+// and are not part of the build output (see src/lib/seoSitemapVerify.ts).
+const sitemap = verifySitemapArtifactXml(sitemapBuffer.toString("utf8"));
 
 type FallbackManifest = {
   version: number;
@@ -45,7 +39,7 @@ type FallbackManifest = {
   slugToStore: Record<string, string>;
 };
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as FallbackManifest;
+const manifest = JSON.parse(manifestBuffer.toString("utf8")) as FallbackManifest;
 assert.equal(manifest.version, 2);
 assert.ok(
   manifest.count >= manifest.activeDatabaseCount,
@@ -81,7 +75,7 @@ for (const trace of traces) {
 console.log(
   JSON.stringify(
     {
-      sitemapUrls: locations.size,
+      sitemap,
       sitemapBytes,
       fallbackProducts: manifest.count,
       fallbackStores: Object.keys(manifest.stores).length,

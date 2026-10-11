@@ -186,6 +186,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       select: {
         id: true,
         slug: true,
+        brand: true,
+        vendor: true,
+        tags: true,
         catalogVersion: true,
         image: true,
         gallery: true,
@@ -637,11 +640,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     try {
-      revalidateShopStorefrontProduct(product);
+      await revalidateShopStorefrontProduct(product);
 
-      if (currentProduct.slug && currentProduct.slug !== product.slug) {
-        const oldProductDummy = { ...product, slug: currentProduct.slug };
-        revalidateShopStorefrontProduct(oldProductDummy);
+      // The page and listings the product used to live on are stale too: a
+      // renamed slug, a brand change, or a changed make/model (which moves it
+      // between RaceChip consolidation groups) all leave the old state cached.
+      const previousProduct = {
+        slug: currentProduct.slug,
+        brand: currentProduct.brand,
+        vendor: currentProduct.vendor,
+        tags: currentProduct.tags,
+      };
+      const storefrontIdentityChanged =
+        previousProduct.slug !== product.slug ||
+        previousProduct.brand !== product.brand ||
+        previousProduct.vendor !== product.vendor ||
+        previousProduct.tags.join("\u0000") !== product.tags.join("\u0000");
+      if (previousProduct.slug && storefrontIdentityChanged) {
+        await revalidateShopStorefrontProduct(previousProduct);
       }
     } catch (e) {
       console.error("[revalidate] Error:", e);
@@ -735,7 +751,7 @@ export async function DELETE(
     });
 
     try {
-      revalidateShopStorefrontProduct(archived);
+      await revalidateShopStorefrontProduct(archived);
     } catch (e) {
       console.error("[revalidate] Error:", e);
     }

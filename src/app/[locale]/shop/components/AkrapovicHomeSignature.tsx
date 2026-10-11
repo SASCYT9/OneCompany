@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useCallback, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { UrlSearchParamsBridge } from "@/components/shop/UrlSearchParamsBridge";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopProduct } from "@/lib/shopCatalog";
@@ -289,26 +290,27 @@ const BrandLogo = ({ brandKey, className }: { brandKey: string; className?: stri
 export default function AkrapovicHomeSignature({ locale, products, viewerContext }: Props) {
   const isUa = locale === "ua";
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const segmentParam = searchParams.get("segment");
 
-  // activeSegment state: 'auto' | 'moto' | null. If segmentParam is provided, use it. Otherwise show portal.
-  const [activeSegment, setActiveSegment] = useState<"auto" | "moto" | null>(() => {
-    if (segmentParam === "auto") return "auto";
-    if (segmentParam === "moto") return "moto";
-    return null; // Show portal by default if no segment is active
-  });
+  // activeSegment state: 'auto' | 'moto' | null. The portal (null) is what the
+  // server renders and what the URL without a segment shows. The `segment`
+  // query parameter is read through UrlSearchParamsBridge instead of
+  // useSearchParams(): calling that hook here made the whole page client-only,
+  // so crawlers received the loading screen instead of the portal and its links.
+  const [activeSegment, setActiveSegment] = useState<"auto" | "moto" | null>(null);
 
   // Sync state with URL parameter changes (e.g. from header switcher)
-  useEffect(() => {
-    if (segmentParam === "auto") {
-      setActiveSegment("auto");
-    } else if (segmentParam === "moto") {
-      setActiveSegment("moto");
-    } else {
-      setActiveSegment(null);
-    }
-  }, [segmentParam]);
+  const handleUrlQuery = useCallback((query: string) => {
+    const segmentParam = new URLSearchParams(query).get("segment");
+    setActiveSegment(segmentParam === "auto" ? "auto" : segmentParam === "moto" ? "moto" : null);
+    // The page script hides the portal before first paint for deep links to a
+    // segment; once the state has caught up that guard must go.
+    document.documentElement.removeAttribute("data-ak-seg");
+  }, []);
+  const urlBridge = (
+    <Suspense fallback={null}>
+      <UrlSearchParamsBridge onChange={handleUrlQuery} />
+    </Suspense>
+  );
 
   const handleSegmentChange = (seg: "auto" | "moto" | null) => {
     setActiveSegment(seg);
@@ -510,6 +512,32 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
   if (activeSegment === null) {
     return (
       <div className="ak-portal">
+        {urlBridge}
+        {/* Crawlable heading and links. The tiles below are buttons, so without
+            these the page offers a crawler no way into the catalog. */}
+        <h1 className="sr-only">
+          {L(
+            isUa,
+            "Akrapovič Exhaust Systems | Titanium & Carbon",
+            "Вихлопні системи Akrapovič | Титан і Карбон"
+          )}
+        </h1>
+        <nav className="sr-only" aria-label={L(isUa, "Akrapovič catalog", "Каталог Akrapovič")}>
+          <Link href={`/${locale}/shop/akrapovic/collections`} tabIndex={-1}>
+            {L(
+              isUa,
+              "Akrapovič car exhaust catalog",
+              "Каталог вихлопних систем Akrapovič для авто"
+            )}
+          </Link>
+          <Link href={`/${locale}/shop/akrapovic/collections?scope=moto`} tabIndex={-1}>
+            {L(
+              isUa,
+              "Akrapovič motorcycle exhaust catalog",
+              "Каталог вихлопних систем Akrapovič для мотоциклів"
+            )}
+          </Link>
+        </nav>
         {/* Left Side: Auto */}
         <button
           onClick={() => handleSegmentChange("auto")}
@@ -567,6 +595,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
 
   return (
     <div className={`ak-home ${activeSegment ? "ak-home--has-switcher" : ""}`} id="AkrapovicHome">
+      {urlBridge}
       {/* ════════════════════════════════════════════════════════════════
           SECTION 1 — CINEMATIC HERO (full viewport, center-aligned)
       ════════════════════════════════════════════════════════════════ */}
@@ -620,6 +649,7 @@ export default function AkrapovicHomeSignature({ locale, products, viewerContext
             products={filteredProducts}
             viewerContext={viewerContext}
             productPathPrefix={`/${locale}/shop/akrapovic/products`}
+            scope={isMoto ? "moto" : "auto"}
             filterOnly
             heroCompact
           />

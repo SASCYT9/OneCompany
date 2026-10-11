@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  LocalBusinessSchema,
   OrganizationSchema,
   ShopProductStructuredData,
 } from "../../../src/components/seo/StructuredData";
@@ -55,4 +56,32 @@ test("product offers omit fabricated sale dates and empty categories", () => {
     assert.equal("priceValidUntil" in offer, false);
     assert.equal("hasMerchantReturnPolicy" in offer, false);
   }
+});
+
+test("organization lists the same social profiles as the site footer", () => {
+  const schema = readJsonLd(OrganizationSchema({ locale: "ua" }));
+  const sameAs = schema.sameAs as string[];
+  for (const profile of [
+    "https://www.instagram.com/onecompany.global",
+    "https://t.me/onecompany_global",
+    "https://t.me/onecompany_moto",
+    "https://www.tiktok.com/@onecompanyglobal",
+    "https://www.youtube.com/@OneCompanyGlobal",
+    "https://www.linkedin.com/company/onecompany-global/",
+    "https://x.com/OneCompany_gl",
+  ]) {
+    assert.equal(sameAs.includes(profile), true, profile);
+  }
+  assert.equal(new Set(sameAs).size, sameAs.length);
+});
+
+test("local business is one entity tied to the organization, not three copies", () => {
+  const schema = readJsonLd(LocalBusinessSchema({ locale: "ua" }));
+  assert.equal("@graph" in schema, false);
+  assert.deepEqual(schema["@type"], ["AutoPartsStore", "MotorcycleDealer"]);
+  assert.equal(schema["@id"], "https://onecompany.global/#localbusiness");
+  assert.deepEqual(schema.parentOrganization, {
+    "@id": "https://onecompany.global/#organization",
+  });
+  assert.equal(Array.isArray(schema.makesOffer), true);
 });

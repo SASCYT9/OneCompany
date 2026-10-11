@@ -38,12 +38,7 @@ export default async function ShopAkrapovicPage({ params }: Props) {
     getAkrapovicProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const description =
     resolvedLocale === "ua"
@@ -59,6 +54,15 @@ export default async function ShopAkrapovicPage({ params }: Props) {
           brandName: "Akrapovič",
           description,
         })}
+      />
+      {/* Deep links to a segment (?segment=auto|moto) hide the server-rendered
+          portal before first paint; AkrapovicHomeSignature clears the flag once
+          it has switched to the segment view. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            'if(/[?&]segment=(auto|moto)(&|$)/.test(location.search))document.documentElement.setAttribute("data-ak-seg","1")',
+        }}
       />
       <AkrapovicHomeSignature
         locale={resolvedLocale}

@@ -7,10 +7,46 @@ test("robots blocks model-training crawlers and keeps search and answer agents",
   const list = Array.isArray(rules) ? rules : [rules];
   const blocked = list.find((rule) => rule.disallow === "/");
   const agents = new Set([blocked?.userAgent].flat());
-  for (const agent of ["GPTBot", "CCBot", "ClaudeBot", "Bytespider", "Amazonbot", "Google-Extended"])
+  for (const agent of [
+    "GPTBot",
+    "CCBot",
+    "ClaudeBot",
+    "Bytespider",
+    "Amazonbot",
+    "Google-Extended",
+  ])
     assert.equal(agents.has(agent), true, agent);
-  for (const agent of ["Googlebot", "Bingbot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "*"])
+  for (const agent of [
+    "Googlebot",
+    "Bingbot",
+    "OAI-SearchBot",
+    "ChatGPT-User",
+    "PerplexityBot",
+    "*",
+  ])
     assert.equal(agents.has(agent), false, agent);
   const general = list.find((rule) => rule.userAgent === "*");
-  assert.equal(general?.allow, "/");
+  assert.equal([general?.allow].flat().includes("/"), true);
+});
+
+test("robots lets the renderer fetch only the catalog read endpoints under /api", () => {
+  const { rules } = robots();
+  const list = Array.isArray(rules) ? rules : [rules];
+  const general = list.find((rule) => rule.userAgent === "*");
+  const allow = [general?.allow].flat();
+  const disallow = [general?.disallow].flat();
+
+  assert.equal(allow.includes("/api/shop/stock/search"), true);
+  assert.equal(allow.includes("/api/shop/recommendations"), true);
+  // Everything else under /api, plus admin and quote, stays blocked.
+  for (const prefix of ["/api", "/api/*", "/admin", "/quote"])
+    assert.equal(disallow.includes(prefix), true, prefix);
+  assert.equal(
+    allow.some((path) => path?.startsWith("/api/admin")),
+    false
+  );
+  assert.equal(
+    allow.some((path) => path?.startsWith("/api/auth")),
+    false
+  );
 });
