@@ -6,11 +6,20 @@ import {
   planProductSitemapChunks,
   type SitemapProductChunk,
 } from "@/lib/seoSitemapModel";
+import { memoizeAsyncWithTtl } from "@/lib/asyncTtlMemo";
 import { computeRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { listShopProductSlugsForSitemap } from "@/lib/shopCatalogServer";
 
-export async function loadProductSitemapChunks(): Promise<SitemapProductChunk[]> {
+/**
+ * How long the planned chunks are reused inside one server instance. The index
+ * and every product child file need the same plan; without this each child
+ * request on a cold deployment (or after its ISR entry expires) would reload
+ * the whole published-product projection just to pick one chunk id.
+ */
+const PRODUCT_CHUNKS_TTL_MS = 5 * 60 * 1000;
+
+async function planProductChunks(): Promise<SitemapProductChunk[]> {
   const products = await listShopProductSlugsForSitemap();
   // Variants that answer `noindex` must not be advertised in the sitemap. The set
   // is derived from the list that was just loaded: a second call to
@@ -23,6 +32,12 @@ export async function loadProductSitemapChunks(): Promise<SitemapProductChunk[]>
       : products
   );
 }
+
+// Concurrent callers share one load; a failed load is retried, not cached.
+export const loadProductSitemapChunks = memoizeAsyncWithTtl(
+  planProductChunks,
+  PRODUCT_CHUNKS_TTL_MS
+);
 
 export async function loadPagesSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const urbanCollectionEntries = siteConfig.locales.flatMap((locale) =>
