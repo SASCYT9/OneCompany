@@ -31,6 +31,7 @@ const RENDER_CRITICAL_API_PATHS = ["/api/shop/stock/search", "/api/shop/recommen
 
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = absoluteUrl("/sitemap.xml");
+  const newsSitemapUrl = absoluteUrl("/news-sitemap.xml");
   const disallowRules = noindexPrefixes.flatMap((prefix) => [prefix, `${prefix}/*`]);
 
   return {
@@ -46,6 +47,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     host: siteConfig.url,
-    sitemap: sitemapUrl,
+    sitemap: [sitemapUrl, newsSitemapUrl],
   };
 }
