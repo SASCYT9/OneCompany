@@ -41,13 +41,7 @@
       "label": "continents weekly"
     }
   ],
-  "values": [
-    "PERFORMANCE",
-    "QUALITY",
-    "SERVICE",
-    "SOUND",
-    "INNOVATION"
-  ],
+  "values": ["PERFORMANCE", "QUALITY", "SERVICE", "SOUND", "INNOVATION"],
   "brandSections": {
     "automotive": [
       {
@@ -288,11 +282,7 @@
         },
         "date": "2026-10-10T21:02:43Z",
         "status": "published",
-        "tags": [
-          "Bonamici",
-          "Triumph",
-          "Daytona660"
-        ],
+        "tags": ["Bonamici", "Triumph", "Daytona660"],
         "media": [
           {
             "id": "bonamici-daytona-660-hero",
@@ -455,6 +445,236 @@
         ]
       },
       {
+        "id": "ig-detvfbvsq5q",
+        "slug": "eventuri-carbon-intake-technology",
+        "title": {
+          "ua": "Eventuri — технології, які відчуваєш за кермом",
+          "en": "Eventuri: Technology You Feel Behind the Wheel"
+        },
+        "caption": {
+          "ua": "@eventuri_ технології, які відчуваєш за кермом.\n\nБританський бренд, який змінив уявлення про системи впуску повітря для автомобілів.\n\nEventuri поєднує інноваційні технології, передові аеродинамічні рішення та преміальні матеріали, створюючи карбонові системи впуску, де кожна деталь працює на результат.\n\nВ основі технології - запатентована конструкція корпусу фільтра, що забезпечує плавний потік повітря, зменшує турбулентність і сприяє реальному приросту потужності. Покращений відгук на педаль газу, виразний звук впуску та бездоганний вигляд підкапотного простору - усе це Eventuri.\n\nКожна система Eventuri - це результат ретельної розробки, де інноваційні технології та увага до найменших деталей забезпечують гармонійне поєднання продуктивності, функціональності й естетики.\n\nВідкривайте нові можливості свого автомобіля разом із Eventuri.\n\nДеталі щодо асортименту, сумісності та замовлення - у Direct або в коментарях.\n\n#eventuri #eventuriintakes #cartuning #тюнінг #onecompany",
+          "en": "@eventuri_ technology you feel behind the wheel.\n\nThe British brand that changed the way people think about car air intake systems.\n\nEventuri combines innovative technology, advanced aerodynamic solutions and premium materials to create carbon intake systems in which every detail works for the result.\n\nAt the core of the technology is a patented filter-housing design that delivers smooth airflow, reduces turbulence and contributes to a real power gain. Improved throttle response, a distinctive intake sound and a flawless engine bay look: that is Eventuri.\n\nEvery Eventuri system is the result of careful development, where innovative technology and attention to the smallest details combine performance, function and aesthetics.\n\nDiscover new possibilities for your car with Eventuri.\n\nFor details on the range, compatibility and ordering, contact us in Direct or in the comments.\n\n#eventuri #eventuriintakes #cartuning #onecompany"
+        },
+        "date": "2026-10-10T09:23:57.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["eventuri", "eventuriintakes", "cartuning", "тюнінг", "onecompany"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-detvfbvsq5q-1",
+            "type": "video",
+            "src": "/videos/blog/DeTvfbvsQ5Q-v4-1.mp4",
+            "alt": "Eventuri: Technology You Feel Behind the Wheel",
+            "poster": "/images/blog/covers/eventuri-carbon-intake-technology-frame.jpg"
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/covers/eventuri-carbon-intake-technology-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Eventuri — технології, які відчуваєш за кермом",
+            "en": "Eventuri: Technology You Feel Behind the Wheel"
+          }
+        }
+      },
+      {
+        "id": "ig-dehdbudjfud",
+        "slug": "bonamici-racing-cf01-psc1-cfmoto-675-sr-r",
+        "title": {
+          "ua": "Bonamici Racing CF01 і PSC1 для CFMOTO 675 SR-R",
+          "en": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+        },
+        "caption": {
+          "ua": "🏁 Новинка для CFMOTO 675 SR-R від @bonamiciracing\n\nПосадка на спортбайку має бути зручною саме тобі - але стандартне положення підніжок не завжди підходить під зріст і стиль їзди. Нова CF01 від Bonamici Racing для CFMOTO 675 SR-R дає 12 варіантів налаштування, щоб підібрати положення ніг під себе. А стандартне чи реверсивне перемикання можна обрати відповідно до звичного стилю керування.\n\nУ цій новій лінійці також є PSC1 - верхня траверса у чорному або сріблястому кольорі, щоб оновити вигляд передньої частини мотоцикла.\n\nПідібрати аксесуари з нової лінійки Bonamici Racing для CFMOTO 675 SR-R та дізнатися про замовлення можна в One Company.\n\n#cfmoto #cfmoto675srr #bonamiciracing #mototuning #onecompany",
+          "en": "🏁 New for the CFMOTO 675 SR-R from @bonamiciracing\n\nYour riding position on a sportbike should fit you, but the standard footpeg position does not always suit your height and riding style. The new CF01 from Bonamici Racing for the CFMOTO 675 SR-R offers 12 adjustment positions so you can set the footpegs exactly where you want them. You can choose standard or reverse shifting to match your usual riding style.\n\nThe new range also includes the PSC1, a top triple clamp in black or silver, to refresh the look of the front of the motorcycle.\n\nYou can select accessories from the new Bonamici Racing range for the CFMOTO 675 SR-R and find out how to order through One Company.\n\n#cfmoto #cfmoto675srr #bonamiciracing #mototuning #onecompany"
+        },
+        "date": "2026-10-05T15:47:09.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["cfmoto", "cfmoto675srr", "bonamiciracing", "mototuning", "onecompany"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dehdbudjfud-1",
+            "type": "image",
+            "src": "/images/blog/DeHdBudjFuD-v4-1.jpg",
+            "alt": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          },
+          {
+            "id": "media-ig-dehdbudjfud-2",
+            "type": "image",
+            "src": "/images/blog/DeHdBudjFuD-v4-2.jpg",
+            "alt": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          },
+          {
+            "id": "media-ig-dehdbudjfud-3",
+            "type": "image",
+            "src": "/images/blog/DeHdBudjFuD-v4-3.jpg",
+            "alt": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          },
+          {
+            "id": "media-ig-dehdbudjfud-4",
+            "type": "image",
+            "src": "/images/blog/DeHdBudjFuD-v4-4.jpg",
+            "alt": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          },
+          {
+            "id": "media-ig-dehdbudjfud-5",
+            "type": "image",
+            "src": "/images/blog/DeHdBudjFuD-v4-5.jpg",
+            "alt": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/DeHdBudjFuD-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Bonamici Racing CF01 і PSC1 для CFMOTO 675 SR-R",
+            "en": "Bonamici Racing CF01 Rearsets and PSC1 Triple Clamp for CFMOTO 675 SR-R"
+          }
+        }
+      },
+      {
+        "id": "ig-dd8gnh2sgcp",
+        "slug": "moto-corse-new-shipment",
+        "title": {
+          "ua": "Нова поставка Moto Corse",
+          "en": "New Moto Corse Shipment"
+        },
+        "caption": {
+          "ua": "Нова поставка @motocorseofficial вже у нас. ✅\n\nБренд, який давно став еталоном преміального тюнінгу для європейських мотоциклів. Moto Corse створює деталі, де інженерія зустрічається з ювелірною точністю: титан, карбон, авіаційний алюміній та високоточна CNC-обробка.\n\nКожен елемент має своє призначення - від підвищення продуктивності до найменших деталей, які формують характер мотоцикла. Саме за цю увагу до матеріалів, конструкції та виконання Moto Corse часто називають «ювеліркою для мотоциклів».\n\nВелику поставку вже отримали та готові підбирати деталі під конкретний мотоцикл.\n\nЩодо наявності, підбору та замовлення деталей Moto Corse — пишіть у Direct або у коментарях. ⤵️⤵️⤵️\n\n#motocorse #mototuning #onecompany #motorcycle",
+          "en": "The new shipment from @motocorseofficial has arrived. ✅\n\nA brand that has long been the benchmark for premium tuning of European motorcycles. Moto Corse creates parts where engineering meets jewellery-grade precision: titanium, carbon, aircraft-grade aluminium and high-precision CNC machining.\n\nEvery element has its purpose, from improving performance to the smallest details that shape a motorcycle's character. For this attention to materials, design and execution, Moto Corse is often called \"the jeweller of motorcycles\".\n\nWe have received a large shipment and are ready to select parts for your specific motorcycle.\n\nFor availability, selection and ordering of Moto Corse parts, message us in Direct or in the comments. ⤵️⤵️⤵️\n\n#motocorse #mototuning #onecompany #motorcycle"
+        },
+        "date": "2026-10-01T17:14:43.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["motocorse", "mototuning", "onecompany", "motorcycle"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dd8gnh2sgcp-1",
+            "type": "video",
+            "src": "/videos/blog/Dd8gnh2sGcP-v4-1.mp4",
+            "alt": "New Moto Corse Shipment",
+            "poster": "/images/blog/covers/moto-corse-new-shipment-frame.jpg"
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/covers/moto-corse-new-shipment-frame.jpg",
+          "width": 720,
+          "height": 1280,
+          "alt": {
+            "ua": "Нова поставка Moto Corse",
+            "en": "New Moto Corse Shipment"
+          }
+        }
+      },
+      {
+        "id": "ig-dd1i7zjddc1",
+        "slug": "eventuri-b58n2-gen3-bmw-m340i-m440i",
+        "title": {
+          "ua": "Eventuri B58N2 Gen 3 для BMW M340i та M440i",
+          "en": "Eventuri B58N2 Gen 3 Intake for BMW M340i and M440i"
+        },
+        "caption": {
+          "ua": "Карбон під капотом - це красиво. А коли він ще й допомагає двигуну дихати вільніше — ще краще.\n\nEventuri B58N2 Gen 3 для BMW M340i та M440i 2025+ захищає фільтр від гарячого повітря, а збільшена впускна труба допомагає подавати до турбіни більше свіжого. У комплекті - dry-фільтр і додатковий теплозахист. Виглядає акуратно, стильно й добре вписується в підкапотний простір. І все це виглядає так, ніби завжди мало стояти під капотом цього BMW.\n\nПідібрати конфігурацію та дізнатися про замовлення можна в One Company.\n\n#eventuri #bmwm340i #bmwm440i #onecompany #bmwtuning",
+          "en": "Carbon under the bonnet looks great. And when it also helps the engine breathe more freely, it is even better.\n\nThe Eventuri B58N2 Gen 3 for the 2025+ BMW M340i and M440i shields the filter from hot air, while the enlarged intake tube helps feed more fresh air to the turbo. The kit includes a dry filter and additional heat shielding. It looks neat and stylish and sits well in the engine bay, as if it had always belonged under this BMW's bonnet.\n\nYou can choose the configuration and find out how to order through One Company.\n\n#eventuri #bmwm340i #bmwm440i #onecompany #bmwtuning"
+        },
+        "date": "2026-09-28T12:02:54.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["eventuri", "bmwm340i", "bmwm440i", "onecompany", "bmwtuning"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-dd1i7zjddc1-1",
+            "type": "image",
+            "src": "/images/blog/Dd1I7ZJDDC1-v4-1.jpg",
+            "alt": "Eventuri B58N2 Gen 3 Intake for BMW M340i and M440i"
+          },
+          {
+            "id": "media-ig-dd1i7zjddc1-2",
+            "type": "image",
+            "src": "/images/blog/Dd1I7ZJDDC1-v4-2.jpg",
+            "alt": "Eventuri B58N2 Gen 3 Intake for BMW M340i and M440i"
+          },
+          {
+            "id": "media-ig-dd1i7zjddc1-3",
+            "type": "image",
+            "src": "/images/blog/Dd1I7ZJDDC1-v4-3.jpg",
+            "alt": "Eventuri B58N2 Gen 3 Intake for BMW M340i and M440i"
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/Dd1I7ZJDDC1-v4-1.jpg",
+          "width": 1080,
+          "height": 1350,
+          "alt": {
+            "ua": "Eventuri B58N2 Gen 3 для BMW M340i та M440i",
+            "en": "Eventuri B58N2 Gen 3 Intake for BMW M340i and M440i"
+          }
+        }
+      },
+      {
+        "id": "ig-ddljarsjign",
+        "slug": "urban-widetrack-defender-octa",
+        "title": {
+          "ua": "Urban Widetrack для Defender OCTA",
+          "en": "Urban Widetrack for Defender OCTA"
+        },
+        "caption": {
+          "ua": "Купуючи Defender OCTA, ви вже обираєте автомобіль, який не губиться в потоці. Але іноді хочеться, щоб саме ваш автомобіль заявляв про себе ще голосніше.\n\nUrban Widetrack додає OCTA ще більше характеру: карбоновий капот, розширені арки, нові передні та бокові елементи, задній спойлер, оформлення вихлопу й задня накладка на запасне колесо з карбоновими вставками змінюють увесь силует авто. Ковані Urban Vossen UV-9 завершують образ.\n\nКомплект розроблений спеціально для Defender OCTA та вже доступний для замовлення. Якщо хочеться більшої індивідуальності — можливо, Urban Widetrack саме те, чого бракувало вашому автомобілю.\n\nДізнатися про комплектацію та замовити Urban Widetrack можна в One Company.\n\n#urban #defenderocta #onecompany #tuning #тюнінг",
+          "en": "By choosing a Defender OCTA, you have already picked a car that does not get lost in traffic. But sometimes you want your own car to make an even louder statement.\n\nUrban Widetrack gives the OCTA even more character: a carbon-fibre bonnet, widened arches, new front and side elements, a rear spoiler, exhaust finishers and a rear spare-wheel cover with carbon inserts change the entire silhouette. Forged Urban Vossen UV-9 wheels complete the look.\n\nThe kit was developed specifically for the Defender OCTA and is already available to order. If you want more individuality, Urban Widetrack may be exactly what your car was missing.\n\nYou can find out about the configuration and order Urban Widetrack through One Company.\n\n#urban #defenderocta #onecompany #tuning"
+        },
+        "date": "2026-09-22T10:46:28.000Z",
+        "location": {
+          "ua": "Україна",
+          "en": "Ukraine"
+        },
+        "tags": ["urban", "defenderocta", "onecompany", "tuning", "тюнінг"],
+        "status": "published",
+        "media": [
+          {
+            "id": "media-ig-ddljarsjign-1",
+            "type": "image",
+            "src": "/images/blog/DdljaRSjIGn-v4-1.jpg",
+            "alt": "Urban Widetrack for Defender OCTA"
+          },
+          {
+            "id": "media-ig-ddljarsjign-2",
+            "type": "image",
+            "src": "/images/blog/DdljaRSjIGn-v4-2.jpg",
+            "alt": "Urban Widetrack for Defender OCTA"
+          },
+          {
+            "id": "media-ig-ddljarsjign-3",
+            "type": "image",
+            "src": "/images/blog/DdljaRSjIGn-v4-3.jpg",
+            "alt": "Urban Widetrack for Defender OCTA"
+          }
+        ],
+        "cover": {
+          "src": "/images/blog/DdljaRSjIGn-v4-1.jpg",
+          "width": 1088,
+          "height": 1344,
+          "alt": {
+            "ua": "Urban Widetrack для Defender OCTA",
+            "en": "Urban Widetrack for Defender OCTA"
+          }
+        }
+      },
+      {
         "id": "ig-ddbx-hxjlvv",
         "slug": "kline-inconel-exhaust-porsche-992-2-turbo",
         "title": {
@@ -470,13 +690,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "klineinnovation",
-          "onecompany",
-          "porsche992",
-          "992turbo",
-          "autotuning"
-        ],
+        "tags": ["klineinnovation", "onecompany", "porsche992", "992turbo", "autotuning"],
         "status": "published",
         "media": [
           {
@@ -524,13 +738,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "stopflex",
-          "lexuslx600",
-          "landcruiser300",
-          "brembo",
-          "onecompany"
-        ],
+        "tags": ["stopflex", "lexuslx600", "landcruiser300", "brembo", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -572,13 +780,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "offroadgroup",
-          "rpmpowersports",
-          "canam",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "offroadgroup", "rpmpowersports", "canam", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -615,13 +817,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "hyperpro",
-          "motorbike",
-          "mototuning",
-          "motoperformance",
-          "onecompany"
-        ],
+        "tags": ["hyperpro", "motorbike", "mototuning", "motoperformance", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -669,13 +865,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "кованідиски",
-          "customwheels",
-          "forgedwheels",
-          "тюнінг",
-          "onecompany"
-        ],
+        "tags": ["кованідиски", "customwheels", "forgedwheels", "тюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -735,13 +925,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "ferrari",
-          "purosangue",
-          "capristoexhaust",
-          "автотюнінг",
-          "onecompany"
-        ],
+        "tags": ["ferrari", "purosangue", "capristoexhaust", "автотюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -778,13 +962,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "fiexhaust",
-          "lamborghiniurus",
-          "urusse",
-          "tuningcar",
-          "onecompany"
-        ],
+        "tags": ["fiexhaust", "lamborghiniurus", "urusse", "tuningcar", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -826,13 +1004,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "fmic",
-          "2jz",
-          "2jzge",
-          "toyotatuning"
-        ],
+        "tags": ["onecompany", "fmic", "2jz", "2jzge", "toyotatuning"],
         "status": "published",
         "media": [
           {
@@ -898,13 +1070,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "unpluggedperformance",
-          "tesla",
-          "teslamodel3",
-          "cybertruck",
-          "onecompany"
-        ],
+        "tags": ["unpluggedperformance", "tesla", "teslamodel3", "cybertruck", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -952,13 +1118,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "whipplesuperchargers",
-          "mustang",
-          "darkhorse",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "whipplesuperchargers", "mustang", "darkhorse", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -995,9 +1155,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "тренування_за_підтримки_спонсора_beton"
-        ],
+        "tags": ["тренування_за_підтримки_спонсора_beton"],
         "status": "published",
         "media": [
           {
@@ -1057,11 +1215,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning",
-          "tuningukraine"
-        ],
+        "tags": ["onecompany", "tuning", "tuningukraine"],
         "status": "published",
         "media": [
           {
@@ -1127,10 +1281,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1167,10 +1318,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1212,10 +1360,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1257,10 +1402,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1297,10 +1439,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1337,10 +1476,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1377,10 +1513,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1446,10 +1579,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1491,10 +1621,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1531,10 +1658,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1576,10 +1700,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1616,13 +1737,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "darwinpro",
-          "audirs",
-          "cartuning",
-          "onecompany",
-          "тюнінг"
-        ],
+        "tags": ["darwinpro", "audirs", "cartuning", "onecompany", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1676,13 +1791,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "klineinnovation",
-          "porschegt3",
-          "onecompany",
-          "tuningcar",
-          "тюнінг"
-        ],
+        "tags": ["klineinnovation", "porschegt3", "onecompany", "tuningcar", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1719,13 +1828,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "scproject",
-          "yamahar9",
-          "onecompany",
-          "scprojectexhaust",
-          "motorcycletuning"
-        ],
+        "tags": ["scproject", "yamahar9", "onecompany", "scprojectexhaust", "motorcycletuning"],
         "status": "published",
         "media": [
           {
@@ -1767,13 +1870,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "lartedesign",
-          "premiumcars",
-          "тюнінг",
-          "cartuning"
-        ],
+        "tags": ["onecompany", "lartedesign", "premiumcars", "тюнінг", "cartuning"],
         "status": "published",
         "media": [
           {
@@ -1810,13 +1907,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "techartporsche",
-          "carbonfiber",
-          "widebody",
-          "тюнінг",
-          "onecompany"
-        ],
+        "tags": ["techartporsche", "carbonfiber", "widebody", "тюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -1876,13 +1967,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "libertywalk",
-          "lbworks",
-          "landcruiser250",
-          "tuning"
-        ],
+        "tags": ["onecompany", "libertywalk", "lbworks", "landcruiser250", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1936,12 +2021,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "al13wheels",
-          "ferrari",
-          "tuning"
-        ],
+        "tags": ["onecompany", "al13wheels", "ferrari", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1989,12 +2069,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ilmbergercarbon",
-          "motorcycle",
-          "carbonfiber"
-        ],
+        "tags": ["onecompany", "ilmbergercarbon", "motorcycle", "carbonfiber"],
         "status": "published",
         "media": [
           {
@@ -2031,10 +2106,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2071,13 +2143,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "jb4",
-          "burgermotorsports",
-          "cartuning",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["jb4", "burgermotorsports", "cartuning", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -2113,13 +2179,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "brabus",
-          "widestar",
-          "mercedesg63",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["brabus", "widestar", "mercedesg63", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -2173,10 +2233,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2213,10 +2270,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2270,10 +2324,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2364,10 +2415,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2433,12 +2481,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "quicksilverexhaust",
-          "exhaustsystem",
-          "tuning"
-        ],
+        "tags": ["onecompany", "quicksilverexhaust", "exhaustsystem", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2474,10 +2517,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2543,10 +2583,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2601,10 +2638,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2646,10 +2680,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2685,11 +2716,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "mtstechnik",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "mtstechnik", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2726,13 +2753,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "gsport",
-          "gesi",
-          "catalyticconverter",
-          "tuning"
-        ],
+        "tags": ["onecompany", "gsport", "gesi", "catalyticconverter", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2769,13 +2790,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ipe",
-          "ipeexhaust",
-          "titaniumexhaustpipes",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ipe", "ipeexhaust", "titaniumexhaustpipes", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2812,13 +2827,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "hrewheels",
-          "hre",
-          "s101sc",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "hrewheels", "hre", "s101sc", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2855,11 +2864,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning",
-          "onecompanyglobal"
-        ],
+        "tags": ["onecompany", "tuning", "onecompanyglobal"],
         "status": "published",
         "media": [
           {
@@ -2919,12 +2924,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ctcarbon",
-          "bmwx5m",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ctcarbon", "bmwx5m", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2990,13 +2990,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "darwinpro",
-          "bmw8",
-          "tuning",
-          "carbon"
-        ],
+        "tags": ["onecompany", "darwinpro", "bmw8", "tuning", "carbon"],
         "status": "published",
         "media": [
           {
@@ -3068,12 +3062,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "urbanautomotive",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "urbanautomotive", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3110,13 +3099,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "eventuri",
-          "bmwm5",
-          "g90",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "eventuri", "bmwm5", "g90", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3153,13 +3136,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3219,13 +3196,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3261,12 +3232,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "rangerovertuning",
-          "widetrack",
-          "onecompanyglobal",
-          "onecompany"
-        ],
+        "tags": ["rangerovertuning", "widetrack", "onecompanyglobal", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -3302,12 +3268,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "brabus",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "brabus", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3343,13 +3304,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "RSQ8Facelift",
-          "CTCarbon",
-          "onecompanyglobal",
-          "тюнінг",
-          "carbonbodykit"
-        ],
+        "tags": ["RSQ8Facelift", "CTCarbon", "onecompanyglobal", "тюнінг", "carbonbodykit"],
         "status": "published",
         "media": [
           {
@@ -3385,12 +3340,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "iPE",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "iPE", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3426,12 +3376,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "eventuri",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "eventuri", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3467,13 +3412,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "adro",
-          "bmwm3",
-          "bmwm4"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "adro", "bmwm3", "bmwm4"],
         "status": "published",
         "media": [
           {
@@ -3509,12 +3448,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "akrapovic",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "akrapovic", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3550,10 +3484,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
