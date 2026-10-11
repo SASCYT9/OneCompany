@@ -21,3 +21,14 @@ export function getProductDisplayBrand(brand: string | null | undefined): string
   if (!brand) return "";
   return isUrbanProductBrand(brand) ? "Urban Automotive" : brand.trim();
 }
+
+/**
+ * Brand pickers list brands A–Z so a buyer can scan for a name: case- and
+ * accent-insensitive (`AKRAPOVIC` beside `Akrapovič`), digits by value.
+ */
+export function compareShopBrandLabels(left: string, right: string): number {
+  return (
+    left.localeCompare(right, "en", { sensitivity: "base", numeric: true }) ||
+    left.localeCompare(right, "en")
+  );
+}

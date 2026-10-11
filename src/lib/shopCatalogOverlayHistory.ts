@@ -6,6 +6,17 @@ type HistoryHost = Pick<
   "history" | "location" | "addEventListener" | "removeEventListener"
 >;
 
+/**
+ * State for a filter URL update made while a panel may be open. It keeps only
+ * the open panel's marker: without Next.js internals the router still syncs
+ * useSearchParams, and the panel still owns its entry, so closing it (or Back)
+ * consumes that entry instead of leaving a Back press that does nothing.
+ */
+export function catalogOverlayReplaceState(state: unknown): Record<string, string> | null {
+  const marker = (state as Record<string, unknown> | null)?.[MARKER];
+  return typeof marker === "string" ? { [MARKER]: marker } : null;
+}
+
 export function createCatalogOverlayHistory(host: HistoryHost, id: string, onBack: () => void) {
   let active = false;
   let token = "";

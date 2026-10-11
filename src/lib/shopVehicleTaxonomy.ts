@@ -297,20 +297,43 @@ function modelAliasGroups(make: string) {
   return groups;
 }
 
+const REJECTED_MODEL_KEY_CACHE = new Map<string, Set<string>>();
 export function isSelectableVehicleModel(make: string, value: string) {
   const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
-  return !Object.entries(SHOP_VEHICLE_MODEL_CORRECTIONS[makeKey] ?? {}).some(
-    ([raw, labels]) => labels.length === 0 && vehicleModelKey(raw) === vehicleModelKey(value)
-  );
+  let rejected = REJECTED_MODEL_KEY_CACHE.get(makeKey);
+  if (!rejected) {
+    rejected = new Set(
+      Object.entries(SHOP_VEHICLE_MODEL_CORRECTIONS[makeKey] ?? {})
+        .filter(([, labels]) => labels.length === 0)
+        .map(([raw]) => vehicleModelKey(raw))
+    );
+    REJECTED_MODEL_KEY_CACHE.set(makeKey, rejected);
+  }
+  return !rejected.has(vehicleModelKey(value));
+}
+
+// Model matching runs for every fitment row of a listing or picker request, so
+// the alias groups are indexed once per make instead of re-normalizing every
+// alias on each call (hundreds per make; ~0.5 ms per lookup before).
+const MODEL_LABELS_BY_ALIAS_KEY_CACHE = new Map<string, Map<string, string[]>>();
+function modelLabelsByAliasKey(make: string) {
+  const makeKey = normalizeShopSearchText(canonicalVehicleMakeLabel(make));
+  const cached = MODEL_LABELS_BY_ALIAS_KEY_CACHE.get(makeKey);
+  if (cached) return cached;
+  const index = new Map<string, string[]>();
+  for (const [canonical, aliases] of Object.entries(modelAliasGroups(make))) {
+    for (const aliasKey of new Set(aliases.map(vehicleModelKey))) {
+      const labels = index.get(aliasKey);
+      if (labels) labels.push(canonical);
+      else index.set(aliasKey, [canonical]);
+    }
+  }
+  MODEL_LABELS_BY_ALIAS_KEY_CACHE.set(makeKey, index);
+  return index;
 }
 
 function knownCanonicalVehicleModelLabels(make: string, value: string) {
-  const requestedKey = vehicleModelKey(value);
-  const labels: string[] = [];
-  for (const [canonical, aliases] of Object.entries(modelAliasGroups(make))) {
-    if (aliases.some((alias) => vehicleModelKey(alias) === requestedKey)) labels.push(canonical);
-  }
-  return labels;
+  return [...(modelLabelsByAliasKey(make).get(vehicleModelKey(value)) ?? [])];
 }
 
 function manufacturerModelAliases(make: string, value: string) {

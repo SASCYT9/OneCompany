@@ -110,7 +110,7 @@ import {
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
-import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { compareShopBrandLabels, getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { canUsePremiumCatalogProjection } from "@/lib/shopCatalogPremiumEligibility";
 import { compareShopStockPriceAmounts } from "@/lib/shopStockPriceSort";
 import { singleFlight } from "@/lib/singleFlight";
@@ -682,7 +682,9 @@ function buildFilterStats(
   };
 
   return {
-    brands: Array.from(brands, ([label, count]) => ({ label, count })).sort(byCountThenLabel),
+    brands: Array.from(brands, ([label, count]) => ({ label, count })).sort((left, right) =>
+      compareShopBrandLabels(left.label, right.label)
+    ),
     categories: Array.from(categories, ([label, count]) => ({
       label,
       count,

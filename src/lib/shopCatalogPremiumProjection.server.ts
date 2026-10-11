@@ -41,7 +41,7 @@ import {
   isEventuriSharedV8Intake,
   matchesEventuriSharedV8Application,
 } from "@/lib/eventuriSharedIntake";
-import { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
+import { compareShopBrandLabels, getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
 import {
   buildShopCatalogSelectedVehicleTextHint,
@@ -515,7 +515,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
   const filterStats = {
     brands: [...brandCounts.entries()]
       .map(([label, count]) => ({ label, count }))
-      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label)),
+      .sort((left, right) => compareShopBrandLabels(left.label, right.label)),
     categories: facetResult.facets.category.map(({ key, label, count }) => ({ key, label, count })),
     stock: {
       all: totalItems,

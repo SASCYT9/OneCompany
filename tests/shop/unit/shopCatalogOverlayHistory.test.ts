@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createCatalogOverlayHistory } from "../../../src/lib/shopCatalogOverlayHistory";
+import {
+  catalogOverlayReplaceState,
+  createCatalogOverlayHistory,
+} from "../../../src/lib/shopCatalogOverlayHistory";
 
 function browser() {
   const events = new EventTarget();
@@ -85,4 +88,36 @@ test("a restored old panel entry cannot swallow the next Back action", () => {
   filters.open();
   b.host.history.back();
   assert.equal(closes, 2);
+});
+
+test("filter URL updates keep the open panel's entry so closing it leaves no dead Back press", () => {
+  const b = browser();
+  const closed: string[] = [];
+  const filters = createCatalogOverlayHistory(b.host, "filters", () => closed.push("filters"));
+  const make = createCatalogOverlayHistory(b.host, "make", () => closed.push("make"));
+  filters.open();
+  make.open();
+  // Choosing BMW in the make list publishes the URL the way the catalog does.
+  const selected = "https://example.com/ua/shop/catalog?make=BMW&includeFitment=true";
+  filters.remember(selected);
+  make.remember(selected);
+  b.host.history.replaceState(catalogOverlayReplaceState(b.host.history.state), "", selected);
+  make.close();
+  assert.equal(b.index(), 1, "the make list consumes its own entry");
+  assert.equal(b.host.location.href, selected);
+  filters.close();
+  assert.equal(b.index(), 0, "the panel consumes its own entry");
+  assert.equal(b.host.location.href, selected);
+  assert.deepEqual(closed, ["make", "filters"]);
+});
+
+test("a filter URL update outside any panel carries no state, so Next.js syncs it", () => {
+  assert.equal(catalogOverlayReplaceState({ __NA: true }), null);
+  assert.equal(catalogOverlayReplaceState(null), null);
+  assert.deepEqual(
+    catalogOverlayReplaceState({ __NA: true, __oneCompanyCatalogOverlay: "make:1" }),
+    {
+      __oneCompanyCatalogOverlay: "make:1",
+    }
+  );
 });

@@ -78,11 +78,14 @@ export function revalidateShopStorefrontProducts(
   // invalidate it with the same mutation so stock badges reflect edits
   // immediately instead of waiting for the shared 60-second TTL.
   revalidateTag("shop-warehouse-products", { expire: 0 });
-  // Product fitment edits and imports change vehicle selector options.
-  revalidateTag(SHOP_CATALOG_SELECTOR_CACHE_TAG, { expire: 0 });
 
-  // Price and stock edits never change group membership.
+  // Price and stock edits never change group membership or vehicle fitment.
   if (detailOnly) return Promise.resolve();
+  // Product fitment edits and imports change vehicle selector options. Mark
+  // them stale rather than expired: a cold chassis list takes seconds to
+  // compute, so visitors keep the previous options while it refreshes in the
+  // background (the admin cache reset still expires them at once).
+  revalidateTag(SHOP_CATALOG_SELECTOR_CACHE_TAG, "max");
   return revalidateRacechipGroupSiblings(
     products,
     new Set(plan.paths.map(({ path }) => path)),
