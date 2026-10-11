@@ -69,7 +69,8 @@ test("a /page/N route starts at that page until a filter moves the URL away", ()
     usesPageRoutes: true,
     pageOffset: AKRAPOVIC_LISTING_PAGE_SIZE,
   });
-  // A filter shows its results from the top...
+  // A filter (or a non-default sort, which the component passes the same way)
+  // shows its results from the top...
   assert.deepEqual(resolveAkrapovicPageRoute({ ...base, hasActiveFilters: true }), {
     usesPageRoutes: false,
     pageOffset: 0,

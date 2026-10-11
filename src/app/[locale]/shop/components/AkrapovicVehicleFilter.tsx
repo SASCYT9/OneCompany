@@ -453,14 +453,16 @@ export default function AkrapovicVehicleFilter({
     searchQuery.trim() !== "";
 
   // On a `/page/N` continuation the unfiltered list starts at that page, so
-  // every crawlable page carries its own slice of products. Any active filter
-  // (or the moto scope, which has no page routes) starts from the top again.
+  // every crawlable page carries its own slice of products. Any active filter,
+  // a non-default sort (it reorders the whole list) or the moto scope (which has
+  // no page routes) starts from the top again.
+  const isSorted = sortOrder !== "default";
   useEffect(() => {
-    if (hasActiveFilters || isMoto) setLeftPageRoute(true);
-  }, [hasActiveFilters, isMoto]);
+    if (hasActiveFilters || isMoto || isSorted) setLeftPageRoute(true);
+  }, [hasActiveFilters, isMoto, isSorted]);
   const { usesPageRoutes, pageOffset } = resolveAkrapovicPageRoute({
     pagination,
-    hasActiveFilters,
+    hasActiveFilters: hasActiveFilters || isSorted,
     isMoto,
     leftPageRoute,
   });

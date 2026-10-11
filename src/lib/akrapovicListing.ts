@@ -62,9 +62,10 @@ export function resolveAkrapovicPagination(
 
 /**
  * Which slice of the unfiltered list the listing shows. A `/page/N` route
- * starts at page N; any filter, the moto scope, or having already left the
- * page route (a filter replaced the URL with the base listing and was cleared
- * again) starts from the top, so the URL and the visible products stay aligned.
+ * starts at page N; any filter or non-default sort (`hasActiveFilters`), the
+ * moto scope, or having already left the page route (the URL was replaced with
+ * the base listing and the filter or sort was cleared again) starts from the
+ * top, so the URL and the visible products stay aligned.
  */
 export function resolveAkrapovicPageRoute(input: {
   pagination?: { page: number } | null;
