@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { verifySitemapArtifactXml } from "../src/lib/seoSitemapVerify";
 
 const root = process.cwd();
 const sitemapPath = path.join(root, ".next", "server", "app", "sitemap.xml.body");
@@ -14,28 +15,9 @@ assert.ok(fs.existsSync(manifestPath), `Missing catalog fallback manifest: ${man
 const sitemapBytes = fs.statSync(sitemapPath).size;
 assert.ok(sitemapBytes < 50 * 1024 * 1024, `Sitemap is ${sitemapBytes} bytes (limit: 50 MB)`);
 
-const xml = fs.readFileSync(sitemapPath, "utf8");
-const urlBlocks = xml.match(/<url>[\s\S]*?<\/url>/g) ?? [];
-assert.ok(urlBlocks.length > 0, "Sitemap contains no URLs");
-assert.ok(urlBlocks.length < 50_000, `Sitemap contains ${urlBlocks.length} URLs`);
-
-const locations = new Set<string>();
-for (const block of urlBlocks) {
-  const location = block.match(/<loc>([^<]+)<\/loc>/)?.[1];
-  assert.ok(location, "Sitemap URL is missing <loc>");
-  assert.ok(
-    location.startsWith("https://onecompany.global/"),
-    `Unexpected sitemap host: ${location}`
-  );
-  assert.ok(!/[?#]/.test(location), `Query/hash URL in sitemap: ${location}`);
-  assert.ok(!locations.has(location), `Duplicate sitemap URL: ${location}`);
-  locations.add(location);
-
-  const hreflangs = new Set([...block.matchAll(/hreflang="([^"]+)"/g)].map((match) => match[1]));
-  for (const required of ["uk", "en", "x-default"]) {
-    assert.ok(hreflangs.has(required), `${location} is missing ${required} hreflang`);
-  }
-}
+// `/sitemap.xml` is a sitemap index; its product children are rendered on demand
+// and are not part of the build output (see src/lib/seoSitemapVerify.ts).
+const sitemap = verifySitemapArtifactXml(fs.readFileSync(sitemapPath, "utf8"));
 
 type FallbackManifest = {
   version: number;
@@ -81,7 +63,7 @@ for (const trace of traces) {
 console.log(
   JSON.stringify(
     {
-      sitemapUrls: locations.size,
+      sitemap,
       sitemapBytes,
       fallbackProducts: manifest.count,
       fallbackStores: Object.keys(manifest.stores).length,
