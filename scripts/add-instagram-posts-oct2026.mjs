@@ -9,6 +9,7 @@
  * already present is skipped.
  *
  * Usage: node scripts/add-instagram-posts-oct2026.mjs
+ *        npx prettier --write public/config/site-content.json
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -188,5 +189,13 @@ for (const entry of posts) {
   console.log(`added ${post.id} -> ${post.slug} (${post.media.length} media)`);
 }
 
+if (added === 0) {
+  // A rerun must leave the checked-in file byte-for-byte untouched.
+  console.log("Done: 0 post(s) added; site-content.json left untouched.");
+  process.exit(0);
+}
+
 fs.writeFileSync(FILE, `${JSON.stringify(content, null, 2)}\n`);
-console.log(`Done: ${added} post(s) added.`);
+console.log(
+  `Done: ${added} post(s) added. Run "npx prettier --write ${FILE}" to match the repository formatting.`
+);
