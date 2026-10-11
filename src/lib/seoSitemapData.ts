@@ -6,16 +6,17 @@ import {
   planProductSitemapChunks,
   type SitemapProductChunk,
 } from "@/lib/seoSitemapModel";
-import { getRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation.server";
+import { computeRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { listShopProductSlugsForSitemap } from "@/lib/shopCatalogServer";
 
 export async function loadProductSitemapChunks(): Promise<SitemapProductChunk[]> {
-  const [products, racechipNoindex] = await Promise.all([
-    listShopProductSlugsForSitemap(),
-    getRacechipNoindexSlugs(),
-  ]);
-  // Variants that answer `noindex` must not be advertised in the sitemap.
+  const products = await listShopProductSlugsForSitemap();
+  // Variants that answer `noindex` must not be advertised in the sitemap. The set
+  // is derived from the list that was just loaded: a second call to
+  // getRacechipNoindexSlugs() would issue a duplicate full product query on a
+  // cold cache. The product pages build the same set from the same function.
+  const racechipNoindex = computeRacechipNoindexSlugs(products);
   return planProductSitemapChunks(
     racechipNoindex.size > 0
       ? products.filter((product) => !racechipNoindex.has(product.slug))

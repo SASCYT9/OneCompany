@@ -29,7 +29,11 @@ import {
   extractChassisForBrandAndModel,
   compareVehicleModelKeys,
 } from "@/lib/akrapovicFilterUtils";
-import { AKRAPOVIC_LISTING_PAGE_SIZE, sortAkrapovicProducts } from "@/lib/akrapovicListing";
+import {
+  AKRAPOVIC_LISTING_PAGE_SIZE,
+  resolveAkrapovicPageRoute,
+  sortAkrapovicProducts,
+} from "@/lib/akrapovicListing";
 
 type AkrapovicVehicleFilterProps = {
   locale: SupportedLocale;
@@ -109,6 +113,8 @@ export default function AkrapovicVehicleFilter({
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // Set once a filter has moved the URL off `/page/N`; see resolveAkrapovicPageRoute.
+  const [leftPageRoute, setLeftPageRoute] = useState(false);
   const { mobileFilterOpen, closeMobileFilter, toggleMobileFilter } = useMobileFilterDrawer();
   const prevBrandRef = useRef(activeBrand);
   const prevModelRef = useRef(activeModel);
@@ -329,13 +335,15 @@ export default function AkrapovicVehicleFilter({
       if (q.trim()) params.set("q", q.trim());
       if (isMoto) params.set("scope", "moto");
       const qs = params.toString();
-      // Filtered views live on the base listing URL, never on `/page/N`.
-      const nextPath = qs ? `${pagination?.basePath ?? pathname}?${qs}` : pathname || "";
+      // Filtered views live on the base listing URL, never on `/page/N`. Once a
+      // filter has left the page route, clearing it returns to the base listing.
+      const basePath = pagination?.basePath ?? pathname;
+      const nextPath = qs ? `${basePath}?${qs}` : leftPageRoute ? basePath : pathname || "";
       if (typeof window !== "undefined") {
         window.history.replaceState(window.history.state, "", nextPath);
       }
     },
-    [pathname, filterOnly, isMoto, pagination?.basePath]
+    [pathname, filterOnly, isMoto, pagination?.basePath, leftPageRoute]
   );
 
   useEffect(() => {
@@ -447,9 +455,15 @@ export default function AkrapovicVehicleFilter({
   // On a `/page/N` continuation the unfiltered list starts at that page, so
   // every crawlable page carries its own slice of products. Any active filter
   // (or the moto scope, which has no page routes) starts from the top again.
-  const usesPageRoutes = Boolean(pagination) && !hasActiveFilters && !isMoto;
-  const pageOffset =
-    usesPageRoutes && pagination ? (Math.max(1, pagination.page) - 1) * PAGE_SIZE : 0;
+  useEffect(() => {
+    if (hasActiveFilters || isMoto) setLeftPageRoute(true);
+  }, [hasActiveFilters, isMoto]);
+  const { usesPageRoutes, pageOffset } = resolveAkrapovicPageRoute({
+    pagination,
+    hasActiveFilters,
+    isMoto,
+    leftPageRoute,
+  });
   const displayedProducts = useMemo(
     () => filteredProducts.slice(pageOffset, pageOffset + visibleCount),
     [filteredProducts, pageOffset, visibleCount]

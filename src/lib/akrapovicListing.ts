@@ -60,6 +60,27 @@ export function resolveAkrapovicPagination(
   return { totalPages, isValidPage, page: requestedPage };
 }
 
+/**
+ * Which slice of the unfiltered list the listing shows. A `/page/N` route
+ * starts at page N; any filter, the moto scope, or having already left the
+ * page route (a filter replaced the URL with the base listing and was cleared
+ * again) starts from the top, so the URL and the visible products stay aligned.
+ */
+export function resolveAkrapovicPageRoute(input: {
+  pagination?: { page: number } | null;
+  hasActiveFilters: boolean;
+  isMoto: boolean;
+  leftPageRoute: boolean;
+}): { usesPageRoutes: boolean; pageOffset: number } {
+  const usesPageRoutes =
+    Boolean(input.pagination) && !input.hasActiveFilters && !input.isMoto && !input.leftPageRoute;
+  const page = Math.max(1, input.pagination?.page ?? 1);
+  return {
+    usesPageRoutes,
+    pageOffset: usesPageRoutes ? (page - 1) * AKRAPOVIC_LISTING_PAGE_SIZE : 0,
+  };
+}
+
 export function buildAkrapovicListingPath(locale: string, page: number): string {
   const base = `/${locale}/${AKRAPOVIC_LISTING_BASE_SLUG}`;
   return page <= 1 ? base : `${base}/page/${page}`;

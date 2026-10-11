@@ -6,6 +6,7 @@ import {
   buildAkrapovicListingPath,
   hasAkrapovicListingFilters,
   isAkrapovicMotoScope,
+  resolveAkrapovicPageRoute,
   resolveAkrapovicPagination,
 } from "../../../src/lib/akrapovicListing";
 
@@ -55,4 +56,35 @@ test("pagination validates the requested page against the product count", () => 
 test("listing path puts page 1 on the base URL", () => {
   assert.equal(buildAkrapovicListingPath("ua", 1), "/ua/shop/akrapovic/collections");
   assert.equal(buildAkrapovicListingPath("en", 3), "/en/shop/akrapovic/collections/page/3");
+});
+
+test("a /page/N route starts at that page until a filter moves the URL away", () => {
+  const base = {
+    pagination: { page: 2 },
+    hasActiveFilters: false,
+    isMoto: false,
+    leftPageRoute: false,
+  };
+  assert.deepEqual(resolveAkrapovicPageRoute(base), {
+    usesPageRoutes: true,
+    pageOffset: AKRAPOVIC_LISTING_PAGE_SIZE,
+  });
+  // A filter shows its results from the top...
+  assert.deepEqual(resolveAkrapovicPageRoute({ ...base, hasActiveFilters: true }), {
+    usesPageRoutes: false,
+    pageOffset: 0,
+  });
+  // ...and clearing it must not jump back to page 2 on the base URL.
+  assert.deepEqual(resolveAkrapovicPageRoute({ ...base, leftPageRoute: true }), {
+    usesPageRoutes: false,
+    pageOffset: 0,
+  });
+  assert.deepEqual(resolveAkrapovicPageRoute({ ...base, isMoto: true }), {
+    usesPageRoutes: false,
+    pageOffset: 0,
+  });
+  assert.deepEqual(resolveAkrapovicPageRoute({ ...base, pagination: null }), {
+    usesPageRoutes: false,
+    pageOffset: 0,
+  });
 });
