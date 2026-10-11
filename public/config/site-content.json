@@ -41,13 +41,7 @@
       "label": "continents weekly"
     }
   ],
-  "values": [
-    "PERFORMANCE",
-    "QUALITY",
-    "SERVICE",
-    "SOUND",
-    "INNOVATION"
-  ],
+  "values": ["PERFORMANCE", "QUALITY", "SERVICE", "SOUND", "INNOVATION"],
   "brandSections": {
     "automotive": [
       {
@@ -288,11 +282,7 @@
         },
         "date": "2026-10-10T21:02:43Z",
         "status": "published",
-        "tags": [
-          "Bonamici",
-          "Triumph",
-          "Daytona660"
-        ],
+        "tags": ["Bonamici", "Triumph", "Daytona660"],
         "media": [
           {
             "id": "bonamici-daytona-660-hero",
@@ -470,13 +460,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "klineinnovation",
-          "onecompany",
-          "porsche992",
-          "992turbo",
-          "autotuning"
-        ],
+        "tags": ["klineinnovation", "onecompany", "porsche992", "992turbo", "autotuning"],
         "status": "published",
         "media": [
           {
@@ -524,13 +508,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "stopflex",
-          "lexuslx600",
-          "landcruiser300",
-          "brembo",
-          "onecompany"
-        ],
+        "tags": ["stopflex", "lexuslx600", "landcruiser300", "brembo", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -572,13 +550,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "offroadgroup",
-          "rpmpowersports",
-          "canam",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "offroadgroup", "rpmpowersports", "canam", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -615,13 +587,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "hyperpro",
-          "motorbike",
-          "mototuning",
-          "motoperformance",
-          "onecompany"
-        ],
+        "tags": ["hyperpro", "motorbike", "mototuning", "motoperformance", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -669,13 +635,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "кованідиски",
-          "customwheels",
-          "forgedwheels",
-          "тюнінг",
-          "onecompany"
-        ],
+        "tags": ["кованідиски", "customwheels", "forgedwheels", "тюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -735,13 +695,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "ferrari",
-          "purosangue",
-          "capristoexhaust",
-          "автотюнінг",
-          "onecompany"
-        ],
+        "tags": ["ferrari", "purosangue", "capristoexhaust", "автотюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -778,13 +732,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "fiexhaust",
-          "lamborghiniurus",
-          "urusse",
-          "tuningcar",
-          "onecompany"
-        ],
+        "tags": ["fiexhaust", "lamborghiniurus", "urusse", "tuningcar", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -826,13 +774,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "fmic",
-          "2jz",
-          "2jzge",
-          "toyotatuning"
-        ],
+        "tags": ["onecompany", "fmic", "2jz", "2jzge", "toyotatuning"],
         "status": "published",
         "media": [
           {
@@ -898,13 +840,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "unpluggedperformance",
-          "tesla",
-          "teslamodel3",
-          "cybertruck",
-          "onecompany"
-        ],
+        "tags": ["unpluggedperformance", "tesla", "teslamodel3", "cybertruck", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -952,13 +888,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "whipplesuperchargers",
-          "mustang",
-          "darkhorse",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "whipplesuperchargers", "mustang", "darkhorse", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -995,9 +925,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "тренування_за_підтримки_спонсора_beton"
-        ],
+        "tags": ["тренування_за_підтримки_спонсора_beton"],
         "status": "published",
         "media": [
           {
@@ -1057,11 +985,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning",
-          "tuningukraine"
-        ],
+        "tags": ["onecompany", "tuning", "tuningukraine"],
         "status": "published",
         "media": [
           {
@@ -1127,10 +1051,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1167,10 +1088,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1212,10 +1130,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1257,10 +1172,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1297,10 +1209,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1337,10 +1246,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1377,10 +1283,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1446,10 +1349,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1491,10 +1391,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1531,10 +1428,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1576,10 +1470,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1616,13 +1507,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "darwinpro",
-          "audirs",
-          "cartuning",
-          "onecompany",
-          "тюнінг"
-        ],
+        "tags": ["darwinpro", "audirs", "cartuning", "onecompany", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1676,13 +1561,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "klineinnovation",
-          "porschegt3",
-          "onecompany",
-          "tuningcar",
-          "тюнінг"
-        ],
+        "tags": ["klineinnovation", "porschegt3", "onecompany", "tuningcar", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -1719,13 +1598,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "scproject",
-          "yamahar9",
-          "onecompany",
-          "scprojectexhaust",
-          "motorcycletuning"
-        ],
+        "tags": ["scproject", "yamahar9", "onecompany", "scprojectexhaust", "motorcycletuning"],
         "status": "published",
         "media": [
           {
@@ -1767,13 +1640,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "lartedesign",
-          "premiumcars",
-          "тюнінг",
-          "cartuning"
-        ],
+        "tags": ["onecompany", "lartedesign", "premiumcars", "тюнінг", "cartuning"],
         "status": "published",
         "media": [
           {
@@ -1810,13 +1677,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "techartporsche",
-          "carbonfiber",
-          "widebody",
-          "тюнінг",
-          "onecompany"
-        ],
+        "tags": ["techartporsche", "carbonfiber", "widebody", "тюнінг", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -1876,13 +1737,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "libertywalk",
-          "lbworks",
-          "landcruiser250",
-          "tuning"
-        ],
+        "tags": ["onecompany", "libertywalk", "lbworks", "landcruiser250", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1936,12 +1791,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "al13wheels",
-          "ferrari",
-          "tuning"
-        ],
+        "tags": ["onecompany", "al13wheels", "ferrari", "tuning"],
         "status": "published",
         "media": [
           {
@@ -1989,12 +1839,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ilmbergercarbon",
-          "motorcycle",
-          "carbonfiber"
-        ],
+        "tags": ["onecompany", "ilmbergercarbon", "motorcycle", "carbonfiber"],
         "status": "published",
         "media": [
           {
@@ -2031,10 +1876,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2071,13 +1913,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "jb4",
-          "burgermotorsports",
-          "cartuning",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["jb4", "burgermotorsports", "cartuning", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -2113,13 +1949,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "brabus",
-          "widestar",
-          "mercedesg63",
-          "tuning",
-          "onecompany"
-        ],
+        "tags": ["brabus", "widestar", "mercedesg63", "tuning", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -2173,10 +2003,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2213,10 +2040,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2270,10 +2094,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2364,10 +2185,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2433,12 +2251,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "quicksilverexhaust",
-          "exhaustsystem",
-          "tuning"
-        ],
+        "tags": ["onecompany", "quicksilverexhaust", "exhaustsystem", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2474,10 +2287,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2543,10 +2353,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2601,10 +2408,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2646,10 +2450,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2685,11 +2486,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "mtstechnik",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "mtstechnik", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2726,13 +2523,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "gsport",
-          "gesi",
-          "catalyticconverter",
-          "tuning"
-        ],
+        "tags": ["onecompany", "gsport", "gesi", "catalyticconverter", "tuning"],
         "status": "published",
         "media": [
           {
@@ -2769,13 +2560,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ipe",
-          "ipeexhaust",
-          "titaniumexhaustpipes",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ipe", "ipeexhaust", "titaniumexhaustpipes", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2812,13 +2597,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "hrewheels",
-          "hre",
-          "s101sc",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "hrewheels", "hre", "s101sc", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2855,11 +2634,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning",
-          "onecompanyglobal"
-        ],
+        "tags": ["onecompany", "tuning", "onecompanyglobal"],
         "status": "published",
         "media": [
           {
@@ -2919,12 +2694,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "ctcarbon",
-          "bmwx5m",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "ctcarbon", "bmwx5m", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -2990,13 +2760,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "darwinpro",
-          "bmw8",
-          "tuning",
-          "carbon"
-        ],
+        "tags": ["onecompany", "darwinpro", "bmw8", "tuning", "carbon"],
         "status": "published",
         "media": [
           {
@@ -3068,12 +2832,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "urbanautomotive",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "urbanautomotive", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3110,13 +2869,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "eventuri",
-          "bmwm5",
-          "g90",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "eventuri", "bmwm5", "g90", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3153,13 +2906,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3219,13 +2966,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "bmw",
-          "mperfomance",
-          "onecompany",
-          "3ddesign",
-          "тюнінг"
-        ],
+        "tags": ["bmw", "mperfomance", "onecompany", "3ddesign", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3261,12 +3002,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "rangerovertuning",
-          "widetrack",
-          "onecompanyglobal",
-          "onecompany"
-        ],
+        "tags": ["rangerovertuning", "widetrack", "onecompanyglobal", "onecompany"],
         "status": "published",
         "media": [
           {
@@ -3302,12 +3038,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "brabus",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "brabus", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3343,13 +3074,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "RSQ8Facelift",
-          "CTCarbon",
-          "onecompanyglobal",
-          "тюнінг",
-          "carbonbodykit"
-        ],
+        "tags": ["RSQ8Facelift", "CTCarbon", "onecompanyglobal", "тюнінг", "carbonbodykit"],
         "status": "published",
         "media": [
           {
@@ -3385,12 +3110,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "iPE",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "iPE", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3426,12 +3146,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "eventuri",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "eventuri", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3467,13 +3182,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "adro",
-          "bmwm3",
-          "bmwm4"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "adro", "bmwm3", "bmwm4"],
         "status": "published",
         "media": [
           {
@@ -3509,12 +3218,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "onecompanyglobal",
-          "akrapovic",
-          "тюнінг"
-        ],
+        "tags": ["onecompany", "onecompanyglobal", "akrapovic", "тюнінг"],
         "status": "published",
         "media": [
           {
@@ -3550,10 +3254,7 @@
           "ua": "Україна",
           "en": "Ukraine"
         },
-        "tags": [
-          "onecompany",
-          "tuning"
-        ],
+        "tags": ["onecompany", "tuning"],
         "status": "published",
         "media": [
           {
