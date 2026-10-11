@@ -25,6 +25,21 @@ export function includesNormalized(haystack: string, needle: string): boolean {
   return normalizeToken(haystack).includes(normalizedNeedle);
 }
 
+/**
+ * True when `hp` is already stated in `text` as its own labeled figure
+ * ("177 hp", "177 к.с.", "177PS"). A bare substring test is wrong here: 112
+ * sits inside "2011–2015" and 196 inside "1968cc".
+ */
+function includesLabeledPower(text: string, hp: number): boolean {
+  // String.raw keeps the regex escapes (\s, \p{L}, \.) intact in the source.
+  const label = String.raw`(?:hp|bhp|ps|cv|pk|к\.?\s*с\.?|л\.?\s*с\.?)`;
+  const pattern = new RegExp(
+    String.raw`(?<![\p{L}\p{N}.,])${hp}[\s ]*${label}(?![\p{L}\p{N}])`,
+    "iu"
+  );
+  return pattern.test(text);
+}
+
 function clean(value: string | null | undefined): string {
   return (value ?? "").replace(/\s+/g, " ").trim();
 }
@@ -154,7 +169,7 @@ export function buildRacechipSeoMeta(input: {
     ? `${specs.hp} к.с. / ${specs.kw} кВт / ${specs.nm} Нм`
     : `${specs.hp} hp / ${specs.kw} kW / ${specs.nm} Nm`;
 
-  const titleWithPower = includesNormalized(name, `${specs.hp}`) ? name : `${name}, ${power}`;
+  const titleWithPower = includesLabeledPower(name, specs.hp) ? name : `${name}, ${power}`;
   const title =
     `${titleWithPower} | ${suffix}`.length <= SEO_TITLE_MAX_LENGTH
       ? `${titleWithPower} | ${suffix}`

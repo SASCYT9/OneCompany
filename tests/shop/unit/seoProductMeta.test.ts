@@ -171,3 +171,30 @@ test("RaceChip falls back to the generic builder when the slug has no power bloc
   assert.match(meta.title, /RaceChip GTS 5 custom/);
   assert.match(meta.description, /SKU RC-1/);
 });
+
+test("RaceChip power is only treated as present when it is a labeled figure", () => {
+  const slug = (hp: number) => `racechip-gts5-seat-leon-2-0-tdi-${hp}hp-${hp - 30}kw-300nm`;
+  const titleFor = (name: string, hp: number) =>
+    buildRacechipSeoMeta({ locale: "en", slug: slug(hp), title: name }).title;
+
+  // Digits of the model years / displacement must not hide the power figure.
+  assert.ok(
+    titleFor("RaceChip GTS 5 — Seat Leon (2011–2015) 1.4 TSI", 112).includes(", 112 hp | RaceChip")
+  );
+  assert.ok(
+    titleFor("RaceChip GTS 5 — Audi A4 2.0 TDI 1968cc", 196).includes(", 196 hp | RaceChip")
+  );
+
+  // An explicit figure in the name is left alone, in either language.
+  assert.equal(
+    titleFor("RaceChip GTS 5 — Audi A4 2.0 TDI 177 hp", 177).includes("177 hp, 177 hp"),
+    false
+  );
+  assert.equal((titleFor("RaceChip GTS 5 — Audi A4 177hp", 177).match(/177/g) ?? []).length, 1);
+  const ua = buildRacechipSeoMeta({
+    locale: "ua",
+    slug: slug(177),
+    title: "RaceChip GTS 5 — Audi A4 177 к.с.",
+  }).title;
+  assert.equal((ua.match(/177/g) ?? []).length, 1);
+});

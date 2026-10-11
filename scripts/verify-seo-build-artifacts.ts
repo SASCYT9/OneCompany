@@ -9,15 +9,27 @@ const fallbackDir = path.join(root, "public", "catalog-fallback");
 const manifestPath = path.join(fallbackDir, "manifest.json");
 const serverAppDir = path.join(root, ".next", "server", "app");
 
-assert.ok(fs.existsSync(sitemapPath), `Missing post-build sitemap: ${sitemapPath}`);
-assert.ok(fs.existsSync(manifestPath), `Missing catalog fallback manifest: ${manifestPath}`);
+// Read each file once instead of checking existence first and reading later,
+// so the content that is validated is the content that was read.
+function readRequiredFile(filePath: string, description: string): Buffer {
+  try {
+    return fs.readFileSync(filePath);
+  } catch (error) {
+    assert.fail(
+      `Missing ${description}: ${filePath} (${error instanceof Error ? error.message : String(error)})`
+    );
+  }
+}
 
-const sitemapBytes = fs.statSync(sitemapPath).size;
+const sitemapBuffer = readRequiredFile(sitemapPath, "post-build sitemap");
+const manifestBuffer = readRequiredFile(manifestPath, "catalog fallback manifest");
+
+const sitemapBytes = sitemapBuffer.length;
 assert.ok(sitemapBytes < 50 * 1024 * 1024, `Sitemap is ${sitemapBytes} bytes (limit: 50 MB)`);
 
 // `/sitemap.xml` is a sitemap index; its product children are rendered on demand
 // and are not part of the build output (see src/lib/seoSitemapVerify.ts).
-const sitemap = verifySitemapArtifactXml(fs.readFileSync(sitemapPath, "utf8"));
+const sitemap = verifySitemapArtifactXml(sitemapBuffer.toString("utf8"));
 
 type FallbackManifest = {
   version: number;
@@ -27,7 +39,7 @@ type FallbackManifest = {
   slugToStore: Record<string, string>;
 };
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as FallbackManifest;
+const manifest = JSON.parse(manifestBuffer.toString("utf8")) as FallbackManifest;
 assert.equal(manifest.version, 2);
 assert.ok(
   manifest.count >= manifest.activeDatabaseCount,
