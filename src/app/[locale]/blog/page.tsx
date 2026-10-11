@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/navigation";
 import { readSiteContent } from "@/lib/siteContentServer";
 import { blogAuthorName, formatBlogDate } from "@/lib/blogPresentation";
+import { buildBlogFeedUrl } from "@/lib/blogFeed";
 import {
   absoluteUrl,
   buildLocalizedPath,
@@ -37,7 +38,14 @@ const metaCopy: Record<SupportedLocale, { title: string; description: string }> 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const l = resolveLocale(locale);
-  return buildPageMetadata(l, "blog", metaCopy[l]);
+  const metadata = buildPageMetadata(l, "blog", metaCopy[l]);
+  return {
+    ...metadata,
+    alternates: {
+      ...metadata.alternates,
+      types: { "application/rss+xml": buildBlogFeedUrl(l) },
+    },
+  };
 }
 
 const getLocalized = (value: { ua: string; en: string }, locale: SupportedLocale) => {

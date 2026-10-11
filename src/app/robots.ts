@@ -22,6 +22,7 @@ const AI_TRAINING_CRAWLERS = [
 
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = absoluteUrl("/sitemap.xml");
+  const newsSitemapUrl = absoluteUrl("/news-sitemap.xml");
   const disallowRules = noindexPrefixes.flatMap((prefix) => [prefix, `${prefix}/*`]);
 
   return {
@@ -37,6 +38,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     host: siteConfig.url,
-    sitemap: sitemapUrl,
+    sitemap: [sitemapUrl, newsSitemapUrl],
   };
 }

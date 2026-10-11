@@ -82,3 +82,11 @@ export function getBlogDateInput(date: string) {
   const value = (type: string) => parts.find((part) => part.type === type)!.value;
   return `${value("year")}-${value("month")}-${value("day")}`;
 }
+
+/**
+ * Editorially written articles (structured sections) are news; Instagram
+ * captions imported as posts are promotional and stay plain articles.
+ */
+export function isEditorialNewsPost(post: BlogPost) {
+  return Boolean(post.sections?.length);
+}
