@@ -41,6 +41,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useCatalogOverlay } from "@/components/shop/useCatalogOverlay";
+import { catalogOverlayReplaceState } from "@/lib/shopCatalogOverlayHistory";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import GlareHover from "@/components/reactbits/GlareHover";
 import ShinyText from "@/components/reactbits/ShinyText";
@@ -59,6 +60,7 @@ import {
 } from "@/lib/shopMoneyFormat";
 import { parseShopStockParamList } from "@/lib/shopStockSearchParams";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
+import { compareShopBrandLabels } from "@/lib/shopProductDisplayBrand";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
 import {
   isWheelForceWheel,
@@ -365,6 +367,16 @@ function vehicleSearchText(value: string) {
 
 type VehiclePickerOption = { value: string; group?: string };
 
+/**
+ * Lists opened by a tap must not raise the on-screen keyboard over the options
+ * the customer is about to tap (Android shows it for programmatic focus), so a
+ * list's search field takes focus on its own only with a mouse or keyboard.
+ */
+function focusPickerSearch(input: HTMLInputElement | null) {
+  if (!window.matchMedia("(pointer: fine)").matches) return;
+  input?.focus();
+}
+
 type VehiclePickerSelectProps = {
   label: string;
   value: string;
@@ -429,7 +441,7 @@ function VehiclePickerSelect({
     setFilter("");
     setHighlight(0);
     keyboardNavRef.current = false;
-    const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
+    const frame = window.requestAnimationFrame(() => focusPickerSearch(inputRef.current));
     const closeOnOutside = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) onOpenChange(false);
     };
@@ -1433,17 +1445,23 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     return featured;
   }, [heroInventoryItems]);
   const activeHeroProduct = showWarehouseHero ? (heroProducts[heroProductIndex] ?? null) : null;
-  // Typing the first character hides the warehouse hero above the search box.
-  // Without compensation the whole page shifts up by the hero height and the
-  // focused input slides under the fixed site header while the user types.
+  // Typing the first character, or choosing a make in the vehicle finder,
+  // hides the warehouse hero above both. Without compensation the whole page
+  // shifts up by the hero height and the field in use (or the model list the
+  // make opens) slides under the fixed site header.
   const previousShowWarehouseHeroRef = useRef(showWarehouseHero);
   useLayoutEffect(() => {
     const heroJustHidden = previousShowWarehouseHeroRef.current && !showWarehouseHero;
     previousShowWarehouseHeroRef.current = showWarehouseHero;
-    if (!heroJustHidden || !searchFocusedRef.current) return;
-    const searchBox = searchBoxRef.current;
-    if (!searchBox) return;
-    const top = searchBox.getBoundingClientRect().top;
+    if (!heroJustHidden) return;
+    const vehicleFinder = document.querySelector<HTMLElement>("[data-vehicle-finder]");
+    const anchor = searchFocusedRef.current
+      ? searchBoxRef.current
+      : vehicleFinder?.contains(document.activeElement)
+        ? vehicleFinder
+        : null;
+    if (!anchor) return;
+    const top = anchor.getBoundingClientRect().top;
     if (top < SEARCH_BOX_MIN_VIEWPORT_TOP) {
       window.scrollBy({ top: top - SEARCH_BOX_MIN_VIEWPORT_TOP, behavior: "auto" });
     }
@@ -1818,7 +1836,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const previousOverflow = document.body.style.overflow;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const focusFrame = window.requestAnimationFrame(() =>
-      makePickerSearchInputRef.current?.focus()
+      focusPickerSearch(makePickerSearchInputRef.current)
     );
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -1915,8 +1933,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       rememberMakeUrl(nextUrl);
       if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
         // Let Next.js synchronize useSearchParams and pagination links. Passing
-        // its internal history state makes the router skip that synchronization.
-        window.history.replaceState(null, "", nextUrl);
+        // its internal history state makes the router skip that synchronization;
+        // an open filter panel keeps its own marker.
+        window.history.replaceState(
+          catalogOverlayReplaceState(window.history.state),
+          "",
+          nextUrl
+        );
       }
     },
     [
@@ -2581,14 +2604,13 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       ? nonEmptyBrands.filter((brandName) => normalizeFacetSearchText(brandName).includes(needle))
       : nonEmptyBrands;
 
+    // Selected brands stay on top so the collapsed list never hides them.
     return [...matches].sort((left, right) => {
       const selectedDiff = Number(selected.has(right)) - Number(selected.has(left));
       if (selectedDiff !== 0) return selectedDiff;
-      const countDiff = (brandCountByLabel.get(right) ?? 0) - (brandCountByLabel.get(left) ?? 0);
-      if (countDiff !== 0) return countDiff;
-      return left.localeCompare(right, locale === "ua" ? "uk" : "en");
+      return compareShopBrandLabels(left, right);
     });
-  }, [brandCountByLabel, brandFilterQuery, filterStats, localBrands, locale, selectedBrands]);
+  }, [brandCountByLabel, brandFilterQuery, filterStats, localBrands, selectedBrands]);
 
   const displayedCategories =
     categoryFilterQuery.trim() || categoriesExpanded
@@ -2633,7 +2655,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       const nextHref = `${nextUrl.pathname}${nextUrl.search}`;
       rememberFiltersUrl(nextHref);
       rememberMakeUrl(nextHref);
-      window.history.replaceState(null, "", nextHref);
+      window.history.replaceState(catalogOverlayReplaceState(window.history.state), "", nextHref);
     }
     setMake(nextMake);
     setModel("");
@@ -3723,13 +3745,21 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
               <X className="h-4 w-4" />
               {isUa ? "Скинути" : "Reset"}
             </button>
+            {/* A failed request leaves zero counts behind; offer a retry instead
+                of "Show 0", which reads as "nothing fits this car". */}
             <button
               type="button"
-              onClick={() => setMobileFiltersOpen(false)}
+              onClick={() =>
+                error && !loading ? void doSearch(1) : setMobileFiltersOpen(false)
+              }
               className="flex h-11 min-w-0 items-center justify-center rounded-[8px] border border-foreground bg-foreground px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-background transition hover:bg-transparent hover:text-foreground"
             >
               <span className="truncate">
-                {isUa ? "Показати" : "Show"} {totalItems.toLocaleString(isUa ? "uk-UA" : "en-US")}
+                {error && !loading
+                  ? isUa
+                    ? "Повторити пошук"
+                    : "Retry search"
+                  : `${isUa ? "Показати" : "Show"} ${totalItems.toLocaleString(isUa ? "uk-UA" : "en-US")}`}
               </span>
             </button>
           </div>

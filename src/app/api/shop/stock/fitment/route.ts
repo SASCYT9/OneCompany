@@ -22,7 +22,9 @@ import { shopVehicleMakesMatch, shopVehicleModelsMatch } from "@/lib/shopVehicle
 import { getVehicleSelectorModelAliases } from "@/lib/shopVehicleSearch";
 import {
   listLegacyVehicleChassisOptions,
+  prefetchLegacyVehicleMakePool,
   resolveLegacyVehicleProductIds,
+  type LegacyVehicleChassisOptions,
 } from "@/lib/shopCatalogLegacyVehicleIds.server";
 import {
   listProjectionVehicleChassisOptions,
@@ -322,7 +324,8 @@ async function refineProjectionSelectorOptions<
 async function refineSelectorOptions<T extends { type?: string; data?: unknown; make?: string }>(
   result: T | null,
   input: SelectorOptionsInput,
-  readerMode: string
+  readerMode: string,
+  legacyChassisOptions: Promise<LegacyVehicleChassisOptions | null> | null = null
 ): Promise<T | (T & { counts: Record<string, number> }) | null> {
   // Moto pickers keep their canonical options: the refinements below read
   // automotive evidence.
@@ -330,10 +333,11 @@ async function refineSelectorOptions<T extends { type?: string; data?: unknown; 
   if (result.type === "details") return withHierarchyDetails(result, input);
   if (readerMode === "projection") return refineProjectionSelectorOptions(result, input);
   if (result.type === "chassis" && result.make && input.model) {
-    const options = await listLegacyVehicleChassisOptions({
-      make: result.make,
-      model: input.model,
-    }).catch(() => null);
+    const options = await (legacyChassisOptions ??
+      listLegacyVehicleChassisOptions({
+        make: result.make,
+        model: input.model,
+      }).catch(() => null));
     return options?.codes.length
       ? { ...result, data: options.codes, counts: options.counts }
       : result;
@@ -368,8 +372,30 @@ async function refineSelectorOptions<T extends { type?: string; data?: unknown; 
 // The reader mode is an argument so it is part of the cache key: switching
 // readers never serves options computed by the other one.
 const readCachedSelectorOptions = unstable_cache(
-  async (input: SelectorOptionsInput, readerMode: string) =>
-    refineSelectorOptions(
+  async (input: SelectorOptionsInput, readerMode: string) => {
+    const { make, model } = input;
+    // Model and chassis levels are refined by the listing's own matching,
+    // which reads for seconds on a popular make. Start it, the make's
+    // candidate pool and the BMC supplier contracts together with the
+    // canonical read instead of one after another.
+    const refinesWithListing =
+      Boolean(make) &&
+      !input.chassis &&
+      !input.details &&
+      !input.brand &&
+      input.scope !== "moto" &&
+      readerMode !== "projection";
+    if (make && refinesWithListing) prefetchLegacyVehicleMakePool(make);
+    const legacyChassisOptions =
+      make && model && refinesWithListing
+        ? listLegacyVehicleChassisOptions({ make, model }).catch(() => null)
+        : null;
+    if (!input.brand || input.brand.toLocaleLowerCase() === "bmc") {
+      // Warms the shared single-flight read; supplementBmcSupplierFitment
+      // awaits the same promise and reports its failure.
+      getBmcSupplierApplications().catch(() => {});
+    }
+    return refineSelectorOptions(
       await supplementBmcSupplierFitment(await getCanonicalFitmentOptions(input), {
         make: input.make,
         model: input.model,
@@ -378,8 +404,10 @@ const readCachedSelectorOptions = unstable_cache(
         scope: input.scope,
       }),
       input,
-      readerMode
-    ),
+      readerMode,
+      legacyChassisOptions
+    );
+  },
   ["shop-fitment-selector-options-v5"],
   { revalidate: SHOP_CATALOG_SELECTOR_CACHE_SECONDS, tags: [SHOP_CATALOG_SELECTOR_CACHE_TAG] }
 );

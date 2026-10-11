@@ -267,6 +267,70 @@ async function indexFitmentProducts(
 
 type ProductTextField = "titleEn" | "titleUa" | "slug" | "collectionEn" | "collectionUa";
 
+/** Published products that carry a make tag or name the make, with lowercased text. */
+type MakeCandidatePoolRow = { id: string; tags: string[]; text: string[] };
+
+const MAKE_POOL_CACHE_MS = 60_000;
+const MAKE_POOL_MAX_ENTRIES = 8;
+const makePoolCache = ((globalThis as typeof globalThis & {
+  __oneCompanyLegacyMakePools?: {
+    pools: Map<string, { value: MakeCandidatePoolRow[]; expiresAt: number }>;
+    pending: Map<string, Promise<MakeCandidatePoolRow[]>>;
+  };
+}).__oneCompanyLegacyMakePools ??= { pools: new Map(), pending: new Map() });
+
+async function getMakeCandidatePool(
+  canonicalMake: string,
+  makeValues: readonly string[],
+  makeTags: readonly string[]
+): Promise<MakeCandidatePoolRow[]> {
+  const cached = makePoolCache.pools.get(canonicalMake);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const pending = makePoolCache.pending.get(canonicalMake);
+  if (pending) return pending;
+  const fields: ProductTextField[] = ["titleEn", "titleUa", "slug", "collectionEn", "collectionUa"];
+  const promise = prisma.shopProduct
+    .findMany({
+      where: {
+        isPublished: true,
+        status: "ACTIVE",
+        OR: [{ tags: { hasSome: [...makeTags] } }, ...productTextAlternatives(fields, makeValues)],
+      },
+      select: {
+        id: true,
+        tags: true,
+        titleEn: true,
+        titleUa: true,
+        slug: true,
+        collectionEn: true,
+        collectionUa: true,
+      },
+    })
+    .then((rows) => {
+      const value = rows.map((row) => ({
+        id: row.id,
+        tags: row.tags ?? [],
+        text: fields
+          .map((field) => row[field])
+          .filter((field): field is string => Boolean(field))
+          .map((field) => field.toLowerCase()),
+      }));
+      makePoolCache.pools.delete(canonicalMake);
+      makePoolCache.pools.set(canonicalMake, { value, expiresAt: Date.now() + MAKE_POOL_CACHE_MS });
+      while (makePoolCache.pools.size > MAKE_POOL_MAX_ENTRIES) {
+        const oldestKey = makePoolCache.pools.keys().next().value;
+        if (oldestKey === undefined) break;
+        makePoolCache.pools.delete(oldestKey);
+      }
+      return value;
+    })
+    .finally(() => {
+      makePoolCache.pending.delete(canonicalMake);
+    });
+  makePoolCache.pending.set(canonicalMake, promise);
+  return promise;
+}
+
 function productTextAlternatives(fields: readonly ProductTextField[], values: readonly string[]) {
   return values
     .map((value) => value.trim())
@@ -388,16 +452,19 @@ async function findLegacyFitmentCandidateIds(
   // Suppliers often write only the platform (`PORSCHE 992 GT3`), never the
   // model label the picker offers (`911 GT3`): the model's own generations
   // pair with the make as well.
-  if (input.model && makeText.length > 0) {
-    const expectedChassis = [
-      ...new Set(
-        scope.broad.flatMap((value) => getExpectedChassisForMakeModel(canonicalMake, value) ?? [])
-      ),
-    ];
-    const expectedText = productTextAlternatives(textFields, expectedChassis);
-    if (expectedText.length > 0) {
-      alternatives.push({ AND: [{ OR: makeText }, { OR: expectedText }] });
-    }
+  const expectedChassis =
+    input.model && makeText.length > 0
+      ? [
+          ...new Set(
+            scope.broad.flatMap(
+              (value) => getExpectedChassisForMakeModel(canonicalMake, value) ?? []
+            )
+          ),
+        ]
+      : [];
+  const expectedText = productTextAlternatives(textFields, expectedChassis);
+  if (expectedText.length > 0) {
+    alternatives.push({ AND: [{ OR: makeText }, { OR: expectedText }] });
   }
   // Choosing only a make must not hide products that name the make in the
   // title but carry no fitment tag.
@@ -405,6 +472,57 @@ async function findLegacyFitmentCandidateIds(
     alternatives.push({ OR: makeText });
   }
   if (alternatives.length === 0) return null;
+
+  // The same alternatives, evaluated in memory over the make's cached product
+  // pool: one bounded read per make instead of a catalog-wide multi-ILIKE scan
+  // per selection (2-3 s each; a make's model list verifies several aliases).
+  // `%`/`_` are LIKE wildcards in the SQL form, so such values keep that form.
+  const textValues = [...makeValues, ...modelValues, ...generationValues, ...expectedChassis];
+  if (input.make && !textValues.some((value) => /[%_\\]/.test(value))) {
+    try {
+      const [pool, tagged] = await Promise.all([
+        getMakeCandidatePool(canonicalMake, makeValues, makeTags),
+        tagValues.size > 0
+          ? prisma.shopProduct.findMany({
+              where: { isPublished: true, status: "ACTIVE", tags: { hasSome: [...tagValues] } },
+              select: { id: true },
+            })
+          : Promise.resolve([]),
+      ]);
+      const needles = (values: readonly string[]) =>
+        values.map((value) => value.trim().toLowerCase()).filter(Boolean);
+      const make = needles(makeValues);
+      const model = needles(modelValues);
+      const generation = needles(generationValues);
+      const expected = needles(expectedChassis);
+      const makeTagSet = new Set(makeTags);
+      const focusedTagSet =
+        input.model || input.generation
+          ? new Set([...modelTagValues, ...generationTagValues])
+          : new Set<string>();
+      const ids = new Set(tagged.map((row) => row.id));
+      for (const row of pool) {
+        const mentions = (values: readonly string[]) =>
+          values.some((value) => row.text.some((field) => field.includes(value)));
+        const hasMakeTag = row.tags.some((tag) => makeTagSet.has(tag));
+        const mentionsMake = make.length > 0 && mentions(make);
+        const mentionsModel = model.length > 0 && mentions(model);
+        if (
+          (hasMakeTag && mentionsModel) ||
+          (hasMakeTag && row.tags.some((tag) => focusedTagSet.has(tag))) ||
+          (mentionsMake && mentionsModel) ||
+          (mentionsMake && generation.length > 0 && mentions(generation)) ||
+          (mentionsMake && expected.length > 0 && mentions(expected)) ||
+          (mentionsMake && !input.model && !input.generation)
+        ) {
+          ids.add(row.id);
+        }
+      }
+      return [...ids];
+    } catch {
+      // Fall back to the single SQL query below.
+    }
+  }
 
   const rows = await prisma.shopProduct.findMany({
     where: {
@@ -830,6 +948,19 @@ export async function resolveLegacyVehicleProductTiers(
     });
   sharedCache.pendingVehicleResolutions.set(key, promise);
   return promise;
+}
+
+/**
+ * Starts the make's candidate pool read (shared, single-flight) so a picker
+ * request can overlap it with its canonical read. Never rejects.
+ */
+export function prefetchLegacyVehicleMakePool(make: string) {
+  const canonicalMake = canonicalVehicleMakeLabel(make);
+  if (!canonicalMake) return;
+  const makeValues = [...new Set([canonicalMake, ...vehicleMakeAliases(canonicalMake)])];
+  if (makeValues.some((value) => /[%_\\]/.test(value))) return;
+  const makeTags = [...new Set(makeValues.flatMap(legacyTagKeys))].map((key) => `fits-make:${key}`);
+  getMakeCandidatePool(canonicalMake, makeValues, makeTags).catch(() => {});
 }
 
 export async function resolveLegacyVehicleProductIds(input: LegacyVehicleQuery) {

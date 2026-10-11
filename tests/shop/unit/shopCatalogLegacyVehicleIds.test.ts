@@ -76,7 +76,7 @@ test("matches every official BMC supplier application, not only the primary vehi
   assert.deepEqual(result, ["bmc-multi-application-id"]);
   assert.ok(
     mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
-      JSON.stringify(args.where.OR).includes('"BMC"')
+      JSON.stringify(args.where).includes('"BMC"')
     )
   );
 });
@@ -92,7 +92,7 @@ test("BMC supplier candidates are still loaded after the same vehicle was cached
   await resolveLegacyVehicleProductIds({ ...vehicle, brand: "BMC" });
   assert.ok(
     mock.state.productSearchArgs.some((args: { where: { OR?: unknown } }) =>
-      JSON.stringify(args.where.OR).includes('"BMC"')
+      JSON.stringify(args.where).includes('"BMC"')
     )
   );
 });
@@ -171,7 +171,10 @@ test("legacy tag candidates use every make spelling, not only the canonical labe
   await resolveLegacyVehicleProductIds({ make: "Škoda", model: "Octavia" });
 
   // Remus rows carry only `fits-make:skoda` / `fits-model:skoda:octavia` tags.
-  const candidateQuery = JSON.stringify(mock.state.productSearchArgs[0].where);
+  // The make pool and the tag-only read together form the candidate query.
+  const candidateQuery = JSON.stringify(
+    mock.state.productSearchArgs.map((args: { where: unknown }) => args.where)
+  );
   assert.match(candidateQuery, /fits-make:skoda"/);
   assert.match(candidateQuery, /fits-model:skoda:octavia"/);
 
@@ -180,7 +183,7 @@ test("legacy tag candidates use every make spelling, not only the canonical labe
   await resolveLegacyVehicleProductIds({ make: "Volkswagen", model: "Teramont" });
   // Importer slugs drop punctuation: `Volkswagen (Svw)` -> `volkswagen-svw`.
   assert.match(
-    JSON.stringify(mock.state.productSearchArgs[0].where),
+    JSON.stringify(mock.state.productSearchArgs.map((args: { where: unknown }) => args.where)),
     /fits-model:volkswagen-svw:teramont"/
   );
 });
