@@ -2012,6 +2012,10 @@ function extractChassisFromText(text: string, inferred?: Set<string>): string[] 
     const start = Number(from);
     const end = Number(to);
     if (!(end > start) || end - start > 6) continue;
+    // Both ends must be known chassis: `F79-F84` in a part number is not a
+    // vehicle range just because F80..F83 sit between its numbers.
+    const pad = (number: number) => `${prefix}${String(number).padStart(from.length, "0")}`;
+    if (!CHASSIS_CODES.has(pad(start)) || !CHASSIS_CODES.has(pad(end))) continue;
     for (let number = start; number <= end; number += 1) {
       const code = `${prefix}${String(number).padStart(from.length, "0")}`;
       if (CHASSIS_CODES.has(code)) {

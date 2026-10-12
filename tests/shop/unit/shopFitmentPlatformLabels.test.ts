@@ -155,3 +155,8 @@ test("a range in a description-only fitment is one claim, and a brand extractor 
   const csf = extractProductFitment(product("CSF Radiator for BMW M3 / M4 (F80-83)", "CSF"));
   for (const code of ["F80", "F82", "F83"]) assert.ok(csf.chassisCodes.includes(code), code);
 });
+
+test("a number range whose ends are not chassis codes is not a vehicle range", () => {
+  const fitment = extractProductFitment(product("Universal adapter F79-F84 for BMW"));
+  assert.ok(!fitment.chassisCodes.some((code) => ["F80", "F82", "F83"].includes(code)));
+});
