@@ -14,6 +14,22 @@ import {
   type MonobankInvoiceStatus,
 } from "@/lib/shopMonobank";
 
+type ReusablePayment = Pick<ShopMonobankPayment, "invoiceId" | "pageUrl" | "status" | "expiresAt">;
+
+/**
+ * An open invoice can always be shared again: Mono accepts a single payment per invoice,
+ * so re-sending the same link never risks a double charge.
+ */
+export function reusableMonobankLink(
+  payment: ReusablePayment | null | undefined,
+  now = new Date()
+) {
+  if (!payment?.invoiceId || !isMonobankPaymentUrl(payment.pageUrl)) return null;
+  if (payment.expiresAt && payment.expiresAt <= now) return null;
+  if (["expired", "reversed", "success", "hold", "retiring"].includes(payment.status)) return null;
+  return payment.pageUrl;
+}
+
 /** One active invoice per order. An uncertain POST must never create another. */
 export async function prepareMonobankPayment(
   prisma: PrismaClient,
@@ -73,7 +89,10 @@ export async function prepareMonobankPayment(
         where: { id: payment.id, status: "creating", providerModifiedAt: null },
         data: { status: "created" },
       });
-      const currentOrder = await tx.shopOrder.findUniqueOrThrow({ where: { id: orderId }, include: { monobankPayment: true } });
+      const currentOrder = await tx.shopOrder.findUniqueOrThrow({
+        where: { id: orderId },
+        include: { monobankPayment: true },
+      });
       return adminMonobankBlockReason(currentOrder) === null;
     });
     if (!stillPayable) throw new MonobankError("MONOBANK_ORDER_NOT_PAYABLE", true);
@@ -91,37 +110,78 @@ export async function prepareMonobankPayment(
 }
 
 /** Only a fresh authenticated bank response of expired permits invoice replacement. */
-export async function renewExpiredMonobankPayment(prisma: PrismaClient, orderId: string, actorName: string) {
+export async function renewExpiredMonobankPayment(
+  prisma: PrismaClient,
+  orderId: string,
+  actorName: string
+) {
   await prisma.$transaction(async (tx) => {
-    const payment = await tx.shopMonobankPayment.findUnique({ where: { orderId }, include: { order: true } });
+    const payment = await tx.shopMonobankPayment.findUnique({
+      where: { orderId },
+      include: { order: true },
+    });
     if (!payment?.invoiceId || payment.status !== "expired") return;
     // Serialize renewal with callbacks and other admin tabs; re-read after acquiring the lock.
     const claimed = await tx.shopMonobankPayment.updateMany({
-      where: { id: payment.id, invoiceId: payment.invoiceId, status: "expired", providerModifiedAt: payment.providerModifiedAt },
+      where: {
+        id: payment.id,
+        invoiceId: payment.invoiceId,
+        status: "expired",
+        providerModifiedAt: payment.providerModifiedAt,
+      },
       data: { status: "retiring" },
     });
     if (claimed.count !== 1) throw new MonobankError("MONOBANK_CONCURRENT_UPDATE");
-    const order = await tx.shopOrder.findUniqueOrThrow({ where: { id: orderId }, include: { monobankPayment: true } });
+    const order = await tx.shopOrder.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { monobankPayment: true },
+    });
     const reason = adminMonobankBlockReason(order);
     if (reason) throw new MonobankError(reason, true);
-    if (monobankMinorUnits(order.total) !== payment.amount) throw new MonobankError("MONOBANK_PAYMENT_MISMATCH", true);
-    await tx.shopMonobankPaymentHistory.create({ data: {
-      id: payment.id, orderId, invoiceId: payment.invoiceId, amount: payment.amount, ccy: payment.ccy,
-      status: "expired", providerModifiedAt: payment.providerModifiedAt,
-    } });
+    if (monobankMinorUnits(order.total) !== payment.amount)
+      throw new MonobankError("MONOBANK_PAYMENT_MISMATCH", true);
+    await tx.shopMonobankPaymentHistory.create({
+      data: {
+        id: payment.id,
+        orderId,
+        invoiceId: payment.invoiceId,
+        amount: payment.amount,
+        ccy: payment.ccy,
+        status: "expired",
+        providerModifiedAt: payment.providerModifiedAt,
+      },
+    });
     await tx.shopMonobankPayment.delete({ where: { id: payment.id } });
-    await tx.shopMonobankPayment.create({ data: {
-      orderId, checkoutKeyHash: payment.checkoutKeyHash, requestHash: payment.requestHash, amount: payment.amount, ccy: payment.ccy,
-    } });
+    await tx.shopMonobankPayment.create({
+      data: {
+        orderId,
+        checkoutKeyHash: payment.checkoutKeyHash,
+        requestHash: payment.requestHash,
+        amount: payment.amount,
+        ccy: payment.ccy,
+      },
+    });
     const changed = await tx.shopOrder.updateMany({
-      where: { id: orderId, updatedAt: order.updatedAt, amountPaid: 0, paymentStatus: order.paymentStatus, status: order.status },
+      where: {
+        id: orderId,
+        updatedAt: order.updatedAt,
+        amountPaid: 0,
+        paymentStatus: order.paymentStatus,
+        status: order.status,
+      },
       data: { paymentStatus: "PENDING" },
     });
     if (changed.count !== 1) throw new MonobankError("MONOBANK_CONCURRENT_UPDATE");
-    await tx.shopOrderStatusEvent.create({ data: {
-      orderId, fromStatus: order.status, toStatus: order.status, actorType: "admin", actorName,
-      note: `mono: банк підтвердив завершення строку рахунку ${payment.invoiceId}; попередній рахунок збережено в історії.`,
-    } });
+    await tx.shopOrderStatusEvent.create({
+      data: {
+        orderId,
+        fromStatus: order.status,
+        toStatus: order.status,
+        actorType: "admin",
+        actorName,
+        note: `mono: банк підтвердив завершення строку рахунку ${payment.invoiceId}; попередній рахунок збережено в історії.`,
+      },
+    });
   });
 }
 
@@ -138,16 +198,24 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
       include: { order: true },
     });
     if (!payment) {
-      const history = await tx.shopMonobankPaymentHistory.findUnique({ where: { invoiceId: event.invoiceId } });
+      const history = await tx.shopMonobankPaymentHistory.findUnique({
+        where: { invoiceId: event.invoiceId },
+      });
       if (!history) throw new MonobankError("MONOBANK_PAYMENT_NOT_FOUND", true);
-      if (event.amount !== history.amount || event.ccy !== history.ccy ||
-          (event.reference !== undefined && event.reference !== history.id))
+      if (
+        event.amount !== history.amount ||
+        event.ccy !== history.ccy ||
+        (event.reference !== undefined && event.reference !== history.id)
+      )
         throw new MonobankError("MONOBANK_PAYMENT_MISMATCH", true);
       const modifiedAt = new Date(event.modifiedDate);
       if (history.providerModifiedAt && modifiedAt <= history.providerModifiedAt) return false;
       if (event.status === "success" && event.finalAmount === undefined)
         throw new MonobankError("MONOBANK_FINAL_AMOUNT_REQUIRED", true);
-      const finalAmount = event.status === "success" || event.status === "reversed" ? event.finalAmount ?? 0 : history.finalAmount;
+      const finalAmount =
+        event.status === "success" || event.status === "reversed"
+          ? (event.finalAmount ?? 0)
+          : history.finalAmount;
       const claimed = await tx.shopMonobankPaymentHistory.updateMany({
         where: { id: history.id, providerModifiedAt: history.providerModifiedAt },
         data: { status: event.status, providerModifiedAt: modifiedAt, finalAmount },
@@ -157,13 +225,31 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
         // An unexpected financial event on a retired invoice requires reconciliation.
         // Never let an old failure/expiration cancel the active invoice or mark it unpaid.
         const order = await tx.shopOrder.findUniqueOrThrow({ where: { id: history.orderId } });
-        await tx.shopOrder.update({ where: { id: order.id }, data: { paymentStatus: "PARTIALLY_PAID", amountPaid: { increment: (finalAmount - history.finalAmount) / 100 } } });
-        await tx.shopOrderStatusEvent.create({ data: { orderId: order.id, fromStatus: order.status, toStatus: order.status, actorType: "system", actorName: "plata by mono",
-          note: `Потрібна звірка оплати: фінансова зміна старого mono-рахунку ${event.invoiceId}; активне посилання заблоковано.` } });
+        await tx.shopOrder.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: "PARTIALLY_PAID",
+            amountPaid: { increment: (finalAmount - history.finalAmount) / 100 },
+          },
+        });
+        await tx.shopOrderStatusEvent.create({
+          data: {
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: order.status,
+            actorType: "system",
+            actorName: "plata by mono",
+            note: `Потрібна звірка оплати: фінансова зміна старого mono-рахунку ${event.invoiceId}; активне посилання заблоковано.`,
+          },
+        });
       }
       return true;
     }
-    if (await tx.shopMonobankPaymentHistory.count({ where: { orderId: payment.orderId, finalAmount: { gt: 0 } } }))
+    if (
+      await tx.shopMonobankPaymentHistory.count({
+        where: { orderId: payment.orderId, finalAmount: { gt: 0 } },
+      })
+    )
       throw new MonobankError("MONOBANK_RECONCILIATION_REQUIRED", true);
     const update = resolveMonobankStatusUpdate(payment, payment.order, event);
     if (!update) return false;
@@ -220,13 +306,24 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
 }
 
 /** DB-backed rate limit also covers multiple tabs / serverless instances. */
-export async function refreshMonobankPayment(prisma: PrismaClient, payment: ShopMonobankPayment, force = false) {
+export async function refreshMonobankPayment(
+  prisma: PrismaClient,
+  payment: ShopMonobankPayment,
+  force = false
+) {
   if (!payment.invoiceId) return false;
   const now = new Date();
   const claim = await prisma.shopMonobankPayment.updateMany({
     where: {
       id: payment.id,
-      ...(force ? {} : { OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - 15_000) } }] }),
+      ...(force
+        ? {}
+        : {
+            OR: [
+              { lastSyncedAt: null },
+              { lastSyncedAt: { lt: new Date(now.getTime() - 15_000) } },
+            ],
+          }),
     },
     data: { lastSyncedAt: now },
   });

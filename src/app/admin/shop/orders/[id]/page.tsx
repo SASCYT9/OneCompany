@@ -34,7 +34,11 @@ import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminMobileBottomBar } from "@/components/admin/AdminMobileCard";
 import { AdminInternationalDeliveryQuote } from "@/components/admin/AdminInternationalDeliveryQuote";
-import { isInternationalDelivery, internationalDeliveryAgreementMatches, getAgreedInternationalShippingSource } from "@/lib/shopInternationalCheckout";
+import {
+  isInternationalDelivery,
+  internationalDeliveryAgreementMatches,
+  getAgreedInternationalShippingSource,
+} from "@/lib/shopInternationalCheckout";
 
 import styles from "./orderDetail.module.css";
 import { buildOrderPaymentUpdate } from "@/lib/admin/orderPaymentDraft";
@@ -106,6 +110,8 @@ type OrderDetail = {
   paymentStatus: string;
   paymentMethod?: string;
   monobankBlockReason?: string | null;
+  monobankCanReplaceProvider?: boolean;
+  monobankLink?: { url: string; expiresAt: string | null } | null;
   isDraft?: boolean;
   amountPaid: number;
   deliveryMethod: string | null;
@@ -249,6 +255,9 @@ export default function AdminOrderDetailPage() {
   const [ttnNumber, setTtnNumber] = useState("");
   const [shippingCalculatedCost, setShippingCalculatedCost] = useState("");
   const [monoPaymentUrl, setMonoPaymentUrl] = useState("");
+  const [monoLoading, setMonoLoading] = useState(false);
+  const [monoNotice, setMonoNotice] = useState("");
+  const [monoError, setMonoError] = useState("");
   const [statusNote, setStatusNote] = useState("");
   const [copyState, setCopyState] = useState("");
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
@@ -469,26 +478,36 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  async function handleGenerateMonobankLink() {
-    if (!id || updating) return;
-    setUpdating(true);
-    setError("");
+  async function handleGenerateMonobankLink(replacePreviousProvider = false) {
+    if (!id || updating || monoLoading) return;
+    if (replacePreviousProvider) {
+      const ok = await confirm({
+        title: "Видати mono-посилання замість попереднього способу оплати?",
+        description:
+          "Підтвердіть, що ви перевірили кабінет попереднього сервісу (Whitepay) і оплати там немає. Ваше підтвердження буде записане в історію замовлення. Якщо клієнт все ж оплатить обома способами — потрібне повернення.",
+        confirmLabel: "Оплати немає — видати mono",
+        tone: "warning",
+      });
+      if (!ok) return;
+    }
+    setMonoLoading(true);
+    setMonoError("");
     setSuccess("");
-    setMonoPaymentUrl("");
+    setMonoNotice("");
     try {
       const response = await fetch(`/api/admin/shop/orders/${id}/monobank`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          locale: "ua",
-        }),
+        body: JSON.stringify({ locale: "ua", replacePreviousProvider }),
+        // The server waits at most ~45 s for Mono; never leave the manager guessing.
+        signal: AbortSignal.timeout(65_000),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const errors: Record<string, string> = {
           MONOBANK_ORDER_NOT_PAYABLE: "Замовлення вже оплачене або не допускає повторної оплати.",
           PREVIOUS_PAYMENT_UNVERIFIED:
-            "Стан попередньої оплати іншої платіжної системи не підтверджений. Новий mono-рахунок заблоковано.",
+            "Клієнт обрав інший спосіб оплати. Перевірте, що там оплати немає, і скористайтеся кнопкою заміни нижче.",
           MONOBANK_DRAFT_NOT_ACCEPTED:
             "Спочатку погодьте пропозицію та перетворіть чернетку на замовлення.",
           MONOBANK_RECONCILIATION_REQUIRED:
@@ -498,29 +517,42 @@ export default function AdminOrderDetailPage() {
             "Спочатку погодьте доставку та загальну суму з клієнтом.",
           MONOBANK_INVOICE_CLOSED:
             "Рахунок mono закритий. Перевірте його в бізнес-кабінеті перед заміною.",
-          MONOBANK_NOT_CONFIGURED:
-            "Підключення mono не налаштоване для цього середовища сайту.",
+          MONOBANK_NOT_CONFIGURED: "Підключення mono не налаштоване для цього середовища сайту.",
           MONOBANK_REQUEST_UNCERTAIN:
-            "Mono не підтвердив результат запиту. Перевірте бізнес-кабінет mono перед повтором.",
+            "Mono зараз не відповідає. Нічого страшного: натисніть ще раз за хвилину — другий рахунок не створиться.",
+          MONOBANK_PAYMENT_PENDING:
+            "Попередній запит до mono ще обробляється. Зачекайте 1–2 хвилини і натисніть ще раз.",
+          MONOBANK_CONCURRENT_UPDATE: "Замовлення щойно змінилося. Натисніть ще раз.",
           MONOBANK_PAYMENT_UNAVAILABLE:
-            "Сервер не зміг підготувати платіж. Перевірте код помилки та журнали.",
+            "Сервер не зміг підготувати платіж. Натисніть ще раз за хвилину.",
         };
         const errorCode = typeof data.error === "string" ? data.error : "";
-        setError(
+        setMonoError(
           errors[errorCode] ||
-            (errorCode && /^[A-Z0-9_]+$/.test(errorCode)
-              ? `Не вдалося підготувати mono-посилання. Код: ${errorCode}. Перевірте журнал запиту.`
-              : "Не вдалося підготувати mono-посилання. Повторіть перевірку статусу.")
+            (errorCode.startsWith("MONOBANK_HTTP_5") || errorCode === "MONOBANK_HTTP_429"
+              ? "Mono тимчасово перевантажений. Натисніть ще раз за хвилину — другий рахунок не створиться."
+              : errorCode && /^[A-Z0-9_]+$/.test(errorCode)
+                ? `Не вдалося підготувати mono-посилання. Код: ${errorCode}.`
+                : "Не вдалося підготувати mono-посилання. Натисніть ще раз.")
         );
         return;
       }
       setMonoPaymentUrl(data.url);
+      if (data.statusVerified === false) {
+        setMonoNotice(
+          "Mono зараз не відповідає на перевірку статусу, тому показано чинне посилання, видане раніше. Його безпечно надсилати: один рахунок не можна оплатити двічі."
+        );
+      }
       await load();
-      setSuccess("Статус перевірено. Посилання mono готове.");
-    } catch {
-      setError("Не вдалося перевірити оплату. Спробуйте ще раз.");
+      setSuccess("Посилання mono готове — скопіюйте й надішліть клієнту.");
+    } catch (requestError) {
+      setMonoError(
+        (requestError as Error).name === "TimeoutError"
+          ? "Mono відповідає надто довго. Натисніть ще раз за хвилину — якщо рахунок уже створився, ви отримаєте те саме посилання."
+          : "Немає зв’язку із сервером. Перевірте інтернет і натисніть ще раз."
+      );
     } finally {
-      setUpdating(false);
+      setMonoLoading(false);
     }
   }
 
@@ -599,7 +631,8 @@ export default function AdminOrderDetailPage() {
   }
 
   if (!order) return null;
-  const paymentNeedsAgreement = isInternationalDelivery(String(order.shippingAddress?.country ?? "")) &&
+  const paymentNeedsAgreement =
+    isInternationalDelivery(String(order.shippingAddress?.country ?? "")) &&
     !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total);
 
   const outstanding = Math.max(0, order.total - order.amountPaid);
@@ -613,33 +646,130 @@ export default function AdminOrderDetailPage() {
       (order.shippingCalculatedCost == null ? "" : String(order.shippingCalculatedCost));
 
   function renderPaymentActions(blocked = false) {
+    const currentLink = monoPaymentUrl || order!.monobankLink?.url || "";
+    const linkExpiresAt = order!.monobankLink?.expiresAt
+      ? new Date(order!.monobankLink.expiresAt)
+      : null;
+    const notPayable =
+      order!.amountPaid > 0 ||
+      ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order!.paymentStatus) ||
+      order!.isDraft ||
+      !["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order!.status);
+    const canReplace = Boolean(order!.monobankCanReplaceProvider) && !notPayable;
+    const monoDisabled =
+      blocked ||
+      updating ||
+      monoLoading ||
+      paymentNeedsAgreement ||
+      notPayable ||
+      Boolean(monoBlockReason);
     return (
       <div className="grid gap-2 sm:grid-cols-2">
-        {monoBlockReason === "PREVIOUS_PAYMENT_UNVERIFIED" ? (
-          <div className="space-y-2 rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-100 sm:col-span-2">
-            <p>
-              Стан попередньої оплати іншої платіжної системи не підтверджений. Створення mono-рахунку заблоковано.
-            </p>
+        {currentLink ? (
+          <div className="space-y-2 border border-blue-500/30 bg-blue-500/[0.06] p-3 sm:col-span-2">
+            <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-300">
+              <span>Посилання mono для клієнта</span>
+              {linkExpiresAt ? (
+                <span className="font-normal normal-case tracking-normal text-zinc-400">
+                  дійсне до{" "}
+                  {linkExpiresAt.toLocaleString("uk-UA", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "Europe/Kyiv",
+                  })}
+                </span>
+              ) : null}
+            </div>
+            <div className="break-all font-mono text-[12px] text-zinc-100">{currentLink}</div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(currentLink).then(
+                    () => toast.success("Посилання скопійовано"),
+                    () => toast.error("Не вдалося скопіювати", "Виділіть посилання вручну.")
+                  );
+                }}
+                className="inline-flex items-center gap-1.5 bg-blue-600 px-3 py-2 text-[13px] font-medium text-white transition hover:bg-blue-500"
+              >
+                <Copy className="h-4 w-4" /> Копіювати
+              </button>
+              <a
+                href={currentLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5"
+              >
+                <ExternalLink className="h-4 w-4" /> Відкрити
+              </a>
+            </div>
+            {monoNotice ? (
+              <p className="text-[12px] leading-5 text-amber-200">{monoNotice}</p>
+            ) : null}
           </div>
         ) : null}
-        <button type="button" onClick={() => void handleGenerateMonobankLink()}
-          disabled={blocked || updating || paymentNeedsAgreement || order!.amountPaid > 0 ||
-            ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order!.paymentStatus) ||
-            Boolean(monoBlockReason) || order!.isDraft ||
-            !["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order!.status)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-zinc-400 sm:col-span-2">
-          Створити / відновити mono-посилання
-        </button>
-        {monoPaymentUrl ? <a href={monoPaymentUrl} target="_blank" rel="noreferrer"
-          className="break-all rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-xs text-blue-200 sm:col-span-2">{monoPaymentUrl}</a> : null}
-        <button type="button" onClick={() => void handleGenerateWhitepayFiatLink()}
-          disabled={blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400">
+        {monoError ? (
+          <div
+            role="alert"
+            className="border-l-2 border-red-400 bg-red-500/[0.08] px-3 py-2 text-[13px] leading-5 text-red-100 sm:col-span-2"
+          >
+            {monoError}
+          </div>
+        ) : null}
+        {canReplace ? (
+          <div className="space-y-2 border-l-2 border-amber-400 bg-amber-400/[0.06] px-3 py-3 text-[13px] leading-5 text-amber-100 sm:col-span-2">
+            <p>
+              Клієнт обрав оплату «{orderPaymentMethodLabel(order!.paymentMethod)}». Якщо він там не
+              оплатив і хоче платити карткою — перевірте кабінет Whitepay і видайте mono-посилання.
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleGenerateMonobankLink(true)}
+              disabled={blocked || updating || monoLoading || paymentNeedsAgreement}
+              className="inline-flex w-full items-center justify-center gap-2 bg-amber-400 px-4 py-2.5 text-[13px] font-semibold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {monoLoading ? "Створюємо посилання…" : "Оплати там немає — видати mono-посилання"}
+            </button>
+          </div>
+        ) : monoBlockReason === "PREVIOUS_PAYMENT_UNVERIFIED" ? (
+          <div className="border-l-2 border-amber-400 bg-amber-400/[0.06] px-3 py-2 text-xs text-amber-100 sm:col-span-2">
+            Є незавершена оплата через Stripe. Спершу звірте її в кабінеті Stripe.
+          </div>
+        ) : null}
+        {!canReplace ? (
+          <button
+            type="button"
+            onClick={() => void handleGenerateMonobankLink()}
+            disabled={monoDisabled}
+            className="inline-flex w-full items-center justify-center gap-2 border border-blue-500/40 bg-blue-500/10 px-4 py-3 text-sm text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-zinc-400 sm:col-span-2"
+          >
+            {monoLoading
+              ? "Створюємо посилання… (до хвилини)"
+              : currentLink
+                ? "Перевірити оплату й оновити посилання mono"
+                : "Створити mono-посилання"}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => void handleGenerateWhitepayFiatLink()}
+          disabled={
+            blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"
+          }
+          className="inline-flex w-full items-center justify-center gap-2 border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400"
+        >
           <DollarSign className="h-4 w-4" /> Whitepay Fiat
         </button>
-        <button type="button" onClick={() => void handleGenerateWhitepayCryptoLink()}
-          disabled={blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"}
-          className="inline-flex w-full items-center justify-center rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400">
+        <button
+          type="button"
+          onClick={() => void handleGenerateWhitepayCryptoLink()}
+          disabled={
+            blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"
+          }
+          className="inline-flex w-full items-center justify-center border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:text-zinc-400"
+        >
           Whitepay Crypto
         </button>
       </div>
@@ -739,48 +869,56 @@ export default function AdminOrderDetailPage() {
               </div>
               {order.paymentMethod === "MANAGER_QUOTE" ? (
                 <AdminInternationalDeliveryQuote
-                  key={order.updatedAt} orderId={order.id}
+                  key={order.updatedAt}
+                  orderId={order.id}
                   shippingCostUah={order.currency === "UAH" ? order.shippingCost : undefined}
                   shippingSource={getAgreedInternationalShippingSource(order.pricingSnapshot)}
                   savedTotalUah={order.currency === "UAH" ? order.total : undefined}
-                  isAgreed={internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total)}
-                  onSaved={load} paymentActions={(ready) => renderPaymentActions(!ready)}
+                  isAgreed={internationalDeliveryAgreementMatches(
+                    order.pricingSnapshot,
+                    order.currency,
+                    order.total
+                  )}
+                  onSaved={load}
+                  paymentActions={(ready) => renderPaymentActions(!ready)}
                 />
-              ) : <>
-              <p className="mb-4 text-xs text-zinc-400">
-                {orderPaymentMethodLabel(order.paymentMethod)}
-              </p>
-              <dl className={styles.totals}>
-                <div>
-                  <dt>Товари</dt>
-                  <dd>{formatMoney(order.subtotal, order.currency)}</dd>
-                </div>
-                <div>
-                  <dt>Доставка</dt>
-                  <dd>{formatMoney(order.shippingCost, order.currency)}</dd>
-                </div>
-                <div>
-                  <dt>Податки</dt>
-                  <dd>{formatMoney(order.taxAmount, order.currency)}</dd>
-                </div>
-                <div className={styles.total}>
-                  <dt>Разом</dt>
-                  <dd>{formatMoney(order.total, order.currency)}</dd>
-                </div>
-                <div>
-                  <dt>Сплачено</dt>
-                  <dd>{formatMoney(order.amountPaid, order.currency)}</dd>
-                </div>
-                <div className={styles.balance}>
-                  <dt>До сплати</dt>
-                  <dd>{formatMoney(outstanding, order.currency)}</dd>
-                </div>
-              </dl>
-              <div className="mt-5 border-t border-white/10 pt-5">
-                <h3 className="mb-3 text-sm font-semibold">Платіжні посилання</h3>
-                {renderPaymentActions()}
-              </div>
-              </>}
+              ) : (
+                <>
+                  <p className="mb-4 text-xs text-zinc-400">
+                    {orderPaymentMethodLabel(order.paymentMethod)}
+                  </p>
+                  <dl className={styles.totals}>
+                    <div>
+                      <dt>Товари</dt>
+                      <dd>{formatMoney(order.subtotal, order.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt>Доставка</dt>
+                      <dd>{formatMoney(order.shippingCost, order.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt>Податки</dt>
+                      <dd>{formatMoney(order.taxAmount, order.currency)}</dd>
+                    </div>
+                    <div className={styles.total}>
+                      <dt>Разом</dt>
+                      <dd>{formatMoney(order.total, order.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt>Сплачено</dt>
+                      <dd>{formatMoney(order.amountPaid, order.currency)}</dd>
+                    </div>
+                    <div className={styles.balance}>
+                      <dt>До сплати</dt>
+                      <dd>{formatMoney(outstanding, order.currency)}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-5 border-t border-white/10 pt-5">
+                    <h3 className="mb-3 text-sm font-semibold">Платіжні посилання</h3>
+                    {renderPaymentActions()}
+                  </div>
+                </>
+              )}
               <details className={styles.editPanel}>
                 <summary>Редагувати оплату й умови доставки</summary>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -820,11 +958,13 @@ export default function AdminOrderDetailPage() {
                     type="number"
                     step="0.01"
                     disabled={["MONOBANK", "MANAGER_QUOTE"].includes(order.paymentMethod ?? "")}
-                    helper={order.paymentMethod === "MONOBANK"
-                      ? "Суму доставки зафіксовано для платежу mono."
-                      : order.paymentMethod === "MANAGER_QUOTE"
-                        ? "Погодьте суму через блок міжнародної доставки."
-                        : undefined}
+                    helper={
+                      order.paymentMethod === "MONOBANK"
+                        ? "Суму доставки зафіксовано для платежу mono."
+                        : order.paymentMethod === "MANAGER_QUOTE"
+                          ? "Погодьте суму через блок міжнародної доставки."
+                          : undefined
+                    }
                   />
                   <button
                     type="button"

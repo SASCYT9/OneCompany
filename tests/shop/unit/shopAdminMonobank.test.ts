@@ -185,7 +185,7 @@ test("an unpaid manual order can receive a Mono invoice", async (t) => {
     "ua",
     "Test admin"
   );
-  assert.equal(link, "https://pay.mbnk.biz/synthetic-invoice-1");
+  assert.deepEqual(link, { url: "https://pay.mbnk.biz/synthetic-invoice-1", statusVerified: true });
   assert.equal(fake.providerCreates, 1);
   assert.equal(fake.order.paymentMethod, "MONOBANK");
   assert.equal(fake.order.paymentStatus, "PENDING");
@@ -239,3 +239,105 @@ for (const [name, patch, error] of [
     assert.equal(fake.providerCreates, 0);
   });
 }
+
+function monoInvoiceResponse() {
+  return Response.json({
+    invoiceId: "synthetic-invoice-1",
+    pageUrl: "https://pay.mbnk.biz/synthetic-invoice-1",
+  });
+}
+
+test("a manager can replace an unpaid Whitepay order with mono after explicit confirmation", async (t) => {
+  configureMono(t);
+  const fake = fakePrisma({ paymentMethod: "WHITEBIT", paymentStatus: "UNPAID" });
+  t.mock.method(globalThis, "fetch", async () => {
+    fake.countProviderCreate();
+    return monoInvoiceResponse();
+  });
+  await assert.rejects(
+    prepareAdminMonobankPayment(fake.prisma, "synthetic-order-1", "ua", "Test admin"),
+    /PREVIOUS_PAYMENT_UNVERIFIED/
+  );
+  assert.equal(fake.providerCreates, 0);
+
+  const link = await prepareAdminMonobankPayment(
+    fake.prisma,
+    "synthetic-order-1",
+    "ua",
+    "Test admin",
+    {
+      replacePreviousProvider: true,
+    }
+  );
+  assert.deepEqual(link, { url: "https://pay.mbnk.biz/synthetic-invoice-1", statusVerified: true });
+  assert.equal(fake.order.paymentMethod, "MONOBANK");
+  assert.match(String(fake.events[0].note), /Test admin підтвердив\(ла\).*Whitepay.*plata by mono/);
+});
+
+test("the provider override never applies to a legacy Stripe session", async (t) => {
+  configureMono(t);
+  const fake = fakePrisma({
+    paymentMethod: "WHITEBIT",
+    paymentStatus: "UNPAID",
+    stripeCheckoutSessionId: "cs_old",
+  });
+  t.mock.method(globalThis, "fetch", async () => {
+    fake.countProviderCreate();
+    return monoInvoiceResponse();
+  });
+  await assert.rejects(
+    prepareAdminMonobankPayment(fake.prisma, "synthetic-order-1", "ua", "Test admin", {
+      replacePreviousProvider: true,
+    }),
+    /PREVIOUS_PAYMENT_UNVERIFIED/
+  );
+  assert.equal(fake.providerCreates, 0);
+});
+
+test("an open invoice is re-shared when Mono does not answer the status check", async (t) => {
+  configureMono(t);
+  const fake = fakePrisma({ paymentMethod: "FOP", paymentStatus: "UNPAID" });
+  let monoDown = false;
+  t.mock.method(globalThis, "fetch", async () => {
+    if (monoDown) throw new Error("synthetic timeout");
+    fake.countProviderCreate();
+    return monoInvoiceResponse();
+  });
+  await prepareAdminMonobankPayment(fake.prisma, "synthetic-order-1", "ua", "Test admin");
+  monoDown = true;
+  const link = await prepareAdminMonobankPayment(
+    fake.prisma,
+    "synthetic-order-1",
+    "ua",
+    "Test admin"
+  );
+  assert.deepEqual(link, {
+    url: "https://pay.mbnk.biz/synthetic-invoice-1",
+    statusVerified: false,
+  });
+  assert.equal(fake.providerCreates, 1, "no second invoice while the bank is silent");
+});
+
+test("an invoice request whose outcome never arrived can be issued again", async (t) => {
+  configureMono(t);
+  const fake = fakePrisma({ paymentMethod: "FOP", paymentStatus: "UNPAID" });
+  let attempt = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    attempt++;
+    if (attempt === 1) throw new Error("synthetic timeout during create");
+    fake.countProviderCreate();
+    return monoInvoiceResponse();
+  });
+  await assert.rejects(
+    prepareAdminMonobankPayment(fake.prisma, "synthetic-order-1", "ua", "Test admin"),
+    /MONOBANK_REQUEST_UNCERTAIN/
+  );
+  const link = await prepareAdminMonobankPayment(
+    fake.prisma,
+    "synthetic-order-1",
+    "ua",
+    "Test admin"
+  );
+  assert.equal(link.url, "https://pay.mbnk.biz/synthetic-invoice-1");
+  assert.ok(fake.events.some((event) => /не завершився/.test(String(event.note))));
+});
