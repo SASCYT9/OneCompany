@@ -144,3 +144,14 @@ test("a range that crosses model boundaries gives each model only its own chassi
   const open = extractProductFitment(product("Intake for BMW E90-E93"));
   assert.ok(open.chassisCodes.includes("E91"));
 });
+
+test("a range in a description-only fitment is one claim, and a brand extractor still gets the whole range", () => {
+  const described = extractProductFitment({
+    ...product("Universal part"),
+    longDescription: { ua: "", en: "Fits BMW M3 F80-83." },
+  });
+  assert.equal(described.make, "BMW");
+  assert.ok(described.chassisCodes.includes("F80"));
+  const csf = extractProductFitment(product("CSF Radiator for BMW M3 / M4 (F80-83)", "CSF"));
+  for (const code of ["F80", "F82", "F83"]) assert.ok(csf.chassisCodes.includes(code), code);
+});

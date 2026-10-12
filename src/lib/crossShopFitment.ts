@@ -3430,6 +3430,15 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   if (chassis.length === 0) {
     chassis = extractChassisFromText(fitmentEvidenceText, rangeInferred);
+  } else {
+    // A brand-specific extractor may have read only the first token of a
+    // range (`F80-83`): add what the range implies.
+    const impliedByRange = new Set<string>();
+    extractChassisFromText(fitmentEvidenceText, impliedByRange);
+    for (const code of impliedByRange) {
+      if (!chassis.some((known) => known.toUpperCase() === code)) chassis.push(code);
+      rangeInferred.add(code);
+    }
   }
 
   // Descriptions are a useful second source when the product identity fields
@@ -3444,7 +3453,13 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         ).map((entry) => entry.label)
       )
     );
-    const descriptionChassis = extractChassisFromText(descriptionFitmentEvidenceText);
+    const descriptionRange = new Set<string>();
+    const descriptionChassis = extractChassisFromText(
+      descriptionFitmentEvidenceText,
+      descriptionRange
+    );
+    // One range (`F80-83`) is a single claim: only the codes written out count.
+    const descriptionNamed = descriptionChassis.filter((code) => !descriptionRange.has(code));
     const descriptionModels =
       descriptionMakes.length === 1
         ? detectModelsFromText(descriptionFitmentEvidenceText, descriptionMakes[0])
@@ -3455,16 +3470,17 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         descriptionFitmentEvidenceText
       );
     descriptionAmbiguous =
-      hasExclusion || descriptionMakes.length !== 1 || descriptionChassis.length > 1;
+      hasExclusion || descriptionMakes.length !== 1 || descriptionNamed.length > 1;
     if (
       !descriptionAmbiguous &&
       descriptionMakes.length === 1 &&
-      descriptionChassis.length <= 1 &&
-      (descriptionChassis.length === 1 || descriptionModels.length === 1)
+      descriptionNamed.length <= 1 &&
+      (descriptionNamed.length === 1 || descriptionModels.length === 1)
     ) {
       make = descriptionMakes[0];
       models = descriptionModels;
       chassis = descriptionChassis;
+      descriptionRange.forEach((code) => rangeInferred.add(code));
       yearRanges = descriptionYears;
       descriptionDerived = true;
       descriptionEvidenceFragment = descriptionFitmentEvidenceText.slice(0, 500);
