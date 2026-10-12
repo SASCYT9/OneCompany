@@ -486,3 +486,24 @@ test("an importer's Golf type code is offered and matched as its generation", as
   // The upstream query fetches the rows stored on the type codes.
   assert.match(JSON.stringify(mock.state.applicationArgs.at(-1)?.where), /"equals":"BQ1"/);
 });
+
+test("a product fitment stored on a Golf type code matches the generation request", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.vwSubcodes = { CD1: "MK8" };
+  mock.state.productSearchIds.push("golf-type-code-id");
+  mock.state.titleFitment = {
+    make: "Volkswagen",
+    models: ["Golf"],
+    chassisCodes: ["CD1"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const tiers = await resolveLegacyVehicleProductTiers({
+    make: "Volkswagen",
+    model: "Golf",
+    generation: "MK8",
+  });
+  assert.ok(tiers?.exactIds.includes("golf-type-code-id"));
+});

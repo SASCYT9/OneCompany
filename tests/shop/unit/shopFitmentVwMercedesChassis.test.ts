@@ -57,3 +57,12 @@ test("importer type codes of a Golf are its generation, only for Volkswagen", ()
   assert.ok(vehicleChassisSubcodesOf("Volkswagen", "MK7").includes("5G1"));
   assert.deepEqual(vehicleChassisSubcodesOf("Audi", "MK7"), []);
 });
+
+test("the Mercedes codes the extractor now reads are also expected for their models", async () => {
+  const { getExpectedChassisForMakeModel } = await import("../../../src/lib/crossShopFitment");
+  for (const make of ["Mercedes-Benz", "Mercedes-AMG"]) {
+    assert.ok(getExpectedChassisForMakeModel(make, "AMG GT")?.includes("R190"), make);
+  }
+  assert.ok(getExpectedChassisForMakeModel("Mercedes-Benz", "C-Class")?.includes("C204"));
+  assert.ok(getExpectedChassisForMakeModel("Mercedes-Benz", "V-Class")?.includes("W447"));
+});

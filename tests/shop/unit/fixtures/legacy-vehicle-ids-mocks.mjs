@@ -159,7 +159,16 @@ export function extractProductFitment() {
 
 export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
   const models = fitment.models ?? (fitment.model ? [fitment.model] : []);
+  // Chassis is compared only for the Volkswagen type-code scenario, where the
+  // alias is the point of the test.
+  const chassisOk =
+    !state.vwSubcodes ||
+    !constraints.chassis ||
+    (fitment.chassisCodes ?? []).some(
+      (code) => String(code).toLowerCase() === String(constraints.chassis).toLowerCase()
+    );
   return (
+    chassisOk &&
     String(fitment.make ?? "").toLowerCase() === String(constraints.make ?? "").toLowerCase() &&
     (!constraints.model ||
       models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))

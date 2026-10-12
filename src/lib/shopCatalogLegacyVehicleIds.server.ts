@@ -750,6 +750,16 @@ function chassisExpectedForModels(
 type MatchTier = 0 | 1 | 2;
 
 /** Tier of a stored model / chassis for the requested selection (0 = no match). */
+/** A fitment stored on importer type codes, read as the generations they are. */
+function withGenerationAliases<T extends { chassisCodes: string[] }>(fitment: T, make: string): T {
+  const aliased = fitment.chassisCodes.map(
+    (code) => vehicleChassisGenerationAlias(make, code) ?? code
+  );
+  return aliased.some((code, index) => code !== fitment.chassisCodes[index])
+    ? { ...fitment, chassisCodes: [...new Set(aliased)] }
+    : fitment;
+}
+
 function buildTierMatchers(
   canonicalMake: string,
   scope: RequestedModelScope,
@@ -868,7 +878,7 @@ async function resolveLegacyVehicleProductTiersUncached(
           // A yearless record stays eligible for a year request, but only
           // affirmative year evidence makes it an exact match.
           (!requireYearEvidence || !input.year || fitment.yearRanges.length > 0) &&
-          shopFitmentMatchesVehicleConstraints(fitment, {
+          shopFitmentMatchesVehicleConstraints(withGenerationAliases(fitment, canonicalMake), {
             make: canonicalMake,
             model: first ?? input.model,
             modelAlternates: rest,
