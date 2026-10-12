@@ -28,7 +28,7 @@ function product(title: string, brand = "Test", tags: string[] = []): ShopProduc
 test("a BMW platform label (G8X) is filed on every chassis of that platform", () => {
   const fitment = extractProductFitment(product("Комплект решіток для BMW M3 / M4 G8X"));
   assert.equal(fitment.make, "BMW");
-  for (const chassis of ["G80", "G81", "G82", "G83", "G87"]) {
+  for (const chassis of ["G80", "G81", "G82", "G83"]) {
     assert.ok(fitment.chassisCodes.includes(chassis), chassis);
   }
   assert.ok(
@@ -48,10 +48,11 @@ test("a platform label with no model still reaches the models of that platform",
 test("G2x covers the 3 and 4 Series generations, not the Z4", () => {
   const fitment = extractProductFitment(product("Fi EXHAUST Valvetronic для BMW 430i G2x"));
   assert.equal(fitment.make, "BMW");
-  for (const chassis of ["G20", "G21", "G22", "G23", "G26"]) {
+  for (const chassis of ["G22", "G23", "G26"]) {
     assert.ok(fitment.chassisCodes.includes(chassis), chassis);
   }
   assert.ok(!fitment.chassisCodes.includes("G29"));
+  assert.ok(!fitment.chassisCodes.includes("G20"), "a 430i is not a 3 Series");
 });
 
 test("a platform label means nothing for another make", () => {
@@ -87,4 +88,20 @@ test("a platform label and one of its members confirm each other", () => {
   assert.ok(areChassisCompatible("E9X", "E92"));
   assert.ok(!areChassisCompatible("G2X", "G80"));
   assert.ok(!areChassisCompatible("G2X", "G8X"));
+});
+
+test("a platform label never widens a title that names the model", () => {
+  const fourSeries = extractProductFitment(product("BMW 4 Series G2X Downpipe"));
+  assert.deepEqual(fourSeries.models, ["4 Series"]);
+  assert.ok(fourSeries.chassisCodes.includes("G22"));
+  assert.ok(!fourSeries.chassisCodes.includes("G20"));
+
+  const m3 = extractProductFitment(product("BMW M3 G8X Downpipe"));
+  assert.deepEqual(m3.models, ["M3"]);
+  assert.ok(m3.chassisCodes.includes("G80"));
+  assert.ok(!m3.chassisCodes.includes("G87"));
+
+  // A chassis the title names itself is always kept.
+  const explicit = extractProductFitment(product("BMW M3 G8X G87 Downpipe"));
+  assert.ok(explicit.chassisCodes.includes("G87"));
 });

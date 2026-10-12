@@ -3452,6 +3452,8 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   // Filter chassis codes strictly using CHASSIS_BY_MAKE if cleanMake is known
   const finalChassis: string[] = [];
+  /** Chassis added only because a platform label (`G8X`) names them. */
+  const platformMembers = new Set<string>();
   const makeChassisSet = cleanMake ? CHASSIS_BY_MAKE[cleanMake] || new Set<string>() : null;
 
   const cleanedModels: string[] = [];
@@ -3490,6 +3492,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
       // code and add the members, so every one of those chassis finds it.
       if (makeChassisSet?.has(upperC)) finalChassis.push(upperC);
       finalChassis.push(...family);
+      for (const member of family) platformMembers.add(member);
       continue;
     }
     if (makeChassisSet) {
@@ -4081,6 +4084,27 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         .map((code) => inferModelFromChassis(cleanMake, code))
         .filter((model): model is string => Boolean(model))
     );
+  }
+
+  // A platform spans more cars than the title may mean (`BMW 4 Series G2X` is
+  // not G20, `M3 G8X` is not the M2's G87). When the title names the models,
+  // keep only the platform members those models are expected to have.
+  if (cleanMake === "BMW" && platformMembers.size > 0 && normalizedModels.length > 0) {
+    const lists = normalizedModels.map((model) => getExpectedChassisForMakeModel("BMW", model));
+    if (lists.every((list): list is string[] => Boolean(list))) {
+      const allowed = new Set(lists.flat().map((code) => code.toUpperCase()));
+      const named = new Set(uniq(chassis).map((code) => code.toUpperCase()));
+      for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
+        const code = finalChassis[index].toUpperCase();
+        const belongsTo = inferModelFromChassis("BMW", code);
+        const ofNamedModel =
+          belongsTo != null &&
+          normalizedModels.some((model) => normalizeFitmentKey(model) === normalizeFitmentKey(belongsTo));
+        if (platformMembers.has(code) && !allowed.has(code) && !named.has(code) && !ofNamedModel) {
+          finalChassis.splice(index, 1);
+        }
+      }
+    }
   }
 
   const normalizedChassisCodes = uniq(finalChassis.map((c) => c.toUpperCase()).filter(Boolean));
