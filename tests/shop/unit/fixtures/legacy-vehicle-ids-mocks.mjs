@@ -109,6 +109,10 @@ export async function getShopFitmentCatalogProducts(options) {
   return [{ id, brand: "BMC" }];
 }
 
+export function bmwChassisFamilyMembers(code) {
+  return ["G8X", "E9X"].includes(String(code ?? "").trim().toUpperCase()) ? [] : null;
+}
+
 export function getExpectedChassisForMakeModel(_make, model) {
   return state.expectedChassis?.[model] ?? null;
 }

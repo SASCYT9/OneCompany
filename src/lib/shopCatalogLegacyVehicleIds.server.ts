@@ -1,6 +1,10 @@
 import "server-only";
 
-import { extractProductFitment, getExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
+import {
+  bmwChassisFamilyMembers,
+  extractProductFitment,
+  getExpectedChassisForMakeModel,
+} from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
 import {
@@ -995,6 +999,8 @@ export async function listLegacyVehicleChassisOptions(input: {
   const productsByOption = new Map<string, Set<string>>();
   const add = (productId: string | undefined, code: string | null | undefined) => {
     if (!productId || !code?.trim()) return;
+    // A platform label (`G8X`) is not a chassis a buyer picks; its members are.
+    if (bmwChassisFamilyMembers(code)) return;
     for (const option of vehicleChassisSelfAndAncestors(code.trim())) {
       const key = vehicleChassisKey(option);
       if (!key) continue;
