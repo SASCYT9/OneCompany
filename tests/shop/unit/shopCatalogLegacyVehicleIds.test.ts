@@ -251,6 +251,51 @@ test("chassis options come from the listing's own evidence and never offer a dea
   assert.deepEqual(Object.keys(options.counts).sort(), [...options.codes].sort());
 });
 
+test("a row filed on several models never lends a model the chassis codes of its neighbours", async () => {
+  const { listLegacyVehicleChassisOptions } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  // One flat code list for `BMS Performance Intake для BMW M5 + M6`.
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M6"],
+    chassisCodes: ["E60", "F10", "F12", "F13"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  mock.state.expectedChassis = { M5: ["E60", "F10", "F90"], M6: ["F06", "F12", "F13"] };
+
+  const m6 = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M6" });
+  assert.deepEqual(m6?.codes, ["F12", "F13"]);
+
+  const m5 = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M5" });
+  assert.ok(m5?.codes.includes("E60") && m5.codes.includes("F10"));
+  assert.ok(!m5?.codes.includes("F12") && !m5?.codes.includes("F13"));
+
+  // A row filed on one model is trusted as filed, even for a code the table
+  // does not list (a rare variant), and a model without a table keeps all.
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M6"],
+    chassisCodes: ["F12", "E24"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const single = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M6" });
+  assert.ok(single?.codes.includes("E24"));
+  mock.state.expectedChassis = null;
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M5", "M6"],
+    chassisCodes: ["E60", "F12"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const untabled = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M6" });
+  assert.deepEqual(untabled?.codes, ["E60", "F12"]);
+});
+
 test("a product whose title names the selection but its supplier table does not is a lower tier", async () => {
   const { resolveLegacyVehicleProductTiers } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
@@ -338,7 +383,11 @@ test("a title naming several cars never pairs one model with another model's cha
     confidence: "high",
   };
   mock.state.expectedChassis = { M5: ["F10", "F90"], M6: ["F06", "F12", "F13"] };
-  const own = await resolveLegacyVehicleProductTiers({ make: "BMW", model: "M6", generation: "F12" });
+  const own = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M6",
+    generation: "F12",
+  });
   assert.ok(own?.ids.includes("fitment-id"));
   assert.ok(!own?.exactIds.includes("fitment-id"));
   const foreign = await resolveLegacyVehicleProductTiers({

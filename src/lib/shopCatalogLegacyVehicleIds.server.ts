@@ -1005,6 +1005,12 @@ export async function listLegacyVehicleChassisOptions(input: {
     }
   };
   const [primary, ...others] = scope.exact;
+  // A row filed on several models (`M5/M6/M8`) carries one flat list of codes
+  // for all of them, so each of its models would otherwise list every code of
+  // its neighbours. When the model's own generations are known, only those are
+  // taken from such a row; a single-model row is trusted as filed.
+  const rowCodeBelongsToModel = (rowModelCount: number, code: string) =>
+    rowModelCount <= 1 || chassisExpectedForModels(canonicalMake, scope.exact, code);
   for (const product of products) {
     for (const fitment of product.fitments) {
       if (
@@ -1016,7 +1022,9 @@ export async function listLegacyVehicleChassisOptions(input: {
       ) {
         continue;
       }
-      for (const code of fitment.chassisCodes) add(product.id, code);
+      for (const code of fitment.chassisCodes) {
+        if (rowCodeBelongsToModel(fitment.models.length, code)) add(product.id, code);
+      }
     }
     const title = product.titleFitment;
     if (
@@ -1049,7 +1057,10 @@ export async function listLegacyVehicleChassisOptions(input: {
       continue;
     }
     if (!values(["MODEL"]).some((value) => modelTier(value) === 1)) continue;
-    for (const code of values(["GENERATION", "CHASSIS"])) add(clause.productId, code);
+    const clauseModelCount = new Set(values(["MODEL"]).map(vehicleModelKey)).size;
+    for (const code of values(["GENERATION", "CHASSIS"])) {
+      if (rowCodeBelongsToModel(clauseModelCount, code)) add(clause.productId, code);
+    }
   }
   if (labels.size === 0) return null;
   const codes = canonicalizeVehicleChassisCodes([...labels.values()], canonicalMake, input.model);
