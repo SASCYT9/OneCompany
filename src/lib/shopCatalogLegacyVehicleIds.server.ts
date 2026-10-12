@@ -1,6 +1,11 @@
 import "server-only";
 
-import { extractProductFitment, getExpectedChassisForMakeModel } from "@/lib/crossShopFitment";
+import {
+  bmwChassisFamiliesOf,
+  bmwChassisFamilyMembers,
+  extractProductFitment,
+  getExpectedChassisForMakeModel,
+} from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
 import {
@@ -130,10 +135,16 @@ function modelKeySet(canonicalMake: string, labels: readonly string[]) {
   );
 }
 
-/** The requested generation and its ancestors (`992.1` -> `992.1`, `992`). */
+/**
+ * The requested generation, its ancestors (`992.1` -> `992.1`, `992`) and the
+ * platform labels that name it (`G80` -> `G8X`): a product may be stored on
+ * the platform, which the lineage query must be able to fetch.
+ */
 function generationLineage(generation: string | null | undefined) {
   const value = generation?.trim();
-  return value ? [...new Set([value, ...vehicleChassisSelfAndAncestors(value)])] : [];
+  if (!value) return [];
+  const lineage = [value, ...vehicleChassisSelfAndAncestors(value)];
+  return [...new Set([...lineage, ...lineage.flatMap(bmwChassisFamiliesOf)])];
 }
 
 function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
@@ -752,11 +763,18 @@ function buildTierMatchers(
     if (keys.some((key) => broadModelKeys.has(key))) return 2;
     return 0;
   };
-  const chassisTier = (candidate: string | null | undefined): MatchTier => {
-    if (!requestedGeneration) return 1;
+  const singleChassisTier = (candidate: string | null | undefined): MatchTier => {
     const level = vehicleChassisMatchLevel(candidate, requestedGeneration);
     if (level === "exact" || level === "descendant") return 1;
     return level === "ancestor" ? 2 : 0;
+  };
+  const chassisTier = (candidate: string | null | undefined): MatchTier => {
+    if (!requestedGeneration) return 1;
+    // A stored platform label (`G8X`) stands for each of its member chassis.
+    const members = candidate ? bmwChassisFamilyMembers(candidate) : null;
+    if (!members?.length) return singleChassisTier(candidate);
+    const tiers = members.map(singleChassisTier).filter(Boolean);
+    return tiers.length ? (Math.min(...tiers) as MatchTier) : 0;
   };
   return { modelTier, chassisTier, hasModelFilter: broadModelKeys.size > 0 };
 }
@@ -1011,6 +1029,15 @@ export async function listLegacyVehicleChassisOptions(input: {
   const productsByOption = new Map<string, Set<string>>();
   const add = (productId: string | undefined, code: string | null | undefined) => {
     if (!productId || !code?.trim()) return;
+    // A platform label (`G8X`) is not a chassis a buyer picks; its members are,
+    // as far as the selected model has them.
+    const members = bmwChassisFamilyMembers(code);
+    if (members) {
+      for (const member of members) {
+        if (chassisExpectedForModels(canonicalMake, scope.exact, member)) add(productId, member);
+      }
+      return;
+    }
     for (const option of vehicleChassisSelfAndAncestors(code.trim())) {
       const key = vehicleChassisKey(option);
       if (!key) continue;

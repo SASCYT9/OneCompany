@@ -442,3 +442,25 @@ test("a yearless fitment stays eligible for a year request but is never exact", 
   assert.ok(tiers?.ids.includes("fitment-id"));
   assert.ok(!tiers?.exactIds.includes("fitment-id"));
 });
+
+test("a stored platform label stands for its member chassis in options and matching", async () => {
+  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } =
+    await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.platformFamilies = { G8X: ["G80", "G81", "G82"] };
+  mock.state.expectedChassis = { M3: ["G80", "G81"] };
+  mock.state.applicationChassisCode = "G8X";
+  mock.state.applicationModel = "M3";
+  const options = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M3" });
+  assert.deepEqual(options?.codes, ["G80", "G81"]);
+
+  const tiers = await resolveLegacyVehicleProductTiers({
+    make: "BMW",
+    model: "M3",
+    generation: "G80",
+  });
+  assert.ok(tiers?.exactIds.includes("application-id"));
+  // The upstream query must be able to fetch a row stored on the platform.
+  assert.match(JSON.stringify(mock.state.applicationArgs.at(-1)?.where), /"equals":"G8X"/);
+});

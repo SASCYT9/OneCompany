@@ -1669,6 +1669,41 @@ for (const [make, set] of Object.entries(CHASSIS_BY_MAKE)) {
   }
 }
 
+/**
+ * Platform labels that name several chassis at once (`G8X` = G80/G81/G82/G83/
+ * G87). Suppliers file a product on the platform; the picker and the listing
+ * work with concrete chassis, so a platform is expanded to its members.
+ */
+const BMW_CHASSIS_FAMILIES: Readonly<Record<string, readonly string[]>> = {
+  E6X: ["E60", "E61", "E63", "E64"],
+  E8X: ["E81", "E82", "E87", "E88"],
+  E9X: ["E90", "E91", "E92", "E93"],
+  F1X: ["F10", "F11", "F12", "F13"],
+  F2X: ["F20", "F21", "F22", "F23"],
+  F3X: ["F30", "F31", "F32", "F33", "F34", "F36"],
+  F8X: ["F80", "F82", "F83", "F87"],
+  F9X: ["F90", "F91", "F92", "F93", "F95", "F96", "F97", "F98"],
+  G0X: ["G01", "G02", "G05", "G06", "G07", "G08", "G09"],
+  G1X: ["G11", "G12", "G14", "G15", "G16"],
+  G2X: ["G20", "G21", "G22", "G23", "G26"],
+  G3X: ["G30", "G31", "G32"],
+  G8X: ["G80", "G81", "G82", "G83", "G87"],
+  G9X: ["G90", "G99"],
+};
+
+/** Concrete chassis a BMW platform label stands for, or null for any other code. */
+export function bmwChassisFamilyMembers(code: string): readonly string[] | null {
+  return BMW_CHASSIS_FAMILIES[code.trim().toUpperCase()] ?? null;
+}
+
+/** Platform labels (`G8X`) whose members include this chassis (`G80`). */
+export function bmwChassisFamiliesOf(code: string): string[] {
+  const upper = code.trim().toUpperCase();
+  return Object.entries(BMW_CHASSIS_FAMILIES)
+    .filter(([, members]) => members.includes(upper))
+    .map(([label]) => label);
+}
+
 /* ── Public API ───────────────────────────────────────────────── */
 
 export type Fitment = {
@@ -1929,7 +1964,7 @@ function extractChassisFromText(text: string): string[] {
         .trim()
         .toUpperCase()
         .replace(/[.,]+$/, "");
-      if (CHASSIS_CODES.has(upper)) {
+      if (CHASSIS_CODES.has(upper) || BMW_CHASSIS_FAMILIES[upper]) {
         found.add(upper);
       }
     }
@@ -1938,7 +1973,7 @@ function extractChassisFromText(text: string): string[] {
   const bareTokens = text.toUpperCase().split(/[^A-Z0-9.]+/);
   for (const rawToken of bareTokens) {
     const token = rawToken.replace(/[.,]+$/, "");
-    if (CHASSIS_CODES.has(token)) {
+    if (CHASSIS_CODES.has(token) || BMW_CHASSIS_FAMILIES[token]) {
       found.add(token);
     }
   }
@@ -1960,7 +1995,9 @@ function isModelGroupPlaceholder(model: string) {
 /** A model tag that names chassis codes and no known model of the make. */
 function isChassisListModelTag(model: string, make?: string | null) {
   const tokens = model.toUpperCase().split(/[\s,/]+/).filter(Boolean);
-  if (!tokens.some((token) => CHASSIS_CODES.has(token))) return false;
+  if (!tokens.some((token) => CHASSIS_CODES.has(token) || BMW_CHASSIS_FAMILIES[token])) {
+    return false;
+  }
   if (!make || !MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length) return false;
   return !isKnownVehicleModelForMake(make, model);
 }
@@ -2802,7 +2839,8 @@ function inferModelFromChassis(make: string, chassis: string): string | null {
     )
       return "3 Series";
     if (["F32", "F33", "F36", "G22", "G23", "G26"].includes(upper)) return "4 Series";
-    if (["E34", "E39", "E60", "F10", "G30", "G31"].includes(upper)) return "5 Series";
+    if (["E34", "E39", "E60", "E61", "F10", "F11", "G30", "G31"].includes(upper))
+      return "5 Series";
     if (["E63", "E64", "F06", "F12", "F13", "G32"].includes(upper)) return "6 Series";
     if (["G11", "G12", "G70"].includes(upper)) return "7 Series";
     if (["G14", "G15", "G16"].includes(upper)) return "8 Series";
@@ -2890,14 +2928,14 @@ const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> =
     "2 Series Gran Tourer": ["F46"],
     "3 Series": ["E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21"],
     "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
-    "5 Series": ["E34", "E39", "E60", "F10", "G30", "G31", "G60", "G61"],
+    "5 Series": ["E34", "E39", "E60", "E61", "F10", "F11", "G30", "G31", "G60", "G61"],
     "6 Series": ["E63", "E64", "F06", "F12", "F13", "G32"],
     "7 Series": ["E32", "E38", "E65", "E66", "F01", "F02", "G11", "G12", "G70"],
     "8 Series": ["E31", "G14", "G15", "G16"],
     M2: ["F87", "F87N", "G87"],
     M3: ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
     M4: ["F82", "F83", "G82", "G83"],
-    M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90", "G99"],
+    M5: ["E28", "E34", "E39", "E60", "E61", "F10", "F90", "G90", "G99"],
     M6: ["E63", "E64", "F06", "F12", "F13"],
     M8: ["F91", "F92", "F93"],
     "M135i/M140i": ["F20", "F21", "F40"],
@@ -3365,6 +3403,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         make = CHASSIS_TO_MAKE[upperC];
         break;
       }
+      if (BMW_CHASSIS_FAMILIES[upperC]) {
+        make = "BMW";
+        break;
+      }
     }
   }
 
@@ -3418,6 +3460,8 @@ export function extractProductFitment(product: ShopProduct): Fitment {
 
   // Filter chassis codes strictly using CHASSIS_BY_MAKE if cleanMake is known
   const finalChassis: string[] = [];
+  /** Chassis added only because a platform label (`G8X`) names them. */
+  const platformMembers = new Set<string>();
   const makeChassisSet = cleanMake ? CHASSIS_BY_MAKE[cleanMake] || new Set<string>() : null;
 
   const cleanedModels: string[] = [];
@@ -3450,6 +3494,15 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   // Also filter the directly extracted chassis codes
   for (const c of uniq(chassis)) {
     const upperC = c.toUpperCase();
+    const family = cleanMake === "BMW" ? bmwChassisFamilyMembers(upperC) : null;
+    if (family) {
+      // `G8X` also names G80..G87: keep the platform label where it is a known
+      // code and add the members, so every one of those chassis finds it.
+      if (makeChassisSet?.has(upperC)) finalChassis.push(upperC);
+      finalChassis.push(...family);
+      for (const member of family) platformMembers.add(member);
+      continue;
+    }
     if (makeChassisSet) {
       if (makeChassisSet.has(upperC)) {
         finalChassis.push(upperC);
@@ -3468,6 +3521,20 @@ export function extractProductFitment(product: ShopProduct): Fitment {
       const inferredModel = inferModelFromChassis(cleanMake, c);
       if (inferredModel) {
         inferred.add(inferredModel);
+      }
+    }
+    if (cleanMake === "BMW" && inferred.size > 1) {
+      // A platform label spans several series (`G2x` = 3 + 4 Series); an
+      // engine designation in the title (`430i`) says which one is meant. The
+      // suffix is required: a bare `400` is a spec (`400 Cell`), not a badge.
+      const named = new Set<string>();
+      for (const match of fitmentEvidenceText.matchAll(/\b([1-8])\d{2}(?:xd|xi|[die])\b/gi)) {
+        named.add(`${match[1]} Series`);
+      }
+      const narrowed = [...inferred].filter((model) => named.has(model));
+      if (narrowed.length > 0) {
+        inferred.clear();
+        narrowed.forEach((model) => inferred.add(model));
       }
     }
     if (inferred.size > 0) {
@@ -4027,6 +4094,36 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     );
   }
 
+  // A platform spans more cars than the title may mean (`BMW 4 Series G2X` is
+  // not G20, `M3 G8X` is not the M2's G87). When the title names the models,
+  // keep only the platform members those models are expected to have.
+  if (cleanMake === "BMW" && platformMembers.size > 0 && normalizedModels.length > 0) {
+    const lists = normalizedModels.map((model) => getExpectedChassisForMakeModel("BMW", model));
+    if (lists.every((list): list is string[] => Boolean(list))) {
+      const allowed = new Set(lists.flat().map((code) => code.toUpperCase()));
+      const named = new Set(uniq(chassis).map((code) => code.toUpperCase()));
+      let narrowed = false;
+      for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
+        const code = finalChassis[index].toUpperCase();
+        const belongsTo = inferModelFromChassis("BMW", code);
+        const ofNamedModel =
+          belongsTo != null &&
+          normalizedModels.some((model) => normalizeFitmentKey(model) === normalizeFitmentKey(belongsTo));
+        if (platformMembers.has(code) && !allowed.has(code) && !named.has(code) && !ofNamedModel) {
+          finalChassis.splice(index, 1);
+          narrowed = true;
+        }
+      }
+      if (narrowed) {
+        // The label no longer stands for the whole platform: drop it, so it
+        // cannot vouch for the members the title does not mean.
+        for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
+          if (bmwChassisFamilyMembers(finalChassis[index])) finalChassis.splice(index, 1);
+        }
+      }
+    }
+  }
+
   const normalizedChassisCodes = uniq(finalChassis.map((c) => c.toUpperCase()).filter(Boolean));
   const confidence = descriptionAmbiguous
     ? "unknown"
@@ -4105,6 +4202,11 @@ export function areChassisCompatible(a: string, b: string): boolean {
   const x = a.toUpperCase();
   const y = b.toUpperCase();
   if (x === y) return true;
+  // A platform label and one of its members confirm each other (`G2X`, `G20`).
+  const xMembers = BMW_CHASSIS_FAMILIES[x];
+  const yMembers = BMW_CHASSIS_FAMILIES[y];
+  if (xMembers?.includes(y) || yMembers?.includes(x)) return true;
+  if (xMembers && yMembers && xMembers.some((member) => yMembers.includes(member))) return true;
 
   // MQB platform compatibility
   const isMqbA =
