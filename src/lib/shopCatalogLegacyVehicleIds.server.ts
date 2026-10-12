@@ -538,7 +538,8 @@ async function findLegacyFitmentCandidateIds(
 }
 
 type StringMatchFilter =
-  { equals: string; mode: "insensitive" } | { startsWith: string; mode: "insensitive" };
+  | { equals: string; mode: "insensitive" }
+  | { startsWith: string; mode: "insensitive" };
 
 /**
  * Stored chassis codes that satisfy a request: the code itself, its ancestors
@@ -686,6 +687,12 @@ async function getCachedVehicleEvidence(
   return promise;
 }
 
+/** Makes whose expected-chassis lists are filed under a second table. */
+const SISTER_EXPECTED_TABLES: Readonly<Record<string, readonly string[]>> = {
+  "Mercedes-Benz": ["Mercedes-AMG"],
+  "Land Rover": ["Range Rover"],
+};
+
 /**
  * Whether a chassis belongs to at least one of the models (or their families)
  * where the expected chassis list is known. Unknown lists do not restrict.
@@ -699,8 +706,13 @@ function chassisExpectedForModels(
   if (!code || models.length === 0) return true;
   // A trim is often listed under a spelling or table of its own (`AMG C 63`
   // is `C63` in the Mercedes-AMG table), so try its aliases and sister make.
-  const tables =
-    canonicalMake === "Mercedes-Benz" ? [canonicalMake, "Mercedes-AMG"] : [canonicalMake];
+  const tables = [
+    ...new Set([
+      canonicalMake,
+      ...vehicleMakeAliases(canonicalMake),
+      ...(SISTER_EXPECTED_TABLES[canonicalMake] ?? []),
+    ]),
+  ];
   const lists = models
     .flatMap((model) => [model, ...vehicleModelAliases(canonicalMake, model)])
     .flatMap((label) => tables.map((table) => getExpectedChassisForMakeModel(table, label)))
