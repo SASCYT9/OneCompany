@@ -538,8 +538,7 @@ async function findLegacyFitmentCandidateIds(
 }
 
 type StringMatchFilter =
-  | { equals: string; mode: "insensitive" }
-  | { startsWith: string; mode: "insensitive" };
+  { equals: string; mode: "insensitive" } | { startsWith: string; mode: "insensitive" };
 
 /**
  * Stored chassis codes that satisfy a request: the code itself, its ancestors
@@ -698,8 +697,13 @@ function chassisExpectedForModels(
 ) {
   const code = chassis?.trim();
   if (!code || models.length === 0) return true;
+  // A trim is often listed under a spelling or table of its own (`AMG C 63`
+  // is `C63` in the Mercedes-AMG table), so try its aliases and sister make.
+  const tables =
+    canonicalMake === "Mercedes-Benz" ? [canonicalMake, "Mercedes-AMG"] : [canonicalMake];
   const lists = models
-    .map((model) => getExpectedChassisForMakeModel(canonicalMake, model))
+    .flatMap((model) => [model, ...vehicleModelAliases(canonicalMake, model)])
+    .flatMap((label) => tables.map((table) => getExpectedChassisForMakeModel(table, label)))
     .filter((list): list is string[] => Boolean(list));
   if (lists.length === 0) return true;
   const lineage = new Set(vehicleChassisSelfAndAncestors(code).map(vehicleChassisKey));

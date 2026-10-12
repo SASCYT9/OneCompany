@@ -306,6 +306,24 @@ test("a row filed on several models never lends a model the chassis codes of its
   assert.deepEqual(untabled?.codes, ["E60", "F12"]);
 });
 
+test("a trim listed under an alias spelling still counts as the selected model's chassis", async () => {
+  const { listLegacyVehicleChassisOptions } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.productSearchIds.push("fitment-id");
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["X5 M", "X3 M"],
+    chassisCodes: ["F95", "F97", "E60"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  // The table spells the selected model `X5-M`, which is one of its aliases.
+  mock.state.expectedChassis = { "X5-M": ["F95"], "X3 M": ["F97"] };
+  const options = await listLegacyVehicleChassisOptions({ make: "BMW", model: "X5 M" });
+  assert.deepEqual(options?.codes, ["F95"]);
+});
+
 test("a product whose title names the selection but its supplier table does not is a lower tier", async () => {
   const { resolveLegacyVehicleProductTiers } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
