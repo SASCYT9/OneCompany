@@ -5,6 +5,8 @@ import {
   bmwChassisFamilyMembers,
   extractProductFitment,
   getExpectedChassisForMakeModel,
+  vehicleChassisGenerationAlias,
+  vehicleChassisSubcodesOf,
 } from "@/lib/crossShopFitment";
 import { getShopFitmentCatalogProducts } from "@/lib/shopFitmentCatalogServer";
 import { shopFitmentMatchesVehicleConstraints } from "@/lib/shopVehicleConstraints";
@@ -140,11 +142,13 @@ function modelKeySet(canonicalMake: string, labels: readonly string[]) {
  * platform labels that name it (`G80` -> `G8X`): a product may be stored on
  * the platform, which the lineage query must be able to fetch.
  */
-function generationLineage(generation: string | null | undefined) {
+function generationLineage(generation: string | null | undefined, make?: string | null) {
   const value = generation?.trim();
   if (!value) return [];
   const lineage = [value, ...vehicleChassisSelfAndAncestors(value)];
-  return [...new Set([...lineage, ...lineage.flatMap(bmwChassisFamiliesOf)])];
+  // A Golf stored on its type code (`BQ1`) is a `MK7`: fetch those rows too.
+  const subcodes = lineage.flatMap((code) => vehicleChassisSubcodesOf(make, code));
+  return [...new Set([...lineage, ...lineage.flatMap(bmwChassisFamiliesOf), ...subcodes])];
 }
 
 function vehicleQueryCacheKey(input: LegacyVehicleQuery) {
@@ -394,7 +398,7 @@ async function findLegacyFitmentCandidateIds(
   const modelValues = [
     ...new Set(scope.broad.flatMap((value) => vehicleModelAliases(canonicalMake, value))),
   ];
-  const generationValues = generationLineage(input.generation);
+  const generationValues = generationLineage(input.generation, canonicalMake);
   const tagValues = new Set<string>();
   const modelTagValues = new Set<string>();
   const generationTagValues = new Set<string>();
@@ -557,8 +561,8 @@ type StringMatchFilter =
  * (lower tier) and its facelifts (`992` -> `992.1`, `G20` -> `G20 LCI`). The
  * exact lineage rule is applied again in memory.
  */
-function generationStringFilters(generation: string): StringMatchFilter[] {
-  return generationLineage(generation).flatMap((value) => [
+function generationStringFilters(generation: string, make?: string | null): StringMatchFilter[] {
+  return generationLineage(generation, make).flatMap((value) => [
     { equals: value, mode: "insensitive" as const },
     { startsWith: `${value}.`, mode: "insensitive" as const },
     { startsWith: `${value} `, mode: "insensitive" as const },
@@ -592,7 +596,7 @@ async function getCachedVehicleEvidence(
   if (cached) sharedCache.evidence.delete(key);
   const pending = sharedCache.pendingEvidence.get(key);
   if (pending) return pending;
-  const generationFilters = generationValue ? generationStringFilters(generationValue) : [];
+  const generationFilters = generationValue ? generationStringFilters(generationValue, canonicalMake) : [];
   const clauseAnd: Prisma.ShopCatalogProjectionClauseWhereInput[] = [
     ...(year
       ? [
@@ -746,6 +750,16 @@ function chassisExpectedForModels(
 type MatchTier = 0 | 1 | 2;
 
 /** Tier of a stored model / chassis for the requested selection (0 = no match). */
+/** A fitment stored on importer type codes, read as the generations they are. */
+function withGenerationAliases<T extends { chassisCodes: string[] }>(fitment: T, make: string): T {
+  const aliased = fitment.chassisCodes.map(
+    (code) => vehicleChassisGenerationAlias(make, code) ?? code
+  );
+  return aliased.some((code, index) => code !== fitment.chassisCodes[index])
+    ? { ...fitment, chassisCodes: [...new Set(aliased)] }
+    : fitment;
+}
+
 function buildTierMatchers(
   canonicalMake: string,
   scope: RequestedModelScope,
@@ -768,8 +782,12 @@ function buildTierMatchers(
     if (level === "exact" || level === "descendant") return 1;
     return level === "ancestor" ? 2 : 0;
   };
-  const chassisTier = (candidate: string | null | undefined): MatchTier => {
+  const chassisTier = (rawCandidate: string | null | undefined): MatchTier => {
     if (!requestedGeneration) return 1;
+    // A stored type code (`BQ1`) is its generation (`MK7`).
+    const candidate = rawCandidate
+      ? (vehicleChassisGenerationAlias(canonicalMake, rawCandidate) ?? rawCandidate)
+      : rawCandidate;
     // A stored platform label (`G8X`) stands for each of its member chassis.
     const members = candidate ? bmwChassisFamilyMembers(candidate) : null;
     if (!members?.length) return singleChassisTier(candidate);
@@ -860,7 +878,7 @@ async function resolveLegacyVehicleProductTiersUncached(
           // A yearless record stays eligible for a year request, but only
           // affirmative year evidence makes it an exact match.
           (!requireYearEvidence || !input.year || fitment.yearRanges.length > 0) &&
-          shopFitmentMatchesVehicleConstraints(fitment, {
+          shopFitmentMatchesVehicleConstraints(withGenerationAliases(fitment, canonicalMake), {
             make: canonicalMake,
             model: first ?? input.model,
             modelAlternates: rest,
@@ -1027,8 +1045,10 @@ export async function listLegacyVehicleChassisOptions(input: {
   const { modelTier } = buildTierMatchers(canonicalMake, scope, "");
   const labels = new Map<string, string>();
   const productsByOption = new Map<string, Set<string>>();
-  const add = (productId: string | undefined, code: string | null | undefined) => {
-    if (!productId || !code?.trim()) return;
+  const add = (productId: string | undefined, rawCode: string | null | undefined) => {
+    if (!productId || !rawCode?.trim()) return;
+    // The buyer picks a generation, not an importer's type code.
+    const code = vehicleChassisGenerationAlias(canonicalMake, rawCode) ?? rawCode;
     // A platform label (`G8X`) is not a chassis a buyer picks; its members are,
     // as far as the selected model has them.
     const members = bmwChassisFamilyMembers(code);

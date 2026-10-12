@@ -16,6 +16,7 @@ export const state =
     titleFitment: null,
     expectedChassis: null,
     platformFamilies: null,
+    vwSubcodes: null,
     applicationChassisCode: "G90",
     applicationModel: "M5",
   });
@@ -36,6 +37,7 @@ export function reset() {
   state.titleFitment = null;
   state.expectedChassis = null;
   state.platformFamilies = null;
+  state.vwSubcodes = null;
   state.applicationChassisCode = "G90";
   state.applicationModel = "M5";
 }
@@ -128,6 +130,18 @@ export function bmwChassisFamiliesOf(code) {
     .map(([label]) => label);
 }
 
+export function vehicleChassisGenerationAlias(make, code) {
+  if (String(make ?? "").toLowerCase() !== "volkswagen") return null;
+  return state.vwSubcodes?.[String(code ?? "").trim().toUpperCase()] ?? null;
+}
+
+export function vehicleChassisSubcodesOf(make, generation) {
+  if (String(make ?? "").toLowerCase() !== "volkswagen") return [];
+  return Object.entries(state.vwSubcodes ?? {})
+    .filter(([, label]) => label === String(generation ?? "").trim().toUpperCase())
+    .map(([code]) => code);
+}
+
 export function getExpectedChassisForMakeModel(_make, model) {
   return state.expectedChassis?.[model] ?? null;
 }
@@ -145,7 +159,16 @@ export function extractProductFitment() {
 
 export function shopFitmentMatchesVehicleConstraints(fitment, constraints) {
   const models = fitment.models ?? (fitment.model ? [fitment.model] : []);
+  // Chassis is compared only for the Volkswagen type-code scenario, where the
+  // alias is the point of the test.
+  const chassisOk =
+    !state.vwSubcodes ||
+    !constraints.chassis ||
+    (fitment.chassisCodes ?? []).some(
+      (code) => String(code).toLowerCase() === String(constraints.chassis).toLowerCase()
+    );
   return (
+    chassisOk &&
     String(fitment.make ?? "").toLowerCase() === String(constraints.make ?? "").toLowerCase() &&
     (!constraints.model ||
       models.some((model) => String(model).toLowerCase() === constraints.model.toLowerCase()))
