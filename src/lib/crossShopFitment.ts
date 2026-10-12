@@ -1365,6 +1365,7 @@ const VALID_MODELS_BY_MAKE: Record<string, Set<string>> = {
     "CX-70",
     "CX-80",
     "CX-90",
+    "Mazda 2",
     "Mazda 3",
     "Mazda 6",
   ]),
@@ -1414,6 +1415,7 @@ const VALID_MODELS_BY_MAKE: Record<string, Set<string>> = {
     "Hypermotard",
   ]),
   Ford: new Set([
+    "Taurus",
     "Bronco",
     "F-150 Raptor",
     "Fiesta St",
@@ -1561,7 +1563,15 @@ const VALID_MODELS_BY_MAKE: Record<string, Set<string>> = {
     "Grandland",
   ]),
   SEAT: new Set(["Leon", "Ibiza", "Ateca", "Arona", "Altea"]),
-  "Land Rover": new Set(["Defender", "Discovery", "Freelander"]),
+  "Land Rover": new Set([
+    "Defender",
+    "Discovery",
+    "Freelander",
+    "Range Rover",
+    "Range Rover Sport",
+    "Range Rover Evoque",
+    "Range Rover Velar",
+  ]),
   "Range Rover": new Set(["Evoque", "Velar", "Sport", "Vogue", "L460", "L405", "L494"]),
   Suzuki: new Set(["Jimny", "Swift", "Vitara", "Ignis", "Grand Vitara"]),
   Isuzu: new Set(["D-Max"]),
@@ -2046,6 +2056,15 @@ function isChassisListModelTag(model: string, make?: string | null) {
   return !isKnownVehicleModelForMake(make, model);
 }
 
+/** Feeds whose `fits-model` tags carry the part's name, not a vehicle model. */
+function isPartNameModelFeed(product: ShopProduct) {
+  const vendor = String(product.vendor ?? "").toLowerCase();
+  return (
+    vendor.includes("urban") ||
+    (product.tags ?? []).some((tag) => String(tag ?? "").toLowerCase().startsWith("urban-source:"))
+  );
+}
+
 function extractTagModels(product: ShopProduct, expectedMake?: string | null): string[] {
   const tags = product.tags ?? [];
   const productBrand = String(product.brand ?? "")
@@ -2363,10 +2382,24 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bf\s*-?\s*250\b/i,
     /\bf\s*-?\s*350\b/i,
     /\bsuper\s*duty\b/i,
+    /\btaurus\b/i,
     /\bexplorer\b/i,
     /\btransit\b/i,
     /\bkuga\b/i,
     /\bpuma\b/i,
+  ],
+  Mazda: [
+    /\bmx[\s-]*5\b/i,
+    /\bmiata\b/i,
+    /\brx[\s-]*7\b/i,
+    /\brx[\s-]*8\b/i,
+    /\bcx[\s-]*30\b/i,
+    /\bcx[\s-]*5\b/i,
+    /\bcx[\s-]*60\b/i,
+    /\bcx[\s-]*70\b/i,
+    /\bcx[\s-]*80\b/i,
+    /\bcx[\s-]*90\b/i,
+    /\bmazda\s*(?:2|3|6)\b/i,
   ],
   Tesla: [/\bmodel\s*3\b/i, /\bmodel\s*y\b/i, /\bmodel\s*s\b/i, /\bmodel\s*x\b/i],
   Porsche: [
@@ -2456,6 +2489,7 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\b8er\b/i,
   ],
   Audi: [
+    /\br8\b/i,
     /\brs3\b/i,
     /\brs4\b/i,
     /\brs5\b/i,
@@ -2558,8 +2592,17 @@ const MODEL_PATTERNS: Record<string, RegExp[]> = {
     /\bgrandland\b/i,
   ],
   SEAT: [/\bleon\b/i, /\bibiza\b/i, /\bateca\b/i, /\barona\b/i, /\baltea\b/i],
-  "Land Rover": [/\bdefender\b/i, /\bdiscovery\b/i, /\bfreelander\b/i],
+  "Land Rover": [
+    /\bdefender\b/i,
+    /\bdiscovery\b/i,
+    /\bfreelander\b/i,
+    /\brange\s*rover\s*sport\b/i,
+    /\brange\s*rover\s*evoque\b/i,
+    /\brange\s*rover\s*velar\b/i,
+    /\brange\s*rover\b(?!\s*(?:sport|evoque|velar)\b)/i,
+  ],
   "Range Rover": [
+    /\brange\s*rover\b/i,
     /\bevoque\b/i,
     /\bvelar\b/i,
     /\bsport\b/i,
@@ -3246,7 +3289,16 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     }
   } else if (brand.includes("brabus")) {
     const brabusTitle = [product.title?.en, product.title?.ua].filter(Boolean).join(" | ");
-    if (/\b(?:based on|for)\s+porsche\b/i.test(brabusTitle)) {
+    const baseCar = brabusTitle.match(
+      /(?:на\s+базі|based\s+on|на\s+основі)\s+(?:the\s+)?([^|]{2,60})/i
+    )?.[1];
+    const baseMake = baseCar ? detectMakeGeneric(baseCar) : null;
+    if (baseMake) {
+      // A Brabus part "на базі Bentley Continental GT" is for the Bentley, not
+      // for the Mercedes the tuner is best known for. The picker files Range
+      // Rover models under Land Rover.
+      make = baseMake === "Range Rover" ? "Land Rover" : baseMake;
+    } else if (/\b(?:based on|for)\s+porsche\b/i.test(brabusTitle)) {
       make = "Porsche";
     } else if (/\brolls[\s–—-]*royce\b/i.test(brabusTitle)) {
       make = "Rolls-Royce";
@@ -3316,10 +3368,41 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     }
   }
 
+  if (make && isPartNameModelFeed(product)) {
+    // `fits-make:land-rover` leaves the slug spelling `Land-rover`, which no
+    // model table is keyed by: read the make the way the tables spell it.
+    const wanted = normalizeFitmentKey(make.replace(/[-_]+/g, " "));
+    make =
+      Object.keys(MODEL_PATTERNS).find((key) => normalizeFitmentKey(key) === wanted) ?? make;
+    if (make === "Range Rover") {
+      // The picker files the whole Range Rover line under Land Rover. A title
+      // that names only the base car ("for Range Rover") has no model of its
+      // own under the `Range Rover` make, so read it as Land Rover's.
+      const own = detectModelsFromText(fitmentEvidenceText, "Range Rover").filter(
+        (model) => normalizeFitmentKey(model) !== "range rover"
+      );
+      if (own.length === 0 && detectModelsFromText(fitmentEvidenceText, "Land Rover").length > 0) {
+        make = "Land Rover";
+      }
+    }
+  }
+
   if (models.length === 0) {
     models = extractTagModels(product, make);
     if (models.length === 0) {
       models = detectModelsFromText(fitmentEvidenceText, make);
+    } else if (
+      make &&
+      MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length &&
+      isPartNameModelFeed(product) &&
+      !models.some((model) => isKnownVehicleModelForMake(make as string, model)) &&
+      !models.every((model) => isModelGroupPlaceholder(model))
+    ) {
+      // The Urban feed files the part name as the model (`fits-model:land-
+      // rover:urban-extended-arch`, `23-uc9`). When no tag model is a vehicle
+      // of this make and the title names one, the title is the evidence.
+      const named = detectModelsFromText(fitmentEvidenceText, make);
+      if (named.length > 0) models = named;
     } else if (
       make &&
       MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length &&
@@ -4108,14 +4191,22 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     if (allowed) {
       normalizedModels = normalizedModels
         .map((m) => {
-          for (const allowedVal of allowed) {
-            if (allowedVal.toLowerCase() === m.toLowerCase()) {
-              return allowedVal;
-            }
-          }
-          return null;
+          // Spelling-insensitive (`mx5` is `MX-5`); a properly cased entry
+          // wins over its lowercase twin (`RX-8` over `rx-8`).
+          // An exact (case-insensitive) spelling is always preferred.
+          const exact = [...allowed].find((allowedVal) => allowedVal.toLowerCase() === m.toLowerCase());
+          if (exact) return exact;
+          const key = m.toLowerCase().replace(/[^a-z0-9]+/g, "");
+          const matches = [...allowed].filter(
+            (allowedVal) => allowedVal.toLowerCase().replace(/[^a-z0-9]+/g, "") === key
+          );
+          return matches.find((value) => value !== value.toLowerCase()) ?? matches[0] ?? null;
         })
         .filter((m): m is string => m !== null);
+      if (cleanMake === "Mazda" && normalizedModels.includes("MX-5")) {
+        // `Miata` is the same car: one selectable model, not two.
+        normalizedModels = normalizedModels.filter((m) => !/^(?:mx-5 )?miata$/i.test(m));
+      }
     }
   }
 
