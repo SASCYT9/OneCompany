@@ -387,6 +387,8 @@ const CHASSIS_CODES = new Set([
   // Cupra
   "VZ5",
   // Mercedes-Benz generations written in titles but missing above
+  "C238",
+  "A238",
   "W253",
   "X253",
   "C253",
@@ -967,6 +969,8 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "VAG",
   ]),
   "Mercedes-Benz": new Set([
+    "C238",
+    "A238",
     "W253",
     "X253",
     "C253",
@@ -1050,6 +1054,8 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "R232",
   ]),
   "Mercedes-AMG": new Set([
+    "C238",
+    "A238",
     "W253",
     "X253",
     "C253",
@@ -3308,10 +3314,22 @@ const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> =
     "CLA-Class": ["C117", "X117", "C118", "X118"],
     "G-Class": ["W463", "W463A", "W464", "W465"],
     "G-Wagon": ["W463", "W463A", "W465"],
-    "GLC-Class": ["X253", "C253", "X254"],
-    "GLE-Class": ["W166", "W167", "C167"],
+    "GLC-Class": ["W253", "X253", "C253", "X254"],
+    "GLE-Class": ["W166", "C292", "W167", "V167", "C167"],
+    GLA: ["X156", "H247"],
     GLS: ["X166", "X167"],
-    "S-Class": ["W220", "W221", "W222", "W223", "C215", "C216", "C217", "A217", "Z223"],
+    "S-Class": [
+      "W140",
+      "W220",
+      "W221",
+      "W222",
+      "W223",
+      "C215",
+      "C216",
+      "C217",
+      "A217",
+      "Z223",
+    ],
     "C-Class": [
       "W202",
       "W203",

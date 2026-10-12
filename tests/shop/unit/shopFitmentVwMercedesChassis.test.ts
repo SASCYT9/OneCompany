@@ -66,3 +66,23 @@ test("the Mercedes codes the extractor now reads are also expected for their mod
   assert.ok(getExpectedChassisForMakeModel("Mercedes-Benz", "C-Class")?.includes("C204"));
   assert.ok(getExpectedChassisForMakeModel("Mercedes-Benz", "V-Class")?.includes("W447"));
 });
+
+test("every Mercedes code the extractor reads is expected for its model family", async () => {
+  const { getExpectedChassisForMakeModel } = await import("../../../src/lib/crossShopFitment");
+  const chassisOf = (title: string) => extractProductFitment(product(title)).chassisCodes;
+  assert.ok(chassisOf("Mercedes E-Class Coupe C238 E400").includes("C238"));
+  assert.ok(chassisOf("Mercedes E-Class Cabriolet A238 E300").includes("A238"));
+  for (const [model, code] of [
+    ["GLC-Class", "W253"],
+    ["GLE-Class", "C292"],
+    ["GLE-Class", "V167"],
+    ["S-Class", "W140"],
+    ["E-Class", "C238"],
+    ["GLA", "H247"],
+  ] as const) {
+    assert.ok(
+      getExpectedChassisForMakeModel("Mercedes-Benz", model)?.includes(code),
+      `${model} ${code}`
+    );
+  }
+});
