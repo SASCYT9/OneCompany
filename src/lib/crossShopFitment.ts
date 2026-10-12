@@ -383,6 +383,43 @@ const CHASSIS_CODES = new Set([
   "F60",
   // Cupra
   "VZ5",
+  // Mercedes-Benz generations written in titles but missing above
+  "W253",
+  "X253",
+  "C253",
+  "X290",
+  "C192",
+  "C257",
+  "C204",
+  "C205",
+  "S205",
+  "A205",
+  "S213",
+  "X117",
+  "X118",
+  "V167",
+  "C117",
+  "X156",
+  "A207",
+  "C207",
+  "W447",
+  "W639",
+  "W906",
+  "H247",
+  "X166",
+  "S204",
+  "S212",
+  "R190",
+  "C292",
+  "W638",
+  "W140",
+  // Volkswagen Golf generations
+  "MK1",
+  "MK2",
+  "MK3",
+  "MK4",
+  "MK5",
+  "MK6",
 ]);
 
 /* ── Make detection (shared) ──────────────────────────────────── */
@@ -907,8 +944,52 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "8T",
     "F5",
   ]),
-  Volkswagen: new Set(["MQB", "MK7", "MK7.5", "MK8", "PQ35", "B7", "B8", "VAG"]),
+  Volkswagen: new Set([
+    "MQB",
+    "MK1",
+    "MK2",
+    "MK3",
+    "MK4",
+    "MK5",
+    "MK6",
+    "MK7",
+    "MK7.5",
+    "MK8",
+    "PQ35",
+    "B7",
+    "B8",
+    "VAG",
+  ]),
   "Mercedes-Benz": new Set([
+    "W253",
+    "X253",
+    "C253",
+    "X290",
+    "C192",
+    "C257",
+    "C204",
+    "C205",
+    "S205",
+    "A205",
+    "S213",
+    "X117",
+    "X118",
+    "V167",
+    "C117",
+    "X156",
+    "A207",
+    "C207",
+    "W447",
+    "W639",
+    "W906",
+    "H247",
+    "X166",
+    "S204",
+    "S212",
+    "R190",
+    "C292",
+    "W638",
+    "W140",
     "W124",
     "W201",
     "W202",
@@ -963,6 +1044,35 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "R232",
   ]),
   "Mercedes-AMG": new Set([
+    "W253",
+    "X253",
+    "C253",
+    "X290",
+    "C192",
+    "C257",
+    "C204",
+    "C205",
+    "S205",
+    "A205",
+    "S213",
+    "X117",
+    "X118",
+    "V167",
+    "C117",
+    "X156",
+    "A207",
+    "C207",
+    "W447",
+    "W639",
+    "W906",
+    "H247",
+    "X166",
+    "S204",
+    "S212",
+    "R190",
+    "C292",
+    "W638",
+    "W140",
     "W204",
     "C204",
     "S204",
@@ -1704,6 +1814,76 @@ const BMW_CHASSIS_FAMILIES: Readonly<Record<string, readonly string[]>> = {
 /** Concrete chassis a BMW platform label stands for, or null for any other code. */
 export function bmwChassisFamilyMembers(code: string): readonly string[] | null {
   return BMW_CHASSIS_FAMILIES[code.trim().toUpperCase()] ?? null;
+}
+
+/**
+ * Internal type codes that importers file Golf evidence under (`BQ1`, `5G1`
+ * for the Golf VII, `CD1`, `DA1` for the Golf VIII). A buyer picks the
+ * generation, not the type code.
+ */
+const VW_GENERATION_SUBCODES: Readonly<Record<string, string>> = {
+  "5G": "MK7",
+  "5G1": "MK7",
+  "5G1/BA5": "MK7",
+  AU: "MK7",
+  AUV: "MK7",
+  BA5: "MK7",
+  BE1: "MK7",
+  BE2: "MK7",
+  BQ1: "MK7",
+  BV5: "MK7",
+  CD1: "MK8",
+  CDV: "MK8",
+  DA1: "MK8",
+};
+
+function isVolkswagenMake(make: string | null | undefined) {
+  const key = String(make ?? "").trim().toLowerCase();
+  return key === "volkswagen" || key === "vw";
+}
+
+/** `BQ1` -> `MK7` for a Volkswagen; null for anything that is no type code. */
+export function vehicleChassisGenerationAlias(
+  make: string | null | undefined,
+  code: string
+): string | null {
+  if (!isVolkswagenMake(make)) return null;
+  return VW_GENERATION_SUBCODES[code.trim().toUpperCase()] ?? null;
+}
+
+/** The type codes filed under a generation (`MK7` -> `5G`, `BQ1`...). */
+export function vehicleChassisSubcodesOf(
+  make: string | null | undefined,
+  generation: string
+): string[] {
+  if (!isVolkswagenMake(make)) return [];
+  const wanted = generation.trim().toUpperCase();
+  return Object.entries(VW_GENERATION_SUBCODES)
+    .filter(([, label]) => label === wanted)
+    .map(([code]) => code);
+}
+
+const GOLF_ROMAN: Readonly<Record<string, string>> = {
+  i: "MK1",
+  ii: "MK2",
+  iii: "MK3",
+  iv: "MK4",
+  v: "MK5",
+  vi: "MK6",
+  vii: "MK7",
+  viii: "MK8",
+};
+
+/** The generation a Golf title names: `Golf 6`, `Golf VII`, `Golf 7.5`, `Golf Mk8`. */
+function golfGenerationsFromText(text: string): string[] {
+  const found = new Set<string>();
+  for (const match of text.matchAll(
+    /\bgolf\s*(?:mk\s*)?(?:(\d(?:\.5)?)|(viii|vii|vi|iv|iii|ii|v|i))(?![\w.])/gi
+  )) {
+    const label = match[1] ? `MK${match[1]}` : GOLF_ROMAN[match[2].toLowerCase()];
+    if (label && /^MK[1-8](?:\.5)?$/.test(label)) found.add(label);
+  }
+  return [...found];
 }
 
 /** Platform labels (`G8X`) whose members include this chassis (`G80`). */
@@ -3143,8 +3323,8 @@ const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> =
     "civic si": ["FE1"],
   },
   Volkswagen: {
-    Golf: ["MK7", "MK7.5", "MK8", "MQB"],
-    GTI: ["MK7", "MK7.5", "MK8", "MQB"],
+    Golf: ["MK1", "MK2", "MK3", "MK4", "MK5", "MK6", "MK7", "MK7.5", "MK8", "MQB", "PQ35"],
+    GTI: ["MK1", "MK2", "MK3", "MK4", "MK5", "MK6", "MK7", "MK7.5", "MK8", "MQB", "PQ35"],
     Arteon: ["MQB"],
     Passat: ["MQB"],
     Tiguan: ["MQB"],
@@ -4183,6 +4363,16 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         .map((code) => inferModelFromChassis(cleanMake, code))
         .filter((model): model is string => Boolean(model))
     );
+  }
+
+  // Remus & co. write the Golf's generation as a number (`Golf 6 1K`): that is
+  // the Mk the picker offers.
+  if (cleanMake === "Volkswagen" && normalizedModels.some((model) => /^(?:golf|gti)/i.test(model))) {
+    for (const generation of golfGenerationsFromText(fitmentEvidenceText)) {
+      if (!finalChassis.some((code) => code.toUpperCase() === generation)) {
+        finalChassis.push(generation);
+      }
+    }
   }
 
   // A platform spans more cars than the title may mean (`BMW 4 Series G2X` is

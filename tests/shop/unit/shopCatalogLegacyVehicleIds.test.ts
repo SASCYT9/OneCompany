@@ -464,3 +464,25 @@ test("a stored platform label stands for its member chassis in options and match
   // The upstream query must be able to fetch a row stored on the platform.
   assert.match(JSON.stringify(mock.state.applicationArgs.at(-1)?.where), /"equals":"G8X"/);
 });
+
+test("an importer's Golf type code is offered and matched as its generation", async () => {
+  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } =
+    await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  mock.state.vwSubcodes = { BQ1: "MK7", BE1: "MK7" };
+  mock.state.applicationChassisCode = "BQ1";
+  mock.state.applicationModel = "Golf";
+  const options = await listLegacyVehicleChassisOptions({ make: "Volkswagen", model: "Golf" });
+  assert.ok(options?.codes.includes("MK7"), JSON.stringify(options));
+  assert.ok(!options?.codes.includes("BQ1"));
+
+  const tiers = await resolveLegacyVehicleProductTiers({
+    make: "Volkswagen",
+    model: "Golf",
+    generation: "MK7",
+  });
+  assert.ok(tiers?.exactIds.includes("application-id"));
+  // The upstream query fetches the rows stored on the type codes.
+  assert.match(JSON.stringify(mock.state.applicationArgs.at(-1)?.where), /"equals":"BQ1"/);
+});
