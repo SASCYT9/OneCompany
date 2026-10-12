@@ -1,7 +1,11 @@
 import { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
 import { serializeAdminShipment } from "@/lib/shopAdminShipments";
 import { orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
-import { adminMonobankBlockReason } from "./shopMonobankEligibility";
+import {
+  adminMonobankBlockReason,
+  adminMonobankCanReplaceProvider,
+} from "./shopMonobankEligibility";
+import { reusableMonobankLink } from "./shopMonobankPayments";
 
 export const ALL_ORDER_STATUSES: OrderStatus[] = [
   "PENDING_PAYMENT",
@@ -34,7 +38,9 @@ export const adminOrderInclude = {
   events: {
     orderBy: [{ createdAt: "desc" }],
   },
-  monobankPayment: { select: { id: true } },
+  monobankPayment: {
+    select: { id: true, invoiceId: true, pageUrl: true, status: true, expiresAt: true },
+  },
 } satisfies Prisma.ShopOrderInclude;
 
 export type AdminShopOrderRecord = Prisma.ShopOrderGetPayload<{
@@ -151,6 +157,15 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     companyName: record.customer?.companyName ?? null,
     paymentMethod: record.paymentMethod,
     monobankBlockReason: adminMonobankBlockReason(record),
+    monobankCanReplaceProvider: adminMonobankCanReplaceProvider(record),
+    // The current open link is shown from the database, so it stays available even
+    // while Mono itself is slow to answer.
+    monobankLink: (() => {
+      const url = reusableMonobankLink(record.monobankPayment);
+      return url
+        ? { url, expiresAt: record.monobankPayment?.expiresAt?.toISOString() ?? null }
+        : null;
+    })(),
     phone: record.phone,
     customerGroupSnapshot: record.customerGroupSnapshot,
     b2bDiscountPercent: record.customer?.b2bDiscountPercent || null,

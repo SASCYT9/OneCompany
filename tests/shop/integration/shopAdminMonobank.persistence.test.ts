@@ -60,7 +60,8 @@ test("admin payment recovery uses a real disposable DB and synthetic bank", { sk
     assert.equal(creates - callsBefore, 1);
     assert.equal(await prisma.shopMonobankPayment.count({ where: { orderId: order.id } }), 1);
     const link = await prepareAdminMonobankPayment(prisma, order.id, "ua", "Test admin");
-    assert.match(link, /^https:\/\/pay\.mbnk\.biz\//);
+    assert.match(link.url, /^https:\/\/pay\.mbnk\.biz\//);
+    assert.equal(link.statusVerified, true);
     assert.equal(creates - callsBefore, 1);
   });
   await t.test("fresh bank success blocks an admin retry even immediately after a poll", async () => {
