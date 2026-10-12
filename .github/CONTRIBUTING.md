@@ -70,8 +70,7 @@ Use Conventional Commits:
 ```
 
 Common types are `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`,
-`chore`, and `revert`. Commitlint validates PR commits; release-please manages
-release metadata from merged conventional commits.
+`chore`, and `revert`.
 
 ## Verification
 
