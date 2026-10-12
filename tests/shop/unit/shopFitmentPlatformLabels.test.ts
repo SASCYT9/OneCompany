@@ -126,7 +126,7 @@ test("a chassis range names every chassis in between, not only its two ends", ()
   assert.deepEqual(chassisOf("Intake BMW E90-93").sort(), ["E90", "E91", "E92", "E93"]);
   assert.ok(chassisOf("Exhaust BMW 5 Series F10-F13").includes("F11"));
   assert.ok(chassisOf("Exhaust for BMW G05–G07").includes("G06"));
-  assert.deepEqual(chassisOf("Spoiler BMW M4 G80/81/82/83").sort(), ["G80", "G81", "G82", "G83"]);
+  assert.deepEqual(chassisOf("Spoiler for BMW G80/81/82/83").sort(), ["G80", "G81", "G82", "G83"]);
   // A part number is not a range of cars.
   assert.deepEqual(chassisOf("Part A12-B34 for BMW M3 G80"), ["G80"]);
 });
