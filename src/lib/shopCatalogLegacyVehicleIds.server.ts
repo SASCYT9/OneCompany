@@ -1009,8 +1009,10 @@ export async function listLegacyVehicleChassisOptions(input: {
   // for all of them, so each of its models would otherwise list every code of
   // its neighbours. When the model's own generations are known, only those are
   // taken from such a row; a single-model row is trusted as filed.
-  const rowCodeBelongsToModel = (rowModelCount: number, code: string) =>
-    rowModelCount <= 1 || chassisExpectedForModels(canonicalMake, scope.exact, code);
+  const rowCodeBelongsToModel = (rowModels: readonly string[], code: string) =>
+    new Set(
+      rowModels.map((model) => vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, model)))
+    ).size <= 1 || chassisExpectedForModels(canonicalMake, scope.exact, code);
   for (const product of products) {
     for (const fitment of product.fitments) {
       if (
@@ -1023,7 +1025,7 @@ export async function listLegacyVehicleChassisOptions(input: {
         continue;
       }
       for (const code of fitment.chassisCodes) {
-        if (rowCodeBelongsToModel(fitment.models.length, code)) add(product.id, code);
+        if (rowCodeBelongsToModel(fitment.models, code)) add(product.id, code);
       }
     }
     const title = product.titleFitment;
@@ -1057,9 +1059,9 @@ export async function listLegacyVehicleChassisOptions(input: {
       continue;
     }
     if (!values(["MODEL"]).some((value) => modelTier(value) === 1)) continue;
-    const clauseModelCount = new Set(values(["MODEL"]).map(vehicleModelKey)).size;
+    const clauseModels = values(["MODEL"]);
     for (const code of values(["GENERATION", "CHASSIS"])) {
-      if (rowCodeBelongsToModel(clauseModelCount, code)) add(clause.productId, code);
+      if (rowCodeBelongsToModel(clauseModels, code)) add(clause.productId, code);
     }
   }
   if (labels.size === 0) return null;

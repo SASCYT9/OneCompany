@@ -284,6 +284,16 @@ test("a row filed on several models never lends a model the chassis codes of its
   };
   const single = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M6" });
   assert.ok(single?.codes.includes("E24"));
+  // The same model spelled twice is still one model.
+  mock.state.titleFitment = {
+    make: "BMW",
+    models: ["M6", "m6"],
+    chassisCodes: ["F12", "E24"],
+    yearRanges: [],
+    confidence: "high",
+  };
+  const respelled = await listLegacyVehicleChassisOptions({ make: "BMW", model: "M6" });
+  assert.ok(respelled?.codes.includes("E24"));
   mock.state.expectedChassis = null;
   mock.state.titleFitment = {
     make: "BMW",
