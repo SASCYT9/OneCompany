@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  bmwChassisFamiliesOf,
   bmwChassisFamilyMembers,
   extractProductFitment,
   getExpectedChassisForMakeModel,
@@ -134,10 +135,16 @@ function modelKeySet(canonicalMake: string, labels: readonly string[]) {
   );
 }
 
-/** The requested generation and its ancestors (`992.1` -> `992.1`, `992`). */
+/**
+ * The requested generation, its ancestors (`992.1` -> `992.1`, `992`) and the
+ * platform labels that name it (`G80` -> `G8X`): a product may be stored on
+ * the platform, which the lineage query must be able to fetch.
+ */
 function generationLineage(generation: string | null | undefined) {
   const value = generation?.trim();
-  return value ? [...new Set([value, ...vehicleChassisSelfAndAncestors(value)])] : [];
+  if (!value) return [];
+  const lineage = [value, ...vehicleChassisSelfAndAncestors(value)];
+  return [...new Set([...lineage, ...lineage.flatMap(bmwChassisFamiliesOf)])];
 }
 
 function vehicleQueryCacheKey(input: LegacyVehicleQuery) {

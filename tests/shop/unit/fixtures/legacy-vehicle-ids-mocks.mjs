@@ -121,6 +121,13 @@ export function bmwChassisFamilyMembers(code) {
   return ["G8X", "E9X"].includes(key) ? [] : null;
 }
 
+export function bmwChassisFamiliesOf(code) {
+  const key = String(code ?? "").trim().toUpperCase();
+  return Object.entries(state.platformFamilies ?? {})
+    .filter(([, members]) => members.includes(key))
+    .map(([label]) => label);
+}
+
 export function getExpectedChassisForMakeModel(_make, model) {
   return state.expectedChassis?.[model] ?? null;
 }

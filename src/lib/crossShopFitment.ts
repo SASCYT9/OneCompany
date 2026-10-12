@@ -1696,6 +1696,14 @@ export function bmwChassisFamilyMembers(code: string): readonly string[] | null 
   return BMW_CHASSIS_FAMILIES[code.trim().toUpperCase()] ?? null;
 }
 
+/** Platform labels (`G8X`) whose members include this chassis (`G80`). */
+export function bmwChassisFamiliesOf(code: string): string[] {
+  const upper = code.trim().toUpperCase();
+  return Object.entries(BMW_CHASSIS_FAMILIES)
+    .filter(([, members]) => members.includes(upper))
+    .map(([label]) => label);
+}
+
 /* ── Public API ───────────────────────────────────────────────── */
 
 export type Fitment = {

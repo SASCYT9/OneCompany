@@ -461,4 +461,6 @@ test("a stored platform label stands for its member chassis in options and match
     generation: "G80",
   });
   assert.ok(tiers?.exactIds.includes("application-id"));
+  // The upstream query must be able to fetch a row stored on the platform.
+  assert.match(JSON.stringify(mock.state.applicationArgs.at(-1)?.where), /"equals":"G8X"/);
 });
