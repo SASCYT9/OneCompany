@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { prepareAdminMonobankPayment } from "@/lib/shopAdminMonobank";
 import { isMonobankEnabled, MonobankError } from "@/lib/shopMonobank";
 
+// Up to two Mono calls (status read + invoice create, 15 s timeout each) plus DB work.
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let orderId = "unknown";
   try {
@@ -14,19 +17,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = await params;
     orderId = id;
     const body = await request.json().catch(() => ({}));
+    const replacePreviousProvider = body?.replacePreviousProvider === true;
     await writeAdminAuditLog(prisma, session, {
       scope: "shop",
-      action: "order.monobank.payment_link_requested",
+      action: replacePreviousProvider
+        ? "order.monobank.previous_provider_replaced"
+        : "order.monobank.payment_link_requested",
       entityType: "shop.order",
       entityId: id,
     });
-    const url = await prepareAdminMonobankPayment(
+    const link = await prepareAdminMonobankPayment(
       prisma,
       id,
       body?.locale === "en" ? "en" : "ua",
-      session.name
+      session.name,
+      { replacePreviousProvider }
     );
-    return NextResponse.json({ url }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(link, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const code =
       error instanceof MonobankError

@@ -25,3 +25,16 @@ export function adminMonobankBlockReason(order: OrderPaymentState): string | nul
     return "PREVIOUS_PAYMENT_UNVERIFIED";
   return null;
 }
+
+/**
+ * The previous provider (Whitepay crypto/fiat, an unconfirmed pending payment) cannot be
+ * read back automatically, so a manager may confirm it was not paid and switch to mono.
+ * Legacy Stripe sessions stay blocked: they need reconciliation in Stripe.
+ */
+export function adminMonobankCanReplaceProvider(order: OrderPaymentState): boolean {
+  return (
+    adminMonobankBlockReason(order) === "PREVIOUS_PAYMENT_UNVERIFIED" &&
+    !order.stripeCheckoutSessionId &&
+    !order.monobankPayment
+  );
+}
