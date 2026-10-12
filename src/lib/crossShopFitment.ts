@@ -67,9 +67,11 @@ const CHASSIS_CODES = new Set([
   "E88",
   "E89",
   "E60",
+  "E61",
   "E63",
   "E64",
   "E82",
+  "E81",
   "E87",
   "E90",
   "E91",
@@ -80,6 +82,7 @@ const CHASSIS_CODES = new Set([
   "F01",
   "F02",
   "F10",
+  "F11",
   "F12",
   "F13",
   "F15",
@@ -738,9 +741,11 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "E88",
     "E89",
     "E60",
+    "E61",
     "E63",
     "E64",
     "E82",
+    "E81",
     "E87",
     "E90",
     "E91",
@@ -751,6 +756,7 @@ const CHASSIS_BY_MAKE: Record<string, Set<string>> = {
     "F01",
     "F02",
     "F10",
+    "F11",
     "F12",
     "F13",
     "F15",
@@ -1975,6 +1981,33 @@ function extractChassisFromText(text: string): string[] {
     const token = rawToken.replace(/[.,]+$/, "");
     if (CHASSIS_CODES.has(token) || BMW_CHASSIS_FAMILIES[token]) {
       found.add(token);
+    }
+  }
+  // Ranges and shorthand lists name codes the tokens above never see: `E90-E93`
+  // is E90..E93, `F80-83` is F80..F83 and `G80/81/82` is G80, G81, G82. Only
+  // codes that are already in the allowlist are added, and a range is capped
+  // so a part number cannot turn into a vehicle list.
+  const upperText = text.toUpperCase();
+  for (const match of upperText.matchAll(
+    /\b([A-Z]{1,2})(\d{2,3})\s*[-–—]\s*(?:([A-Z]{1,2}))?(\d{2,3})\b/g
+  )) {
+    const [, prefix, from, toPrefix, to] = match;
+    if (toPrefix && toPrefix !== prefix) continue;
+    if (from.length !== to.length) continue;
+    const start = Number(from);
+    const end = Number(to);
+    if (!(end > start) || end - start > 6) continue;
+    for (let number = start; number <= end; number += 1) {
+      const code = `${prefix}${String(number).padStart(from.length, "0")}`;
+      if (CHASSIS_CODES.has(code)) found.add(code);
+    }
+  }
+  for (const match of upperText.matchAll(/\b([A-Z]{1,2})(\d{2,3})((?:\s*\/\s*\d{2,3})+)\b/g)) {
+    const [, prefix, first, rest] = match;
+    for (const number of [first, ...rest.split("/").map((part) => part.trim())]) {
+      if (number.length !== first.length) continue;
+      const code = `${prefix}${number}`;
+      if (CHASSIS_CODES.has(code)) found.add(code);
     }
   }
   // Some supplier titles format a canonical Mercedes chassis with a space

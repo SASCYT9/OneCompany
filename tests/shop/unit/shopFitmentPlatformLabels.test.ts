@@ -119,3 +119,14 @@ test("an M5 platform title keeps the Touring chassis", () => {
   const m5 = extractProductFitment(product("BMW M5 E6X Intake"));
   assert.ok(m5.chassisCodes.includes("E60") && m5.chassisCodes.includes("E61"));
 });
+
+test("a chassis range names every chassis in between, not only its two ends", () => {
+  const chassisOf = (title: string) => extractProductFitment(product(title)).chassisCodes;
+  assert.deepEqual(chassisOf("Intake для BMW M3 E90-E93").sort(), ["E90", "E91", "E92", "E93"]);
+  assert.deepEqual(chassisOf("Intake BMW M3 E90-93").sort(), ["E90", "E91", "E92", "E93"]);
+  assert.ok(chassisOf("Exhaust BMW 5 Series F10-F13").includes("F11"));
+  assert.ok(chassisOf("Exhaust BMW X5 G05–G07").includes("G06"));
+  assert.deepEqual(chassisOf("Spoiler BMW M4 G80/81/82/83").sort(), ["G80", "G81", "G82", "G83"]);
+  // A part number is not a range of cars.
+  assert.deepEqual(chassisOf("Part A12-B34 for BMW M3 G80"), ["G80"]);
+});
