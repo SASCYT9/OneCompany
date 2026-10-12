@@ -1,5 +1,5 @@
 import { OrderStatus, Prisma, ShipmentStatus } from '@prisma/client';
-import { canTransitionOrderStatus } from '@/lib/shopAdminOrders';
+import { canAdvanceOrderStatus } from '@/lib/admin/orderWorkflow';
 
 export const ALL_SHIPMENT_STATUSES: ShipmentStatus[] = [
   'LABEL_CREATED',
@@ -115,7 +115,8 @@ export async function maybeApplyShipmentOrderStatus(
     return input.currentOrderStatus;
   }
 
-  if (!canTransitionOrderStatus(input.currentOrderStatus, derivedOrderStatus)) {
+  // Tracking updates only move an order forward; a stale scan must never undo «Доставлено».
+  if (!canAdvanceOrderStatus(input.currentOrderStatus, derivedOrderStatus)) {
     return input.currentOrderStatus;
   }
 

@@ -12,11 +12,19 @@ import {
 } from "@/lib/shopAdminOrders";
 import { prisma } from "@/lib/prisma";
 import OrderStatusEmail from "@/components/emails/OrderStatusEmail";
+import {
+  composeOrderStatusNote,
+  ORDER_STATUS_PROBLEM_TEXT,
+  orderStatusChangeProblem,
+  orderStatusMove,
+  orderStatusReasonMissing,
+} from "@/lib/admin/orderWorkflow";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 
 const ALLOWED_STATUSES: OrderStatus[] = [
   "PENDING_REVIEW",
+  "PENDING_PAYMENT",
   "CONFIRMED",
   "PROCESSING",
   "SHIPPED",
@@ -38,7 +46,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
     const serialized = serializeAdminOrder(order);
-    return NextResponse.json(serialized);
+    return NextResponse.json({
+      ...serialized,
+      // Lets the status dialog say whether «Відправлено»/«Доставлено» emails the customer.
+      customerEmailsEnabled: Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM),
+    });
   } catch (e) {
     if ((e as Error).message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -65,6 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       select: {
         id: true, status: true, updatedAt: true, subtotal: true, taxAmount: true,
         shippingCost: true, paymentMethod: true, monobankPayment: { select: { id: true } },
+        amountPaid: true, paymentStatus: true, isDraft: true,
       },
     });
     if (!currentOrder) {
@@ -127,10 +140,49 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       !canTransitionOrderStatus(currentOrder.status, updateData.status as OrderStatus)
     ) {
       return NextResponse.json(
-        { error: `Invalid transition: ${currentOrder.status} -> ${updateData.status}` },
+        { error: ORDER_STATUS_PROBLEM_TEXT.TRANSITION_NOT_ALLOWED, code: "TRANSITION_NOT_ALLOWED" },
         { status: 400 }
       );
     }
+    const statusMove = updateData.status
+      ? orderStatusMove(currentOrder.status, updateData.status)
+      : "same";
+    if (updateData.status && statusMove !== "same") {
+      const problem = orderStatusChangeProblem(
+        {
+          status: currentOrder.status,
+          amountPaid: updateData.amountPaid ?? currentOrder.amountPaid,
+          paymentStatus: updateData.paymentStatus ?? currentOrder.paymentStatus,
+          isDraft: currentOrder.isDraft,
+        },
+        updateData.status
+      );
+      if (problem)
+        return NextResponse.json(
+          { error: ORDER_STATUS_PROBLEM_TEXT[problem], code: problem },
+          { status: 409 }
+        );
+      if (
+        orderStatusReasonMissing({
+          from: currentOrder.status,
+          to: updateData.status,
+          reason: body.reason,
+          note,
+        })
+      )
+        return NextResponse.json(
+          { error: ORDER_STATUS_PROBLEM_TEXT.REASON_REQUIRED, code: "REASON_REQUIRED" },
+          { status: 400 }
+        );
+    }
+    const statusNote = updateData.status
+      ? composeOrderStatusNote({
+          from: currentOrder.status,
+          to: updateData.status,
+          reason: body.reason,
+          note,
+        })
+      : null;
 
     const order = await prisma.$transaction(async (tx) => {
       const claimed = await tx.shopOrder.updateMany({
@@ -148,7 +200,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             toStatus: updateData.status as OrderStatus,
             actorType: "admin",
             actorName: session.name,
-            note: note || null,
+            note: statusNote,
           },
         });
       }
@@ -163,14 +215,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       metadata: {
         fromStatus: currentOrder.status,
         toStatus: updateData.status || currentOrder.status,
-        note: note || null,
+        note: statusNote ?? (note || null),
+        reason: typeof body.reason === "string" ? body.reason : null,
         updates: updateData,
       },
     });
 
     // ── Send status-change email for SHIPPED / DELIVERED ──
+    // Corrections (moving back to «Відправлено») must not re-send the email.
     if (
       updateData.status &&
+      statusMove === "forward" &&
+      body.notifyCustomer !== false &&
       (updateData.status === "SHIPPED" || updateData.status === "DELIVERED") &&
       process.env.RESEND_API_KEY &&
       process.env.EMAIL_FROM
