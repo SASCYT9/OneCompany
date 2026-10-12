@@ -15,6 +15,9 @@ export const state =
     rejectApplicationOnce: false,
     titleFitment: null,
     expectedChassis: null,
+    platformFamilies: null,
+    applicationChassisCode: "G90",
+    applicationModel: "M5",
   });
 
 export function reset() {
@@ -32,6 +35,9 @@ export function reset() {
   state.rejectApplicationOnce = false;
   state.titleFitment = null;
   state.expectedChassis = null;
+  state.platformFamilies = null;
+  state.applicationChassisCode = "G90";
+  state.applicationModel = "M5";
 }
 
 export const prisma = {
@@ -69,8 +75,8 @@ export const prisma = {
       return [
         {
           productId: "application-id",
-          model: "M5",
-          chassisCode: "G90",
+          model: state.applicationModel,
+          chassisCode: state.applicationChassisCode,
           yearFrom: 2020,
           yearTo: null,
         },
@@ -110,7 +116,9 @@ export async function getShopFitmentCatalogProducts(options) {
 }
 
 export function bmwChassisFamilyMembers(code) {
-  return ["G8X", "E9X"].includes(String(code ?? "").trim().toUpperCase()) ? [] : null;
+  const key = String(code ?? "").trim().toUpperCase();
+  if (state.platformFamilies) return state.platformFamilies[key] ?? null;
+  return ["G8X", "E9X"].includes(key) ? [] : null;
 }
 
 export function getExpectedChassisForMakeModel(_make, model) {
