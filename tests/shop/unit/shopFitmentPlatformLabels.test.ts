@@ -122,11 +122,25 @@ test("an M5 platform title keeps the Touring chassis", () => {
 
 test("a chassis range names every chassis in between, not only its two ends", () => {
   const chassisOf = (title: string) => extractProductFitment(product(title)).chassisCodes;
-  assert.deepEqual(chassisOf("Intake для BMW M3 E90-E93").sort(), ["E90", "E91", "E92", "E93"]);
-  assert.deepEqual(chassisOf("Intake BMW M3 E90-93").sort(), ["E90", "E91", "E92", "E93"]);
+  assert.deepEqual(chassisOf("Intake для BMW E90-E93").sort(), ["E90", "E91", "E92", "E93"]);
+  assert.deepEqual(chassisOf("Intake BMW E90-93").sort(), ["E90", "E91", "E92", "E93"]);
   assert.ok(chassisOf("Exhaust BMW 5 Series F10-F13").includes("F11"));
-  assert.ok(chassisOf("Exhaust BMW X5 G05–G07").includes("G06"));
+  assert.ok(chassisOf("Exhaust for BMW G05–G07").includes("G06"));
   assert.deepEqual(chassisOf("Spoiler BMW M4 G80/81/82/83").sort(), ["G80", "G81", "G82", "G83"]);
   // A part number is not a range of cars.
   assert.deepEqual(chassisOf("Part A12-B34 for BMW M3 G80"), ["G80"]);
+});
+
+test("a range that crosses model boundaries gives each model only its own chassis", () => {
+  const x5 = extractProductFitment(product("BMW X5 G05-G07 Downpipe"));
+  assert.deepEqual(x5.models, ["X5"]);
+  assert.ok(x5.chassisCodes.includes("G05"));
+  assert.ok(!x5.chassisCodes.includes("G06"));
+  const m3 = extractProductFitment(product("BMW M3 E90-E93 Intake"));
+  assert.deepEqual(m3.models, ["M3"]);
+  assert.ok(m3.chassisCodes.includes("E92"));
+  assert.ok(!m3.chassisCodes.includes("E91"));
+  // Without a named model the range stays whole.
+  const open = extractProductFitment(product("Intake for BMW E90-E93"));
+  assert.ok(open.chassisCodes.includes("E91"));
 });

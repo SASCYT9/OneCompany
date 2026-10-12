@@ -1958,7 +1958,12 @@ function detectMakeGeneric(text: string): string | null {
   return null;
 }
 
-function extractChassisFromText(text: string): string[] {
+/**
+ * `inferred` (optional) collects the codes that only a range or a shorthand
+ * list implied (`E91` in `E90-E93`), so a caller can check them against the
+ * models the title names.
+ */
+function extractChassisFromText(text: string, inferred?: Set<string>): string[] {
   const found = new Set<string>();
   // Match in parens: (G80), (G80/G81), (F82, F83)
   const parens = text.matchAll(/\(([^)]{1,80})\)/g);
@@ -1999,7 +2004,10 @@ function extractChassisFromText(text: string): string[] {
     if (!(end > start) || end - start > 6) continue;
     for (let number = start; number <= end; number += 1) {
       const code = `${prefix}${String(number).padStart(from.length, "0")}`;
-      if (CHASSIS_CODES.has(code)) found.add(code);
+      if (CHASSIS_CODES.has(code)) {
+        if (!found.has(code)) inferred?.add(code);
+        found.add(code);
+      }
     }
   }
   for (const match of upperText.matchAll(/\b([A-Z]{1,2})(\d{2,3})((?:\s*\/\s*\d{2,3})+)\b/g)) {
@@ -2007,7 +2015,10 @@ function extractChassisFromText(text: string): string[] {
     for (const number of [first, ...rest.split("/").map((part) => part.trim())]) {
       if (number.length !== first.length) continue;
       const code = `${prefix}${number}`;
-      if (CHASSIS_CODES.has(code)) found.add(code);
+      if (CHASSIS_CODES.has(code)) {
+        if (!found.has(code)) inferred?.add(code);
+        found.add(code);
+      }
     }
   }
   // Some supplier titles format a canonical Mercedes chassis with a space
@@ -3213,6 +3224,8 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   let make: string | null = null;
   let models: string[] = [];
   let chassis: string[] = [];
+  /** Codes implied only by a chassis range (`E91` in `E90-E93`). */
+  const rangeInferred = new Set<string>();
 
   // 1. Brand-specific extractor first (most accurate)
   if (isAdroProduct(product)) {
@@ -3333,7 +3346,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   }
 
   if (chassis.length === 0) {
-    chassis = extractChassisFromText(fitmentEvidenceText);
+    chassis = extractChassisFromText(fitmentEvidenceText, rangeInferred);
   }
 
   // Descriptions are a useful second source when the product identity fields
@@ -4130,24 +4143,33 @@ export function extractProductFitment(product: ShopProduct): Fitment {
   // A platform spans more cars than the title may mean (`BMW 4 Series G2X` is
   // not G20, `M3 G8X` is not the M2's G87). When the title names the models,
   // keep only the platform members those models are expected to have.
-  if (cleanMake === "BMW" && platformMembers.size > 0 && normalizedModels.length > 0) {
-    const lists = normalizedModels.map((model) => getExpectedChassisForMakeModel("BMW", model));
+  // The same holds for a range that crosses model boundaries (`X5 G05-G07`
+  // does not make G06, the X6, an X5 chassis).
+  const impliedCodes = new Set<string>(
+    [...platformMembers, ...rangeInferred].map((code) => code.toUpperCase())
+  );
+  if (cleanMake && impliedCodes.size > 0 && normalizedModels.length > 0) {
+    const lists = normalizedModels.map((model) => getExpectedChassisForMakeModel(cleanMake, model));
     if (lists.every((list): list is string[] => Boolean(list))) {
       const allowed = new Set(lists.flat().map((code) => code.toUpperCase()));
-      const named = new Set(uniq(chassis).map((code) => code.toUpperCase()));
+      const named = new Set(
+        uniq(chassis)
+          .map((code) => code.toUpperCase())
+          .filter((code) => !rangeInferred.has(code))
+      );
       let narrowed = false;
       for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
         const code = finalChassis[index].toUpperCase();
-        const belongsTo = inferModelFromChassis("BMW", code);
+        const belongsTo = inferModelFromChassis(cleanMake, code);
         const ofNamedModel =
           belongsTo != null &&
           normalizedModels.some((model) => normalizeFitmentKey(model) === normalizeFitmentKey(belongsTo));
-        if (platformMembers.has(code) && !allowed.has(code) && !named.has(code) && !ofNamedModel) {
+        if (impliedCodes.has(code) && !allowed.has(code) && !named.has(code) && !ofNamedModel) {
           finalChassis.splice(index, 1);
-          narrowed = true;
+          narrowed = platformMembers.has(code) || narrowed;
         }
       }
-      if (narrowed) {
+      if (narrowed && cleanMake === "BMW") {
         // The label no longer stands for the whole platform: drop it, so it
         // cannot vouch for the members the title does not mean.
         for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
