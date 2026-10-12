@@ -2920,14 +2920,14 @@ const EXPECTED_CHASSIS_BY_MAKE_MODEL: Record<string, Record<string, string[]>> =
     "2 Series Gran Tourer": ["F46"],
     "3 Series": ["E36", "E46", "E90", "E91", "E92", "E93", "F30", "F31", "F34", "G20", "G21"],
     "4 Series": ["F32", "F33", "F36", "G22", "G23", "G26"],
-    "5 Series": ["E34", "E39", "E60", "F10", "G30", "G31", "G60", "G61"],
+    "5 Series": ["E34", "E39", "E60", "E61", "F10", "F11", "G30", "G31", "G60", "G61"],
     "6 Series": ["E63", "E64", "F06", "F12", "F13", "G32"],
     "7 Series": ["E32", "E38", "E65", "E66", "F01", "F02", "G11", "G12", "G70"],
     "8 Series": ["E31", "G14", "G15", "G16"],
     M2: ["F87", "F87N", "G87"],
     M3: ["E36", "E46", "E90", "E92", "E93", "F80", "G80", "G81"],
     M4: ["F82", "F83", "G82", "G83"],
-    M5: ["E28", "E34", "E39", "E60", "F10", "F90", "G90", "G99"],
+    M5: ["E28", "E34", "E39", "E60", "E61", "F10", "F90", "G90", "G99"],
     M6: ["E63", "E64", "F06", "F12", "F13"],
     M8: ["F91", "F92", "F93"],
     "M135i/M140i": ["F20", "F21", "F40"],
@@ -4094,6 +4094,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     if (lists.every((list): list is string[] => Boolean(list))) {
       const allowed = new Set(lists.flat().map((code) => code.toUpperCase()));
       const named = new Set(uniq(chassis).map((code) => code.toUpperCase()));
+      let narrowed = false;
       for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
         const code = finalChassis[index].toUpperCase();
         const belongsTo = inferModelFromChassis("BMW", code);
@@ -4102,6 +4103,14 @@ export function extractProductFitment(product: ShopProduct): Fitment {
           normalizedModels.some((model) => normalizeFitmentKey(model) === normalizeFitmentKey(belongsTo));
         if (platformMembers.has(code) && !allowed.has(code) && !named.has(code) && !ofNamedModel) {
           finalChassis.splice(index, 1);
+          narrowed = true;
+        }
+      }
+      if (narrowed) {
+        // The label no longer stands for the whole platform: drop it, so it
+        // cannot vouch for the members the title does not mean.
+        for (let index = finalChassis.length - 1; index >= 0; index -= 1) {
+          if (bmwChassisFamilyMembers(finalChassis[index])) finalChassis.splice(index, 1);
         }
       }
     }

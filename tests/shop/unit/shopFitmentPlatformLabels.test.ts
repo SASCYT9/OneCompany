@@ -105,3 +105,17 @@ test("a platform label never widens a title that names the model", () => {
   const explicit = extractProductFitment(product("BMW M3 G8X G87 Downpipe"));
   assert.ok(explicit.chassisCodes.includes("G87"));
 });
+
+test("a narrowed platform no longer vouches for the members the title does not mean", () => {
+  const m3 = extractProductFitment(product("BMW M3 G8X Downpipe"));
+  assert.ok(!m3.chassisCodes.includes("G8X"));
+  assert.ok(!m3.chassisCodes.includes("G87"));
+  // An unnarrowed platform keeps its label.
+  const wide = extractProductFitment(product("Intake для BMW G8X"));
+  assert.ok(wide.chassisCodes.includes("G87"));
+});
+
+test("an M5 platform title keeps the Touring chassis", () => {
+  const m5 = extractProductFitment(product("BMW M5 E6X Intake"));
+  assert.ok(m5.chassisCodes.includes("E60") && m5.chassisCodes.includes("E61"));
+});
