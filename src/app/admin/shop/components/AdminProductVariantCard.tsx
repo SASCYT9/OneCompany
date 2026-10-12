@@ -1,9 +1,4 @@
 "use client";
-import {
-  managedAdminPriceChange,
-  managedAdminSourceSelection,
-} from "@/lib/shopAdminPriceConversion";
-
 import { useState } from "react";
 import { ChevronDown, Star, Trash2 } from "lucide-react";
 
@@ -12,7 +7,10 @@ import {
   AdminInputField as InputField,
   AdminSelectField as SelectField,
 } from "@/components/admin/AdminFormFields";
+import { customerMoney } from "@/lib/admin/productPriceEditor";
 import { cn } from "@/lib/utils";
+
+import { ProductPricingPanel, type ProductB2bContext } from "./ProductPricingPanel";
 
 type InventoryPolicy = "DENY" | "CONTINUE";
 
@@ -81,7 +79,9 @@ export function AdminProductVariantCard({
   onSetDefault,
   defaultOpen = false,
   rates = { EUR: 1, USD: 1.152174, UAH: 53 },
-  autoConvert = true,
+  pricingManagedByProduct = false,
+  brand = "",
+  b2bContext = null,
 }: {
   variant: VariantCardData;
   index: number;
@@ -92,7 +92,12 @@ export function AdminProductVariantCard({
   onSetDefault: () => void;
   defaultOpen?: boolean;
   rates?: Record<string, number>;
+  /** @deprecated Price bands always convert through the price book now. */
   autoConvert?: boolean;
+  /** Single-variant products: the product price block owns this variant's price. */
+  pricingManagedByProduct?: boolean;
+  brand?: string;
+  b2bContext?: ProductB2bContext | null;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [tab, setTab] = useState<Tab>("general");
@@ -101,13 +106,14 @@ export function AdminProductVariantCard({
     .filter(Boolean)
     .join(" / ");
 
-  const priceSummary = variant.priceUah
-    ? `${variant.priceUah}₴`
-    : variant.priceEur
-      ? `€${variant.priceEur}`
-      : variant.priceUsd
-        ? `$${variant.priceUsd}`
-        : "Ціна товару";
+  const variantMoney = customerMoney(variant, "price", rates);
+  const priceSummary = variantMoney
+    ? new Intl.NumberFormat("uk-UA", {
+        style: "currency",
+        currency: "UAH",
+        maximumFractionDigits: 0,
+      }).format(variantMoney.uah)
+    : "Ціна товару";
 
   const stock = variant.inventoryQty ? Number(variant.inventoryQty) : null;
   const stockTone = stock == null ? "stone" : stock <= 0 ? "red" : stock < 5 ? "amber" : "emerald";
@@ -353,116 +359,30 @@ export function AdminProductVariantCard({
           {/* Pricing — grouped */}
           {tab === "pricing" ? (
             <div className="space-y-5">
-              <div className="mb-4 grid gap-3 sm:grid-cols-2">
-                {(
-                  [
-                    ["priceSourceCurrency", "Вихідна валюта B2C"],
-                    ["compareAtSourceCurrency", "Вихідна валюта ціни до знижки"],
-                    ["b2bPriceSourceCurrency", "Вихідна валюта B2B"],
-                    ["b2bCompareAtSourceCurrency", "Вихідна валюта B2B до знижки"],
-                  ] as const
-                ).map(([field, label]) => (
-                  <SelectField
-                    key={field}
-                    label={label}
-                    value={variant[field] ?? ""}
-                    onChange={(value) =>
-                      onUpdate({
-                        [field]: value,
-                        ...managedAdminSourceSelection(variant, field, value, rates),
-                      })
-                    }
-                    options={[
-                      { value: "", label: "Не підтверджена" },
-                      { value: "EUR", label: "EUR" },
-                      { value: "USD", label: "USD" },
-                      { value: "UAH", label: "UAH · фіксована ціна" },
-                    ]}
+              {pricingManagedByProduct ? (
+                <p className="border-l-2 border-blue-500 bg-blue-500/[0.07] px-4 py-3 text-[13px] leading-5 text-zinc-300">
+                  Ціна цього варіанта — це ціна товару з блоку «Ціна» вгорі. Змінюйте її там.
+                </p>
+              ) : (
+                <>
+                  <ProductPricingPanel
+                    compact
+                    form={variant}
+                    rates={rates}
+                    brand={brand}
+                    b2bContext={b2bContext}
+                    onPatch={(patch) => onUpdate(patch as Partial<VariantCardData>)}
                   />
-                ))}
-              </div>
-              <PricingGroup
-                title="B2C — Retail"
-                description="Customer-facing storefront pricing"
-                eur={variant.priceEur}
-                usd={variant.priceUsd}
-                uah={variant.priceUah}
-                onChange={(p) =>
-                  onUpdate({
-                    priceEur: p.eur,
-                    priceUsd: p.usd,
-                    priceUah: p.uah,
-                    priceSourceCurrency: p.sourceCurrency ?? variant.priceSourceCurrency,
-                  })
-                }
-                rates={rates}
-                autoConvert={autoConvert}
-              />
-              <div className="rounded-none border border-white/10 bg-black/20 p-3">
-                <div className="mb-1 text-sm font-semibold text-zinc-100">Europe net</div>
-                <div className="mb-3 text-xs text-zinc-500">
-                  Net EUR base used for EU destination VAT.
-                </div>
-                <InputField
-                  label="Net EUR"
-                  type="number"
-                  step="0.01"
-                  value={variant.priceEurEurope}
-                  onChange={(v) => onUpdate({ priceEurEurope: v })}
-                />
-              </div>
-              <PricingGroup
-                title="B2B — Wholesale"
-                description="Pricing for B2B customers and dealers"
-                eur={variant.priceEurB2b}
-                usd={variant.priceUsdB2b}
-                uah={variant.priceUahB2b}
-                onChange={(p) =>
-                  onUpdate({
-                    priceEurB2b: p.eur,
-                    priceUsdB2b: p.usd,
-                    priceUahB2b: p.uah,
-                    b2bPriceSourceCurrency: p.sourceCurrency ?? variant.b2bPriceSourceCurrency,
-                  })
-                }
-                rates={rates}
-                autoConvert={autoConvert}
-              />
-              <PricingGroup
-                title="B2C — Compare-at"
-                description="Original price shown crossed-out (for sales)"
-                eur={variant.compareAtEur}
-                usd={variant.compareAtUsd}
-                uah={variant.compareAtUah}
-                onChange={(p) =>
-                  onUpdate({
-                    compareAtEur: p.eur,
-                    compareAtUsd: p.usd,
-                    compareAtUah: p.uah,
-                    compareAtSourceCurrency: p.sourceCurrency ?? variant.compareAtSourceCurrency,
-                  })
-                }
-                rates={rates}
-                autoConvert={autoConvert}
-              />
-              <PricingGroup
-                title="B2B — Compare-at"
-                description="Wholesale compare-at pricing"
-                eur={variant.compareAtEurB2b}
-                usd={variant.compareAtUsdB2b}
-                uah={variant.compareAtUahB2b}
-                onChange={(p) =>
-                  onUpdate({
-                    compareAtEurB2b: p.eur,
-                    compareAtUsdB2b: p.usd,
-                    compareAtUahB2b: p.uah,
-                    b2bCompareAtSourceCurrency:
-                      p.sourceCurrency ?? variant.b2bCompareAtSourceCurrency,
-                  })
-                }
-                rates={rates}
-                autoConvert={autoConvert}
-              />
+                  <InputField
+                    label="Ціна для Європи · € без ПДВ"
+                    type="number"
+                    step="0.01"
+                    value={variant.priceEurEurope}
+                    onChange={(v) => onUpdate({ priceEurEurope: v })}
+                    helper="Порожньо — європейські покупці бачать звичайну ціну в євро."
+                  />
+                </>
+              )}
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField
                   label="Собівартість"
@@ -595,123 +515,6 @@ export function AdminProductVariantCard({
           ) : null}
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function PricingGroup({
-  title,
-  description,
-  eur,
-  usd,
-  uah,
-  onChange,
-  rates = { EUR: 1, USD: 1.152174, UAH: 53 },
-  autoConvert = true,
-}: {
-  title: string;
-  description?: string;
-  eur: string;
-  usd: string;
-  uah: string;
-  onChange: (p: { eur: string; usd: string; uah: string; sourceCurrency?: string }) => void;
-  rates?: Record<string, number>;
-  autoConvert?: boolean;
-}) {
-  const handleEurChange = (v: string) => {
-    const managed = autoConvert && managedAdminPriceChange(Number(v), "EUR", rates);
-    if (managed) {
-      onChange(managed);
-      return;
-    }
-    if (!autoConvert) {
-      onChange({ eur: v, usd, uah });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: v, usd: "", uah: "" });
-      return;
-    }
-    const usdVal = String(Math.round(val * rates.USD * 100) / 100);
-    const uahVal = String(Math.round(val * rates.UAH));
-    onChange({ eur: v, usd: usdVal, uah: uahVal });
-  };
-
-  const handleUsdChange = (v: string) => {
-    const managed = autoConvert && managedAdminPriceChange(Number(v), "USD", rates);
-    if (managed) {
-      onChange(managed);
-      return;
-    }
-    if (!autoConvert) {
-      onChange({ eur, usd: v, uah });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: "", usd: v, uah: "" });
-      return;
-    }
-    const eurVal = String(Math.round((val / rates.USD) * 100) / 100);
-    const uahVal = String(Math.round((val / rates.USD) * rates.UAH));
-    onChange({ eur: eurVal, usd: v, uah: uahVal });
-  };
-
-  const handleUahChange = (v: string) => {
-    const managed = autoConvert && managedAdminPriceChange(Number(v), "UAH", rates);
-    if (managed) {
-      onChange(managed);
-      return;
-    }
-    if (!autoConvert) {
-      onChange({ eur, usd, uah: v });
-      return;
-    }
-    const val = parseFloat(v);
-    if (isNaN(val) || val <= 0) {
-      onChange({ eur: "", usd: "", uah: v });
-      return;
-    }
-    const eurVal = String(Math.round((val / rates.UAH) * 100) / 100);
-    const usdVal = String(Math.round((val / rates.UAH) * rates.USD * 100) / 100);
-    onChange({ eur: eurVal, usd: usdVal, uah: v });
-  };
-
-  return (
-    <div className="rounded-none border border-white/6 bg-black/20 p-4">
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <div className="text-sm font-semibold text-zinc-100">{title}</div>
-          {description ? <div className="mt-0.5 text-xs text-zinc-500">{description}</div> : null}
-        </div>
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        <InputField
-          label="EUR"
-          prefix="€"
-          type="number"
-          step="0.01"
-          value={eur}
-          onChange={handleEurChange}
-        />
-        <InputField
-          label="USD"
-          prefix="$"
-          type="number"
-          step="0.01"
-          value={usd}
-          onChange={handleUsdChange}
-        />
-        <InputField
-          label="UAH"
-          prefix="₴"
-          type="number"
-          step="0.01"
-          value={uah}
-          onChange={handleUahChange}
-        />
-      </div>
     </div>
   );
 }

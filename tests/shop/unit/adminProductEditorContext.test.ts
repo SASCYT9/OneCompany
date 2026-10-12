@@ -17,6 +17,9 @@ test("product editor uses a narrow read-only currency context endpoint", () => {
 
   assert.match(routeSource, /SHOP_PRODUCTS_READ/);
   assert.match(routeSource, /select:\s*\{\s*currencyRates:\s*true\s*\}/);
+  // B2B discount terms are only added for admins who may read pricing.
+  assert.match(routeSource, /canReadPricing \? readB2bDiscountContext\(\)/);
+  assert.match(routeSource, /SHOP_PRICING_READ/);
   assert.doesNotMatch(routeSource, /\.(?:create|update|upsert|delete)\s*\(/);
   assert.match(editorSource, /\/api\/admin\/shop\/products\/editor-context/);
 });

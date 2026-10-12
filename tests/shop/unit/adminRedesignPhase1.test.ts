@@ -36,7 +36,10 @@ test("catalog list screens use the shared Phase 1 list-screen primitives", () =>
     const source = readRepoFile(page.path);
     assert.match(source, /from ['"]@\/components\/admin\/AdminPrimitives['"]/);
     assert.match(source, /\bAdminPageHeader\b/);
-    assert.match(source, /\bAdminMetricGrid\b/);
+    // The 2026-10 products list dropped its metric cards for buyer-facing columns.
+    if (page.path !== "src/app/admin/shop/page.tsx") {
+      assert.match(source, /\bAdminMetricGrid\b/);
+    }
     assert.match(source, new RegExp(`\\b${page.filterMarker}\\b`));
     assert.match(source, /\bAdminTableShell\b/);
   }

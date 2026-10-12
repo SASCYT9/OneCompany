@@ -4,26 +4,13 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  CheckSquare,
-  Download,
-  Eye,
-  Layers,
-  Layers3,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { Download, Eye, Pencil, Plus, Search, Trash2, Upload } from "lucide-react";
 
 import {
   AdminActionBar,
   AdminEmptyState,
   AdminFilterBar,
   AdminInlineAlert,
-  AdminMetricCard,
-  AdminMetricGrid,
   AdminPage,
   AdminPageHeader,
   AdminResponsiveTable,
@@ -69,6 +56,16 @@ type ShopProductListItem = {
   isPublished: boolean;
   updatedAt: string;
   imageUrl: string | null;
+  customerAvailability?: {
+    value: "inStock" | "inTransit" | "preOrder";
+    origin: "editor" | "warehouse-list" | "unset";
+  };
+  customerPrice?: {
+    uah: number;
+    eur: number;
+    usd: number;
+    sourceCurrency: "EUR" | "USD" | "UAH" | null;
+  } | null;
   variantsCount: number;
   mediaCount: number;
   collectionsCount: number;
@@ -79,53 +76,94 @@ type ProductBrand = {
   count: number;
 };
 
-type ProductStock = "inStock" | "outOfStock" | "preOrder" | "inTransit" | string;
+type AvailabilityFilter = "ALL" | "confirmed" | "outOfStock";
 
-function stockLabel(stock: ProductStock) {
-  if (stock === "inStock") return "В наявності";
-  if (stock === "outOfStock") return "Немає в наявності";
-  if (stock === "inTransit") return "В дорозі";
-  return "Під замовлення";
+function availabilityFilterLabel(value: AvailabilityFilter) {
+  if (value === "confirmed") return "В наявності на сайті";
+  if (value === "outOfStock") return "Немає у постачальника";
+  return "Уся наявність";
 }
 
-function stockTone(stock: ProductStock): "success" | "danger" | "warning" | "default" {
-  if (stock === "inStock") return "success";
-  if (stock === "outOfStock") return "danger";
-  if (stock === "preOrder") return "warning";
-  return "default";
+function CustomerAvailabilityBadge({ product }: { product: ShopProductListItem }) {
+  const availability = product.customerAvailability ?? { value: "preOrder", origin: "unset" };
+  if (availability.value === "inStock") {
+    return <AdminStatusBadge tone="success">В наявності</AdminStatusBadge>;
+  }
+  return (
+    <span className="inline-flex flex-col gap-0.5">
+      <span className="text-[13px] text-zinc-300">
+        {availability.value === "inTransit" ? "В дорозі" : "Під замовлення"}
+      </span>
+      {availability.origin === "unset" ? (
+        <span
+          className="text-[11px] text-zinc-600"
+          title="Наявність ще не задавали в редакторі — сайт бере старі дані імпорту."
+        >
+          не задано вручну
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
-function StockStatusBadge({ stock }: { stock: ProductStock }) {
-  return <AdminStatusBadge tone={stockTone(stock)}>{stockLabel(stock)}</AdminStatusBadge>;
+const UAH = new Intl.NumberFormat("uk-UA", {
+  style: "currency",
+  currency: "UAH",
+  maximumFractionDigits: 0,
+});
+const SOURCE_FORMAT: Record<"EUR" | "USD" | "UAH", Intl.NumberFormat> = {
+  EUR: new Intl.NumberFormat("uk-UA", { style: "currency", currency: "EUR" }),
+  USD: new Intl.NumberFormat("uk-UA", { style: "currency", currency: "USD" }),
+  UAH: UAH,
+};
+
+function PriceCell({ product }: { product: ShopProductListItem }) {
+  const price = product.customerPrice;
+  if (!price) return <span className="text-[13px] text-amber-300">Ціна за запитом</span>;
+  const source = price.sourceCurrency;
+  return (
+    <div className="space-y-0.5">
+      <div className="text-[15px] font-semibold tabular-nums text-zinc-50">
+        {UAH.format(price.uah)}
+      </div>
+      {source && source !== "UAH" ? (
+        <div className="text-[11px] tabular-nums text-zinc-500">
+          {SOURCE_FORMAT[source].format(price[source.toLowerCase() as "eur" | "usd"])} · ціна в{" "}
+          {source}
+        </div>
+      ) : source === "UAH" ? (
+        <div className="text-[11px] text-zinc-500">фіксована в грн</div>
+      ) : null}
+    </div>
+  );
 }
 
-function stockFilterLabel(stock: string) {
-  if (stock === "inStock") return "В наявності";
-  if (stock === "outOfStock") return "Немає в наявності";
-  if (stock === "preOrder") return "Під замовлення";
-  if (stock === "inTransit") return "В дорозі";
-  return "Усі стани";
-}
-
-function priceLabel(product: ShopProductListItem) {
-  if (product.priceEur != null) return `€${product.priceEur}`;
-  if (product.priceUsd != null) return `$${product.priceUsd}`;
-  if (product.priceUah != null) return `₴${product.priceUah}`;
-  return "—";
-}
-
-function priceMeta(product: ShopProductListItem): string | null {
-  const parts: string[] = [];
-  if (product.priceEurEurope != null) parts.push(`EU net €${product.priceEurEurope}`);
-  if (product.priceEur != null && product.priceUsd != null) parts.push(`$${product.priceUsd}`);
-  if (product.priceUah != null) parts.push(`₴${product.priceUah}`);
-  return parts.length ? parts.join(" · ") : null;
-}
-
-function getStatusTone(status: ShopProductListItem["status"]) {
-  if (status === "ACTIVE") return "success";
-  if (status === "ARCHIVED") return "danger";
-  return "warning";
+function SiteStatus({ product }: { product: ShopProductListItem }) {
+  const live = product.status === "ACTIVE" && product.isPublished;
+  const label = live
+    ? "Показується"
+    : product.status === "ARCHIVED"
+      ? "Архів"
+      : product.status === "DRAFT"
+        ? "Чернетка"
+        : "Прихований";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 text-[13px]",
+        live ? "text-zinc-200" : "text-amber-300"
+      )}
+    >
+      <span
+        className={cn(
+          "h-2 w-2 shrink-0",
+          live ? "bg-emerald-400" : product.status === "ARCHIVED" ? "bg-zinc-600" : "bg-amber-400"
+        )}
+        aria-hidden="true"
+      />
+      {label}
+    </span>
+  );
 }
 
 function relativeTime(iso: string): { label: string; full: string } {
@@ -145,59 +183,6 @@ function relativeTime(iso: string): { label: string; full: string } {
   return { label: `${Math.floor(months / 12)} р. тому`, full };
 }
 
-function CoverageHealth({
-  variants,
-  media,
-  collections,
-}: {
-  variants: number;
-  media: number;
-  collections: number;
-}) {
-  const items: Array<{ short: string; full: string; value: number; tone: "good" | "warn" }> = [
-    { short: "Варіанти", full: "Варіанти", value: variants, tone: variants > 0 ? "good" : "warn" },
-    { short: "Медіа", full: "Медіа", value: media, tone: media > 0 ? "good" : "warn" },
-    {
-      short: "Колекції",
-      full: "Колекції",
-      value: collections,
-      tone: collections > 0 ? "good" : "warn",
-    },
-  ];
-  return (
-    <div
-      className="flex flex-wrap items-center gap-x-4 gap-y-1.5"
-      title={`Варіанти ${variants} · Медіа ${media} · Колекції ${collections}`}
-    >
-      {items.map((item) => (
-        <div key={item.full} className="flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-block h-1.5 w-6 rounded-full",
-              item.tone === "good" ? "bg-emerald-500/70" : "bg-amber-500/70"
-            )}
-            aria-hidden="true"
-          />
-          <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-            {item.short}
-          </span>
-          <span className="text-[12px] font-semibold tabular-nums text-zinc-200">{item.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PriceCell({ product }: { product: ShopProductListItem }) {
-  const meta = priceMeta(product);
-  return (
-    <div className="space-y-0.5">
-      <div className="text-base font-semibold tabular-nums text-zinc-50">{priceLabel(product)}</div>
-      {meta ? <div className="text-[11px] text-zinc-500 tabular-nums">{meta}</div> : null}
-    </div>
-  );
-}
-
 function AdminShopPageContent() {
   const confirm = useConfirm();
   const toast = useToast();
@@ -209,6 +194,13 @@ function AdminShopPageContent() {
   const brandParam = searchParams.get("brand") || "ALL";
   const statusParam = searchParams.get("status") || "ALL";
   const stockParam = searchParams.get("stock") || "ALL";
+  const availabilityParam = (
+    searchParams.get("availability") === "confirmed"
+      ? "confirmed"
+      : stockParam === "outOfStock"
+        ? "outOfStock"
+        : "ALL"
+  ) as AvailabilityFilter;
 
   const [products, setProducts] = useState<ShopProductListItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -292,7 +284,9 @@ function AdminShopPageContent() {
       !newParams.page &&
       (newParams.search !== undefined ||
         newParams.brand !== undefined ||
-        newParams.status !== undefined)
+        newParams.status !== undefined ||
+        newParams.stock !== undefined ||
+        newParams.availability !== undefined)
     ) {
       params.set("page", "1");
     }
@@ -433,7 +427,7 @@ function AdminShopPageContent() {
   const activeFilterCount = [
     brandActive,
     statusParam !== "ALL",
-    stockParam !== "ALL",
+    availabilityParam !== "ALL",
     Boolean(searchParam),
   ].filter(Boolean).length;
 
@@ -456,12 +450,12 @@ function AdminShopPageContent() {
       onRemove: () => updateParams({ status: "ALL" }),
     });
   }
-  if (stockParam !== "ALL") {
+  if (availabilityParam !== "ALL") {
     filterChips.push({
       id: "stock",
       label: "Наявність",
-      value: stockFilterLabel(stockParam),
-      onRemove: () => updateParams({ stock: "ALL" }),
+      value: availabilityFilterLabel(availabilityParam),
+      onRemove: () => updateParams({ stock: "ALL", availability: null }),
     });
   }
   if (searchParam) {
@@ -547,41 +541,12 @@ function AdminShopPageContent() {
         <AdminPageHeader
           eyebrow="Каталог"
           title="Товари"
-          description="Керуйте товарами, цінами, медіа та публікацією з одного робочого каталогу."
+          description={`${metadata.totalCount.toLocaleString("uk-UA")} товарів${
+            filterChips.length ? " за фільтрами" : " у каталозі"
+          }. Ціни показано так, як їх бачить покупець — у гривнях за поточним курсом.`}
           actions={headerActions}
         />
       )}
-
-      <AdminMetricGrid>
-        <AdminMetricCard
-          label="Знайдено товарів"
-          value={metadata.totalCount}
-          meta={
-            brandActive ? `Бренд: ${brandTheme.displayName}` : "Поточний фільтрований результат"
-          }
-          tone="accent"
-          icon={<Layers3 />}
-        />
-        <AdminMetricCard
-          label="Поточна сторінка"
-          value={`${metadata.currentPage}/${metadata.totalPages}`}
-          meta={`Розмір сторінки ${metadata.limit}`}
-          icon={<Layers />}
-        />
-        <AdminMetricCard
-          label="Видимі зараз"
-          value={products.length}
-          meta="Рядки в цьому перегляді"
-          icon={<Eye />}
-        />
-        <AdminMetricCard
-          label="Вибрано"
-          value={selectedCount}
-          meta={selectionLabel}
-          tone={selectedCount > 0 ? "accent" : "default"}
-          icon={<CheckSquare />}
-        />
-      </AdminMetricGrid>
 
       <AdminFilterChips
         chips={filterChips}
@@ -589,7 +554,13 @@ function AdminShopPageContent() {
           filterChips.length > 0
             ? () => {
                 setSearchInput("");
-                updateParams({ brand: "ALL", status: "ALL", stock: "ALL", search: "" });
+                updateParams({
+                  brand: "ALL",
+                  status: "ALL",
+                  stock: "ALL",
+                  availability: null,
+                  search: "",
+                });
               }
             : undefined
         }
@@ -646,16 +617,20 @@ function AdminShopPageContent() {
           </select>
 
           <select
-            value={stockParam}
-            onChange={(event) => updateParams({ stock: event.target.value })}
-            className="min-w-0 flex-1 rounded-none border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden sm:flex-none"
+            value={availabilityParam}
+            onChange={(event) => {
+              const value = event.target.value as AvailabilityFilter;
+              updateParams({
+                availability: value === "confirmed" ? "confirmed" : null,
+                stock: value === "outOfStock" ? "outOfStock" : "ALL",
+              });
+            }}
+            className="min-w-0 flex-1 border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-zinc-100 focus:border-blue-500/30 focus:outline-hidden sm:flex-none"
             aria-label="Фільтр за наявністю"
           >
-            <option value="ALL">Усі стани</option>
-            <option value="inStock">В наявності</option>
-            <option value="outOfStock">Немає в наявності</option>
-            <option value="preOrder">Під замовлення</option>
-            <option value="inTransit">В дорозі</option>
+            <option value="ALL">Уся наявність</option>
+            <option value="confirmed">В наявності на сайті</option>
+            <option value="outOfStock">Немає у постачальника</option>
           </select>
 
           <select
@@ -755,19 +730,10 @@ function AdminShopPageContent() {
                       tintHex={product.brand === brandParam ? brandTheme.tintHex : undefined}
                     />
                   }
-                  badge={
-                    <div className="flex flex-wrap gap-1">
-                      <AdminStatusBadge tone={getStatusTone(product.status)}>
-                        {product.status}
-                      </AdminStatusBadge>
-                      <StockStatusBadge stock={product.stock} />
-                    </div>
-                  }
+                  badge={<SiteStatus product={product} />}
                   rows={[
-                    { label: "Ціна", value: priceLabel(product) },
-                    { label: "Варіантів", value: product.variantsCount },
-                    { label: "Наявність", value: <StockStatusBadge stock={product.stock} /> },
-                    { label: "Публікація", value: product.isPublished ? "Так" : "Прихований" },
+                    { label: "Ціна для покупця", value: <PriceCell product={product} /> },
+                    { label: "Наявність", value: <CustomerAvailabilityBadge product={product} /> },
                   ]}
                   footer={
                     <div className="flex flex-wrap gap-2">
@@ -794,7 +760,7 @@ function AdminShopPageContent() {
           }
           desktop={
             <AdminTableShell>
-              <table className="w-full min-w-[1080px] text-left text-sm">
+              <table className="w-full min-w-[880px] table-fixed text-left text-sm">
                 <thead className="bg-[#171717]">
                   <tr className="border-b border-white/10">
                     <th className="w-12 px-4 py-3">
@@ -809,22 +775,19 @@ function AdminShopPageContent() {
                     <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
                       Товар
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                      Тип
+                    <th className="w-[150px] px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                      Ціна для покупця
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                      Статус
+                    <th className="w-[150px] px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                      Наявність на сайті
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                      Покриття
+                    <th className="w-[130px] px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                      На сайті
                     </th>
-                    <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                      Ціна
-                    </th>
-                    <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                    <th className="w-[110px] px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
                       Оновлено
                     </th>
-                    <th className="w-[180px] bg-[#171717] px-4 py-3 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-500 whitespace-nowrap">
+                    <th className="w-[110px] bg-[#171717] px-4 py-3 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-500 whitespace-nowrap">
                       Дії
                     </th>
                   </tr>
@@ -866,16 +829,11 @@ function AdminShopPageContent() {
                               }
                             />
                             <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium text-zinc-50 transition group-hover:text-blue-200">
+                              <div className="line-clamp-2 font-medium leading-snug text-zinc-50 transition group-hover:text-blue-200">
                                 {product.titleEn || product.titleUa}
                               </div>
-                              <div className="mt-0.5 truncate font-mono text-[11px] text-zinc-500">
-                                {product.slug}
-                              </div>
-                              <div className="mt-1 truncate text-[11px] text-zinc-500">
-                                {[product.brand, product.vendor, product.sku]
-                                  .filter(Boolean)
-                                  .join(" · ") || "—"}
+                              <div className="mt-0.5 truncate text-[12px] text-zinc-500">
+                                {[product.brand, product.sku].filter(Boolean).join(" · ") || "—"}
                               </div>
                               {product.collectionHandles.length ? (
                                 <div className="mt-2 flex flex-wrap gap-1">
@@ -897,29 +855,17 @@ function AdminShopPageContent() {
                             </div>
                           </button>
                         </td>
-                        <td className={cn("px-4 text-zinc-300", rowPad)}>
-                          {product.productType || product.scope}
-                        </td>
-                        <td className={cn("px-4", rowPad)}>
-                          <div className="flex flex-wrap gap-1.5">
-                            <AdminStatusBadge tone={getStatusTone(product.status)}>
-                              {product.status}
-                            </AdminStatusBadge>
-                            {!product.isPublished ? (
-                              <AdminStatusBadge tone="warning">Прихований</AdminStatusBadge>
-                            ) : null}
-                            <StockStatusBadge stock={product.stock} />
-                          </div>
-                        </td>
-                        <td className={cn("px-4", rowPad)}>
-                          <CoverageHealth
-                            variants={product.variantsCount}
-                            media={product.mediaCount}
-                            collections={product.collectionsCount}
-                          />
-                        </td>
                         <td className={cn("px-4", rowPad)}>
                           <PriceCell product={product} />
+                        </td>
+                        <td className={cn("px-4", rowPad)}>
+                          <CustomerAvailabilityBadge product={product} />
+                        </td>
+                        <td className={cn("px-4", rowPad)}>
+                          <SiteStatus product={product} />
+                          {product.mediaCount === 0 && !product.imageUrl ? (
+                            <div className="mt-1 text-[11px] text-amber-300/80">без фото</div>
+                          ) : null}
                         </td>
                         <td className={cn("px-4 text-zinc-500", rowPad)} title={time.full}>
                           {time.label}
