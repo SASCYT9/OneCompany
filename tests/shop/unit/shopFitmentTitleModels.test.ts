@@ -138,3 +138,16 @@ test("Ford Taurus is a selectable model", () => {
   assert.equal(fitment.make, "Ford");
   assert.ok(fitment.models.includes("Taurus"));
 });
+
+test("every Mazda model the patterns read is selectable, including the Mazda 2", () => {
+  for (const [title, model] of [
+    ["RaceChip GTS 5 — Mazda 2 DY (2003–2007) 1.4 CD", "Mazda 2"],
+    ["RaceChip GTS 5 — Mazda 3 BM (2013–2019) 2.2 D", "Mazda 3"],
+    ["RaceChip GTS 5 — Mazda 6 GJ (2012+) 2.2 D", "Mazda 6"],
+    ["JB4 для Mazda CX-5 2.5T", "CX-5"],
+    ["JB4 для Mazda CX-30 2.5T", "CX-30"],
+  ] as const) {
+    const fitment = extractProductFitment(product({ ua: title, brand: "RaceChip" }));
+    assert.ok(fitment.models.includes(model), `${title} -> ${fitment.models.join(",")}`);
+  }
+});

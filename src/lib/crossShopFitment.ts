@@ -1359,6 +1359,7 @@ const VALID_MODELS_BY_MAKE: Record<string, Set<string>> = {
     "CX-70",
     "CX-80",
     "CX-90",
+    "Mazda 2",
     "Mazda 3",
     "Mazda 6",
   ]),
