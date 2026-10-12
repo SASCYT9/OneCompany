@@ -5,6 +5,16 @@ import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
 
 const TAKE_PER_GROUP = 6;
+const MAX_QUERY_WORDS = 5;
+
+/** Every word must hit at least one field, so "akrapovic m3" finds the M3 Akrapovic system. */
+function everyWordIn<Field extends string>(words: string[], fields: readonly Field[]) {
+  return {
+    AND: words.map((word) => ({
+      OR: fields.map((field) => ({ [field]: { contains: word, mode: "insensitive" as const } })),
+    })),
+  } as { AND: Array<{ OR: Array<Record<Field, { contains: string; mode: "insensitive" }>> }> };
+}
 
 function toNumber(value: unknown) {
   if (value == null) return 0;
@@ -33,16 +43,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const words = query.split(/\s+/).filter(Boolean).slice(0, MAX_QUERY_WORDS);
+
     const [orders, products, customers] = await Promise.all([
       canReadOrders
         ? prisma.shopOrder.findMany({
-            where: {
-              OR: [
-                { orderNumber: { contains: query, mode: "insensitive" } },
-                { email: { contains: query, mode: "insensitive" } },
-                { customerName: { contains: query, mode: "insensitive" } },
-              ],
-            },
+            where: everyWordIn(words, ["orderNumber", "email", "customerName"] as const),
             orderBy: { createdAt: "desc" },
             take: TAKE_PER_GROUP,
             select: {
@@ -61,16 +67,14 @@ export async function GET(request: NextRequest) {
         : Promise.resolve([]),
       canReadProducts
         ? prisma.shopProduct.findMany({
-            where: {
-              OR: [
-                { sku: { contains: query, mode: "insensitive" } },
-                { slug: { contains: query, mode: "insensitive" } },
-                { brand: { contains: query, mode: "insensitive" } },
-                { vendor: { contains: query, mode: "insensitive" } },
-                { titleUa: { contains: query, mode: "insensitive" } },
-                { titleEn: { contains: query, mode: "insensitive" } },
-              ],
-            },
+            where: everyWordIn(words, [
+              "sku",
+              "slug",
+              "brand",
+              "vendor",
+              "titleUa",
+              "titleEn",
+            ] as const),
             orderBy: { updatedAt: "desc" },
             take: TAKE_PER_GROUP,
             select: {
@@ -88,14 +92,7 @@ export async function GET(request: NextRequest) {
         : Promise.resolve([]),
       canReadCustomers
         ? prisma.shopCustomer.findMany({
-            where: {
-              OR: [
-                { email: { contains: query, mode: "insensitive" } },
-                { firstName: { contains: query, mode: "insensitive" } },
-                { lastName: { contains: query, mode: "insensitive" } },
-                { companyName: { contains: query, mode: "insensitive" } },
-              ],
-            },
+            where: everyWordIn(words, ["email", "firstName", "lastName", "companyName"] as const),
             orderBy: { updatedAt: "desc" },
             take: TAKE_PER_GROUP,
             select: {

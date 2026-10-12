@@ -90,14 +90,16 @@
   }
 }
 
-@media (max-width: 767px) {
-  .admin-context,
-  .admin-context *,
-  .admin-context *::before,
-  .admin-context *::after {
-    border-radius: 0 !important;
-  }
+/* Admin design system: square geometry everywhere — no pills, no rounded cards
+   or inputs. Spinners keep their circle because a spinning square reads as a glitch. */
+.admin-context,
+.admin-context *:not(.animate-spin),
+.admin-context *:not(.animate-spin)::before,
+.admin-context *:not(.animate-spin)::after {
+  border-radius: 0 !important;
+}
 
+@media (max-width: 767px) {
   .admin-context {
     max-width: 100vw;
     overflow: hidden;

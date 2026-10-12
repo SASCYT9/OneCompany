@@ -6,6 +6,8 @@ import {
   adminMonobankCanReplaceProvider,
 } from "./shopMonobankEligibility";
 import { reusableMonobankLink } from "./shopMonobankPayments";
+import { isOrderTransitionAllowed, ORDER_STATUS_TRANSITIONS } from "./admin/orderWorkflow";
+import { orderAmountLock } from "./admin/orderEditing";
 
 export const ALL_ORDER_STATUSES: OrderStatus[] = [
   "PENDING_PAYMENT",
@@ -18,16 +20,7 @@ export const ALL_ORDER_STATUSES: OrderStatus[] = [
   "REFUNDED",
 ];
 
-export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  PENDING_PAYMENT: ["CONFIRMED", "CANCELLED"],
-  PENDING_REVIEW: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PROCESSING", "CANCELLED"],
-  PROCESSING: ["SHIPPED", "CANCELLED"],
-  SHIPPED: ["DELIVERED", "REFUNDED"],
-  DELIVERED: ["REFUNDED"],
-  CANCELLED: [],
-  REFUNDED: [],
-};
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = ORDER_STATUS_TRANSITIONS;
 
 export const adminOrderInclude = {
   customer: true,
@@ -87,24 +80,73 @@ export function getOrderOperationalMetadata(
 }
 
 export function canTransitionOrderStatus(from: OrderStatus, to: OrderStatus) {
-  if (from === to) return true;
-  return ORDER_TRANSITIONS[from].includes(to);
+  return isOrderTransitionAllowed(from, to);
 }
 
-export function serializeAdminOrderSummary(record: AdminShopOrderRecord) {
-  const operational = getOrderOperationalMetadata(record.pricingSnapshot);
+/** Lean include for the orders list: one page of rows, no full history. */
+export const adminOrderListInclude = {
+  customer: { select: { companyName: true } },
+  items: {
+    select: {
+      id: true,
+      productId: true,
+      productSlug: true,
+      variantId: true,
+      title: true,
+      quantity: true,
+      image: true,
+      total: true,
+    },
+  },
+  events: {
+    orderBy: [{ createdAt: "desc" }],
+    take: 6,
+    select: { createdAt: true, fromStatus: true, toStatus: true },
+  },
+  monobankPayment: {
+    select: { invoiceId: true, pageUrl: true, status: true, expiresAt: true },
+  },
+  _count: { select: { shipments: true } },
+} satisfies Prisma.ShopOrderInclude;
 
+export type AdminShopOrderListRecord = Prisma.ShopOrderGetPayload<{
+  include: typeof adminOrderListInclude;
+}>;
+
+/** When the order entered its current status (edits do not reset the clock). */
+function statusSince(record: AdminShopOrderListRecord) {
+  const entered = record.events.find(
+    (event) => event.toStatus === record.status && event.fromStatus !== event.toStatus
+  );
+  return (entered?.createdAt ?? record.createdAt).toISOString();
+}
+
+export function serializeAdminOrderListRow(record: AdminShopOrderListRecord) {
+  const total = decimalToNumber(record.total) ?? 0;
+  const amountPaid = decimalToNumber(record.amountPaid) ?? 0;
+  const openLink = reusableMonobankLink(record.monobankPayment);
   return {
     id: record.id,
     orderNumber: record.orderNumber,
     status: record.status,
-    email: record.email,
+    statusSince: statusSince(record),
+    createdAt: record.createdAt.toISOString(),
     customerName: record.customerName,
+    email: record.email,
     phone: record.phone,
     companyName: record.customer?.companyName ?? null,
-    shippingAddress: record.shippingAddress,
+    customerGroupSnapshot: record.customerGroupSnapshot,
+    currency: record.currency,
+    total,
+    amountPaid,
+    outstandingAmount: Math.max(0, total - amountPaid),
+    paymentStatus: record.paymentStatus,
     paymentMethod: record.paymentMethod,
-    items: record.items.map((item) => ({
+    isDraft: record.isDraft,
+    ttnNumber: record.ttnNumber,
+    shipmentsCount: record._count.shipments,
+    itemCount: record.items.reduce((sum, item) => sum + item.quantity, 0),
+    items: record.items.slice(0, 3).map((item) => ({
       ...orderItemSnapshotDetails(record.pricingSnapshot, item),
       id: item.id,
       productId: item.productId,
@@ -115,34 +157,15 @@ export function serializeAdminOrderSummary(record: AdminShopOrderRecord) {
       image: item.image,
       total: decimalToNumber(item.total) ?? 0,
     })),
-    customerId: record.customerId,
-    customerGroupSnapshot: record.customerGroupSnapshot,
-    currency: record.currency,
-    total: decimalToNumber(record.total) ?? 0,
-    paymentStatus: record.paymentStatus,
-    amountPaid: decimalToNumber(record.amountPaid) ?? 0,
-    outstandingAmount: Math.max(
-      0,
-      (decimalToNumber(record.total) ?? 0) - (decimalToNumber(record.amountPaid) ?? 0)
-    ),
-    createdAt: record.createdAt.toISOString(),
-    itemCount: record.items.reduce((sum, item) => sum + item.quantity, 0),
-    shipmentsCount: record.shipments.length,
-    timelineCount: record.events.length,
-    latestEvent: record.events[0]
-      ? {
-          toStatus: record.events[0].toStatus,
-          note: record.events[0].note,
-          createdAt: record.events[0].createdAt.toISOString(),
-        }
+    itemLines: record.items.length,
+    monobankLink: openLink
+      ? { url: openLink, expiresAt: record.monobankPayment?.expiresAt?.toISOString() ?? null }
       : null,
     allowedTransitions: ORDER_TRANSITIONS[record.status],
-    shippingZoneId: operational.shippingZoneId,
-    shippingZoneName: operational.shippingZoneName,
-    taxRegionId: operational.taxRegionId,
-    taxRegionName: operational.taxRegionName,
   };
 }
+
+export type AdminOrderListRow = ReturnType<typeof serializeAdminOrderListRow>;
 
 export function serializeAdminOrder(record: AdminShopOrderRecord) {
   const operational = getOrderOperationalMetadata(record.pricingSnapshot);
@@ -156,6 +179,9 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     customerId: record.customerId,
     companyName: record.customer?.companyName ?? null,
     paymentMethod: record.paymentMethod,
+    isDraft: record.isDraft,
+    // Why items and prices can or cannot be edited (payment taken, link issued, shipped…).
+    amountLock: orderAmountLock(record),
     monobankBlockReason: adminMonobankBlockReason(record),
     monobankCanReplaceProvider: adminMonobankCanReplaceProvider(record),
     // The current open link is shown from the database, so it stays available even

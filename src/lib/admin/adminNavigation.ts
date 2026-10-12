@@ -63,6 +63,7 @@ export type AdminNavSectionDefinition = {
   key: AdminNavSectionKey;
   label: string;
   description: string;
+  icon: AdminNavIconKey;
   items: AdminNavItemDefinition[];
 };
 
@@ -71,6 +72,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
     key: "overview",
     label: "Огляд",
     description: "Стан системи та активність бізнесу.",
+    icon: "dashboard",
     items: [
       {
         href: "/admin",
@@ -85,6 +87,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
     key: "work",
     label: "Работа",
     description: "Проекты, задачи, входящие и база знаний команды.",
+    icon: "tasks",
     items: [
       {
         href: "/admin/operations",
@@ -147,8 +150,9 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   },
   {
     key: "orders",
-    label: "Замовлення",
-    description: "Робота з замовленнями.",
+    label: "Продажі",
+    description: "Замовлення, проформи, звернення клієнтів та повернення.",
+    icon: "orders",
     items: [
       {
         href: "/admin/shop/orders",
@@ -162,12 +166,25 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Проформи до замовлення, котирування та наявність для Telegram.",
         icon: "drafts",
       },
+      {
+        href: "/admin/messages",
+        label: "Повідомлення",
+        description: "Вхідні форми зв’язку та робота з лідами.",
+        icon: "messages",
+      },
+      {
+        href: "/admin/shop/returns",
+        label: "Повернення / RMA",
+        description: "Запити на повернення, відстеження поповнення, B2C+B2B процеси.",
+        icon: "returns",
+      },
     ],
   },
   {
     key: "customers",
     label: "Клієнти",
     description: "B2C, B2B та CRM-зв’язки.",
+    icon: "customers",
     items: [
       {
         href: "/admin/shop/customers",
@@ -192,7 +209,8 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   {
     key: "catalog",
     label: "Каталог",
-    description: "Товари, структура, медіа та ціни.",
+    description: "Товари, ціни, імпорти, структура та презентації.",
+    icon: "catalog",
     items: [
       {
         href: "/admin/shop",
@@ -202,10 +220,22 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         exactMatch: true,
       },
       {
-        href: "/admin/shop/inventory",
-        label: "Склад",
-        description: "Залишки варіантів, кількості, готовність складу.",
-        icon: "inventory",
+        href: "/admin/shop/pricing",
+        label: "Ціни",
+        description: "Керування B2C та B2B цінами.",
+        icon: "pricing",
+      },
+      {
+        href: "/admin/shop/import",
+        label: "Центр імпортів",
+        description: "CSV-імпорти, тестові прогони та результати.",
+        icon: "imports",
+      },
+      {
+        href: "/admin/shop/quality",
+        label: "Інструменти каталогу",
+        description: "Медіа, якість, сумісність та SEO в одному робочому центрі.",
+        icon: "tools",
       },
       {
         href: "/admin/shop/categories",
@@ -244,44 +274,32 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Збірка красивих PDF-презентацій з вибраних товарів та цін.",
         icon: "drafts",
       },
-      {
-        href: "/admin/shop/quality",
-        label: "Інструменти каталогу",
-        description: "Медіа, якість, сумісність та SEO в одному робочому центрі.",
-        icon: "tools",
-      },
-      {
-        href: "/admin/shop/pricing",
-        label: "Ціни",
-        description: "Керування B2C та B2B цінами.",
-        icon: "pricing",
-      },
-    ],
-  },
-  {
-    key: "imports",
-    label: "Імпорти та інтеграції",
-    description: "Вхідні потоки каталогу та синхронізації постачальників.",
-    items: [
-      {
-        href: "/admin/shop/import",
-        label: "Центр імпортів",
-        description: "CSV-імпорти, тестові прогони та результати.",
-        icon: "imports",
-      },
     ],
   },
   {
     key: "logistics",
-    label: "Логістика",
-    description: "Склади, зони доставки та податки.",
+    label: "Склад і логістика",
+    description: "Залишки, склади, зони доставки та податки.",
+    icon: "logistics",
     items: [
+      {
+        href: "/admin/shop/inventory",
+        label: "Склад",
+        description: "Залишки варіантів, кількості, готовність складу.",
+        icon: "inventory",
+      },
       {
         href: "/admin/shop/logistics",
         label: "Склади та зони",
         description: "Налаштування складів та географія доставки.",
         icon: "logistics",
         exactMatch: true,
+      },
+      {
+        href: "/admin/shop/logistics/brand-rules",
+        label: "Доставка за брендами",
+        description: "Фіксовані суми та окремі тарифи для кожної зони доставки.",
+        icon: "logistics",
       },
       {
         href: "/admin/shop/logistics/taxes",
@@ -296,12 +314,6 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "taxes",
       },
       {
-        href: "/admin/shop/logistics/brand-rules",
-        label: "Доставка за брендами",
-        description: "Фіксовані суми та окремі тарифи для кожної зони доставки.",
-        icon: "logistics",
-      },
-      {
         href: "/admin/shop/logistics/shipping-lab",
         label: "Демо-чекаут доставки",
         description: "Live-перевірка брендів, ZIP, ваги та тимчасових тарифів без збереження.",
@@ -310,28 +322,10 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
     ],
   },
   {
-    key: "content",
-    label: "Контент",
-    description: "Редакційний контент та вхідні повідомлення.",
-    items: [
-      {
-        href: "/admin/messages",
-        label: "Повідомлення",
-        description: "Вхідні форми зв’язку та робота з лідами.",
-        icon: "messages",
-      },
-      {
-        href: "/admin/blog",
-        label: "Блог",
-        description: "Редакційні матеріали та робочий процес публікації.",
-        icon: "blog",
-      },
-    ],
-  },
-  {
     key: "marketing",
-    label: "Маркетинг",
-    description: "Промокоди, кампанії, email-автоматизація.",
+    label: "Маркетинг і контент",
+    description: "Промокоди, email-автоматизація та блог.",
+    icon: "tag",
     items: [
       {
         href: "/admin/shop/discounts",
@@ -345,18 +339,11 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Тригери, шаблони, журнал розсилок.",
         icon: "email",
       },
-    ],
-  },
-  {
-    key: "operations",
-    label: "Операції",
-    description: "Повернення, RMA, виконання замовлень.",
-    items: [
       {
-        href: "/admin/shop/returns",
-        label: "Повернення / RMA",
-        description: "Запити на повернення, відстеження поповнення, B2C+B2B процеси.",
-        icon: "returns",
+        href: "/admin/blog",
+        label: "Блог",
+        description: "Редакційні матеріали та робочий процес публікації.",
+        icon: "blog",
       },
     ],
   },
@@ -364,6 +351,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
     key: "system",
     label: "Адміністрування",
     description: "Налаштування системи та команди.",
+    icon: "settings",
     items: [
       {
         href: "/admin/settings",
@@ -530,4 +518,60 @@ export function getActiveAdminNavSection(
   }
 
   return sections.find((section) => section.key === activeItem.sectionKey) ?? null;
+}
+
+/** Titles for admin pages that live under a nav item but are not nav items themselves. */
+const ADMIN_PAGE_TITLES: Readonly<Record<string, string>> = {
+  "/admin/shop/new": "Новий товар",
+  "/admin/shop/media": "Медіатека",
+  "/admin/shop/audit": "Журнал змін",
+  "/admin/shop/feed": "Фіди дистриб’юторів",
+  "/admin/shop/fitment": "Перевірка сумісності",
+  "/admin/shop/seo": "SEO-генератор",
+  "/admin/shop/stock": "Залишки постачальників",
+  "/admin/shop/ai-quality": "One AI · якість",
+  "/admin/shop/settings": "Налаштування магазину",
+  "/admin/shop/pricing/simulator": "Симулятор цін",
+  "/admin/shop/import/jobs": "Журнал імпорту",
+  "/admin/shop/orders/create": "Нове замовлення",
+  "/admin/shop/orders/new": "Нове замовлення",
+  "/admin/settings/integrations": "Інтеграції",
+  "/admin/backups": "Резервні копії",
+  "/admin/thought-space": "Thought space",
+};
+
+export type AdminBreadcrumb = { label: string; href?: string };
+
+function adminDetailLabel(pathname: string) {
+  const lastSegment = pathname.split("/").filter(Boolean).at(-1);
+  if (lastSegment === "new" || lastSegment === "create") return "Створення";
+  if (lastSegment === "edit") return "Редагування";
+  return "Деталі";
+}
+
+/** Section › page › detail trail for the shell header. The last crumb has no href. */
+export function getAdminBreadcrumbs(
+  pathname: string,
+  sections: AdminNavSectionDefinition[] = ADMIN_NAV_SECTIONS
+): AdminBreadcrumb[] {
+  const titledPath = Object.keys(ADMIN_PAGE_TITLES)
+    .filter((path) => pathname === path || pathname.startsWith(`${path}/`))
+    .sort((left, right) => right.length - left.length)[0];
+  const item = getAdminNavAccessItem(pathname, sections);
+
+  const crumbs: AdminBreadcrumb[] = [];
+  if (item) {
+    const section = sections.find((candidate) => candidate.key === item.sectionKey);
+    if (section && section.key !== "overview") crumbs.push({ label: section.label });
+    crumbs.push({ label: item.label, href: item.href });
+  }
+  if (titledPath && (!item || titledPath.length > item.href.length)) {
+    crumbs.push({ label: ADMIN_PAGE_TITLES[titledPath], href: titledPath });
+  }
+  const deepest = crumbs.at(-1)?.href;
+  if (deepest && pathname !== deepest) crumbs.push({ label: adminDetailLabel(pathname) });
+
+  const last = crumbs.at(-1);
+  if (last) delete last.href;
+  return crumbs;
 }

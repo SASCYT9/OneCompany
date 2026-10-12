@@ -1,174 +1,44 @@
 "use client";
-import { shopUahSaleRate, type ShopPriceBookRates } from "@/lib/shopPriceBookCurrency";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import {
-  Archive,
-  Bell,
-  BookOpen,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Keyboard,
-  Database,
-  DollarSign,
-  FileInput,
-  FolderTree,
-  Image as ImageIcon,
-  ImagePlus,
-  Inbox,
-  LayoutDashboard,
-  ListTodo,
-  LogOut,
-  MessageSquare,
-  Package,
-  PackagePlus,
-  Receipt,
-  Search,
-  Settings,
-  Shield,
-  ShoppingBag,
-  Sparkles,
-  Menu,
-  Plug,
-  Tag,
-  FolderKanban,
-  X as XIcon,
-  Undo2,
-  Users,
-  UsersRound,
-  Warehouse,
-  Boxes,
-  FileText,
-  Mail,
-  Wrench,
-} from "lucide-react";
+import { Keyboard, X as XIcon } from "lucide-react";
 
+import type { CurrentAdminAccess } from "@/lib/admin/adminAccess";
+import {
+  buildAdminAttentionItems,
+  buildAdminNavBadges,
+  type AdminAttentionCounts,
+} from "@/lib/admin/adminAttention";
 import {
   canAccessAdminPath,
   filterAdminNavSections,
   flattenAdminNavItems,
+  getAdminBreadcrumbs,
+  getAdminNavAccessItem,
   getFirstAllowedAdminRoute,
-  isAdminNavItemActive,
-  type AdminNavIconKey,
-  type AdminNavItemDefinition,
-  type AdminNavSectionDefinition,
 } from "@/lib/admin/adminNavigation";
-import type { CurrentAdminAccess } from "@/lib/admin/adminAccess";
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
-import { useAdminCurrency, type AdminCurrency } from "@/lib/admin/currencyContext";
-import { cn } from "@/lib/utils";
 
-const iconMap: Record<AdminNavIconKey, React.ComponentType<{ className?: string }>> = {
-  dashboard: LayoutDashboard,
-  orders: Package,
-  customers: Users,
-  catalog: ShoppingBag,
-  tools: Wrench,
-  inventory: Boxes,
-  categories: FolderTree,
-  collections: Tag,
-  bundles: PackagePlus,
-  media: ImageIcon,
-  pricing: DollarSign,
-  seo: Sparkles,
-  imports: FileInput,
-  csv: Archive,
-  audit: Database,
-  logistics: Warehouse,
-  taxes: Receipt,
-  content: MessageSquare,
-  messages: MessageSquare,
-  blog: ImagePlus,
-  settings: Settings,
-  users: Shield,
-  backups: Archive,
-  crm: Database,
-  tag: Tag,
-  returns: Undo2,
-  drafts: FileText,
-  email: Mail,
-  segments: UsersRound,
-  integrations: Plug,
-  tasks: ListTodo,
-  inbox: Inbox,
-  projects: FolderKanban,
-  knowledge: BookOpen,
-  approvals: Shield,
+import { AdminCommandPalette } from "./shell/AdminCommandPalette";
+import { AdminSidebar } from "./shell/AdminSidebar";
+import { AdminTopBar } from "./shell/AdminTopBar";
+import { ADMIN_CREATE_ACTIONS } from "./shell/adminShellActions";
+import { useAdminShellPreferences } from "./shell/useAdminShellPreferences";
+
+const ATTENTION_POLL_MS = 120_000;
+const ATTENTION_MIN_REFRESH_MS = 30_000;
+
+/** Linear-style "g then letter" jumps. */
+const CHORD_ROUTES: Record<string, { href: string; label: string }> = {
+  d: { href: "/admin", label: "Робочий стіл" },
+  o: { href: "/admin/shop/orders", label: "Замовлення" },
+  p: { href: "/admin/shop", label: "Товари" },
+  c: { href: "/admin/shop/customers", label: "Клієнти" },
+  i: { href: "/admin/shop/inventory", label: "Склад" },
+  s: { href: "/admin/settings", label: "Налаштування" },
 };
-
-const CURRENCY_OPTIONS: { value: AdminCurrency; label: string; symbol: string }[] = [
-  { value: "EUR", label: "EUR", symbol: "€" },
-  { value: "USD", label: "USD", symbol: "$" },
-  { value: "UAH", label: "UAH", symbol: "₴" },
-];
-
-type GlobalSearchResponse = {
-  total: number;
-  results: {
-    orders: Array<{
-      id: string;
-      orderNumber: string;
-      customerName: string;
-      email: string;
-      status: string;
-      paymentStatus: string;
-      total: number;
-      outstandingAmount: number;
-      currency: string;
-    }>;
-    products: Array<{
-      id: string;
-      slug: string;
-      sku: string | null;
-      brand: string | null;
-      titleUa: string;
-      titleEn: string;
-      status: string;
-      stock: string;
-    }>;
-    customers: Array<{
-      id: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-      companyName: string | null;
-      group: string;
-      isActive: boolean;
-    }>;
-  };
-};
-
-const EMPTY_SEARCH: GlobalSearchResponse = {
-  total: 0,
-  results: { orders: [], products: [], customers: [] },
-};
-
-const COMMAND_ACTIONS = [
-  {
-    href: "/admin/shop/orders/create",
-    label: "Створити B2B замовлення",
-    description: "Ручне замовлення з каталогу або вручну",
-    icon: PackagePlus,
-  },
-  {
-    href: "/admin/shop/feed",
-    label: "Відкрити фіди",
-    description: "Експорт-посилання дистриб’юторів та попередній перегляд",
-    icon: Archive,
-  },
-  {
-    href: "/admin/shop/import",
-    label: "Імпорт CSV",
-    description: "Інструменти імпорту каталогу та валідації",
-    icon: FileInput,
-  },
-];
 
 export default function AdminShell({
   children,
@@ -181,53 +51,45 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const preferences = useAdminShellPreferences();
+  const { rememberVisit } = preferences;
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [globalSearch, setGlobalSearch] = useState<GlobalSearchResponse>(EMPTY_SEARCH);
-  const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [bellOpen, setBellOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<
-    Array<{
-      id: string;
-      tone: "red" | "amber" | "green";
-      label: string;
-      detail: string;
-      href: string;
-    }>
-  >([]);
-  const notifCount = notifications.filter((n) => n.tone === "red" || n.tone === "amber").length;
+  const [attentionCounts, setAttentionCounts] = useState<AdminAttentionCounts | null>(null);
+  const [isMac, setIsMac] = useState(false);
+  const lastAttentionFetch = useRef(0);
+
+  const routeAllowed = useCallback(
+    (href: string) =>
+      (access.isOwner && (operationsUiEnabled || !href.startsWith("/admin/operations"))) ||
+      canAccessAdminPath(href, access.permissions, { operationsUiEnabled }),
+    [access.isOwner, access.permissions, operationsUiEnabled]
+  );
+
   const allowedSections = useMemo(
-    () =>
-      filterAdminNavSections(access.permissions, undefined, {
-        operationsUiEnabled,
-      }),
+    () => filterAdminNavSections(access.permissions, undefined, { operationsUiEnabled }),
     [access.permissions, operationsUiEnabled]
   );
-  const quickLinks = useMemo(() => flattenAdminNavItems(allowedSections), [allowedSections]);
-  const allowedHrefSet = useMemo(() => new Set(quickLinks.map((item) => item.href)), [quickLinks]);
+  const navItems = useMemo(() => flattenAdminNavItems(allowedSections), [allowedSections]);
+  const createActions = useMemo(
+    () => ADMIN_CREATE_ACTIONS.filter((action) => routeAllowed(action.href)),
+    [routeAllowed]
+  );
+  const breadcrumbs = useMemo(() => getAdminBreadcrumbs(pathname), [pathname]);
+
   const firstAllowedHref =
     getFirstAllowedAdminRoute(access.permissions, { operationsUiEnabled }) ?? "/admin";
-  const canAccessCurrentPath =
-    (access.isOwner && (operationsUiEnabled || !pathname.startsWith("/admin/operations"))) ||
-    canAccessAdminPath(pathname, access.permissions, { operationsUiEnabled });
-  const homeHref = matchesAdminPermission(
-    access.permissions,
-    ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ
-  )
-    ? "/admin"
-    : firstAllowedHref;
+  const canAccessCurrentPath = routeAllowed(pathname);
   const canReadDashboard = matchesAdminPermission(
     access.permissions,
     ADMIN_PERMISSIONS.ADMIN_DASHBOARD_READ
   );
-  const canUseGlobalSearch = [
+  const homeHref = canReadDashboard ? "/admin" : firstAllowedHref;
+  const canSearchEntities = [
     ADMIN_PERMISSIONS.SHOP_ORDERS_READ,
     ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ,
     ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ,
-    ADMIN_PERMISSIONS.SHOP_IMPORTS_MANAGE,
   ].some((permission) => matchesAdminPermission(access.permissions, permission));
   const canUseCurrency = [
     ADMIN_PERMISSIONS.SHOP_ORDERS_READ,
@@ -235,185 +97,131 @@ export default function AdminShell({
     ADMIN_PERMISSIONS.SHOP_PRICING_READ,
     ADMIN_PERMISSIONS.SHOP_SETTINGS_READ,
   ].some((permission) => matchesAdminPermission(access.permissions, permission));
-  const allowedCommandActions = useMemo(
+  const hasCommerceAccess = access.permissions.some(
+    (permission) => permission === "*" || permission === "shop.*" || permission.startsWith("shop.")
+  );
+
+  const attentionItems = useMemo(
     () =>
-      COMMAND_ACTIONS.filter((action) =>
-        canAccessAdminPath(action.href, access.permissions, { operationsUiEnabled })
-      ),
-    [access.permissions, operationsUiEnabled]
+      attentionCounts
+        ? buildAdminAttentionItems(attentionCounts).filter((item) => routeAllowed(item.href))
+        : [],
+    [attentionCounts, routeAllowed]
+  );
+  const navBadges = useMemo(
+    () => (attentionCounts ? buildAdminNavBadges(attentionCounts) : {}),
+    [attentionCounts]
   );
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("adminSidebarCollapsed");
-    if (saved === "true") setCollapsed(true);
+    setIsMac(/Mac|iPhone|iPad/.test(window.navigator.platform));
   }, []);
 
-  // Fetch notifications from dashboard API
-  useEffect(() => {
-    if (!canReadDashboard) {
-      setNotifications([]);
-      return;
-    }
-
-    fetch("/api/admin/dashboard?period=monthly", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return;
-        const items: Array<{
-          id: string;
-          tone: "red" | "amber" | "green";
-          label: string;
-          detail: string;
-          href: string;
-        }> = [];
-        for (const risk of data.system?.operationalRisks ?? []) {
-          if (!risk.count) continue;
-          items.push({
-            id: risk.id,
-            tone:
-              risk.severity === "danger" ? "red" : risk.severity === "warning" ? "amber" : "green",
-            label: risk.label,
-            detail: `${risk.count} item${risk.count === 1 ? "" : "s"} · ${risk.description}`,
-            href: risk.href,
-          });
-        }
-        setNotifications(
-          items
-            .filter(
-              (item) =>
-                (access.isOwner &&
-                  (operationsUiEnabled || !item.href.startsWith("/admin/operations"))) ||
-                canAccessAdminPath(item.href, access.permissions, { operationsUiEnabled })
-            )
-            .slice(0, 8)
-        );
+  const refreshAttention = useCallback(() => {
+    if (!hasCommerceAccess) return;
+    lastAttentionFetch.current = Date.now();
+    fetch("/api/admin/shell/attention", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: AdminAttentionCounts | null) => {
+        if (data) setAttentionCounts(data);
       })
       .catch(() => {});
-  }, [access.isOwner, access.permissions, canReadDashboard, operationsUiEnabled, pathname]);
+  }, [hasCommerceAccess]);
 
   useEffect(() => {
-    if (canAccessCurrentPath) {
-      return;
-    }
+    refreshAttention();
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") refreshAttention();
+    }, ATTENTION_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [refreshAttention]);
 
-    if (pathname !== firstAllowedHref) {
+  // Counters change when people work, so refresh on navigation — but not on every click.
+  useEffect(() => {
+    if (Date.now() - lastAttentionFetch.current > ATTENTION_MIN_REFRESH_MS) refreshAttention();
+    setMobileDrawerOpen(false);
+    const item = getAdminNavAccessItem(pathname, allowedSections, { operationsUiEnabled });
+    if (item && item.href === pathname) rememberVisit(item.href);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- route changes only
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!canAccessCurrentPath && pathname !== firstAllowedHref) {
       router.replace(firstAllowedHref);
     }
   }, [canAccessCurrentPath, firstAllowedHref, pathname, router]);
 
-  // Keyboard shortcuts: Cmd+K, ?, g+o, g+p, g+c
+  // The drawer is a phone/tablet affordance; growing past `lg` hands over to the sidebar.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    function onChange(event: MediaQueryListEvent) {
+      if (event.matches) setMobileDrawerOpen(false);
+    }
+    desktop.addEventListener("change", onChange);
+    return () => desktop.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setMobileDrawerOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = original;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileDrawerOpen]);
+
   useEffect(() => {
     let lastG = 0;
     function handler(event: KeyboardEvent) {
-      // Skip when typing in inputs
       const target = event.target as HTMLElement;
       const isInput =
-        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
 
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        const input = document.getElementById("admin-global-search") as HTMLInputElement | null;
-        input?.focus();
+        setPaletteOpen((value) => !value);
         return;
       }
-
       if (isInput) return;
 
+      if (event.key === "/" && !event.shiftKey) {
+        event.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
       if (event.key === "?" || (event.shiftKey && event.key === "/")) {
         event.preventDefault();
-        setShortcutsOpen((v) => !v);
+        setShortcutsOpen((value) => !value);
         return;
       }
-
       if (event.key === "Escape") {
         setShortcutsOpen(false);
-        setBellOpen(false);
         return;
       }
-
-      // Linear-style chord shortcuts: g + letter within 1500ms
       if (event.key === "g") {
         lastG = Date.now();
         return;
       }
       if (Date.now() - lastG < 1500 && !event.metaKey && !event.ctrlKey && !event.altKey) {
-        const map: Record<string, string> = {
-          d: "/admin",
-          o: "/admin/shop/orders",
-          p: "/admin/shop",
-          c: "/admin/shop/customers",
-          i: "/admin/shop/inventory",
-          s: "/admin/settings",
-        };
-        const route = map[event.key.toLowerCase()];
-        if (
-          route &&
-          ((access.isOwner && (operationsUiEnabled || !route.startsWith("/admin/operations"))) ||
-            canAccessAdminPath(route, access.permissions, { operationsUiEnabled }))
-        ) {
+        const route = CHORD_ROUTES[event.key.toLowerCase()];
+        if (route && routeAllowed(route.href)) {
           event.preventDefault();
-          router.push(route);
+          router.push(route.href);
           lastG = 0;
         }
       }
     }
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [access.isOwner, access.permissions, operationsUiEnabled, router]);
-
-  // Close popovers on outside click
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      const t = e.target as HTMLElement;
-      if (!t.closest("[data-bell-popover]") && !t.closest("[data-bell-trigger]")) {
-        setBellOpen(false);
-      }
-    }
-    if (bellOpen) document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [bellOpen]);
-
-  const filteredQuickLinks = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return quickLinks.slice(0, 12);
-    return quickLinks.filter((item) =>
-      [item.label, item.description, item.sectionLabel, item.href].some((value) =>
-        value.toLowerCase().includes(needle)
-      )
-    );
-  }, [quickLinks, query]);
-
-  useEffect(() => {
-    const needle = query.trim();
-    if (needle.length < 2 || !canUseGlobalSearch) {
-      setGlobalSearch(EMPTY_SEARCH);
-      setGlobalSearchLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => {
-      setGlobalSearchLoading(true);
-      fetch(`/api/admin/search?q=${encodeURIComponent(needle)}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      })
-        .then(async (response) => {
-          if (!response.ok) return EMPTY_SEARCH;
-          return (await response.json()) as GlobalSearchResponse;
-        })
-        .then((data) => setGlobalSearch(data))
-        .catch((error) => {
-          if ((error as Error).name !== "AbortError") setGlobalSearch(EMPTY_SEARCH);
-        })
-        .finally(() => setGlobalSearchLoading(false));
-    }, 180);
-
-    return () => {
-      window.clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [canUseGlobalSearch, query]);
+  }, [routeAllowed, router]);
 
   async function handleLogout() {
     try {
@@ -423,343 +231,46 @@ export default function AdminShell({
     }
   }
 
-  function toggleCollapsed() {
-    setCollapsed((current) => {
-      const next = !current;
-      window.localStorage.setItem("adminSidebarCollapsed", String(next));
-      return next;
-    });
-  }
-
-  // Auto-close mobile drawer on route change
-  useEffect(() => {
-    setMobileDrawerOpen(false);
-  }, [pathname]);
-
-  // Lock body scroll when drawer open
-  useEffect(() => {
-    if (!mobileDrawerOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [mobileDrawerOpen]);
-
-  // Escape closes drawer
-  useEffect(() => {
-    if (!mobileDrawerOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setMobileDrawerOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [mobileDrawerOpen]);
-
-  function submitQuickLink() {
-    const entityHref = getFirstSearchHref(globalSearch);
-    const match = filteredQuickLinks[0]?.href;
-    const href = entityHref ?? match;
-    if (!href) return;
-    setQuery("");
-    router.push(href);
-  }
-
   return (
     <div className="admin-context flex h-dvh max-w-full overflow-hidden bg-[#0A0A0A] text-zinc-100">
-      {/* Skip link */}
       <a
         href="#admin-main-content"
-        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-100 focus-visible:rounded-none focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:shadow-[0_8px_24px_rgba(0,0,0,0.6)] focus-visible:outline-hidden"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-100 focus-visible:border focus-visible:border-blue-500/40 focus-visible:bg-[#171717] focus-visible:px-4 focus-visible:py-2.5 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-blue-300 focus-visible:outline-hidden"
       >
         Перейти до основного вмісту
       </a>
 
-      {/* Mobile drawer backdrop */}
-      {mobileDrawerOpen ? (
-        <div
-          onClick={() => setMobileDrawerOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
-          aria-hidden="true"
-        />
-      ) : null}
-
-      <aside
-        className={cn(
-          "flex h-full flex-none flex-col border-r border-white/5 bg-[#0F0F0F] transition-all duration-200",
-          // Desktop: always visible, width changes based on collapsed
-          "lg:relative lg:translate-x-0",
-          collapsed ? "lg:w-[80px]" : "lg:w-[240px]",
-          // Mobile: fixed drawer, slide in from left
-          "fixed inset-y-0 left-0 z-50 w-[280px]",
-          mobileDrawerOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
-        )}
-        aria-label="Primary navigation"
-      >
-        {/* Brand — ONE COMPANY logo */}
-        <div className="flex items-center justify-between px-5 py-5">
-          {/* Full logo: always visible on mobile, only when not collapsed on desktop */}
-          <Link
-            href={homeHref}
-            className={cn("block", collapsed ? "lg:hidden" : "lg:block")}
-            aria-label="OneCompany Admin home"
-          >
-            <Image
-              src="/branding/logo-light.svg"
-              alt="OneCompany"
-              width={140}
-              height={36}
-              className="h-9 w-auto"
-              priority
-            />
-          </Link>
-          {/* Collapsed mark: only on desktop when collapsed */}
-          {collapsed ? (
-            <Link
-              href={homeHref}
-              className="mx-auto hidden h-10 w-10 items-center justify-center rounded-none bg-blue-600 text-sm font-bold tracking-tight text-white lg:flex"
-              aria-label="OneCompany Admin home"
-            >
-              OC
-            </Link>
-          ) : null}
-          <div className="flex items-center gap-1">
-            {/* Mobile close button */}
-            <button
-              type="button"
-              onClick={() => setMobileDrawerOpen(false)}
-              aria-label="Закрити навігацію"
-              className="flex h-9 w-9 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200 lg:hidden"
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
-            {/* Desktop collapse button */}
-            {!collapsed ? (
-              <button
-                type="button"
-                onClick={toggleCollapsed}
-                aria-label="Згорнути навігацію"
-                className="hidden h-7 w-7 items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200 lg:flex"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        {collapsed ? (
-          <div className="px-3 pb-2">
-            <button
-              type="button"
-              onClick={toggleCollapsed}
-              aria-label="Розгорнути навігацію"
-              className="flex h-7 w-full items-center justify-center rounded-none text-zinc-500 transition hover:bg-white/4 hover:text-zinc-200"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        ) : null}
-
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2 scrollbar-thin [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10">
-          {allowedSections.map((section) => (
-            <AdminSidebarSection
-              key={section.key}
-              collapsed={collapsed}
-              pathname={pathname}
-              section={section}
-            />
-          ))}
-        </nav>
-
-        <div className="border-t border-white/5 px-3 py-3">
-          {canUseCurrency ? <AdminCurrencySwitcher collapsed={collapsed} /> : null}
-          <button
-            type="button"
-            onClick={() => void handleLogout()}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-none px-3 py-2 text-sm text-zinc-400 transition hover:bg-red-500/6 hover:text-red-300",
-              canUseCurrency && "mt-2",
-              collapsed && "justify-center px-0"
-            )}
-          >
-            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {!collapsed ? <span>Вийти</span> : null}
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        sections={allowedSections}
+        pathname={pathname}
+        homeHref={homeHref}
+        collapsed={preferences.collapsed}
+        onToggleCollapsed={preferences.toggleCollapsed}
+        mobileOpen={mobileDrawerOpen}
+        onCloseMobile={() => setMobileDrawerOpen(false)}
+        pinned={preferences.pinned}
+        onTogglePinned={preferences.togglePinned}
+        openSections={preferences.openSections}
+        onSetSectionOpen={preferences.setSectionOpen}
+        badges={navBadges}
+        userName={access.name}
+        userRole={access.isOwner ? "Owner" : access.roleKeys.join(", ") || "Admin"}
+        onShowShortcuts={() => setShortcutsOpen(true)}
+        onLogout={() => void handleLogout()}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 border-b border-white/5 bg-[#0A0A0A]/85 px-2 py-2 backdrop-blur-xl sm:px-6 sm:py-3.5">
-          <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-4">
-            <button
-              type="button"
-              onClick={() => setMobileDrawerOpen(true)}
-              aria-label="Відкрити навігацію"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 sm:h-11 sm:w-11 lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
-            <div className="relative min-w-0 max-w-[640px] flex-1">
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  submitQuickLink();
-                }}
-                className={cn(
-                  "flex h-9 items-center gap-2 rounded-none border bg-[#171717] px-2.5 transition-all sm:h-auto sm:px-3.5 sm:py-2",
-                  searchFocused
-                    ? "border-blue-500/40 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
-                    : "border-white/6 hover:border-white/15"
-                )}
-              >
-                <Search className="h-4 w-4 text-zinc-500" aria-hidden="true" />
-                <input
-                  id="admin-global-search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  placeholder="Пошук…"
-                  className="w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-hidden"
-                />
-                <kbd className="hidden items-center gap-0.5 rounded-none border border-white/8 bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex">
-                  ⌘K
-                </kbd>
-              </form>
-              <CommandCenterResults
-                query={query}
-                loading={globalSearchLoading}
-                search={globalSearch}
-                quickLinks={filteredQuickLinks}
-                actions={allowedCommandActions}
-                onNavigate={(href) => {
-                  setQuery("");
-                  router.push(href);
-                }}
-              />
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-              {/* Keyboard shortcuts hint button */}
-              <button
-                type="button"
-                onClick={() => setShortcutsOpen(true)}
-                aria-label="Гарячі клавіші"
-                title="Натисніть ? щоб показати гарячі клавіші"
-                className="hidden h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100 md:flex"
-              >
-                <Keyboard className="h-[18px] w-[18px]" aria-hidden="true" />
-              </button>
-
-              {/* Notification bell with dropdown */}
-              {canReadDashboard ? (
-                <div className="relative">
-                  <button
-                    type="button"
-                    data-bell-trigger
-                    onClick={() => setBellOpen((v) => !v)}
-                    aria-label={`${notifCount} notification${notifCount === 1 ? "" : "s"}`}
-                    aria-expanded={bellOpen}
-                    className="relative flex h-9 w-9 items-center justify-center rounded-none text-zinc-400 transition hover:bg-white/4 hover:text-zinc-100"
-                  >
-                    <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
-                    {notifCount > 0 ? (
-                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#0A0A0A] bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                        {notifCount > 9 ? "9+" : notifCount}
-                      </span>
-                    ) : null}
-                  </button>
-
-                  {bellOpen ? (
-                    <div
-                      data-bell-popover
-                      className="absolute right-0 z-50 mt-2 w-[calc(100vw-1rem)] max-w-[360px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-                    >
-                      <div className="flex items-center justify-between border-b border-white/4 px-4 py-3">
-                        <span className="text-sm font-semibold text-zinc-100">Сповіщення</span>
-                        {notifCount > 0 ? (
-                          <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
-                            {notifCount} нових
-                          </span>
-                        ) : null}
-                      </div>
-                      <ul className="max-h-[420px] overflow-y-auto">
-                        {notifications.length === 0 ? (
-                          <li className="px-4 py-8 text-center text-sm text-zinc-500">
-                            Все спокійно. Активних проблем немає.
-                          </li>
-                        ) : (
-                          notifications.map((n) => (
-                            <li key={n.id}>
-                              <Link
-                                href={n.href}
-                                onClick={() => setBellOpen(false)}
-                                className="flex items-start gap-3 border-b border-white/3 px-4 py-3 transition last:border-0 hover:bg-white/2"
-                              >
-                                <span
-                                  className={cn(
-                                    "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                                    n.tone === "red" &&
-                                      "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",
-                                    n.tone === "amber" &&
-                                      "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]",
-                                    n.tone === "green" && "bg-green-500"
-                                  )}
-                                  aria-hidden="true"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="text-sm font-medium text-zinc-100">{n.label}</div>
-                                  <div className="mt-0.5 line-clamp-2 text-xs text-zinc-500">
-                                    {n.detail}
-                                  </div>
-                                </div>
-                              </Link>
-                            </li>
-                          ))
-                        )}
-                      </ul>
-                      {notifications.length > 0 ? (
-                        <div className="border-t border-white/4 px-4 py-2.5">
-                          <Link
-                            href={homeHref}
-                            onClick={() => setBellOpen(false)}
-                            className="block text-center text-xs font-medium text-blue-400 hover:text-blue-300"
-                          >
-                            Переглянути все в дашборді →
-                          </Link>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {/* User profile chip */}
-              <button
-                type="button"
-                aria-label="Меню користувача"
-                className="flex h-9 items-center gap-2.5 rounded-none border border-white/5 bg-[#171717] px-1.5 transition hover:bg-[#1F1F1F] sm:ml-1 sm:h-auto sm:px-2 sm:py-1.5"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
-                  OC
-                </div>
-                <div className="hidden flex-col items-start leading-tight md:flex">
-                  <span className="whitespace-nowrap text-[12px] font-semibold text-zinc-100">
-                    {access.name}
-                  </span>
-                  <span className="max-w-40 truncate whitespace-nowrap text-[10px] text-zinc-500">
-                    {access.isOwner ? "Owner" : access.roleKeys.join(", ") || "Admin"}
-                  </span>
-                </div>
-                <ChevronDown
-                  className="hidden h-3.5 w-3.5 text-zinc-500 md:block"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-          </div>
-        </header>
+        <AdminTopBar
+          breadcrumbs={breadcrumbs}
+          onOpenMobileNav={() => setMobileDrawerOpen(true)}
+          onOpenPalette={() => setPaletteOpen(true)}
+          shortcutLabel={isMac ? "⌘K" : "Ctrl K"}
+          createActions={createActions}
+          showCurrency={canUseCurrency && hasCommerceAccess}
+          attention={attentionItems}
+          showBell={hasCommerceAccess}
+          homeHref={homeHref}
+        />
 
         <main
           id="admin-main-content"
@@ -781,81 +292,94 @@ export default function AdminShell({
         </main>
       </div>
 
-      {/* Keyboard shortcuts help overlay */}
+      <AdminCommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onNavigate={(href) => {
+          setPaletteOpen(false);
+          router.push(href);
+        }}
+        navItems={navItems}
+        actions={createActions}
+        recent={preferences.recent}
+        canSearchEntities={canSearchEntities}
+      />
+
       {shortcutsOpen ? (
-        <div
-          className="fixed inset-0 z-80 flex items-center justify-center bg-black/60 backdrop-blur-xs"
-          onClick={() => setShortcutsOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Keyboard shortcuts"
-        >
-          <div
-            className="w-full max-w-[520px] overflow-hidden rounded-none border border-white/8 bg-[#171717] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-white/5 px-5 py-3.5">
-              <div className="flex items-center gap-2.5">
-                <Keyboard className="h-4 w-4 text-blue-400" aria-hidden="true" />
-                <span className="text-sm font-semibold text-zinc-100">Гарячі клавіші</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShortcutsOpen(false)}
-                className="rounded-none p-1 text-zinc-500 transition hover:bg-white/4 hover:text-zinc-100"
-                aria-label="Закрити"
-              >
-                <ChevronDown className="h-4 w-4 rotate-180" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 gap-x-8 gap-y-3 p-5 sm:grid-cols-2">
-              <ShortcutGroup title="Пошук">
-                <ShortcutRow keys={["⌘", "K"]} label="Командний центр" />
-                <ShortcutRow keys={["?"]} label="Ця довідка" />
-                <ShortcutRow keys={["Esc"]} label="Закрити попап" />
-              </ShortcutGroup>
-              <ShortcutGroup title="Навігація">
-                {allowedHrefSet.has("/admin") ? (
-                  <ShortcutRow keys={["G", "D"]} label="Дашборд" />
-                ) : null}
-                {allowedHrefSet.has("/admin/shop/orders") ? (
-                  <ShortcutRow keys={["G", "O"]} label="Замовлення" />
-                ) : null}
-                {allowedHrefSet.has("/admin/shop") ? (
-                  <ShortcutRow keys={["G", "P"]} label="Товари" />
-                ) : null}
-                {allowedHrefSet.has("/admin/shop/customers") ? (
-                  <ShortcutRow keys={["G", "C"]} label="Клієнти" />
-                ) : null}
-                {allowedHrefSet.has("/admin/shop/inventory") ? (
-                  <ShortcutRow keys={["G", "I"]} label="Склад" />
-                ) : null}
-                {allowedHrefSet.has("/admin/settings") ? (
-                  <ShortcutRow keys={["G", "S"]} label="Налаштування" />
-                ) : null}
-              </ShortcutGroup>
-            </div>
-            <div className="border-t border-white/5 bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
-              Натисніть{" "}
-              <kbd className="rounded-none border border-white/10 bg-white/4 px-1.5 py-0.5 font-mono text-[10px]">
-                G
-              </kbd>{" "}
-              а потім літеру протягом 1.5 секунди.
-            </div>
-          </div>
-        </div>
+        <ShortcutsDialog
+          onClose={() => setShortcutsOpen(false)}
+          paletteKeys={isMac ? ["⌘", "K"] : ["Ctrl", "K"]}
+          chords={Object.entries(CHORD_ROUTES).filter(([, route]) => routeAllowed(route.href))}
+        />
       ) : null}
     </div>
   );
 }
 
-function ShortcutGroup({ title, children }: { title: string; children: ReactNode }) {
+function ShortcutsDialog({
+  onClose,
+  paletteKeys,
+  chords,
+}: {
+  onClose: () => void;
+  paletteKeys: string[];
+  chords: Array<[string, { href: string; label: string }]>;
+}) {
   return (
-    <div className="space-y-1">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-        {title}
+    <div
+      className="fixed inset-0 z-80 flex items-center justify-center bg-black/70 px-3 backdrop-blur-xs"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Гарячі клавіші"
+    >
+      <div
+        className="w-full max-w-[520px] border border-white/[0.08] bg-[#161616] shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <Keyboard className="h-4 w-4 text-blue-400" aria-hidden="true" />
+            <span className="text-sm font-semibold text-zinc-100">Гарячі клавіші</span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-100"
+            aria-label="Закрити"
+          >
+            <XIcon className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 gap-x-8 gap-y-4 p-5 sm:grid-cols-2">
+          <div className="space-y-1">
+            <ShortcutTitle>Пошук</ShortcutTitle>
+            <ShortcutRow keys={paletteKeys} label="Пошук і команди" />
+            <ShortcutRow keys={["/"]} label="Пошук і команди" />
+            <ShortcutRow keys={["?"]} label="Ця довідка" />
+            <ShortcutRow keys={["Esc"]} label="Закрити вікно" />
+          </div>
+          {chords.length > 0 ? (
+            <div className="space-y-1">
+              <ShortcutTitle>Перехід</ShortcutTitle>
+              {chords.map(([key, route]) => (
+                <ShortcutRow key={key} keys={["G", key.toUpperCase()]} label={route.label} />
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className="border-t border-white/[0.06] bg-black/30 px-5 py-2.5 text-[11px] text-zinc-500">
+          Натисніть G, а потім літеру протягом 1,5 секунди.
+        </div>
       </div>
-      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function ShortcutTitle({ children }: { children: ReactNode }) {
+  return (
+    <div className="pb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500">
+      {children}
     </div>
   );
 }
@@ -863,352 +387,17 @@ function ShortcutGroup({ title, children }: { title: string; children: ReactNode
 function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1">
-      <span className="text-sm text-zinc-300">{label}</span>
-      <div className="flex shrink-0 items-center gap-1">
-        {keys.map((k, i) => (
+      <span className="text-[13px] text-zinc-300">{label}</span>
+      <span className="flex shrink-0 items-center gap-1">
+        {keys.map((key) => (
           <kbd
-            key={i}
-            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-none border border-white/10 bg-white/4 px-1.5 font-mono text-[10px] font-medium text-zinc-300"
+            key={key}
+            className="inline-flex h-5 min-w-5 items-center justify-center border border-white/[0.1] bg-white/[0.04] px-1.5 font-sans text-[10px] font-medium text-zinc-300"
           >
-            {k}
+            {key}
           </kbd>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function getFirstSearchHref(search: GlobalSearchResponse) {
-  const order = search.results.orders[0];
-  if (order) return `/admin/shop/orders/${order.id}`;
-  const product = search.results.products[0];
-  if (product) return `/admin/shop/${product.id}`;
-  const customer = search.results.customers[0];
-  if (customer) return `/admin/shop/customers/${customer.id}`;
-  return null;
-}
-
-function commandMoney(value: number, currency: string) {
-  return new Intl.NumberFormat("uk-UA", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function CommandCenterResults({
-  query,
-  loading,
-  search,
-  quickLinks,
-  actions,
-  onNavigate,
-}: {
-  query: string;
-  loading: boolean;
-  search: GlobalSearchResponse;
-  quickLinks: AdminNavItemDefinition[];
-  actions: typeof COMMAND_ACTIONS;
-  onNavigate: (href: string) => void;
-}) {
-  const trimmed = query.trim();
-  if (!trimmed) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15 }}
-      className="absolute right-0 z-30 mt-2 w-full overflow-hidden rounded-none border border-white/8 bg-[#171717]/95 shadow-[0_30px_80px_rgba(0,0,0,0.6)] backdrop-blur-xl"
-    >
-      <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="border-b border-white/5 p-3 lg:border-b-0 lg:border-r">
-          <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-            <span className="text-blue-400">Командний центр</span>
-            <span>{loading ? "Пошук…" : `Результатів: ${search.total}`}</span>
-          </div>
-
-          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
-            <SearchGroup title="Замовлення">
-              {search.results.orders.map((order) => (
-                <SearchResultButton
-                  key={order.id}
-                  title={`${order.orderNumber} · ${order.customerName}`}
-                  meta={`${order.paymentStatus} · Заборгованість ${commandMoney(order.outstandingAmount, order.currency)}`}
-                  badge={order.status.replace(/_/g, " ")}
-                  onClick={() => onNavigate(`/admin/shop/orders/${order.id}`)}
-                />
-              ))}
-            </SearchGroup>
-
-            <SearchGroup title="Товари">
-              {search.results.products.map((product) => (
-                <SearchResultButton
-                  key={product.id}
-                  title={product.titleEn || product.titleUa}
-                  meta={[product.brand, product.sku || product.slug, product.stock]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  badge={product.status}
-                  onClick={() => onNavigate(`/admin/shop/${product.id}`)}
-                />
-              ))}
-            </SearchGroup>
-
-            <SearchGroup title="Клієнти">
-              {search.results.customers.map((customer) => (
-                <SearchResultButton
-                  key={customer.id}
-                  title={`${customer.firstName} ${customer.lastName}`.trim() || customer.email}
-                  meta={[customer.companyName, customer.email].filter(Boolean).join(" · ")}
-                  badge={customer.group.replace(/_/g, " ")}
-                  onClick={() => onNavigate(`/admin/shop/customers/${customer.id}`)}
-                />
-              ))}
-            </SearchGroup>
-
-            {!loading && search.total === 0 ? (
-              <div className="rounded-none border border-white/5 bg-white/2 px-3 py-4 text-sm text-zinc-500">
-                Збігів не знайдено. Спробуйте швидкі дії або сторінки нижче.
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="space-y-3 p-3">
-          <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-blue-400">
-              Швидкі дії
-            </div>
-            <div className="grid gap-2">
-              {actions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={action.href}
-                    type="button"
-                    onClick={() => onNavigate(action.href)}
-                    className="group flex items-center gap-3 rounded-none border border-white/5 bg-white/2 px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/4"
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/15 transition group-hover:bg-blue-600/25">
-                      <Icon className="h-4 w-4 text-blue-400" aria-hidden="true" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-zinc-100">
-                        {action.label}
-                      </span>
-                      <span className="block truncate text-xs text-zinc-500">
-                        {action.description}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              Швидкі переходи
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {quickLinks.slice(0, 8).map((item) => (
-                <button
-                  key={item.href}
-                  type="button"
-                  onClick={() => onNavigate(item.href)}
-                  className="rounded-full border border-white/6 bg-white/2 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-blue-500/25 hover:bg-blue-500/4 hover:text-blue-300"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function SearchGroup({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-1.5">
-      <div className="px-1 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-        {title}
-      </div>
-      <div className="space-y-1">{children}</div>
-    </section>
-  );
-}
-
-function SearchResultButton({
-  title,
-  meta,
-  badge,
-  onClick,
-}: {
-  title: string;
-  meta: string;
-  badge: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex w-full items-center justify-between gap-3 rounded-none border border-white/5 bg-white/1.5 px-3 py-2.5 text-left transition hover:border-blue-500/25 hover:bg-blue-500/4"
-    >
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-medium text-zinc-100 group-hover:text-blue-300">
-          {title}
-        </span>
-        <span className="mt-0.5 block truncate text-xs text-zinc-500">{meta}</span>
       </span>
-      <span className="shrink-0 rounded-full border border-white/8 bg-black/40 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-        {badge}
-      </span>
-    </button>
-  );
-}
-
-function AdminSidebarSection({
-  section,
-  pathname,
-  collapsed,
-}: {
-  section: AdminNavSectionDefinition;
-  pathname: string;
-  collapsed: boolean;
-}) {
-  return (
-    <section className="space-y-1">
-      {!collapsed ? (
-        <div className="px-3 pt-2">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-            {section.label}
-          </div>
-        </div>
-      ) : (
-        <div className="mx-4 my-2 h-px bg-white/5" />
-      )}
-
-      <div className="space-y-0.5">
-        {section.items.map((item) => (
-          <AdminSidebarItem key={item.href} collapsed={collapsed} pathname={pathname} item={item} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function AdminSidebarItem({
-  item,
-  pathname,
-  collapsed,
-}: {
-  item: AdminNavItemDefinition;
-  pathname: string;
-  collapsed: boolean;
-}) {
-  const Icon = iconMap[item.icon];
-  const active = isAdminNavItemActive(pathname, item);
-
-  return (
-    <Link
-      href={item.href}
-      title={collapsed ? item.label : undefined}
-      aria-current={active ? "page" : undefined}
-      aria-label={collapsed ? item.label : undefined}
-      className={cn(
-        "group relative flex items-center gap-3 rounded-none px-3 py-2 transition-all duration-150",
-        "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F0F0F]",
-        collapsed && "justify-center px-2",
-        active
-          ? "bg-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_1px_2px_rgba(0,0,0,0.3)]"
-          : "text-zinc-400 hover:bg-white/4 hover:text-zinc-100"
-      )}
-    >
-      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {!collapsed ? <span className="truncate text-sm font-medium">{item.label}</span> : null}
-    </Link>
-  );
-}
-
-function AdminCurrencySwitcher({ collapsed }: { collapsed: boolean }) {
-  const { currency, setCurrency, rates, ratesLoading } = useAdminCurrency();
-  const [shopRates, setShopRates] = useState<ShopPriceBookRates | null>(null);
-
-  useEffect(() => {
-    if (collapsed) return;
-    async function loadShopRates() {
-      try {
-        const response = await fetch("/api/shop/currency-rates", { cache: "no-store" });
-        const data = await response.json();
-        if (response.ok && data.currencyRates) {
-          setShopRates(data.currencyRates);
-        }
-      } catch (err) {
-        console.error("Failed to load shop settings for currency display:", err);
-      }
-    }
-    void loadShopRates();
-  }, [collapsed]);
-
-  if (collapsed) {
-    const currentIndex = CURRENCY_OPTIONS.findIndex((option) => option.value === currency);
-    const nextIndex = (currentIndex + 1) % CURRENCY_OPTIONS.length;
-    const next = CURRENCY_OPTIONS[nextIndex];
-
-    return (
-      <button
-        type="button"
-        onClick={() => setCurrency(next.value)}
-        className="flex w-full items-center justify-center rounded-none border border-blue-500/25 bg-blue-600/15 px-3 py-2 text-sm font-semibold text-blue-300 transition hover:border-blue-500/40 hover:bg-blue-600/25"
-        title={`Switch currency from ${currency}`}
-      >
-        {CURRENCY_OPTIONS.find((option) => option.value === currency)?.symbol ?? currency}
-      </button>
-    );
-  }
-
-  return (
-    <div className="rounded-none border border-white/5 bg-black/30 p-1.5">
-      <div className="grid grid-cols-3 gap-1">
-        {CURRENCY_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setCurrency(option.value)}
-            className={cn(
-              "rounded-none px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all",
-              currency === option.value
-                ? "bg-blue-600 text-white"
-                : "text-zinc-500 hover:bg-white/4 hover:text-zinc-200"
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 space-y-1 px-1 text-[10px] tabular-nums text-zinc-500">
-        {shopRates ? (
-          <div className="flex justify-between items-center text-zinc-400">
-            <span className="font-semibold text-blue-400">Курс сайту:</span>
-            <span>
-              1$ = {shopUahSaleRate("USD", shopRates).toFixed(2)}₴ · 1€ ={" "}
-              {shopUahSaleRate("EUR", shopRates).toFixed(2)}₴
-            </span>
-          </div>
-        ) : null}
-        {!ratesLoading && rates.updatedAt ? (
-          <div className="flex justify-between items-center text-[9px] text-zinc-600">
-            <span>{rates.rateDate ? `НБУ (${rates.rateDate}):` : "Базовий курс:"}</span>
-            <span>
-              1$ = {rates.USD.toFixed(2)}₴ · 1€ = {rates.EUR.toFixed(2)}₴
-            </span>
-          </div>
-        ) : null}
-      </div>
     </div>
   );
 }

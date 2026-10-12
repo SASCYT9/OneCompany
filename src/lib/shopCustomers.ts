@@ -40,9 +40,16 @@ export const shopCustomerAdminListSelect = {
   // region: true,
   // currencyPref: true,
   isActive: true,
+  archivedAt: true,
   preferredLocale: true,
   createdAt: true,
   updatedAt: true,
+  orders: {
+    where: { isDraft: false },
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+    select: { createdAt: true },
+  },
   _count: {
     select: {
       orders: true,
@@ -682,6 +689,8 @@ export function serializeShopCustomerAdminListItem(record: ShopCustomerAdminList
     group: record.group,
     b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
     isActive: record.isActive,
+    archivedAt: record.archivedAt?.toISOString() ?? null,
+    lastOrderAt: record.orders[0]?.createdAt.toISOString() ?? null,
     preferredLocale: record.preferredLocale,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),

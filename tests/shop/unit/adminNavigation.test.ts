@@ -7,57 +7,64 @@ import {
   getFirstAllowedAdminRoute,
   getActiveAdminNavItem,
   getActiveAdminNavSection,
+  getAdminBreadcrumbs,
   isAdminNavItemActive,
 } from "../../../src/lib/admin/adminNavigation";
 
 test("admin IA keeps the planned top-level section order", () => {
   assert.deepEqual(
     ADMIN_NAV_SECTIONS.map((section) => section.key),
-    [
-      "overview",
-      "work",
-      "orders",
-      "customers",
-      "catalog",
-      "imports",
-      "logistics",
-      "content",
-      "marketing",
-      "operations",
-      "system",
-    ]
+    ["overview", "work", "orders", "customers", "catalog", "logistics", "marketing", "system"]
   );
 });
 
-test("catalog section keeps the phase-1 commerce modules together", () => {
-  const catalogSection = ADMIN_NAV_SECTIONS.find((section) => section.key === "catalog");
-  assert.ok(catalogSection);
-  assert.deepEqual(
-    catalogSection.items.map((item) => item.href),
-    [
-      "/admin/shop",
-      "/admin/shop/inventory",
-      "/admin/shop/categories",
-      "/admin/shop/category-groups",
-      "/admin/shop/collections",
-      "/admin/shop/bundles",
-      "/admin/shop/wheelforce-wheelsets",
-      "/admin/shop/catalogs",
-      "/admin/shop/quality",
-      "/admin/shop/pricing",
-    ]
-  );
+// The 2026-10 shell redesign grouped pages by who uses them: sales, catalog,
+// warehouse/logistics, marketing. Every page from the old IA must still be reachable.
+test("task-based groups keep every page from the previous navigation", () => {
+  const hrefsOf = (key: string) =>
+    ADMIN_NAV_SECTIONS.find((section) => section.key === key)?.items.map((item) => item.href);
+
+  assert.deepEqual(hrefsOf("orders"), [
+    "/admin/shop/orders",
+    "/admin/shop/drafts",
+    "/admin/messages",
+    "/admin/shop/returns",
+  ]);
+  assert.deepEqual(hrefsOf("catalog"), [
+    "/admin/shop",
+    "/admin/shop/pricing",
+    "/admin/shop/import",
+    "/admin/shop/quality",
+    "/admin/shop/categories",
+    "/admin/shop/category-groups",
+    "/admin/shop/collections",
+    "/admin/shop/bundles",
+    "/admin/shop/wheelforce-wheelsets",
+    "/admin/shop/catalogs",
+  ]);
+  assert.deepEqual(hrefsOf("logistics"), [
+    "/admin/shop/inventory",
+    "/admin/shop/logistics",
+    "/admin/shop/logistics/brand-rules",
+    "/admin/shop/logistics/taxes",
+    "/admin/shop/logistics/landed-cost",
+    "/admin/shop/logistics/shipping-lab",
+  ]);
+  assert.deepEqual(hrefsOf("marketing"), [
+    "/admin/shop/discounts",
+    "/admin/marketing/email-rules",
+    "/admin/blog",
+  ]);
+
+  const hrefs = ADMIN_NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.href));
+  assert.equal(new Set(hrefs).size, hrefs.length, "no page is listed twice");
+  assert.equal(hrefs.length, 37);
 });
 
-// The manager workflow streamline (c19e67f7) folded stock, feed and audit tooling
-// into the single import workspace.
-test("imports section is the single import workspace", () => {
-  const importsSection = ADMIN_NAV_SECTIONS.find((section) => section.key === "imports");
-  assert.ok(importsSection);
-  assert.deepEqual(
-    importsSection.items.map((item) => item.href),
-    ["/admin/shop/import"]
-  );
+test("every section has an icon for the collapsed sidebar rail", () => {
+  for (const section of ADMIN_NAV_SECTIONS) {
+    assert.ok(section.icon, `${section.key} needs an icon`);
+  }
 });
 
 test("active matching keeps exact routes strict and nested routes grouped correctly", () => {
@@ -86,7 +93,9 @@ test("active item and section lookup resolves nested catalog and logistics route
   assert.equal(getActiveAdminNavItem("/admin/shop/quality")?.href, "/admin/shop/quality");
   assert.equal(getActiveAdminNavSection("/admin/shop/quality")?.key, "catalog");
   assert.equal(getActiveAdminNavItem("/admin/shop/import")?.href, "/admin/shop/import");
-  assert.equal(getActiveAdminNavSection("/admin/shop/import")?.key, "imports");
+  assert.equal(getActiveAdminNavSection("/admin/shop/import")?.key, "catalog");
+  assert.equal(getActiveAdminNavSection("/admin/shop/inventory")?.key, "logistics");
+  assert.equal(getActiveAdminNavSection("/admin/shop/returns/abc")?.key, "orders");
   assert.equal(
     getActiveAdminNavItem("/admin/shop/logistics/taxes")?.href,
     "/admin/shop/logistics/taxes"
@@ -138,4 +147,34 @@ test("approval navigation is visible only to approval decision makers", () => {
 
   assert.equal(withoutHrefs.includes("/admin/operations/approvals"), false);
   assert.equal(withHrefs.includes("/admin/operations/approvals"), true);
+});
+
+test("breadcrumbs name the section, the page and nested detail screens", () => {
+  assert.deepEqual(getAdminBreadcrumbs("/admin"), [{ label: "Дашборд" }]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/shop/orders"), [
+    { label: "Продажі" },
+    { label: "Центр замовлень" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/shop/orders/ord_1"), [
+    { label: "Продажі" },
+    { label: "Центр замовлень", href: "/admin/shop/orders" },
+    { label: "Деталі" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/shop/new"), [
+    { label: "Каталог" },
+    { label: "Товари", href: "/admin/shop" },
+    { label: "Новий товар" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/shop/import/jobs/job_1"), [
+    { label: "Каталог" },
+    { label: "Центр імпортів", href: "/admin/shop/import" },
+    { label: "Журнал імпорту", href: "/admin/shop/import/jobs" },
+    { label: "Деталі" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/shop/discounts/new"), [
+    { label: "Маркетинг і контент" },
+    { label: "Промокоди", href: "/admin/shop/discounts" },
+    { label: "Створення" },
+  ]);
+  assert.deepEqual(getAdminBreadcrumbs("/admin/backups"), [{ label: "Резервні копії" }]);
 });

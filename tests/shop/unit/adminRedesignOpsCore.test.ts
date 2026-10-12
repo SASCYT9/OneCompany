@@ -25,14 +25,8 @@ test("orders and customers workbench pages use shared ops primitives", () => {
   const pageExpectations = [
     {
       path: "src/app/admin/shop/orders/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminMetricGrid",
-        "AdminFilterBar",
-        "AdminActionBar",
-        "AdminTableShell",
-        "OrderInlineWorkbench",
-      ],
+      // 2026-10: tabs by stage + one status dialog replaced the metric cards and workbench.
+      markers: ["AdminPageHeader", "AdminTableShell", "OrderStatusDialog"],
     },
     {
       path: "src/app/admin/shop/orders/[id]/page.tsx",
@@ -48,18 +42,13 @@ test("orders and customers workbench pages use shared ops primitives", () => {
       markers: ["AdminEditorShell", "AdminEditorSection", "AdminActionBar"],
     },
     {
+      // 2026-10: group tabs + a B2B request queue replaced the metric cards and filter bar.
       path: "src/app/admin/shop/customers/page.tsx",
-      markers: ["AdminPageHeader", "AdminMetricGrid", "AdminFilterBar", "AdminTableShell"],
+      markers: ["AdminPageHeader", "AdminTableShell", "CustomerTypeBadge"],
     },
     {
       path: "src/app/admin/shop/customers/[id]/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminEntityToolbar",
-        "AdminSplitDetailShell",
-        "AdminInspectorCard",
-        "AdminActivityTimeline",
-      ],
+      markers: ["AdminSplitDetailShell", "AdminInspectorCard", "AdminActivityTimeline"],
     },
   ];
 

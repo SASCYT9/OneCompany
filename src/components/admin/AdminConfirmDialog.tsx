@@ -158,7 +158,7 @@ function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-110 flex items-center justify-center p-4"
+      className="admin-context fixed inset-0 z-110 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="oc-confirm-title"

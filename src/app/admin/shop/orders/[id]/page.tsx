@@ -4,12 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
+  ArrowLeft,
   Copy,
   DollarSign,
   ExternalLink,
   FileText,
-  PackageCheck,
+  Lock,
+  Pencil,
   Printer,
+  RotateCcw,
   Save,
   Truck,
 } from "lucide-react";
@@ -34,29 +37,33 @@ import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminMobileBottomBar } from "@/components/admin/AdminMobileCard";
 import { AdminInternationalDeliveryQuote } from "@/components/admin/AdminInternationalDeliveryQuote";
+import { OrderProductLinks } from "@/components/admin/OrderProductLinks";
+import { OrderCustomerBlock } from "@/components/admin/OrderCustomerBlock";
+import { OrderStatusDialog } from "@/components/admin/orders/OrderStatusDialog";
+import { OrderWorkflowPanel } from "@/components/admin/orders/OrderWorkflowPanel";
+import { OrderEditPanel } from "@/components/admin/orders/OrderEditPanel";
+import {
+  formatOrderDate,
+  formatOrderMoney,
+  paymentTone,
+} from "@/components/admin/orders/orderFormat";
 import {
   isInternationalDelivery,
   internationalDeliveryAgreementMatches,
   getAgreedInternationalShippingSource,
 } from "@/lib/shopInternationalCheckout";
-
-import styles from "./orderDetail.module.css";
 import { buildOrderPaymentUpdate } from "@/lib/admin/orderPaymentDraft";
+import {
+  orderStatusLabel,
+  orderStatusTone,
+  type OrderStatusCode,
+} from "@/lib/admin/orderWorkflow";
 import {
   orderAddressText,
   orderPaymentLabel,
   orderPaymentMethodLabel,
 } from "@/lib/shopOrderPresentation";
-
-type OrderStatus =
-  | "PENDING_PAYMENT"
-  | "PENDING_REVIEW"
-  | "CONFIRMED"
-  | "PROCESSING"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "CANCELLED"
-  | "REFUNDED";
+import { cn } from "@/lib/utils";
 
 type ShipmentStatus = "LABEL_CREATED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED" | "RETURNED";
 
@@ -86,13 +93,10 @@ type ShipmentDraft = {
   deliveredAt: string;
 };
 
-import { OrderProductLinks } from "@/components/admin/OrderProductLinks";
-import { OrderCustomerBlock } from "@/components/admin/OrderCustomerBlock";
-
 type OrderDetail = {
   id: string;
   orderNumber: string;
-  status: OrderStatus;
+  status: OrderStatusCode;
   email: string;
   customerName: string;
   customerId?: string | null;
@@ -108,10 +112,11 @@ type OrderDetail = {
   taxAmount: number;
   total: number;
   paymentStatus: string;
-  paymentMethod?: string;
+  paymentMethod: string;
   monobankBlockReason?: string | null;
   monobankCanReplaceProvider?: boolean;
   monobankLink?: { url: string; expiresAt: string | null } | null;
+  amountLock?: { code: string; text: string } | null;
   isDraft?: boolean;
   amountPaid: number;
   deliveryMethod: string | null;
@@ -125,7 +130,8 @@ type OrderDetail = {
   viewToken: string;
   createdAt: string;
   updatedAt: string;
-  allowedTransitions: OrderStatus[];
+  customerEmailsEnabled?: boolean;
+  allowedTransitions: OrderStatusCode[];
   shipments: ShipmentRecord[];
   items: Array<{
     id: string;
@@ -159,16 +165,11 @@ const SHIPMENT_STATUS_OPTIONS: Array<{ value: ShipmentStatus; label: string }> =
   { value: "RETURNED", label: "Повернено" },
 ];
 
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  PENDING_PAYMENT: "Очікує оплату",
-  PENDING_REVIEW: "На перевірці",
-  CONFIRMED: "Підтверджено",
-  PROCESSING: "В обробці",
-  SHIPPED: "Відправлено",
-  DELIVERED: "Доставлено",
-  CANCELLED: "Скасовано",
-  REFUNDED: "Повернено",
-};
+const cardClass = "border border-white/10 bg-[#151515]";
+const primaryButton =
+  "inline-flex items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50";
+const quietButton =
+  "inline-flex items-center justify-center gap-2 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
 
 function emptyShipmentDraft(): ShipmentDraft {
   return {
@@ -196,27 +197,6 @@ function buildShipmentDraft(shipment: ShipmentRecord): ShipmentDraft {
   };
 }
 
-function statusLabel(status: string) {
-  return ORDER_STATUS_LABELS[status] ?? status.replace(/_/g, " ");
-}
-
-function statusTone(status: string): "default" | "success" | "warning" | "danger" {
-  switch (status) {
-    case "DELIVERED":
-      return "success";
-    case "CANCELLED":
-    case "REFUNDED":
-      return "danger";
-    case "PENDING_PAYMENT":
-    case "PENDING_REVIEW":
-    case "PROCESSING":
-    case "SHIPPED":
-      return "warning";
-    default:
-      return "default";
-  }
-}
-
 function shipmentTone(status: ShipmentStatus): "default" | "success" | "warning" | "danger" {
   switch (status) {
     case "DELIVERED":
@@ -230,12 +210,19 @@ function shipmentTone(status: ShipmentStatus): "default" | "success" | "warning"
   }
 }
 
-function formatMoney(value: number, currency: string) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
+function SectionHeading({
+  title,
+  aside,
+}: {
+  title: string;
+  aside?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h2 className="text-[15px] font-semibold text-zinc-50">{title}</h2>
+      {aside}
+    </div>
+  );
 }
 
 export default function AdminOrderDetailPage() {
@@ -248,7 +235,6 @@ export default function AdminOrderDetailPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [updating, setUpdating] = useState(false);
-  const [newStatus, setNewStatus] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
   const [amountPaid, setAmountPaid] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("");
@@ -258,20 +244,20 @@ export default function AdminOrderDetailPage() {
   const [monoLoading, setMonoLoading] = useState(false);
   const [monoNotice, setMonoNotice] = useState("");
   const [monoError, setMonoError] = useState("");
-  const [statusNote, setStatusNote] = useState("");
-  const [copyState, setCopyState] = useState("");
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
   const [shipmentDrafts, setShipmentDrafts] = useState<Record<string, ShipmentDraft>>({});
   const [shipmentSavingId, setShipmentSavingId] = useState<string | null>(null);
   const [shipmentDeletingId, setShipmentDeletingId] = useState<string | null>(null);
+  const [statusDialog, setStatusDialog] = useState<{ target: OrderStatusCode | null; key: number } | null>(
+    null
+  );
+  const [editOpen, setEditOpen] = useState(false);
+  const [editKey, setEditKey] = useState(0);
 
   const load = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
-    setError("");
-    setSuccess("");
     try {
-      const response = await fetch(`/api/admin/shop/orders/${id}`);
+      const response = await fetch(`/api/admin/shop/orders/${id}`, { cache: "no-store" });
       const data = await response.json().catch(() => ({}));
       if (response.status === 401) {
         setError("Unauthorized");
@@ -283,7 +269,6 @@ export default function AdminOrderDetailPage() {
       }
       const nextOrder = data as OrderDetail;
       setOrder(nextOrder);
-      setNewStatus(nextOrder.status);
       setPaymentStatus(nextOrder.paymentStatus);
       setAmountPaid(String(nextOrder.amountPaid));
       setDeliveryMethod(nextOrder.deliveryMethod ?? "");
@@ -311,31 +296,17 @@ export default function AdminOrderDetailPage() {
     return `${window.location.origin}/ua/shop/checkout/success?order=${encodeURIComponent(order.orderNumber)}&token=${encodeURIComponent(order.viewToken)}`;
   }, [order]);
 
-  async function handleStatusChange(targetStatus?: string) {
-    if (!id || !order) return;
-    const nextStatus = targetStatus || newStatus;
-    if (nextStatus === order.status) return;
+  /** When the order entered its current status — from the newest real status change. */
+  const statusSince = useMemo(() => {
+    if (!order) return null;
+    const entered = order.events.find(
+      (event) => event.toStatus === order.status && event.fromStatus !== event.toStatus
+    );
+    return entered?.createdAt ?? order.createdAt;
+  }, [order]);
 
-    setUpdating(true);
-    setError("");
-    setSuccess("");
-    try {
-      const response = await fetch(`/api/admin/shop/orders/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus, note: statusNote }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.error || "Не вдалося оновити");
-        return;
-      }
-      await load();
-      setStatusNote("");
-      setSuccess(`Замовлення переведено в статус «${statusLabel(nextStatus)}».`);
-    } finally {
-      setUpdating(false);
-    }
+  function openStatusDialog(target: OrderStatusCode | null) {
+    setStatusDialog({ target, key: Date.now() });
   }
 
   async function handlePaymentAndFulfillmentSave() {
@@ -375,15 +346,12 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  async function copyConfirmationLink() {
-    if (!confirmationUrl) return;
+  async function copyText(value: string, label: string) {
     try {
-      await navigator.clipboard.writeText(confirmationUrl);
-      setCopyState("Copied");
-      window.setTimeout(() => setCopyState(""), 1500);
+      await navigator.clipboard.writeText(value);
+      toast.success(label);
     } catch {
-      setCopyState("Copy failed");
-      window.setTimeout(() => setCopyState(""), 1500);
+      toast.error("Не вдалося скопіювати", "Виділіть текст вручну.");
     }
   }
 
@@ -556,58 +524,44 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  async function handleGenerateWhitepayFiatLink() {
+  async function handleGenerateWhitepayLink(kind: "fiat" | "crypto") {
     if (!id) return;
     setUpdating(true);
     setError("");
     setSuccess("");
     try {
-      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/fiat`, {
+      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/${kind}`, {
         method: "POST",
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error || "Не вдалося згенерувати Whitepay Fiat");
+        setError(
+          data.error ||
+            (kind === "fiat"
+              ? "Не вдалося згенерувати Whitepay Fiat"
+              : "Не вдалося згенерувати Whitepay Crypto")
+        );
         return;
       }
       if (data.url) {
         await navigator.clipboard.writeText(data.url).catch(() => {});
         window.open(data.url, "_blank");
       }
-      setSuccess("Whitepay Fiat link generated.");
+      await load();
+      setSuccess(
+        kind === "fiat"
+          ? "Посилання Whitepay Fiat створено й скопійовано."
+          : "Посилання Whitepay Crypto створено й скопійовано."
+      );
     } finally {
       setUpdating(false);
     }
   }
 
-  async function handleGenerateWhitepayCryptoLink() {
-    if (!id) return;
-    setUpdating(true);
-    setError("");
-    setSuccess("");
-    try {
-      const response = await fetch(`/api/admin/shop/orders/${id}/whitepay/crypto`, {
-        method: "POST",
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data.error || "Не вдалося згенерувати Whitepay Crypto");
-        return;
-      }
-      if (data.url) {
-        await navigator.clipboard.writeText(data.url).catch(() => {});
-        window.open(data.url, "_blank");
-      }
-      setSuccess("Whitepay Crypto link generated.");
-    } finally {
-      setUpdating(false);
-    }
-  }
-
-  if (loading) {
+  if (loading && !order) {
     return (
       <AdminPage>
-        <div className="rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+        <div className="border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
           Завантаження замовлення…
         </div>
       </AdminPage>
@@ -617,7 +571,7 @@ export default function AdminOrderDetailPage() {
   if (error && !order) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-none border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
+        <div className="border-l-2 border-red-400 bg-red-500/[0.08] px-4 py-3 text-sm text-red-100">
           {error}
         </div>
         <Link
@@ -644,6 +598,8 @@ export default function AdminOrderDetailPage() {
     ttnNumber !== (order.ttnNumber || "") ||
     shippingCalculatedCost !==
       (order.shippingCalculatedCost == null ? "" : String(order.shippingCalculatedCost));
+  const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const addressText = orderAddressText(order.shippingAddress);
 
   function renderPaymentActions(blocked = false) {
     const currentLink = monoPaymentUrl || order!.monobankLink?.url || "";
@@ -686,12 +642,7 @@ export default function AdminOrderDetailPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  void navigator.clipboard.writeText(currentLink).then(
-                    () => toast.success("Посилання скопійовано"),
-                    () => toast.error("Не вдалося скопіювати", "Виділіть посилання вручну.")
-                  );
-                }}
+                onClick={() => void copyText(currentLink, "Посилання скопійовано")}
                 className="inline-flex items-center gap-1.5 bg-blue-600 px-3 py-2 text-[13px] font-medium text-white transition hover:bg-blue-500"
               >
                 <Copy className="h-4 w-4" /> Копіювати
@@ -754,7 +705,7 @@ export default function AdminOrderDetailPage() {
         ) : null}
         <button
           type="button"
-          onClick={() => void handleGenerateWhitepayFiatLink()}
+          onClick={() => void handleGenerateWhitepayLink("fiat")}
           disabled={
             blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"
           }
@@ -764,7 +715,7 @@ export default function AdminOrderDetailPage() {
         </button>
         <button
           type="button"
-          onClick={() => void handleGenerateWhitepayCryptoLink()}
+          onClick={() => void handleGenerateWhitepayLink("crypto")}
           disabled={
             blocked || updating || paymentNeedsAgreement || order!.paymentMethod === "MONOBANK"
           }
@@ -777,150 +728,200 @@ export default function AdminOrderDetailPage() {
   }
 
   return (
-    <AdminPage wide className={`space-y-5 ${styles.page}`}>
-      <header className={styles.header}>
-        <Link href="/admin/shop/orders" className={styles.back}>
-          ← Усі замовлення
+    <AdminPage wide className="max-w-[1400px] space-y-4">
+      <header className="space-y-3">
+        <Link
+          href="/admin/shop/orders"
+          className="inline-flex items-center gap-1.5 text-[12px] text-zinc-400 transition hover:text-white"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Усі замовлення
         </Link>
-        <div className={styles.headingRow}>
-          <div>
-            <div className={styles.titleRow}>
-              <h1>{order.orderNumber}</h1>
-              <AdminStatusBadge tone={statusTone(order.status)}>
-                {statusLabel(order.status)}
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="font-mono text-[24px] font-semibold tracking-tight text-white">
+                {order.orderNumber}
+              </h1>
+              <AdminStatusBadge tone={orderStatusTone(order.status)}>
+                {orderStatusLabel(order.status)}
+              </AdminStatusBadge>
+              <AdminStatusBadge tone={paymentTone(order.paymentStatus, outstanding)}>
+                {orderPaymentLabel(order.paymentStatus)}
               </AdminStatusBadge>
             </div>
-            <p>
-              {new Date(order.createdAt).toLocaleString("uk-UA", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              · {order.customerName}
+            <p className="mt-1.5 text-[13px] text-zinc-400">
+              {formatOrderDate(order.createdAt, true)} · {order.customerName} ·{" "}
+              <span className="font-semibold text-zinc-200">
+                {formatOrderMoney(order.total, order.currency)}
+              </span>
             </p>
           </div>
-          <div className={styles.headerActions}>
-            <a href="#payment">Оплата</a>
-            <a href="#shipping">Доставка</a>
-            <a href="#order-status">Статус</a>
-            <a href={`/api/admin/pdf/proforma/${order.id}`} target="_blank" rel="noreferrer">
-              <FileText size={15} /> Проформа
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditKey((current) => current + 1);
+                setEditOpen(true);
+              }}
+              className={primaryButton}
+            >
+              <Pencil className="h-4 w-4" /> Редагувати замовлення
+            </button>
+            <a
+              href={`/api/admin/pdf/proforma/${order.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className={quietButton}
+            >
+              <FileText className="h-4 w-4" /> Проформа
             </a>
           </div>
         </div>
       </header>
+
+      {error || success ? (
+        <div
+          role={error ? "alert" : "status"}
+          className={cn(
+            "border-l-2 px-4 py-2.5 text-[13px]",
+            error
+              ? "border-red-400 bg-red-500/[0.08] text-red-100"
+              : "border-emerald-400 bg-emerald-500/[0.08] text-emerald-100"
+          )}
+        >
+          {error || success}
+        </div>
+      ) : null}
+
+      <OrderWorkflowPanel
+        order={order}
+        statusSince={statusSince}
+        disabled={updating}
+        onMove={(target) => openStatusDialog(target)}
+        onChoose={() => openStatusDialog(null)}
+      />
+
       <AdminSplitDetailShell
-        className={styles.layout}
+        className="gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"
         main={
           <>
-            {(error || success) && (
-              <div
-                className={`rounded-none border px-4 py-3 text-sm ${error ? "border-blue-500/20 bg-blue-950/20 text-red-200" : "border-emerald-500/20 bg-emerald-950/20 text-emerald-200"}`}
-              >
-                {error || success}
-              </div>
-            )}
-
-            <div className={styles.mobileBuyer}>
-              <AdminInspectorCard title="Покупець" description="Контакти з цього замовлення.">
-                <OrderCustomerBlock order={order} />
-                {(order.b2bDiscountPercent || order.discountNotes) && (
-                  <p className="mt-3 text-xs text-zinc-400">
-                    {order.b2bDiscountPercent ? `B2B знижка: ${order.b2bDiscountPercent}%` : ""}{" "}
-                    {order.discountNotes}
-                  </p>
-                )}
-                <div className={styles.address}>
-                  <span>Адреса доставки</span>
-                  <p>{orderAddressText(order.shippingAddress) || "Адресу не вказано"}</p>
-                </div>
-              </AdminInspectorCard>
-            </div>
-            <section className={styles.card} id="items">
-              <div className={styles.sectionHeading}>
-                <h2>Замовлені товари</h2>
-                <span>{order.items.reduce((sum, item) => sum + item.quantity, 0)} шт.</span>
-              </div>
-              <div className={styles.itemList}>
+            <section className={cn(cardClass, "p-5")} id="items">
+              <SectionHeading
+                title={`Товари · ${itemCount} шт.`}
+                aside={
+                  order.amountLock ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[12px] text-zinc-500"
+                      title={order.amountLock.text}
+                    >
+                      <Lock className="h-3.5 w-3.5" /> Суму змінити не можна
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditKey((current) => current + 1);
+                        setEditOpen(true);
+                      }}
+                      className={quietButton}
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Змінити товари
+                    </button>
+                  )
+                }
+              />
+              <div className="divide-y divide-white/[0.06]">
                 {order.items.map((item) => (
-                  <div key={item.id} className={styles.item}>
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-3 first:pt-0 last:pb-0"
+                  >
                     <OrderProductLinks item={item} thumbnail />
-                    <div className={styles.itemPrice}>
-                      <strong>{formatMoney(item.total, order.currency)}</strong>
-                      <span>
-                        {item.quantity} × {formatMoney(item.price, order.currency)}
-                      </span>
+                    <div className="text-right">
+                      <div className="whitespace-nowrap text-[14px] font-semibold text-zinc-100">
+                        {formatOrderMoney(item.total, order.currency)}
+                      </div>
+                      <div className="whitespace-nowrap text-[12px] text-zinc-500">
+                        {item.quantity} × {formatOrderMoney(item.price, order.currency)}
+                      </div>
                     </div>
                   </div>
                 ))}
+                {!order.items.length && (
+                  <p className="text-sm text-zinc-400">Товарів у замовленні немає.</p>
+                )}
               </div>
-              {!order.items.length && (
-                <p className="text-sm text-zinc-400">Товарів у замовленні немає.</p>
-              )}
+              {order.amountLock ? (
+                <p className="mt-4 border-t border-white/[0.06] pt-3 text-[12px] leading-5 text-zinc-500">
+                  {order.amountLock.text}
+                </p>
+              ) : null}
             </section>
-            <section className={styles.card} id="payment">
-              <div className={styles.sectionHeading}>
-                <h2>Оплата</h2>
-                <AdminStatusBadge tone={order.paymentStatus === "PAID" ? "success" : "warning"}>
-                  {orderPaymentLabel(order.paymentStatus)}
-                </AdminStatusBadge>
-              </div>
-              {order.paymentMethod === "MANAGER_QUOTE" ? (
-                <AdminInternationalDeliveryQuote
-                  key={order.updatedAt}
-                  orderId={order.id}
-                  shippingCostUah={order.currency === "UAH" ? order.shippingCost : undefined}
-                  shippingSource={getAgreedInternationalShippingSource(order.pricingSnapshot)}
-                  savedTotalUah={order.currency === "UAH" ? order.total : undefined}
-                  isAgreed={internationalDeliveryAgreementMatches(
-                    order.pricingSnapshot,
-                    order.currency,
-                    order.total
-                  )}
-                  onSaved={load}
-                  paymentActions={(ready) => renderPaymentActions(!ready)}
-                />
-              ) : (
-                <>
-                  <p className="mb-4 text-xs text-zinc-400">
+
+            <section className={cn(cardClass, "p-5")} id="payment">
+              <SectionHeading
+                title="Оплата"
+                aside={
+                  <span className="text-[12px] text-zinc-400">
                     {orderPaymentMethodLabel(order.paymentMethod)}
-                  </p>
-                  <dl className={styles.totals}>
-                    <div>
-                      <dt>Товари</dt>
-                      <dd>{formatMoney(order.subtotal, order.currency)}</dd>
-                    </div>
-                    <div>
-                      <dt>Доставка</dt>
-                      <dd>{formatMoney(order.shippingCost, order.currency)}</dd>
-                    </div>
-                    <div>
-                      <dt>Податки</dt>
-                      <dd>{formatMoney(order.taxAmount, order.currency)}</dd>
-                    </div>
-                    <div className={styles.total}>
-                      <dt>Разом</dt>
-                      <dd>{formatMoney(order.total, order.currency)}</dd>
-                    </div>
-                    <div>
-                      <dt>Сплачено</dt>
-                      <dd>{formatMoney(order.amountPaid, order.currency)}</dd>
-                    </div>
-                    <div className={styles.balance}>
-                      <dt>До сплати</dt>
-                      <dd>{formatMoney(outstanding, order.currency)}</dd>
-                    </div>
-                  </dl>
-                  <div className="mt-5 border-t border-white/10 pt-5">
-                    <h3 className="mb-3 text-sm font-semibold">Платіжні посилання</h3>
-                    {renderPaymentActions()}
+                  </span>
+                }
+              />
+              <dl className="grid gap-px bg-white/[0.06] text-[13px] sm:grid-cols-3">
+                {[
+                  ["Товари", formatOrderMoney(order.subtotal, order.currency)],
+                  ["Доставка", formatOrderMoney(order.shippingCost, order.currency)],
+                  ["Податки", formatOrderMoney(order.taxAmount, order.currency)],
+                  ["Разом", formatOrderMoney(order.total, order.currency)],
+                  ["Сплачено", formatOrderMoney(order.amountPaid, order.currency)],
+                  ["До сплати", formatOrderMoney(outstanding, order.currency)],
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-[#151515] px-3 py-2.5">
+                    <dt className="text-[11px] uppercase tracking-[0.1em] text-zinc-500">{label}</dt>
+                    <dd
+                      className={cn(
+                        "mt-0.5 font-semibold",
+                        label === "До сплати" && outstanding > 0
+                          ? "text-amber-200"
+                          : label === "Разом"
+                            ? "text-white"
+                            : "text-zinc-200"
+                      )}
+                    >
+                      {value}
+                    </dd>
                   </div>
-                </>
-              )}
-              <details className={styles.editPanel}>
-                <summary>Редагувати оплату й умови доставки</summary>
+                ))}
+              </dl>
+              <div className="mt-5">
+                {order.paymentMethod === "MANAGER_QUOTE" ? (
+                  <AdminInternationalDeliveryQuote
+                    key={order.updatedAt}
+                    orderId={order.id}
+                    shippingCostUah={order.currency === "UAH" ? order.shippingCost : undefined}
+                    shippingSource={getAgreedInternationalShippingSource(order.pricingSnapshot)}
+                    savedTotalUah={order.currency === "UAH" ? order.total : undefined}
+                    isAgreed={internationalDeliveryAgreementMatches(
+                      order.pricingSnapshot,
+                      order.currency,
+                      order.total
+                    )}
+                    onSaved={load}
+                    paymentActions={(ready) => renderPaymentActions(!ready)}
+                  />
+                ) : (
+                  <>
+                    <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
+                      Посилання на оплату
+                    </h3>
+                    {renderPaymentActions()}
+                  </>
+                )}
+              </div>
+              <details className="mt-5 border-t border-white/[0.06] pt-4">
+                <summary className="cursor-pointer text-[13px] text-zinc-300 hover:text-white">
+                  Позначити оплату вручну / змінити умови доставки
+                </summary>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <AdminSelectField
                     label="Статус оплати"
@@ -966,52 +967,65 @@ export default function AdminOrderDetailPage() {
                           : undefined
                     }
                   />
-                  <button
-                    type="button"
-                    onClick={() => void handlePaymentAndFulfillmentSave()}
-                    disabled={updating || !paymentDirty}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
-                  >
-                    <Save className="h-4 w-4" />
-                    Зберегти оплату й доставку
-                  </button>
-                  {paymentDirty && (
-                    <p className="text-xs text-amber-200" role="status">
-                      Є незбережені зміни оплати або доставки.
-                    </p>
-                  )}
+                  <div className="flex flex-col justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handlePaymentAndFulfillmentSave()}
+                      disabled={updating || !paymentDirty}
+                      className={primaryButton}
+                    >
+                      <Save className="h-4 w-4" />
+                      Зберегти оплату й доставку
+                    </button>
+                    {paymentDirty && (
+                      <p className="text-xs text-amber-200" role="status">
+                        Є незбережені зміни оплати або доставки.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </details>{" "}
+              </details>
             </section>
 
-            <section id="shipping" className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Відправлення</h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Відстеження посилок і статуси доставки.
-                </p>
-              </div>
+            <section id="shipping" className={cn(cardClass, "p-5")}>
+              <SectionHeading
+                title="Відправлення"
+                aside={
+                  order.ttnNumber ? (
+                    <button
+                      type="button"
+                      onClick={() => void copyText(order.ttnNumber!, "ТТН скопійовано")}
+                      className="inline-flex items-center gap-1.5 font-mono text-[12px] text-zinc-300 hover:text-white"
+                    >
+                      ТТН {order.ttnNumber} <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null
+                }
+              />
               {!order.shipments.length && (
-                <p className={styles.empty}>
+                <p className="mb-4 text-[13px] text-zinc-500">
                   Відправлень ще немає. Після передачі перевізнику додайте трек-номер для
                   відстеження.
                 </p>
               )}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {order.shipments.map((shipment) => {
                   const draft = shipmentDrafts[shipment.id];
                   if (!draft) return null;
+                  const setDraft = (patch: Partial<ShipmentDraft>) =>
+                    setShipmentDrafts((current) => ({
+                      ...current,
+                      [shipment.id]: { ...draft, ...patch },
+                    }));
                   return (
-                    <div
-                      key={shipment.id}
-                      className="rounded-none border border-white/10 bg-black/25 px-4 py-4"
-                    >
+                    <div key={shipment.id} className="border border-white/10 bg-black/20 p-4">
                       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <AdminStatusBadge tone={shipmentTone(shipment.status)}>
-                            {shipment.status.replace(/_/g, " ")}
+                            {SHIPMENT_STATUS_OPTIONS.find((option) => option.value === shipment.status)
+                              ?.label ?? shipment.status}
                           </AdminStatusBadge>
-                          <span className="font-medium text-zinc-100">
+                          <span className="font-mono text-[13px] text-zinc-100">
                             {shipment.trackingNumber}
                           </span>
                         </div>
@@ -1020,7 +1034,7 @@ export default function AdminOrderDetailPage() {
                             type="button"
                             onClick={() => void handleUpdateShipment(shipment.id)}
                             disabled={shipmentSavingId === shipment.id}
-                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
+                            className={quietButton}
                           >
                             <Save className="h-3.5 w-3.5" />
                             Зберегти
@@ -1029,9 +1043,9 @@ export default function AdminOrderDetailPage() {
                             type="button"
                             onClick={() => void handleDeleteShipment(shipment.id)}
                             disabled={shipmentDeletingId === shipment.id}
-                            className="rounded-full border border-blue-500/20 bg-blue-950/20 px-3 py-2 text-xs text-red-200 transition hover:bg-blue-950/30 disabled:opacity-50"
+                            className="border border-red-500/25 px-3 py-2 text-[13px] text-red-200 transition hover:bg-red-500/10 disabled:opacity-50"
                           >
-                            Delete
+                            Видалити
                           </button>
                         </div>
                       </div>
@@ -1039,74 +1053,39 @@ export default function AdminOrderDetailPage() {
                         <AdminInputField
                           label="Перевізник"
                           value={draft.carrier}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, carrier: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ carrier: value })}
                         />
                         <AdminInputField
                           label="Тип доставки"
                           value={draft.serviceLevel}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, serviceLevel: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ serviceLevel: value })}
                         />
                         <AdminInputField
                           label="Трек-номер"
                           value={draft.trackingNumber}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, trackingNumber: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ trackingNumber: value })}
                         />
                         <AdminInputField
                           label="Посилання відстеження"
                           value={draft.trackingUrl}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, trackingUrl: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ trackingUrl: value })}
                         />
                         <AdminSelectField
                           label="Статус відправлення"
                           value={draft.status}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, status: value as ShipmentStatus },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ status: value as ShipmentStatus })}
                           options={SHIPMENT_STATUS_OPTIONS}
                         />
                         <AdminInputField
                           label="Дата відправлення"
                           value={draft.shippedAt}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, shippedAt: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ shippedAt: value })}
                           type="datetime-local"
                         />
                         <AdminInputField
-                          label="Delivered at"
+                          label="Дата доставки"
                           value={draft.deliveredAt}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, deliveredAt: value },
-                            }))
-                          }
+                          onChange={(value) => setDraft({ deliveredAt: value })}
                           type="datetime-local"
                         />
                       </div>
@@ -1114,26 +1093,19 @@ export default function AdminOrderDetailPage() {
                         <AdminTextareaField
                           label="Коментар до відправлення"
                           value={draft.notes}
-                          onChange={(value) =>
-                            setShipmentDrafts((current) => ({
-                              ...current,
-                              [shipment.id]: { ...draft, notes: value },
-                            }))
-                          }
-                          rows={3}
+                          onChange={(value) => setDraft({ notes: value })}
+                          rows={2}
                         />
                       </div>
                     </div>
                   );
                 })}
 
-                <details className={styles.editPanel}>
-                  <summary>Додати відправлення</summary>
-                  <div className="mb-4 flex items-center gap-2 text-zinc-100">
-                    <Truck className="h-4 w-4 text-blue-300/60" />
-                    <span className="font-medium">Створити відправлення</span>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <details className="border border-dashed border-white/15 p-4">
+                  <summary className="flex cursor-pointer items-center gap-2 text-[13px] text-zinc-200">
+                    <Truck className="h-4 w-4 text-blue-300" /> Додати відправлення
+                  </summary>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <AdminInputField
                       label="Перевізник"
                       value={newShipment.carrier}
@@ -1189,14 +1161,14 @@ export default function AdminOrderDetailPage() {
                       onChange={(value) =>
                         setNewShipment((current) => ({ ...current, notes: value }))
                       }
-                      rows={3}
+                      rows={2}
                     />
                     <div className="flex items-end">
                       <button
                         type="button"
                         onClick={() => void handleCreateShipment()}
                         disabled={shipmentSavingId === "new"}
-                        className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                        className={primaryButton}
                       >
                         Створити відправлення
                       </button>
@@ -1206,36 +1178,27 @@ export default function AdminOrderDetailPage() {
               </div>
             </section>
 
-            <details className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <summary className="cursor-pointer">
-                <h2 className="text-xl font-semibold text-zinc-100">Дані розрахунку ціни</h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Технічні дані для перевірки розрахунку.
-                </p>
-              </summary>
-              <pre className="overflow-x-auto rounded-none border border-white/10 bg-black/25 p-4 text-[11px] text-zinc-400">
-                {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
-              </pre>
-            </details>
-
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Історія замовлення</h2>
-                <p className="mt-1 text-sm text-zinc-500">Зміни статусу та коментарі менеджерів.</p>
-              </div>
+            <section className={cn(cardClass, "p-5")}>
+              <SectionHeading title="Історія замовлення" />
               <AdminTimelineList
-                items={order.events.map((event) => ({
-                  id: event.id,
-                  title: `${event.fromStatus ? `${statusLabel(event.fromStatus)} → ` : ""}${statusLabel(event.toStatus)}`,
-                  meta: `${event.actorName || event.actorType} · ${new Date(event.createdAt).toLocaleString()}`,
-                  body: event.note || undefined,
-                  tone:
-                    event.toStatus === "DELIVERED"
-                      ? "success"
-                      : event.toStatus === "CANCELLED"
-                        ? "danger"
-                        : "warning",
-                }))}
+                items={order.events.map((event) => {
+                  const edit = event.fromStatus === event.toStatus;
+                  return {
+                    id: event.id,
+                    title: edit
+                      ? "Зміни в замовленні"
+                      : `${event.fromStatus ? `${orderStatusLabel(event.fromStatus)} → ` : ""}${orderStatusLabel(event.toStatus)}`,
+                    meta: `${event.actorName || event.actorType} · ${formatOrderDate(event.createdAt, true)}`,
+                    body: event.note || undefined,
+                    tone: edit
+                      ? "default"
+                      : event.toStatus === "DELIVERED"
+                        ? "success"
+                        : event.toStatus === "CANCELLED" || event.toStatus === "REFUNDED"
+                          ? "danger"
+                          : "warning",
+                  };
+                })}
                 empty="Історія поки порожня."
               />
             </section>
@@ -1243,74 +1206,85 @@ export default function AdminOrderDetailPage() {
         }
         sidebar={
           <>
-            <div className={styles.desktopBuyer}>
-              <AdminInspectorCard title="Покупець" description="Контакти з цього замовлення.">
-                <OrderCustomerBlock order={order} />
-                {(order.b2bDiscountPercent || order.discountNotes) && (
-                  <p className="mt-3 text-xs text-zinc-400">
-                    {order.b2bDiscountPercent ? `B2B знижка: ${order.b2bDiscountPercent}%` : ""}{" "}
-                    {order.discountNotes}
-                  </p>
-                )}
-                <div className={styles.address}>
-                  <span>Адреса доставки</span>
-                  <p>{orderAddressText(order.shippingAddress) || "Адресу не вказано"}</p>
+            <AdminInspectorCard title="Покупець" description="Контакти з цього замовлення.">
+              <OrderCustomerBlock order={order} />
+              {(order.b2bDiscountPercent || order.discountNotes) && (
+                <p className="mt-3 text-xs text-zinc-400">
+                  {order.b2bDiscountPercent ? `B2B знижка: ${order.b2bDiscountPercent}%` : ""}{" "}
+                  {order.discountNotes}
+                </p>
+              )}
+              <div className="mt-4 border-t border-white/[0.06] pt-3">
+                <div className="text-[11px] uppercase tracking-[0.1em] text-zinc-500">
+                  Адреса доставки
                 </div>
-              </AdminInspectorCard>
-            </div>
-
-            <div id="order-status" className={styles.statusPanel}>
-              <AdminInspectorCard
-                title="Статус замовлення"
-                description="Оберіть наступний етап і підтвердьте зміну."
-              >
-                <div className="grid flex-1 gap-3 ">
-                  <AdminSelectField
-                    label="Статус"
-                    value={newStatus}
-                    onChange={setNewStatus}
-                    options={[order.status, ...order.allowedTransitions].map((status) => ({
-                      value: status,
-                      label: statusLabel(status),
-                    }))}
-                  />
-                  <AdminTextareaField
-                    label="Коментар до зміни статусу"
-                    value={statusNote}
-                    onChange={setStatusNote}
-                    rows={2}
-                  />
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+                <p className="mt-1 text-[13px] leading-5 text-zinc-200">
+                  {addressText || "Адресу не вказано"}
+                </p>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditKey((current) => current + 1);
+                    setEditOpen(true);
+                  }}
+                  className={quietButton}
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Змінити контакти
+                </button>
+                {order.phone ? (
                   <button
                     type="button"
-                    onClick={() => void handleStatusChange()}
-                    disabled={updating || newStatus === order.status}
-                    className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+                    onClick={() => void copyText(order.phone!, "Телефон скопійовано")}
+                    className={quietButton}
                   >
-                    <PackageCheck className="h-4 w-4" />
-                    Застосувати статус
+                    <Copy className="h-3.5 w-3.5" /> Телефон
                   </button>
-                </div>
-              </AdminInspectorCard>
-            </div>
-            <details className={styles.card}>
-              <summary>Дані замовлення</summary>
-              <div className="mt-4">
-                <AdminKeyValueGrid
-                  rows={[
-                    { label: "ID замовлення", value: order.id },
-                    { label: "Створено", value: new Date(order.createdAt).toLocaleString() },
-                    { label: "Оновлено", value: new Date(order.updatedAt).toLocaleString() },
-                    { label: "Зона доставки", value: order.shippingZoneName || "—" },
-                    { label: "Податкове правило", value: order.taxRegionName || "—" },
-                  ]}
-                />
+                ) : null}
               </div>
-            </details>
+            </AdminInspectorCard>
 
-            <details className={styles.card}>
-              <summary>Теги</summary>
+            <AdminInspectorCard title="Нотатки" description="Внутрішні нотатки команди.">
+              <AdminNotes entityType="shop.order" entityId={order.id} />
+            </AdminInspectorCard>
+
+            <AdminInspectorCard title="Документи й посилання">
+              <div className="grid gap-2">
+                <a
+                  href={`/api/admin/pdf/invoice/${order.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={quietButton}
+                >
+                  <FileText className="h-4 w-4" /> Рахунок (PDF)
+                </a>
+                <a
+                  href={`/api/admin/pdf/packing-slip/${order.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={quietButton}
+                >
+                  <Printer className="h-4 w-4" /> Пакувальний лист
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void copyText(confirmationUrl, "Посилання для покупця скопійовано")}
+                  className={quietButton}
+                >
+                  <Copy className="h-4 w-4" /> Посилання на замовлення для клієнта
+                </button>
+                <Link
+                  href={`/admin/shop/returns/new?orderId=${order.id}`}
+                  className={quietButton}
+                >
+                  <RotateCcw className="h-4 w-4" /> Оформити повернення
+                </Link>
+              </div>
+            </AdminInspectorCard>
+
+            <details className={cn(cardClass, "p-4")}>
+              <summary className="cursor-pointer text-[13px] text-zinc-300">Теги</summary>
               <div className="mt-4">
                 <AdminTagInput
                   entityType="shop.order"
@@ -1327,98 +1301,86 @@ export default function AdminOrderDetailPage() {
               </div>
             </details>
 
-            <AdminInspectorCard title="Нотатки" description="Внутрішні нотатки команди.">
-              <AdminNotes entityType="shop.order" entityId={order.id} />
-            </AdminInspectorCard>
+            <details className={cn(cardClass, "p-4")}>
+              <summary className="cursor-pointer text-[13px] text-zinc-300">
+                Технічні дані
+              </summary>
+              <div className="mt-4 space-y-4">
+                <AdminKeyValueGrid
+                  rows={[
+                    { label: "ID замовлення", value: order.id },
+                    { label: "Створено", value: formatOrderDate(order.createdAt, true) },
+                    { label: "Оновлено", value: formatOrderDate(order.updatedAt, true) },
+                    { label: "Зона доставки", value: order.shippingZoneName || "—" },
+                    { label: "Податкове правило", value: order.taxRegionName || "—" },
+                  ]}
+                />
+                <pre className="max-h-80 overflow-auto border border-white/10 bg-black/25 p-3 text-[11px] text-zinc-400">
+                  {JSON.stringify(order.pricingSnapshot ?? {}, null, 2)}
+                </pre>
+              </div>
+            </details>
 
-            <details className={styles.card}>
-              <summary>Історія змін</summary>
+            <details className={cn(cardClass, "p-4")}>
+              <summary className="cursor-pointer text-[13px] text-zinc-300">Журнал дій</summary>
               <div className="mt-4">
                 <AdminActivityTimeline
                   entityType="shop.order"
                   entityId={order.id}
-                  emptyTitle="No activity logged"
-                  emptyDescription="Status changes, payment edits and shipment updates will appear here."
+                  emptyTitle="Журнал порожній"
+                  emptyDescription="Тут з’являться зміни статусу, оплати й відправлень."
                 />
               </div>
             </details>
-
-            <Link
-              href={`/admin/shop/returns/new?orderId=${order.id}`}
-              className={styles.returnLink}
-            >
-              Створити повернення ↗
-            </Link>
-            <AdminInspectorCard
-              title="Документи"
-              description="Рахунок і пакувальний лист для друку або збереження у PDF."
-            >
-              <div className="space-y-2">
-                <a
-                  href={`/api/admin/pdf/proforma/${order.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm"
-                >
-                  <FileText className="h-4 w-4" /> Проформа · PDF
-                </a>
-                <a
-                  href={`/api/admin/pdf/invoice/${order.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/6 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/12"
-                >
-                  <FileText className="h-4 w-4" />
-                  Рахунок (PDF)
-                </a>
-                <a
-                  href={`/api/admin/pdf/packing-slip/${order.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
-                >
-                  <Printer className="h-4 w-4" />
-                  Пакувальний лист
-                </a>
-              </div>
-            </AdminInspectorCard>
-
-            <AdminInspectorCard
-              title="Посилання для покупця"
-              description="Сторінка підтвердження замовлення та оплати."
-            >
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={() => void copyConfirmationLink()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
-                >
-                  <Copy className="h-4 w-4" />
-                  {copyState || "Копіювати посилання покупця"}
-                </button>
-                <a
-                  href={confirmationUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  Відкрити сторінку покупця
-                </a>
-              </div>
-            </AdminInspectorCard>
           </>
         }
       />
 
+      {statusDialog ? (
+        <OrderStatusDialog
+          key={statusDialog.key}
+          open
+          orders={[order]}
+          target={statusDialog.target}
+          customerEmailsEnabled={Boolean(order.customerEmailsEnabled)}
+          onClose={() => setStatusDialog(null)}
+          onDone={(message) => {
+            setStatusDialog(null);
+            setError("");
+            setSuccess(message);
+            toast.success(message);
+            void load();
+          }}
+        />
+      ) : null}
+
+      {editOpen ? (
+        <OrderEditPanel
+          key={editKey}
+          order={order}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSaved={(message) => {
+            setEditOpen(false);
+            setError("");
+            setSuccess(message);
+            toast.success(message);
+            void load();
+          }}
+        />
+      ) : null}
+
       <AdminMobileBottomBar>
-        <a href="#payment" className={styles.mobileAction}>
+        <a href="#payment" className="flex-1 px-3 py-2 text-center text-[13px] text-zinc-200">
           Оплата
         </a>
-        <a href="#shipping" className={styles.mobileAction}>
+        <a href="#shipping" className="flex-1 px-3 py-2 text-center text-[13px] text-zinc-200">
           Доставка
         </a>
-        <Link href="/admin/shop/orders" className={styles.mobileAction}>
+        <Link
+          href="/admin/shop/orders"
+          className="flex-1 px-3 py-2 text-center text-[13px] text-zinc-200"
+        >
           До списку
         </Link>
       </AdminMobileBottomBar>

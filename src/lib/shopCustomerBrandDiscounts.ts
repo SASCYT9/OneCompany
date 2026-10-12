@@ -6,10 +6,9 @@
  * applied for any function in this file to succeed at runtime — otherwise
  * Prisma will return a P2021 ("table does not exist") error.
  *
- * Pricing integration (resolveEffectiveDiscountPercent must look up these
- * overrides) is a follow-up — see #51 acceptance criteria. The admin UI
- * landed first so we can capture the discount data, then wire it into
- * pricing once the schema is approved and live.
+ * Pricing reads these overrides first (loadShopBrandDiscountMaps →
+ * resolveEffectiveDiscountPercent): customer-brand → system brand →
+ * customer % → shop default.
  */
 
 import { Prisma, type PrismaClient } from '@prisma/client';

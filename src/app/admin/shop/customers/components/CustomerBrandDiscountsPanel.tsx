@@ -16,6 +16,8 @@ type Discount = {
 type Props = {
   customerId: string;
   globalDiscountPct: number | null;
+  /** Rendered inside the customer's «Ціни» section: no own frame or heading. */
+  embedded?: boolean;
 };
 
 const KNOWN_BRANDS = [
@@ -32,7 +34,7 @@ const KNOWN_BRANDS = [
   "Urban",
 ];
 
-export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: Props) {
+export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct, embedded }: Props) {
   const toast = useToast();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,17 +120,15 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
   }
 
   return (
-    <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold text-zinc-100">Знижки по брендах</h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Персональна знижка % окремо для кожного бренду. Якщо запис відсутній — застосовується
-          глобальна B2B-знижка
-          {globalDiscountPct != null ? ` (${globalDiscountPct}%)` : " (не задана)"}.
-        </p>
-        <p className="mt-1 text-[11px] text-amber-300/70">
-          ⚠️ Інтеграція з ціноутворенням — у наступному етапі. Поки що ці значення зберігаються, але
-          pricing-логіка не змінюється — використовується глобальна знижка.
+    <section className={embedded ? "" : "border border-white/10 bg-[#171717] p-6"}>
+      <div className="mb-4">
+        <h3 className={embedded ? "text-[13px] font-semibold text-zinc-100" : "text-xl font-semibold text-zinc-100"}>
+          Знижки на окремі бренди
+        </h3>
+        <p className="mt-1 text-[13px] leading-5 text-zinc-500">
+          На товари цих брендів клієнт отримує вказану знижку — вона важливіша за всі інші. Для
+          решти брендів діє знижка бренду з налаштувань, а якщо її немає — персональна знижка
+          клієнта{globalDiscountPct != null ? ` (${globalDiscountPct}%)` : ""} або загальна B2B-знижка.
         </p>
       </div>
 
@@ -205,9 +205,8 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct }: P
           Завантаження…
         </div>
       ) : discounts.length === 0 ? (
-        <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">
-          Персональних знижок по брендах ще немає. Усі бренди використовують глобальну знижку
-          {globalDiscountPct != null ? ` ${globalDiscountPct}%.` : "."}
+        <div className="border border-dashed border-white/10 px-4 py-6 text-sm text-zinc-500">
+          Знижок на окремі бренди ще немає — діють загальні правила вище.
         </div>
       ) : (
         <AdminTableShell>

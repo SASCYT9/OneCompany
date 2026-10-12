@@ -13,6 +13,12 @@ import {
   shouldPersistAutomaticFitment,
 } from "@/lib/shopAdminCatalog";
 import { prisma } from "@/lib/prisma";
+import { resolveAdminListAvailability, resolveAdminListPrice } from "@/lib/admin/productListView";
+import { DEFAULT_CURRENCY_RATES, normalizeShopCurrencyRates } from "@/lib/shopAdminSettings";
+import {
+  SHOP_STOREFRONT_DISPLAY_KEY,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+} from "@/lib/shopStorefrontDisplay";
 import { getShopInStockProducts } from "@/lib/shopWarehouseInventory.server";
 import { revalidateShopStorefrontProduct } from "@/lib/shopStorefrontRevalidation";
 import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
@@ -88,14 +94,28 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const [totalCount, products, brandGroups] = await prisma.$transaction([
+    const [totalCount, products, brandGroups, settings] = await prisma.$transaction([
       prisma.shopProduct.count({ where }),
       prisma.shopProduct.findMany({
         where,
         orderBy: { updatedAt: "desc" },
         skip,
         take: limit,
-        select: adminProductListSelect,
+        select: {
+          ...adminProductListSelect,
+          // The list shows what the buyer sees: saved availability + default variant SKU.
+          metafields: {
+            where: {
+              namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+              key: SHOP_STOREFRONT_DISPLAY_KEY,
+            },
+            select: { namespace: true, key: true, value: true },
+          },
+          variants: {
+            ...adminProductListSelect.variants,
+            select: { ...adminProductListSelect.variants.select, sku: true },
+          },
+        },
       }),
       prisma.shopProduct.groupBy({
         by: ["brand"],
@@ -103,7 +123,10 @@ export async function GET(request: NextRequest) {
         orderBy: { _count: { brand: "desc" } },
         _count: { brand: true },
       }),
+      prisma.shopSettings.findUnique({ where: { key: "shop" }, select: { currencyRates: true } }),
     ]);
+
+    const rates = normalizeShopCurrencyRates(settings?.currencyRates ?? DEFAULT_CURRENCY_RATES);
 
     // Catalog V2 stores the storefront's canonical primary image. Use it for
     // admin cards when available so managers see the same photo as buyers,
@@ -129,8 +152,25 @@ export async function GET(request: NextRequest) {
           ? [canonicalImage, ...result.imageSources.filter((source) => source !== canonicalImage)]
           : result.imageSources;
         const availability = confirmed?.find((entry) => entry.id === product.id);
+        const defaultVariant = product.variants[0];
         return {
           ...result,
+          customerAvailability: resolveAdminListAvailability({
+            sku: product.sku,
+            slug: product.slug,
+            variantSkus: product.variants.map((variant) => variant.sku),
+            metafields: product.metafields,
+          }),
+          customerPrice: resolveAdminListPrice(
+            {
+              priceSourceCurrency: product.priceSourceCurrency,
+              priceEur: result.priceEur,
+              priceUsd: result.priceUsd,
+              priceUah: result.priceUah,
+            },
+            defaultVariant?.priceSourceCurrency,
+            rates
+          ),
           ...(canonicalImage ? { imageUrl: canonicalImage, imageSources } : {}),
           ...(availability ? { stock: "inStock", sku: availability.sku ?? result.sku } : {}),
         };

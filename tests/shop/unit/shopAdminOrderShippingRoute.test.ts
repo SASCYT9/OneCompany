@@ -19,13 +19,14 @@ const bundled = build({
   }],
 });
 
-async function fixture(options: { method?: string; payment?: boolean; concurrent?: boolean; authError?: string } = {}) {
+async function fixture(options: { method?: string; payment?: boolean; concurrent?: boolean; authError?: string; status?: string; paid?: boolean } = {}) {
   const writes: Array<Record<string, unknown>> = [];
   const audits: unknown[] = [];
   const events: unknown[] = [];
   let reads = 0;
   const current = {
-    id: "order1", status: "PENDING_REVIEW", updatedAt: new Date("2026-10-03T12:00:00Z"),
+    id: "order1", status: options.status ?? "PENDING_REVIEW", updatedAt: new Date("2026-10-03T12:00:00Z"),
+    amountPaid: options.paid ? 112 : 0, paymentStatus: options.paid ? "PAID" : "UNPAID", isDraft: false,
     subtotal: new Prisma.Decimal(100), taxAmount: new Prisma.Decimal(5),
     shippingCost: new Prisma.Decimal(10), total: new Prisma.Decimal(112),
     paymentMethod: options.method ?? "FOP", monobankPayment: options.payment ? { id: "payment1" } : null,
@@ -120,4 +121,32 @@ test("shipping edits retain authentication and order-write permission checks", a
     assert.equal(f.reads(), 0);
     assert.equal(f.writes.length, 0);
   }
+});
+
+test("status corrections need a reason and a paid order never returns to waiting for payment", async () => {
+  const noReason = await fixture({ status: "CONFIRMED" });
+  assert.equal((await noReason.patch({ status: "PENDING_REVIEW" })).status, 400);
+  assert.equal(noReason.writes.length, 0);
+
+  const corrected = await fixture({ status: "CONFIRMED" });
+  assert.equal((await corrected.patch({ status: "PENDING_REVIEW", note: "помилково підтвердили" })).status, 200);
+  assert.equal(corrected.writes[0].status, "PENDING_REVIEW");
+  assert.equal((corrected.events[0] as { data: { note: string } }).data.note, "помилково підтвердили");
+
+  const paid = await fixture({ status: "CONFIRMED", paid: true });
+  assert.equal((await paid.patch({ status: "PENDING_PAYMENT", note: "x" })).status, 409);
+  assert.equal(paid.writes.length, 0);
+});
+
+test("cancelling records the chosen reason in the order history", async () => {
+  const missing = await fixture();
+  assert.equal((await missing.patch({ status: "CANCELLED" })).status, 400);
+  assert.equal(missing.writes.length, 0);
+
+  const fake = await fixture();
+  assert.equal((await fake.patch({ status: "CANCELLED", reason: "fake", note: "бот з інстаграму" })).status, 200);
+  assert.equal(
+    (fake.events[0] as { data: { note: string } }).data.note,
+    "Фейкове замовлення / спам. бот з інстаграму"
+  );
 });

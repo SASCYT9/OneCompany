@@ -96,7 +96,7 @@ function ToastViewport({
     <div
       aria-live="polite"
       aria-atomic="false"
-      className="pointer-events-none fixed bottom-4 right-4 z-100 flex w-full max-w-sm flex-col gap-2"
+      className="admin-context pointer-events-none fixed bottom-4 right-4 z-100 flex w-full max-w-sm flex-col gap-2"
     >
       <AnimatePresence initial={false}>
         {toasts.map((t) => (

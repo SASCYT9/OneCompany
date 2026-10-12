@@ -6,7 +6,6 @@ import {
   managedAdminPriceChange,
   managedAdminPriceBandUpdates,
   managedAdminSourceSelection,
-  adminPriceBookDescription,
 } from "@/lib/shopAdminPriceConversion";
 import {
   defaultShopStorefrontDisplay,
@@ -41,6 +40,14 @@ import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline"
 import { AdminNotes } from "@/components/admin/AdminNotes";
 import { AdminTagInput } from "@/components/admin/AdminTagInput";
 import { AdminProductVariantCard } from "./AdminProductVariantCard";
+import { ProductAvailabilityPanel } from "./ProductAvailabilityPanel";
+import { ProductCustomerSummary } from "./ProductCustomerSummary";
+import { ProductPricingPanel, type ProductB2bContext } from "./ProductPricingPanel";
+import {
+  isAtomicManagedBrand,
+  priceFieldsOf,
+  variantPriceDiffers,
+} from "@/lib/admin/productPriceEditor";
 import { ProductMediaUpload } from "./ProductMediaUpload";
 import { productEditorSlug as slugify } from "@/lib/admin/productEditorSlug";
 import type { NormalizedFitment, VehicleApplication } from "@/lib/shopFitmentQuality";
@@ -1067,7 +1074,8 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     };
   }, []);
   const [rates, setRates] = useState<Record<string, number>>(DEFAULT_RATES);
-  const [autoConvert, setAutoConvert] = useState<boolean>(true);
+  const [autoConvert] = useState<boolean>(true);
+  const [b2bContext, setB2bContext] = useState<ProductB2bContext | null>(null);
   const [availableCategories, setAvailableCategories] = useState<CategoryOption[]>([]);
   const [availableCollections, setAvailableCollections] = useState<CollectionOption[]>([]);
   const [collectionsExpanded, setCollectionsExpanded] = useState(false);
@@ -1158,6 +1166,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
         const data = await response.json();
         if (response.ok && data.currencyRates && !cancelled) {
           setRates(data.currencyRates);
+          // Absent for admins without pricing access; the panel then omits the numbers.
+          if (data.brandB2bDiscounts) {
+            setB2bContext({
+              defaultB2bDiscountPercent: data.defaultB2bDiscountPercent ?? null,
+              brandB2bDiscounts: data.brandB2bDiscounts,
+            });
+          }
         }
       } catch (loadError) {
         console.error("Failed to load shop settings for currency rates:", loadError);
@@ -1325,6 +1340,18 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
     if (key === "slug") {
       setSlugTouched(true);
     }
+  };
+
+  // One price per product: a single variant mirrors the product price, so the catalog
+  // card (product price) and the cart (variant price) can never disagree.
+  const updatePricing = (patch: Record<string, string>) => {
+    setForm((current) => {
+      const next = { ...current, ...patch } as ProductFormState;
+      if (current.variants.length === 1) {
+        next.variants = [{ ...current.variants[0], ...priceFieldsOf(next) }];
+      }
+      return next;
+    });
   };
 
   const updateVariantBulkField = (key: keyof VariantBulkState, value: string) => {
@@ -2049,10 +2076,13 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
             }
           />
 
+          <ProductCustomerSummary form={form} rates={rates} />
+
           <nav className={styles.jumpNav} aria-label="Розділи товару">
-            <a href="#overview">Товар</a>
-            <a href="#media">Медіа</a>
-            <a href="#pricing">Ціни</a>
+            <a href="#pricing">Ціна</a>
+            <a href="#stock">Наявність</a>
+            <a href="#overview">Опис</a>
+            <a href="#media">Фото</a>
             <a href="#variants">Варіанти · {form.variants.length}</a>
             <a href="#compatibility">Сумісність</a>
             <a href="#seo">Пошукова видача</a>
@@ -2083,6 +2113,79 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
           <div className={styles.layout}>
             <div className="min-w-0 space-y-5">
               <AdminEditorSection
+                id="pricing"
+                title="Ціна"
+                description="Одна сума в одній валюті. Інші валюти рахуються автоматично за курсом."
+              >
+                <ProductPricingPanel
+                  form={form}
+                  rates={rates}
+                  brand={form.brand}
+                  b2bContext={b2bContext}
+                  onPatch={updatePricing}
+                  notice={
+                    form.variants.length === 1 &&
+                    variantPriceDiffers(form, form.variants[0], rates) ? (
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-amber-400 bg-amber-400/[0.06] px-4 py-3 text-[13px] leading-5 text-amber-100">
+                        <span>
+                          Ціна у варіанті відрізняється від ціни товару: картка в каталозі показує
+                          одну суму, а кошик рахує іншу.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updatePricing({})}
+                          className="shrink-0 border border-amber-300/40 px-3 py-1.5 text-[12px] font-semibold text-amber-100 hover:bg-amber-300/10"
+                        >
+                          Взяти ціну товару
+                        </button>
+                      </div>
+                    ) : form.variants.length > 1 ? (
+                      <p className="border-l-2 border-zinc-500 bg-white/[0.03] px-4 py-3 text-[13px] leading-5 text-zinc-400">
+                        Варіантів у товару: {form.variants.length}. Ця ціна — «від …» на картці
+                        каталогу, а кожен варіант має свою ціну в розділі «Варіанти».
+                      </p>
+                    ) : null
+                  }
+                />
+              </AdminEditorSection>
+
+              <AdminEditorSection
+                id="stock"
+                title="Наявність"
+                description="Що покупець бачить на сайті і коли товар буде в нього."
+              >
+                <ProductAvailabilityPanel
+                  state={{
+                    stock: form.stock,
+                    showInStock: form.showInStock,
+                    showInCarousel: form.showInCarousel,
+                    leadTimeUa: form.leadTimeUa,
+                    leadTimeEn: form.leadTimeEn,
+                  }}
+                  onChange={(patch) =>
+                    setForm((current) => ({
+                      ...current,
+                      ...patch,
+                      showInCarousel:
+                        (patch.stock ?? current.stock) === "inStock" &&
+                        (patch.showInStock ?? current.showInStock)
+                          ? (patch.showInCarousel ?? current.showInCarousel)
+                          : false,
+                    }))
+                  }
+                  variantQuantity={form.variants.reduce(
+                    (sum, item) => sum + (Number(item.inventoryQty) || 0),
+                    0
+                  )}
+                  quantitySyncNote={
+                    isAtomicManagedBrand(form.brand)
+                      ? "Для цього бренду кількість щомісяця оновлюється з прайсу Atomic."
+                      : undefined
+                  }
+                />
+              </AdminEditorSection>
+
+              <AdminEditorSection
                 id="overview"
                 title="Товар"
                 description="Назва та опис, які бачитиме покупець."
@@ -2109,6 +2212,12 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     value={form[`title${language}`]}
                     onChange={(value) => updateField(`title${language}`, value)}
                     placeholder="Наприклад, карбоновий спойлер для Defender"
+                  />
+                  <InputField
+                    label="Артикул (SKU)"
+                    value={form.sku}
+                    onChange={(value) => updateField("sku", value)}
+                    mono
                   />
                   <TextareaField
                     label="Короткий опис"
@@ -2290,143 +2399,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                     Додати медіа
                   </button>
                 </div>
-              </AdminEditorSection>
-
-              <AdminEditorSection
-                id="pricing"
-                title="Ціни"
-                description="Базові ціни для карток у магазині, пошуку та як дефолт для варіантів (B2C і B2B)."
-              >
-                <div className="mb-4 grid gap-3 sm:grid-cols-2">
-                  {(
-                    [
-                      ["priceSourceCurrency", "Вихідна валюта B2C"],
-                      ["compareAtSourceCurrency", "Вихідна валюта ціни до знижки"],
-                      ["b2bPriceSourceCurrency", "Вихідна валюта B2B"],
-                      ["b2bCompareAtSourceCurrency", "Вихідна валюта B2B до знижки"],
-                    ] as const
-                  ).map(([field, label]) => (
-                    <SelectField
-                      key={field}
-                      label={label}
-                      value={form[field] ?? ""}
-                      onChange={(value) => updateField(field, value)}
-                      options={[
-                        { value: "", label: "Не підтверджена" },
-                        { value: "EUR", label: "EUR" },
-                        { value: "USD", label: "USD" },
-                        { value: "UAH", label: "UAH · фіксована ціна" },
-                      ]}
-                    />
-                  ))}
-                </div>
-                <div className="mb-4 rounded-none border border-white/10 bg-zinc-950/40 p-4">
-                  <CheckboxField
-                    label="Автоматичний перерахунок цін за курсом"
-                    checked={autoConvert || isShopSourcePriceBook(rates)}
-                    disabled={isShopSourcePriceBook(rates)}
-                    onChange={setAutoConvert}
-                    helper={adminPriceBookDescription(rates)}
-                  />
-                </div>
-                <div className="mb-4 grid gap-4 sm:grid-cols-2">
-                  <InputField
-                    label="Ціна EUR"
-                    type="number"
-                    step="0.01"
-                    value={form.priceEur}
-                    onChange={(value) => updateField("priceEur", value)}
-                  />
-                  <InputField
-                    label="Європа · EUR без ПДВ"
-                    type="number"
-                    step="0.01"
-                    value={form.priceEurEurope}
-                    onChange={(value) => updateField("priceEurEurope", value)}
-                  />
-                  <InputField
-                    label="Ціна USD"
-                    type="number"
-                    step="0.01"
-                    value={form.priceUsd}
-                    onChange={(value) => updateField("priceUsd", value)}
-                  />
-                  <InputField
-                    label="Ціна UAH"
-                    type="number"
-                    step="0.01"
-                    value={form.priceUah}
-                    onChange={(value) => updateField("priceUah", value)}
-                  />
-                  <InputField
-                    label="Ціна до знижки EUR"
-                    type="number"
-                    step="0.01"
-                    value={form.compareAtEur}
-                    onChange={(value) => updateField("compareAtEur", value)}
-                  />
-                  <InputField
-                    label="Ціна до знижки USD"
-                    type="number"
-                    step="0.01"
-                    value={form.compareAtUsd}
-                    onChange={(value) => updateField("compareAtUsd", value)}
-                  />
-                  <InputField
-                    label="Ціна до знижки UAH"
-                    type="number"
-                    step="0.01"
-                    value={form.compareAtUah}
-                    onChange={(value) => updateField("compareAtUah", value)}
-                  />
-                </div>
-                <details className={styles.details}>
-                  <summary>Оптові ціни · B2B</summary>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <InputField
-                      label="B2B (опт) EUR"
-                      type="number"
-                      step="0.01"
-                      value={form.priceEurB2b}
-                      onChange={(value) => updateField("priceEurB2b", value)}
-                    />
-                    <InputField
-                      label="B2B (опт) USD"
-                      type="number"
-                      step="0.01"
-                      value={form.priceUsdB2b}
-                      onChange={(value) => updateField("priceUsdB2b", value)}
-                    />
-                    <InputField
-                      label="B2B (опт) UAH"
-                      type="number"
-                      step="0.01"
-                      value={form.priceUahB2b}
-                      onChange={(value) => updateField("priceUahB2b", value)}
-                    />
-                    <InputField
-                      label="B2B порівн. EUR"
-                      type="number"
-                      step="0.01"
-                      value={form.compareAtEurB2b}
-                      onChange={(value) => updateField("compareAtEurB2b", value)}
-                    />
-                    <InputField
-                      label="B2B порівн. USD"
-                      type="number"
-                      step="0.01"
-                      value={form.compareAtUsdB2b}
-                      onChange={(value) => updateField("compareAtUsdB2b", value)}
-                    />
-                    <InputField
-                      label="B2B порівн. UAH"
-                      type="number"
-                      step="0.01"
-                      value={form.compareAtUahB2b}
-                      onChange={(value) => updateField("compareAtUahB2b", value)}
-                    />
-                  </div>
-                </details>
               </AdminEditorSection>
 
               <AdminCollapsibleSection
@@ -2729,69 +2701,6 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                 </div>
               </AdminCollapsibleSection>
 
-              <AdminEditorSection
-                id="stock"
-                title="Наявність і доставка"
-                description="Загальна доступність товару. Кількість одиниць задається у варіантах нижче."
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <InputField
-                    label="Базовий SKU"
-                    value={form.sku}
-                    onChange={(value) => updateField("sku", value)}
-                  />
-                  <SelectField
-                    label="Наявність"
-                    value={form.stock}
-                    onChange={(value) =>
-                      setForm((current) => ({
-                        ...current,
-                        stock: value as ProductFormState["stock"],
-                        showInStock: value === "inStock" && current.showInStock,
-                        showInCarousel: value === "inStock" && current.showInCarousel,
-                      }))
-                    }
-                    options={[
-                      { label: "У наявності", value: "inStock" },
-                      { label: "Під замовлення", value: "preOrder" },
-                      { label: "В дорозі", value: "inTransit" },
-                    ]}
-                  />
-                  <InputField
-                    label="Термін постачання · UA"
-                    value={form.leadTimeUa}
-                    onChange={(value) => updateField("leadTimeUa", value)}
-                  />
-                  <InputField
-                    label="Термін постачання · EN"
-                    value={form.leadTimeEn}
-                    onChange={(value) => updateField("leadTimeEn", value)}
-                  />
-                  <CheckboxField
-                    label="Показувати в наявності"
-                    checked={form.showInStock}
-                    onChange={(checked) =>
-                      setForm((current) => ({
-                        ...current,
-                        stock: checked ? "inStock" : current.stock,
-                        showInStock: checked,
-                        showInCarousel: checked && current.showInCarousel,
-                      }))
-                    }
-                  />
-                  <CheckboxField
-                    label="Показувати в каруселі"
-                    checked={form.showInCarousel}
-                    disabled={!form.showInStock || form.stock !== "inStock"}
-                    onChange={(checked) => updateField("showInCarousel", checked)}
-                  />
-                  <p className="text-sm text-white/50 sm:col-span-2">
-                    Позначка «В наявності» показується в каталозі та картці товару. Карусель
-                    вмикається окремо. Для ліцензій можна ввімкнути наявність і залишити карусель
-                    вимкненою.
-                  </p>
-                </div>
-              </AdminEditorSection>
               <AdminCollapsibleSection
                 id="options"
                 title="Опції"
@@ -3038,6 +2947,9 @@ export default function AdminProductEditor({ productId }: AdminProductEditorProp
                         onSetDefault={() => setDefaultVariant(index)}
                         rates={rates}
                         autoConvert={autoConvert || isShopSourcePriceBook(rates)}
+                        pricingManagedByProduct={form.variants.length === 1}
+                        brand={form.brand}
+                        b2bContext={b2bContext}
                       />
                     ))}
                   </div>
