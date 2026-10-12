@@ -122,6 +122,7 @@ export function extractProductFitment() {
   return {
     make: "BMW",
     model: "M5",
+    models: ["M5"],
     chassisCodes: ["G90"],
     yearRanges: [{ from: 2020, to: null }],
   };

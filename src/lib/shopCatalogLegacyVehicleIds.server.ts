@@ -691,6 +691,12 @@ async function getCachedVehicleEvidence(
   return promise;
 }
 
+/** Makes whose expected-chassis lists are filed under a second table. */
+const SISTER_EXPECTED_TABLES: Readonly<Record<string, readonly string[]>> = {
+  "Mercedes-Benz": ["Mercedes-AMG"],
+  "Land Rover": ["Range Rover"],
+};
+
 /**
  * Whether a chassis belongs to at least one of the models (or their families)
  * where the expected chassis list is known. Unknown lists do not restrict.
@@ -702,8 +708,18 @@ function chassisExpectedForModels(
 ) {
   const code = chassis?.trim();
   if (!code || models.length === 0) return true;
+  // A trim is often listed under a spelling or table of its own (`AMG C 63`
+  // is `C63` in the Mercedes-AMG table), so try its aliases and sister make.
+  const tables = [
+    ...new Set([
+      canonicalMake,
+      ...vehicleMakeAliases(canonicalMake),
+      ...(SISTER_EXPECTED_TABLES[canonicalMake] ?? []),
+    ]),
+  ];
   const lists = models
-    .map((model) => getExpectedChassisForMakeModel(canonicalMake, model))
+    .flatMap((model) => [model, ...vehicleModelAliases(canonicalMake, model)])
+    .flatMap((label) => tables.map((table) => getExpectedChassisForMakeModel(table, label)))
     .filter((list): list is string[] => Boolean(list));
   if (lists.length === 0) return true;
   const lineage = new Set(vehicleChassisSelfAndAncestors(code).map(vehicleChassisKey));
@@ -1011,6 +1027,14 @@ export async function listLegacyVehicleChassisOptions(input: {
     }
   };
   const [primary, ...others] = scope.exact;
+  // A row filed on several models (`M5/M6/M8`) carries one flat list of codes
+  // for all of them, so each of its models would otherwise list every code of
+  // its neighbours. When the model's own generations are known, only those are
+  // taken from such a row; a single-model row is trusted as filed.
+  const rowCodeBelongsToModel = (rowModels: readonly string[], code: string) =>
+    new Set(
+      rowModels.map((model) => vehicleModelKey(canonicalVehicleModelLabel(canonicalMake, model)))
+    ).size <= 1 || chassisExpectedForModels(canonicalMake, scope.exact, code);
   for (const product of products) {
     for (const fitment of product.fitments) {
       if (
@@ -1022,7 +1046,9 @@ export async function listLegacyVehicleChassisOptions(input: {
       ) {
         continue;
       }
-      for (const code of fitment.chassisCodes) add(product.id, code);
+      for (const code of fitment.chassisCodes) {
+        if (rowCodeBelongsToModel(fitment.models, code)) add(product.id, code);
+      }
     }
     const title = product.titleFitment;
     if (
@@ -1055,7 +1081,10 @@ export async function listLegacyVehicleChassisOptions(input: {
       continue;
     }
     if (!values(["MODEL"]).some((value) => modelTier(value) === 1)) continue;
-    for (const code of values(["GENERATION", "CHASSIS"])) add(clause.productId, code);
+    const clauseModels = values(["MODEL"]);
+    for (const code of values(["GENERATION", "CHASSIS"])) {
+      if (rowCodeBelongsToModel(clauseModels, code)) add(clause.productId, code);
+    }
   }
   if (labels.size === 0) return null;
   const codes = canonicalizeVehicleChassisCodes([...labels.values()], canonicalMake, input.model);
