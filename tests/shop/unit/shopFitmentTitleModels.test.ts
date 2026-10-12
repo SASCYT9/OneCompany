@@ -105,3 +105,36 @@ test("Mazda and Audi R8 models are read from the title", () => {
   assert.equal(r8.make, "Audi");
   assert.deepEqual(r8.models, ["R8"]);
 });
+
+test("an Urban Range Rover part naming only the base car stays selectable", () => {
+  const fitment = extractProductFitment(
+    product({
+      ua: "Задній спойлер Urban Carbon для Range Rover",
+      en: "Urban Carbon rear spoiler for Range Rover",
+      brand: "Range Rover",
+      vendor: "Urban Automotive",
+      tags: ["urban-source:gp-portal", "fits-make:range-rover", "fits-model:range-rover:23-uc9"],
+    })
+  );
+  assert.equal(fitment.make, "Land Rover");
+  assert.deepEqual(fitment.models, ["Range Rover"]);
+  const sport = extractProductFitment(
+    product({
+      ua: "Накладка Urban для Sport L494 SVR",
+      en: "Urban trim for Sport L494 SVR",
+      brand: "Range Rover",
+      vendor: "Urban Automotive",
+      tags: ["urban-source:gp-portal", "fits-make:range-rover", "fits-model:range-rover:urban-trim"],
+    })
+  );
+  assert.equal(sport.make, "Range Rover");
+  assert.deepEqual(sport.models, ["Sport"]);
+});
+
+test("Ford Taurus is a selectable model", () => {
+  const fitment = extractProductFitment(
+    product({ ua: "BMS BOV Adapters для Ford Taurus SHO 2010–2019 — пара", brand: "Burger Motorsports" })
+  );
+  assert.equal(fitment.make, "Ford");
+  assert.ok(fitment.models.includes("Taurus"));
+});

@@ -1408,6 +1408,7 @@ const VALID_MODELS_BY_MAKE: Record<string, Set<string>> = {
     "Hypermotard",
   ]),
   Ford: new Set([
+    "Taurus",
     "Bronco",
     "F-150 Raptor",
     "Fiesta St",
@@ -3326,6 +3327,17 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     const wanted = normalizeFitmentKey(make.replace(/[-_]+/g, " "));
     make =
       Object.keys(MODEL_PATTERNS).find((key) => normalizeFitmentKey(key) === wanted) ?? make;
+    if (make === "Range Rover") {
+      // The picker files the whole Range Rover line under Land Rover. A title
+      // that names only the base car ("for Range Rover") has no model of its
+      // own under the `Range Rover` make, so read it as Land Rover's.
+      const own = detectModelsFromText(fitmentEvidenceText, "Range Rover").filter(
+        (model) => normalizeFitmentKey(model) !== "range rover"
+      );
+      if (own.length === 0 && detectModelsFromText(fitmentEvidenceText, "Land Rover").length > 0) {
+        make = "Land Rover";
+      }
+    }
   }
 
   if (models.length === 0) {
