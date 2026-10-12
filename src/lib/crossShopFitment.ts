@@ -4147,6 +4147,9 @@ export function extractProductFitment(product: ShopProduct): Fitment {
         .map((m) => {
           // Spelling-insensitive (`mx5` is `MX-5`); a properly cased entry
           // wins over its lowercase twin (`RX-8` over `rx-8`).
+          // An exact (case-insensitive) spelling is always preferred.
+          const exact = [...allowed].find((allowedVal) => allowedVal.toLowerCase() === m.toLowerCase());
+          if (exact) return exact;
           const key = m.toLowerCase().replace(/[^a-z0-9]+/g, "");
           const matches = [...allowed].filter(
             (allowedVal) => allowedVal.toLowerCase().replace(/[^a-z0-9]+/g, "") === key

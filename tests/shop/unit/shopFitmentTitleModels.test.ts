@@ -151,3 +151,10 @@ test("every Mazda model the patterns read is selectable, including the Mazda 2",
     assert.ok(fitment.models.includes(model), `${title} -> ${fitment.models.join(",")}`);
   }
 });
+
+test("an exact model spelling wins over a separator-insensitive alias", () => {
+  const gtr = extractProductFitment(
+    product({ ua: "Exhaust for Nissan GT-R R35", brand: "Test", tags: [] })
+  );
+  assert.ok(gtr.models.some((model) => model.toLowerCase() === "gt-r"), gtr.models.join(","));
+});
