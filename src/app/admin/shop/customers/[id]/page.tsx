@@ -1,37 +1,42 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { CheckCircle2, Copy, Database, Eye, KeyRound, Mail, RotateCcw, Save, UserRound } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Eye,
+  KeyRound,
+  Mail,
+  Plus,
+  Power,
+  Save,
+  UserRound,
+} from "lucide-react";
 
 import {
-  AdminEntityToolbar,
   AdminInspectorCard,
   AdminKeyValueGrid,
-  AdminMetricCard,
-  AdminMetricGrid,
   AdminPage,
-  AdminPageHeader,
   AdminSplitDetailShell,
   AdminStatusBadge,
-  AdminTableShell,
-} from '@/components/admin/AdminPrimitives';
-import {
-  AdminCheckboxField,
-  AdminInputField,
-  AdminSelectField,
-  AdminTextareaField,
-} from '@/components/admin/AdminFormFields';
-import { useToast } from '@/components/admin/AdminToast';
-import { AdminActivityTimeline } from '@/components/admin/AdminActivityTimeline';
-import { AdminNotes } from '@/components/admin/AdminNotes';
-import { AdminTagInput } from '@/components/admin/AdminTagInput';
-import { CustomerCreditPanel } from '@/app/admin/shop/customers/components/CustomerCreditPanel';
-import { CustomerLtvHeader } from '@/app/admin/shop/customers/components/CustomerLtvHeader';
-import { CustomerBrandDiscountsPanel } from '@/app/admin/shop/customers/components/CustomerBrandDiscountsPanel';
+} from "@/components/admin/AdminPrimitives";
+import { useConfirm } from "@/components/admin/AdminConfirmDialog";
+import { useToast } from "@/components/admin/AdminToast";
+import { AdminActivityTimeline } from "@/components/admin/AdminActivityTimeline";
+import { AdminNotes } from "@/components/admin/AdminNotes";
+import { AdminTagInput } from "@/components/admin/AdminTagInput";
+import { CustomerTypeBadge } from "@/components/admin/customers/CustomerTypeBadge";
+import { formatOrderDate, formatOrderMoney } from "@/components/admin/orders/orderFormat";
+import { CustomerCreditPanel } from "@/app/admin/shop/customers/components/CustomerCreditPanel";
+import { CustomerBrandDiscountsPanel } from "@/app/admin/shop/customers/components/CustomerBrandDiscountsPanel";
+import { orderStatusLabel, orderStatusTone } from "@/lib/admin/orderWorkflow";
+import { orderPaymentLabel } from "@/lib/shopOrderPresentation";
+import { cn } from "@/lib/utils";
 
-type CustomerGroup = 'B2C' | 'B2B_PENDING' | 'B2B_APPROVED';
+type CustomerGroup = "B2C" | "B2B_PENDING" | "B2B_APPROVED";
 
 type CustomerDetail = {
   id: string;
@@ -44,32 +49,13 @@ type CustomerDetail = {
   vatNumber: string | null;
   group: CustomerGroup;
   b2bDiscountPercent: number | null;
-  discountTier: string | null;
-  region: string | null;
-  currencyPref: string;
-  balance: number;
   isActive: boolean;
   notes: string | null;
   preferredLocale: string;
   createdAt: string;
   updatedAt: string;
-  account: {
-    lastLoginAt: string | null;
-    emailVerifiedAt: string | null;
-    hasPassword: boolean;
-  } | null;
-  passwordSetup: {
-    expiresAt: string;
-    createdAt: string;
-  } | null;
-  defaultShippingAddress: {
-    line1: string;
-    line2: string | null;
-    city: string;
-    region: string | null;
-    postcode: string | null;
-    country: string;
-  } | null;
+  account: { lastLoginAt: string | null; emailVerifiedAt: string | null; hasPassword: boolean } | null;
+  passwordSetup: { expiresAt: string; createdAt: string } | null;
   addresses: Array<{
     id: string;
     label: string;
@@ -80,38 +66,22 @@ type CustomerDetail = {
     postcode: string | null;
     country: string;
     isDefaultShipping: boolean;
-    isDefaultBilling: boolean;
   }>;
   orders: Array<{
     id: string;
     orderNumber: string;
     status: string;
+    paymentStatus: string;
+    isDraft: boolean;
     currency: string;
-    subtotal: number;
     total: number;
     createdAt: string;
     itemCount: number;
   }>;
-  carts: Array<{
-    id: string;
-    token: string;
-    currency: string;
-    locale: string;
-    updatedAt: string;
-    expiresAt: string;
-    itemCount: number;
-  }>;
-  auditLog: Array<{
-    id: string;
-    actorEmail: string;
-    actorName: string | null;
-    action: string;
-    metadata: unknown;
-    createdAt: string;
-  }>;
+  carts: Array<{ id: string; updatedAt: string; itemCount: number }>;
 };
 
-type CustomerForm = {
+type ProfileForm = {
   firstName: string;
   lastName: string;
   phone: string;
@@ -119,91 +89,88 @@ type CustomerForm = {
   vatNumber: string;
   notes: string;
   b2bDiscountPercent: string;
-  discountTier: string;
-  region: string;
-  currencyPref: string;
-  balance: string;
   preferredLocale: string;
-  isActive: boolean;
-  group: CustomerGroup;
 };
 
-type CrmOrder = {
-  id: string;
-  number: number;
-  name: string;
-  orderStatus: string;
-  paymentStatus: string;
-  totalAmount: number;
-  clientTotal: number;
-  tag: string;
-  orderDate: string | null;
-  itemCount: number;
+type LtvStats = {
+  totalSpent: number;
+  ordersCount: number;
+  paidOrdersCount: number;
+  averageOrderValue: number;
+  daysSinceLastOrder: number | null;
+  currency: string;
+  creditBalance: number;
 };
 
-function createForm(customer: CustomerDetail): CustomerForm {
+type CrmOrder = { id: string; number: number; name: string; clientTotal: number; itemCount: number };
+
+function formFrom(customer: CustomerDetail): ProfileForm {
   return {
     firstName: customer.firstName,
     lastName: customer.lastName,
-    phone: customer.phone ?? '',
-    companyName: customer.companyName ?? '',
-    vatNumber: customer.vatNumber ?? '',
-    notes: customer.notes ?? '',
-    b2bDiscountPercent: customer.b2bDiscountPercent != null ? String(customer.b2bDiscountPercent) : '',
-    discountTier: customer.discountTier ?? '',
-    region: customer.region ?? '',
-    currencyPref: customer.currencyPref ?? 'EUR',
-    balance: String(customer.balance ?? 0),
-    preferredLocale: customer.preferredLocale,
-    isActive: customer.isActive,
-    group: customer.group,
+    phone: customer.phone ?? "",
+    companyName: customer.companyName ?? "",
+    vatNumber: customer.vatNumber ?? "",
+    notes: customer.notes ?? "",
+    b2bDiscountPercent:
+      customer.b2bDiscountPercent != null ? String(customer.b2bDiscountPercent) : "",
+    preferredLocale: customer.preferredLocale === "ua" ? "ua" : "en",
   };
 }
 
-function customerGroupTone(group: CustomerGroup): 'default' | 'success' | 'warning' {
-  switch (group) {
-    case 'B2B_APPROVED':
-      return 'success';
-    case 'B2B_PENDING':
-      return 'warning';
-    default:
-      return 'default';
-  }
+const inputClass =
+  "w-full border border-white/15 bg-black/40 px-3 py-2 text-[14px] text-zinc-100 placeholder:text-zinc-600 focus:border-blue-400/60 focus:outline-none";
+const quietButton =
+  "inline-flex items-center justify-center gap-2 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
+const cardClass = "border border-white/10 bg-[#151515]";
+
+function Field({
+  label,
+  hint,
+  wide,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className={cn("block", wide && "sm:col-span-2")}>
+      <span className="mb-1.5 block text-[12px] text-zinc-400">{label}</span>
+      {children}
+      {hint ? <span className="mt-1 block text-[12px] text-zinc-500">{hint}</span> : null}
+    </label>
+  );
 }
 
 export default function AdminShopCustomerDetailPage() {
   const toast = useToast();
+  const confirm = useConfirm();
   const params = useParams();
   const id = params?.id as string;
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
-  const [form, setForm] = useState<CustomerForm | null>(null);
+  const [form, setForm] = useState<ProfileForm | null>(null);
+  const [ltv, setLtv] = useState<LtvStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [setupLinkUrl, setSetupLinkUrl] = useState<string | null>(null);
-  const [setupLinkExpiresAt, setSetupLinkExpiresAt] = useState<string | null>(null);
-  const [copiedSetupLink, setCopiedSetupLink] = useState(false);
-  const [crmOrders, setCrmOrders] = useState<CrmOrder[]>([]);
+  const [error, setError] = useState("");
+  const [setupLink, setSetupLink] = useState<{ url: string; expiresAt: string | null } | null>(null);
+  const [crmOrders, setCrmOrders] = useState<CrmOrder[] | null>(null);
   const [crmLoading, setCrmLoading] = useState(false);
-  const [customerMarkup, setCustomerMarkup] = useState<{ markupPct: number; notes: string | null } | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
-    setError('');
+    setError("");
     try {
-      const response = await fetch(`/api/admin/shop/customers/${id}`);
+      const response = await fetch(`/api/admin/shop/customers/${id}`, { cache: "no-store" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error || 'Не вдалося завантажити клієнта');
+        setError((data as { error?: string }).error || "Не вдалося завантажити клієнта");
         return;
       }
-      const nextCustomer = data as CustomerDetail;
-      setCustomer(nextCustomer);
-      setForm(createForm(nextCustomer));
-      setSetupLinkUrl(null);
-      setSetupLinkExpiresAt(nextCustomer.passwordSetup?.expiresAt ?? null);
+      setCustomer(data as CustomerDetail);
+      setForm(formFrom(data as CustomerDetail));
     } finally {
       setLoading(false);
     }
@@ -214,115 +181,151 @@ export default function AdminShopCustomerDetailPage() {
   }, [load]);
 
   useEffect(() => {
-    if (!customer?.notes) return;
-    const match = customer.notes.match(/\[Airtable:(rec[a-zA-Z0-9]+)\]/);
-    if (!match) return;
-    const airtableId = match[1];
-
-    setCrmLoading(true);
-    fetch(`/api/admin/crm?type=orders&maxRecords=50&filter=${encodeURIComponent(`FIND("${airtableId}", ARRAYJOIN({Клиент}))`)}`)
-      .then((response) => response.json())
-      .then((data) =>
-        setCrmOrders(
-          (data.records || []).map((record: any) => ({
-            id: record.id,
-            number: record.fields?.['Номер'] || 0,
-            name: record.fields?.['Название'] || '',
-            orderStatus: record.fields?.['Статус заказа'] || '',
-            paymentStatus: record.fields?.['Статус оплаты'] || '',
-            totalAmount: record.fields?.['Сумма позиций (точная)'] || 0,
-            clientTotal: record.fields?.['Итого к оплате клиентом'] || 0,
-            tag: record.fields?.['Тэг'] || '',
-            orderDate: record.fields?.['Дата заказа'] || null,
-            itemCount: record.fields?.['Кол-во позиций'] || 0,
-          }))
-        )
-      )
-      .catch(() => {})
-      .finally(() => setCrmLoading(false));
-
-    fetch('/api/admin/shop/pricing/customer-markups')
-      .then((response) => response.json())
+    if (!id) return;
+    let cancelled = false;
+    fetch(`/api/admin/customers/${id}/ltv`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        const markup = (data.markups || []).find((item: any) => item.customerId === airtableId);
-        if (markup) setCustomerMarkup({ markupPct: markup.markupPct, notes: markup.notes });
+        if (!cancelled && data) setLtv(data as LtvStats);
       })
       .catch(() => {});
-  }, [customer?.notes]);
+    return () => {
+      cancelled = true;
+    };
+  }, [id, customer?.updatedAt]);
 
-  const totalOrderValue = useMemo(
-    () => customer?.orders.reduce((sum, order) => sum + order.total, 0) ?? 0,
-    [customer?.orders]
-  );
+  const airtableId = customer?.notes?.match(/\[Airtable:(rec[a-zA-Z0-9]+)\]/)?.[1] ?? null;
 
-  async function save() {
-    if (!customer || !form) return;
-    setSaving(true);
-    setError('');
-    setSuccess('');
+  async function loadCrmOrders() {
+    if (!airtableId || crmOrders || crmLoading) return;
+    setCrmLoading(true);
     try {
+      const response = await fetch(
+        `/api/admin/crm?type=orders&maxRecords=50&filter=${encodeURIComponent(`FIND("${airtableId}", ARRAYJOIN({Клиент}))`)}`
+      );
+      const data = await response.json();
+      setCrmOrders(
+        (data.records || []).map((record: { id: string; fields?: Record<string, unknown> }) => ({
+          id: record.id,
+          number: Number(record.fields?.["Номер"] ?? 0),
+          name: String(record.fields?.["Название"] ?? ""),
+          clientTotal: Number(record.fields?.["Итого к оплате клиентом"] ?? 0),
+          itemCount: Number(record.fields?.["Кол-во позиций"] ?? 0),
+        }))
+      );
+    } catch {
+      setCrmOrders([]);
+    } finally {
+      setCrmLoading(false);
+    }
+  }
+
+  const dirty = useMemo(() => {
+    if (!customer || !form) return false;
+    const base = formFrom(customer);
+    return (Object.keys(base) as Array<keyof ProfileForm>).some((key) => base[key] !== form[key]);
+  }, [customer, form]);
+
+  async function save(overrides: { isActive?: boolean } = {}) {
+    if (!customer || !form) return;
+    const discount = form.b2bDiscountPercent.trim();
+    if (discount && !(Number(discount) >= 0 && Number(discount) <= 100)) {
+      setError("Знижка має бути числом від 0 до 100.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      // The endpoint replaces the whole profile, so every field is sent every time.
       const response = await fetch(`/api/admin/shop/customers/${customer.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          b2bDiscountPercent: discount,
+          isActive: overrides.isActive ?? customer.isActive,
+          group: customer.group,
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Не вдалося оновити клієнта';
-        setError(msg);
-        toast.error('Не вдалося оновити клієнта', msg);
+        setError((data as { error?: string }).error || "Не вдалося зберегти клієнта");
         return;
       }
-      const nextCustomer = data as CustomerDetail;
-      setCustomer(nextCustomer);
-      setForm(createForm(nextCustomer));
-      setSuccess('Клієнта оновлено.');
-      toast.success('Клієнта оновлено');
+      setCustomer(data as CustomerDetail);
+      setForm(formFrom(data as CustomerDetail));
+      toast.success(
+        overrides.isActive === false
+          ? "Акаунт вимкнено"
+          : overrides.isActive
+            ? "Акаунт увімкнено"
+            : "Зміни збережено"
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  async function runAction(action: 'approve_b2b' | 'revert_b2c' | 'create_setup_link' | 'send_password_reset') {
+  async function runAction(
+    action: "approve_b2b" | "revert_b2c" | "create_setup_link" | "send_password_reset"
+  ) {
     if (!customer) return;
+    const name = customer.companyName || customer.fullName;
+    const confirmations = {
+      approve_b2b: {
+        title: `Затвердити ${name} як B2B-партнера?`,
+        description:
+          "Після входу на сайт клієнт бачитиме оптові ціни. Розмір знижки — у блоці «Ціни для клієнта».",
+        confirmLabel: "Затвердити B2B",
+      },
+      revert_b2c: {
+        title:
+          customer.group === "B2B_PENDING"
+            ? `Відхилити заявку ${name}?`
+            : `Перевести ${name} у роздріб?`,
+        description: "Клієнт бачитиме звичайні роздрібні ціни. Персональні знижки збережуться.",
+        confirmLabel: customer.group === "B2B_PENDING" ? "Відхилити заявку" : "Перевести в роздріб",
+        tone: "warning" as const,
+      },
+      send_password_reset: {
+        title: `Надіслати лист для зміни пароля на ${customer.email}?`,
+        description: "Клієнт отримає посилання, щоб задати новий пароль.",
+        confirmLabel: "Надіслати лист",
+      },
+    } as const;
+    if (action !== "create_setup_link" && !(await confirm(confirmations[action]))) return;
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
     try {
       const response = await fetch(`/api/admin/shop/customers/${customer.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Дія не виконалась';
-        setError(msg);
-        toast.error('Дія не виконалась', msg);
+        setError((data as { error?: string }).error || "Дія не виконалась");
         return;
       }
-      const nextCustomer = data as CustomerDetail;
-      setCustomer(nextCustomer);
-      setForm(createForm(nextCustomer));
-      if ((data as { setupLinkUrl?: string }).setupLinkUrl) {
-        setSetupLinkUrl((data as { setupLinkUrl?: string }).setupLinkUrl ?? null);
-        setSetupLinkExpiresAt((data as { setupLinkExpiresAt?: string }).setupLinkExpiresAt ?? null);
-        setSuccess('Посилання для встановлення пароля згенеровано.');
-        toast.success('Setup link generated', 'Поділіться з клієнтом для встановлення пароля');
-      } else if (action === 'send_password_reset') {
-        const target = (data as { passwordResetTo?: string }).passwordResetTo ?? '';
-        const sent = (data as { passwordResetSent?: boolean }).passwordResetSent !== false;
-        if (sent) {
-          setSuccess(`Лист зі скиданням пароля надіслано${target ? ` на ${target}` : ''}.`);
-          toast.success('Email надіслано', target ? `Лист пішов на ${target}` : undefined);
-        } else {
-          setSuccess('Токен скидання пароля створено, але email не надіслався — перевірте логи Resend.');
-          toast.error('Email не вдалось надіслати', 'Токен створено, але доставка не пройшла. Дивіться логи.');
-        }
+      setCustomer(data as CustomerDetail);
+      setForm(formFrom(data as CustomerDetail));
+      const result = data as {
+        setupLinkUrl?: string;
+        setupLinkExpiresAt?: string;
+        passwordResetSent?: boolean;
+        passwordResetTo?: string;
+      };
+      if (result.setupLinkUrl) {
+        setSetupLink({ url: result.setupLinkUrl, expiresAt: result.setupLinkExpiresAt ?? null });
+        toast.success("Посилання для входу готове", "Скопіюйте його й надішліть клієнту");
+      } else if (action === "send_password_reset") {
+        if (result.passwordResetSent === false)
+          toast.error("Лист не надіслався", "Скористайтеся посиланням для входу замість листа.");
+        else toast.success("Лист надіслано", result.passwordResetTo);
       } else {
-        const msg = action === 'approve_b2b' ? 'Клієнта затверджено для B2B' : 'Клієнта повернуто до B2C';
-        setSuccess(msg + '.');
-        toast.success(msg);
+        toast.success(
+          action === "approve_b2b" ? "Клієнта затверджено як B2B-партнера" : "Клієнт тепер роздрібний"
+        );
       }
     } finally {
       setSaving(false);
@@ -331,45 +334,61 @@ export default function AdminShopCustomerDetailPage() {
 
   async function startImpersonation() {
     if (!customer) return;
+    const ok = await confirm({
+      title: "Відкрити кабінет клієнта?",
+      description:
+        "Ви побачите сайт так, як бачить його клієнт: його ціни, кошик і замовлення. Нічого не оформлюйте від його імені без домовленості.",
+      confirmLabel: "Відкрити кабінет",
+    });
+    if (!ok) return;
     setSaving(true);
-    setError('');
-    setSuccess('');
     try {
       const response = await fetch(`/api/admin/shop/customers/${customer.id}/impersonate`, {
-        method: 'POST',
+        method: "POST",
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const msg = (data as { error?: string }).error || 'Не вдалось запустити імперсонацію';
-        setError(msg);
-        toast.error(msg);
+        setError((data as { error?: string }).error || "Не вдалося відкрити кабінет клієнта");
         return;
       }
-      toast.success('Імперсонацію запущено', 'Ви будете перенаправлені у кабінет клієнта');
-      // Open in same tab so the cookie applies for the navigation.
-      window.location.href = `/${customer.preferredLocale === 'ua' ? 'ua' : 'en'}/shop/account`;
+      window.location.href = `/${customer.preferredLocale === "ua" ? "ua" : "en"}/shop/account`;
     } finally {
       setSaving(false);
     }
   }
 
-  function updateForm<K extends keyof CustomerForm>(field: K, value: CustomerForm[K]) {
-    setForm((current) => (current ? { ...current, [field]: value } : current));
+  async function toggleActive() {
+    if (!customer) return;
+    if (customer.isActive) {
+      const ok = await confirm({
+        title: "Вимкнути акаунт клієнта?",
+        description: "Клієнт не зможе увійти на сайт. Замовлення й історія збережуться.",
+        confirmLabel: "Вимкнути",
+        tone: "warning",
+      });
+      if (!ok) return;
+    }
+    await save({ isActive: !customer.isActive });
   }
 
-  async function copySetupLink() {
-    if (!setupLinkUrl) return;
-    await navigator.clipboard.writeText(setupLinkUrl);
-    setCopiedSetupLink(true);
-    window.setTimeout(() => setCopiedSetupLink(false), 1500);
+  async function copy(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(label);
+    } catch {
+      toast.error("Не вдалося скопіювати");
+    }
+  }
+
+  function update<K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) {
+    setForm((current) => (current ? { ...current, [field]: value } : current));
   }
 
   if (loading) {
     return (
       <AdminPage>
-        <div className="flex items-center gap-3 rounded-none border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
-          <UserRound className="h-4 w-4 animate-pulse" />
-          Завантажую клієнта…
+        <div className="flex items-center gap-3 border border-white/10 bg-[#171717] px-5 py-6 text-sm text-zinc-400">
+          <UserRound className="h-4 w-4 animate-pulse" /> Завантажуємо клієнта…
         </div>
       </AdminPage>
     );
@@ -378,432 +397,495 @@ export default function AdminShopCustomerDetailPage() {
   if (!customer || !form) {
     return (
       <AdminPage className="space-y-4">
-        <div className="rounded-none border border-blue-500/20 bg-blue-950/20 px-4 py-3 text-sm text-red-200">
-          {error || 'Клієнта не знайдено'}
+        <div className="border-l-2 border-red-400 bg-red-500/[0.08] px-4 py-3 text-sm text-red-100">
+          {error || "Клієнта не знайдено"}
         </div>
-        <Link href="/admin/shop/customers" className="inline-block text-sm text-zinc-300 hover:text-zinc-100">
-          Назад до клієнтів
+        <Link href="/admin/shop/customers" className="text-sm text-zinc-300 hover:text-white">
+          ← До клієнтів
         </Link>
       </AdminPage>
     );
   }
 
+  const title = customer.companyName || customer.fullName || customer.email;
+  const placedOrders = customer.orders.filter((order) => !order.isDraft);
+
   return (
-    <AdminPage className="space-y-6">
-      <AdminPageHeader
-        eyebrow="Картка клієнта"
-        title={customer.fullName}
-        description={`${customer.email}${customer.companyName ? ` · ${customer.companyName}` : ''}`}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <AdminStatusBadge tone={customerGroupTone(customer.group)}>{customer.group.replace('B2B_', 'B2B ')}</AdminStatusBadge>
-            {customer.isActive ? <AdminStatusBadge tone="success">Активний</AdminStatusBadge> : <AdminStatusBadge tone="default">Неактивний</AdminStatusBadge>}
-          </div>
-        }
-      />
-
-      <CustomerLtvHeader customerId={customer.id} />
-
-      <AdminEntityToolbar>
-        <div className="flex flex-wrap items-center gap-3">
-          {customer.group !== 'B2B_APPROVED' ? (
-            <button
-              type="button"
-              onClick={() => void runAction('approve_b2b')}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 transition hover:bg-emerald-500/15 disabled:opacity-50"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Затвердити B2B
-            </button>
-          ) : null}
-          {customer.group !== 'B2C' ? (
-            <button
-              type="button"
-              onClick={() => void runAction('revert_b2c')}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:opacity-50"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Повернути до B2C
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => void startImpersonation()}
-            disabled={saving || !customer.isActive}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-500/15 disabled:opacity-50"
-            title={
-              customer.isActive
-                ? 'Зайти у кабінет як цей клієнт (1 година)'
-                : 'Деактивованих клієнтів імперсонувати не можна'
-            }
-          >
-            <Eye className="h-4 w-4" />
-            Зайти як клієнт
-          </button>
-          <button
-            type="button"
-            onClick={() => void runAction('send_password_reset')}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/10 px-4 py-2 text-sm text-blue-200 transition hover:bg-blue-500/15 disabled:opacity-50"
-            title="Надіслати клієнту лист зі скиданням пароля"
-          >
-            <Mail className="h-4 w-4" />
-            Скинути пароль (email)
-          </button>
-          <button
-            type="button"
-            onClick={() => void runAction('create_setup_link')}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-200 transition hover:bg-amber-500/15 disabled:opacity-50"
-            title="Згенерувати одноразове посилання, яке можна скопіювати"
-          >
-            <KeyRound className="h-4 w-4" />
-            Setup-лінк
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={() => void save()}
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600 disabled:opacity-50"
+    <AdminPage wide className="max-w-[1400px] space-y-4">
+      <header className="space-y-3">
+        <Link
+          href="/admin/shop/customers"
+          className="inline-flex items-center gap-1.5 text-[12px] text-zinc-400 transition hover:text-white"
         >
-          <Save className="h-4 w-4" />
-          {saving ? 'Зберігаю…' : 'Зберегти'}
-        </button>
-      </AdminEntityToolbar>
+          <ArrowLeft className="h-3.5 w-3.5" /> Клієнти
+        </Link>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-[24px] font-semibold tracking-tight text-white">{title}</h1>
+              <CustomerTypeBadge group={customer.group} discount={customer.b2bDiscountPercent} />
+              {!customer.isActive ? <AdminStatusBadge tone="danger">Акаунт вимкнено</AdminStatusBadge> : null}
+            </div>
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-zinc-400">
+              {customer.companyName ? <span>{customer.fullName}</span> : null}
+              {customer.phone ? (
+                <button
+                  type="button"
+                  onClick={() => void copy(customer.phone!, "Телефон скопійовано")}
+                  className="inline-flex items-center gap-1 hover:text-white"
+                >
+                  {customer.phone} <Copy className="h-3 w-3" />
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void copy(customer.email, "Email скопійовано")}
+                className="inline-flex items-center gap-1 hover:text-white"
+              >
+                {customer.email} <Copy className="h-3 w-3" />
+              </button>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={!dirty || saving}
+              className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Save className="h-4 w-4" /> {saving ? "Зберігаємо…" : "Зберегти зміни"}
+            </button>
+            <Link href={`/admin/shop/orders/create?customerId=${customer.id}`} className={quietButton}>
+              <Plus className="h-4 w-4" /> Замовлення для клієнта
+            </Link>
+          </div>
+        </div>
+      </header>
 
-      <AdminMetricGrid>
-        <AdminMetricCard label="Замовлень" value={customer.orders.length} meta="Історія покупок" />
-        <AdminMetricCard label="Адрес" value={customer.addresses.length} meta="Доставка + білінг" />
-        <AdminMetricCard label="Кошиків" value={customer.carts.length} meta="Активність на сайті" />
-        <AdminMetricCard label="Сума замовлень" value={totalOrderValue.toFixed(2)} meta={customer.currencyPref || 'EUR'} />
-      </AdminMetricGrid>
+      {error ? (
+        <div role="alert" className="border-l-2 border-red-400 bg-red-500/[0.08] px-4 py-2.5 text-[13px] text-red-100">
+          {error}
+        </div>
+      ) : null}
+      {dirty ? (
+        <div role="status" className="border-l-2 border-amber-400 bg-amber-400/[0.07] px-4 py-2 text-[13px] text-amber-100">
+          Є незбережені зміни — натисніть «Зберегти зміни».
+        </div>
+      ) : null}
+
+      {customer.group === "B2B_PENDING" ? (
+        <section className="flex flex-wrap items-center justify-between gap-3 border border-amber-400/30 bg-amber-400/[0.06] px-5 py-4">
+          <div>
+            <div className="text-[15px] font-semibold text-amber-100">Заявка на оптові ціни</div>
+            <p className="mt-0.5 text-[13px] text-amber-100/75">
+              Подана {formatOrderDate(customer.createdAt, true)}. Перевірте компанію, ЄДРПОУ і
+              контакти — потім вирішіть.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void runAction("approve_b2b")}
+              className="inline-flex items-center gap-1.5 bg-emerald-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4" /> Затвердити B2B
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void runAction("revert_b2c")}
+              className="border border-white/20 px-4 py-2 text-[13px] text-zinc-100 hover:bg-white/5 disabled:opacity-50"
+            >
+              Відхилити
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      <dl className="grid grid-cols-2 gap-px border border-white/10 bg-white/10 lg:grid-cols-4">
+        {[
+          { label: "Замовлень", value: ltv ? String(ltv.ordersCount) : String(placedOrders.length) },
+          {
+            label: "Оплачено всього",
+            value: ltv?.paidOrdersCount ? formatOrderMoney(ltv.totalSpent, ltv.currency) : "—",
+            sub: ltv?.paidOrdersCount ? `${ltv.paidOrdersCount} оплачених замовл.` : undefined,
+          },
+          {
+            label: "Середній чек",
+            value: ltv && ltv.paidOrdersCount ? formatOrderMoney(ltv.averageOrderValue, ltv.currency) : "—",
+          },
+          {
+            label: "Останнє замовлення",
+            value:
+              ltv?.daysSinceLastOrder == null
+                ? "Ще не було"
+                : ltv.daysSinceLastOrder === 0
+                  ? "Сьогодні"
+                  : `${ltv.daysSinceLastOrder} дн. тому`,
+            sub:
+              ltv && ltv.creditBalance > 0
+                ? `Кредит: ${formatOrderMoney(ltv.creditBalance, ltv.currency)}`
+                : undefined,
+          },
+        ].map((metric) => (
+          <div key={metric.label} className="bg-[#151515] px-4 py-3">
+            <dt className="text-[11px] uppercase tracking-[0.1em] text-zinc-500">{metric.label}</dt>
+            <dd className="mt-1 text-[18px] font-semibold tabular-nums text-white">{metric.value}</dd>
+            {metric.sub ? <dd className="text-[12px] text-zinc-500">{metric.sub}</dd> : null}
+          </div>
+        ))}
+      </dl>
 
       <AdminSplitDetailShell
+        className="gap-4 lg:grid-cols-[minmax(0,1fr)_330px]"
         main={
           <>
-            {(error || success) && (
-              <div className={`rounded-none border px-4 py-3 text-sm ${error ? 'border-blue-500/20 bg-blue-950/20 text-red-200' : 'border-emerald-500/20 bg-emerald-950/20 text-emerald-200'}`}>
-                {error || success}
-              </div>
-            )}
-
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Профіль та комерційні умови</h2>
-                <p className="mt-1 text-sm text-zinc-500">Редагування профілю, B2B-умов, балансу та локалі.</p>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <AdminInputField label="Ім'я" value={form.firstName} onChange={(value) => updateForm('firstName', value)} />
-                <AdminInputField label="Прізвище" value={form.lastName} onChange={(value) => updateForm('lastName', value)} />
-                <AdminInputField label="Телефон" value={form.phone} onChange={(value) => updateForm('phone', value)} />
-                <AdminInputField label="Компанія" value={form.companyName} onChange={(value) => updateForm('companyName', value)} />
-                <AdminInputField label="VAT-номер" value={form.vatNumber} onChange={(value) => updateForm('vatNumber', value)} />
-                <AdminInputField label="Знижка %" value={form.b2bDiscountPercent} onChange={(value) => updateForm('b2bDiscountPercent', value)} type="number" />
-                <AdminInputField label="Тариф знижки" value={form.discountTier} onChange={(value) => updateForm('discountTier', value)} />
-                <AdminInputField label="Баланс" value={form.balance} onChange={(value) => updateForm('balance', value)} type="number" step="0.01" />
-                <AdminInputField label="Регіон" value={form.region} onChange={(value) => updateForm('region', value)} />
-                <AdminSelectField
-                  label="Бажана валюта"
-                  value={form.currencyPref}
-                  onChange={(value) => updateForm('currencyPref', value)}
-                  options={[
-                    { value: 'EUR', label: 'EUR' },
-                    { value: 'USD', label: 'USD' },
-                    { value: 'UAH', label: 'UAH' },
-                  ]}
-                />
-                <AdminSelectField
-                  label="Бажана мова"
-                  value={form.preferredLocale}
-                  onChange={(value) => updateForm('preferredLocale', value)}
-                  options={[
-                    { value: 'en', label: 'EN' },
-                    { value: 'ua', label: 'UA' },
-                  ]}
-                />
-                <AdminSelectField
-                  label="Група клієнта"
-                  value={form.group}
-                  onChange={(value) => updateForm('group', value as CustomerGroup)}
-                  options={[
-                    { value: 'B2C', label: 'B2C' },
-                    { value: 'B2B_PENDING', label: 'B2B на розгляді' },
-                    { value: 'B2B_APPROVED', label: 'B2B затверджено' },
-                  ]}
-                />
-                <div className="md:col-span-2">
-                  <AdminCheckboxField
-                    label="Активний акаунт клієнта"
-                    checked={form.isActive}
-                    onChange={(checked) => updateForm('isActive', checked)}
-                    helper="Неактивні клієнти зберігають історію, але не вважаються активними акаунтами."
+            <section className={cn(cardClass, "p-5")}>
+              <h2 className="mb-4 text-[15px] font-semibold text-white">Контакти й компанія</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Ім’я">
+                  <input value={form.firstName} onChange={(event) => update("firstName", event.target.value)} className={inputClass} />
+                </Field>
+                <Field label="Прізвище">
+                  <input value={form.lastName} onChange={(event) => update("lastName", event.target.value)} className={inputClass} />
+                </Field>
+                <Field label="Телефон">
+                  <input value={form.phone} onChange={(event) => update("phone", event.target.value)} inputMode="tel" className={inputClass} />
+                </Field>
+                <Field label="Email (логін)" hint="Змінити email може лише сам клієнт у кабінеті.">
+                  <input value={customer.email} readOnly className={cn(inputClass, "text-zinc-400")} />
+                </Field>
+                <Field label="Компанія">
+                  <input value={form.companyName} onChange={(event) => update("companyName", event.target.value)} className={inputClass} />
+                </Field>
+                <Field label="ЄДРПОУ / VAT">
+                  <input value={form.vatNumber} onChange={(event) => update("vatNumber", event.target.value)} className={inputClass} />
+                </Field>
+                <Field label="Мова листів і кабінету">
+                  <select
+                    value={form.preferredLocale}
+                    onChange={(event) => update("preferredLocale", event.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="ua">Українська</option>
+                    <option value="en">English</option>
+                  </select>
+                </Field>
+                <Field label="Примітка до клієнта" wide>
+                  <textarea
+                    value={form.notes}
+                    onChange={(event) => update("notes", event.target.value)}
+                    rows={3}
+                    className={cn(inputClass, "resize-y")}
+                    placeholder="Видно лише команді"
                   />
-                </div>
-                <div className="md:col-span-2">
-                  <AdminTextareaField label="Внутрішні нотатки" value={form.notes} onChange={(value) => updateForm('notes', value)} rows={5} />
-                </div>
+                </Field>
               </div>
             </section>
 
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-zinc-100">Замовлення</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Замовлення з storefront і швидкий перехід до деталі.</p>
-                </div>
-                <Link
-                  href={`/admin/shop/orders/create?customerId=${customer.id}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-linear-to-b from-blue-500 to-blue-700 px-4 py-2 text-sm font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_8px_rgba(59,130,246,0.4)] transition hover:from-blue-400 hover:to-blue-600"
-                >
-                  Нове замовлення
-                </Link>
+            <section className={cn(cardClass, "p-5")}>
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-[15px] font-semibold text-white">Ціни для клієнта</h2>
+                {customer.group === "B2B_APPROVED" ? (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void runAction("revert_b2c")}
+                    className="text-[12px] text-zinc-400 hover:text-white"
+                  >
+                    Перевести в роздріб
+                  </button>
+                ) : null}
               </div>
-              {customer.orders.length ? (
-                <AdminTableShell>
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[720px] text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                          <th className="px-4 py-4 font-medium">Замовлення</th>
-                          <th className="px-4 py-4 font-medium">Статус</th>
-                          <th className="px-4 py-4 font-medium">Позицій</th>
-                          <th className="px-4 py-4 font-medium">Сума</th>
-                          <th className="px-4 py-4 font-medium">Відкрити</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/6">
-                        {customer.orders.map((order) => (
-                          <tr key={order.id} className="transition hover:bg-white/3">
-                            <td className="px-4 py-4">
-                              <div className="font-medium text-zinc-100">{order.orderNumber}</div>
-                              <div className="mt-1 text-xs text-zinc-500">{new Date(order.createdAt).toLocaleString()}</div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <AdminStatusBadge tone={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'danger' : 'warning'}>
-                                {order.status.replace(/_/g, ' ')}
-                              </AdminStatusBadge>
-                            </td>
-                            <td className="px-4 py-4 text-zinc-300">{order.itemCount}</td>
-                            <td className="px-4 py-4 text-zinc-100">
-                              {order.currency} {order.total.toFixed(2)}
-                            </td>
-                            <td className="px-4 py-4">
-                              <Link href={`/admin/shop/orders/${order.id}`} className="text-sm text-zinc-300 transition hover:text-zinc-100">
-                                Відкрити →
-                              </Link>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </AdminTableShell>
+              {customer.group === "B2C" ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 border border-white/10 bg-white/[0.02] px-4 py-3">
+                  <p className="text-[13px] leading-5 text-zinc-300">
+                    Роздрібний клієнт бачить звичайні ціни сайту. Щоб дати оптові ціни — затвердіть
+                    його як B2B-партнера.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void runAction("approve_b2b")}
+                    className={quietButton}
+                  >
+                    <Check className="h-4 w-4" /> Затвердити B2B
+                  </button>
+                </div>
               ) : (
-                <div className="rounded-none border border-dashed border-white/10 px-4 py-10 text-sm text-zinc-500">Замовлень ще немає.</div>
+                <div className="space-y-5">
+                  <ol className="grid gap-px border border-white/10 bg-white/10 text-[12px] sm:grid-cols-4">
+                    {[
+                      ["1", "Знижка на бренд для цього клієнта", "нижче"],
+                      ["2", "Знижка бренду для всіх B2B", "Ціни → бренди"],
+                      ["3", "Персональна знижка клієнта", "поле нижче"],
+                      ["4", "Загальна B2B-знижка", "Налаштування"],
+                    ].map(([step, text, where]) => (
+                      <li key={step} className="bg-[#151515] px-3 py-2.5">
+                        <span className="mr-1.5 font-semibold text-blue-300">{step}.</span>
+                        <span className="text-zinc-200">{text}</span>
+                        <span className="block text-zinc-500">{where}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="-mt-2 text-[12px] text-zinc-500">
+                    Сайт бере першу знижку зі списку, яка задана. Якщо в товару вказана своя оптова
+                    ціна — діє вона.
+                    {customer.group === "B2B_PENDING" ? " Діятиме після затвердження заявки." : ""}
+                  </p>
+                  <Field
+                    label="Персональна знижка на всі бренди, %"
+                    hint="Порожньо — діє загальна B2B-знижка з налаштувань."
+                  >
+                    <input
+                      value={form.b2bDiscountPercent}
+                      onChange={(event) => update("b2bDiscountPercent", event.target.value)}
+                      inputMode="decimal"
+                      placeholder="напр. 10"
+                      className={cn(inputClass, "max-w-[180px]")}
+                    />
+                  </Field>
+                  <div className="border-t border-white/[0.06] pt-5">
+                    <CustomerBrandDiscountsPanel
+                      embedded
+                      customerId={customer.id}
+                      globalDiscountPct={customer.b2bDiscountPercent}
+                    />
+                  </div>
+                </div>
               )}
             </section>
 
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5">
-                <h2 className="text-xl font-semibold text-zinc-100">Адреси та кошики</h2>
-                <p className="mt-1 text-sm text-zinc-500">Збережені дані доставки та поточна активність на сайті.</p>
+            <section className={cardClass}>
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3.5">
+                <h2 className="text-[15px] font-semibold text-white">Замовлення</h2>
+                <Link
+                  href={`/admin/shop/orders?tab=all&q=${encodeURIComponent(customer.phone || customer.email)}`}
+                  className="text-[12px] text-zinc-400 hover:text-white"
+                >
+                  Шукати всі за контактами →
+                </Link>
               </div>
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Адреси</h3>
-                  {customer.addresses.length ? (
-                    customer.addresses.map((address) => (
-                      <div key={address.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
-                        <div className="font-medium text-zinc-100">{address.label}</div>
-                        <div className="mt-2 space-y-1">
-                          <div>{address.line1}</div>
-                          {address.line2 ? <div>{address.line2}</div> : null}
-                          <div>{[address.city, address.region, address.postcode].filter(Boolean).join(', ')}</div>
-                          <div>{address.country}</div>
-                        </div>
-                        <div className="mt-3 text-xs text-zinc-500">
-                          {address.isDefaultShipping ? 'Дефолт для доставки' : '—'}
-                          {address.isDefaultBilling ? ' · Дефолт для білінгу' : ''}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">Адрес не збережено.</div>
-                  )}
+              {customer.orders.length ? (
+                <ul className="divide-y divide-white/[0.06]">
+                  {customer.orders.map((order) => (
+                    <li key={order.id}>
+                      <Link
+                        href={
+                          order.isDraft
+                            ? `/admin/shop/drafts/${order.id}`
+                            : `/admin/shop/orders/${order.id}`
+                        }
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-5 py-3 transition hover:bg-white/[0.03] sm:grid-cols-[minmax(0,1fr)_140px_140px]"
+                      >
+                        <span className="min-w-0">
+                          <span className="font-mono text-[13px] font-semibold text-zinc-100">
+                            {order.orderNumber}
+                          </span>
+                          <span className="ml-2 text-[12px] text-zinc-500">
+                            {formatOrderDate(order.createdAt, true)}
+                            {order.itemCount ? ` · ${order.itemCount} шт.` : ""}
+                          </span>
+                        </span>
+                        <span className="hidden sm:block">
+                          {order.isDraft ? (
+                            <AdminStatusBadge>Чернетка</AdminStatusBadge>
+                          ) : (
+                            <AdminStatusBadge tone={orderStatusTone(order.status)}>
+                              {orderStatusLabel(order.status)}
+                            </AdminStatusBadge>
+                          )}
+                        </span>
+                        <span className="text-right">
+                          <span className="block whitespace-nowrap text-[14px] font-semibold text-white">
+                            {formatOrderMoney(order.total, order.currency)}
+                          </span>
+                          <span className="block text-[11px] text-zinc-500">
+                            {orderPaymentLabel(order.paymentStatus)}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-6 text-[13px] text-zinc-500">
+                  Через акаунт замовлень ще не було.
+                  <Link href={`/admin/shop/orders/create?customerId=${customer.id}`} className={quietButton}>
+                    <Plus className="h-4 w-4" /> Створити замовлення
+                  </Link>
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">Кошики</h3>
-                  {customer.carts.length ? (
-                    customer.carts.map((cart) => (
-                      <div key={cart.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4 text-sm text-zinc-300">
-                        <div className="font-medium text-zinc-100">
-                          {cart.currency} · {cart.locale}
-                        </div>
-                        <div className="mt-2 text-xs text-zinc-500">
-                          {cart.itemCount} позицій · оновлено {new Date(cart.updatedAt).toLocaleString()}
-                        </div>
-                        <div className="mt-2 font-mono text-[11px] text-zinc-500">{cart.token}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">Активних кошиків немає.</div>
-                  )}
-                </div>
-              </div>
+              )}
             </section>
 
-            <CustomerBrandDiscountsPanel
-              customerId={customer.id}
-              globalDiscountPct={customer.b2bDiscountPercent}
-            />
-
-            <section className="rounded-none border border-white/10 bg-[#171717] p-6">
-              <div className="mb-5 flex items-center gap-2">
-                <Database className="h-4 w-4 text-blue-300/60" />
-                <div>
-                  <h2 className="text-xl font-semibold text-zinc-100">CRM та ціноутворення</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Замовлення з Airtable та персональні правила націнки.</p>
-                </div>
-              </div>
-              <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <div className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Націнка клієнта</div>
-                  {customerMarkup ? (
-                    <div className="mt-3 space-y-2">
-                      <div className="text-2xl font-semibold text-emerald-300">{customerMarkup.markupPct}%</div>
-                      <div className="text-sm text-zinc-400">
-                        Довідково, на ціни зараз не впливає{customerMarkup.notes ? ` · ${customerMarkup.notes}` : ''}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-3 text-sm text-zinc-500">Використовуються дефолтні правила ціни.</div>
-                  )}
-                </div>
-                <div className="space-y-3">
-                  {crmLoading ? (
-                    <div className="rounded-none border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">Завантажую CRM замовлення…</div>
+            {airtableId ? (
+              <details className={cn(cardClass, "p-5")} onToggle={() => void loadCrmOrders()}>
+                <summary className="cursor-pointer text-[13px] text-zinc-300">
+                  Замовлення зі старої CRM (Airtable)
+                </summary>
+                <div className="mt-4 space-y-2">
+                  {crmLoading || crmOrders === null ? (
+                    <p className="text-[13px] text-zinc-500">Завантажуємо…</p>
                   ) : crmOrders.length ? (
                     crmOrders.map((order) => (
-                      <div key={order.id} className="rounded-none border border-white/10 bg-black/25 px-4 py-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <div className="font-medium text-zinc-100">#{order.number}</div>
-                            <div className="mt-1 text-xs text-zinc-500">{order.name}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-zinc-100">${order.clientTotal.toLocaleString()}</div>
-                            <div className="mt-1 text-xs text-zinc-500">{order.itemCount} позицій</div>
-                          </div>
-                        </div>
+                      <div key={order.id} className="flex justify-between gap-3 border border-white/10 px-4 py-3 text-[13px]">
+                        <span>
+                          <span className="text-zinc-100">#{order.number}</span>
+                          <span className="ml-2 text-zinc-500">{order.name}</span>
+                        </span>
+                        <span className="text-zinc-200">
+                          ${order.clientTotal.toLocaleString("uk-UA")} · {order.itemCount} поз.
+                        </span>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-none border border-dashed border-white/10 px-4 py-8 text-sm text-zinc-500">
-                      Звʼязаних CRM замовлень не знайдено або в нотатках відсутнє посилання на Airtable.
-                    </div>
+                    <p className="text-[13px] text-zinc-500">Замовлень у CRM не знайдено.</p>
                   )}
                 </div>
-              </div>
-            </section>
+              </details>
+            ) : null}
           </>
         }
         sidebar={
           <>
-            <AdminInspectorCard
-              title="Стан акаунта"
-              description="Ідентифікація, активність, локаль та готовність пароля."
-            >
+            <AdminInspectorCard title="Вхід у кабінет">
               <AdminKeyValueGrid
                 rows={[
-                  { label: 'Email', value: customer.email },
-                  { label: 'Мова', value: customer.preferredLocale.toUpperCase() },
-                  { label: 'Останній вхід', value: customer.account?.lastLoginAt ? new Date(customer.account.lastLoginAt).toLocaleString() : 'Ніколи' },
-                  { label: 'Email підтверджено', value: customer.account?.emailVerifiedAt ? new Date(customer.account.emailVerifiedAt).toLocaleString() : 'Ні' },
-                  { label: 'Створено', value: new Date(customer.createdAt).toLocaleString() },
+                  {
+                    label: "Пароль",
+                    value: customer.account?.hasPassword ? "Налаштовано" : "Ще не задано",
+                  },
+                  {
+                    label: "Останній вхід",
+                    value: customer.account?.lastLoginAt
+                      ? formatOrderDate(customer.account.lastLoginAt, true)
+                      : "Не входив",
+                  },
+                  {
+                    label: "Email підтверджено",
+                    value: customer.account?.emailVerifiedAt ? "Так" : "Ні",
+                  },
+                  { label: "Акаунт створено", value: formatOrderDate(customer.createdAt, true) },
                 ]}
               />
-            </AdminInspectorCard>
-
-            <AdminInspectorCard
-              title="Пароль"
-              description="Одноразове посилання для першого входу або скидання пароля."
-            >
-              <div className="space-y-3 text-sm text-zinc-300">
-                <div>
-                  {customer.account?.hasPassword
-                    ? 'Пароль уже встановлено. Можна згенерувати свіже посилання.'
-                    : 'Пароль ще не налаштовано.'}
-                </div>
-                {setupLinkExpiresAt ? (
-                  <div className="text-xs text-zinc-500">
-                    Активне посилання дійсне до {new Date(setupLinkExpiresAt).toLocaleString()}
+              <div className="mt-4 grid gap-2">
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void runAction("create_setup_link")}
+                  className={quietButton}
+                >
+                  <KeyRound className="h-4 w-4" /> Посилання для входу
+                </button>
+                {setupLink ? (
+                  <div className="border border-blue-500/30 bg-blue-500/[0.06] p-3">
+                    <div className="break-all font-mono text-[11px] text-zinc-200">{setupLink.url}</div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-zinc-500">
+                        {setupLink.expiresAt ? `до ${formatOrderDate(setupLink.expiresAt)}` : ""}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void copy(setupLink.url, "Посилання скопійовано")}
+                        className="inline-flex items-center gap-1 bg-blue-600 px-2.5 py-1.5 text-[12px] text-white hover:bg-blue-500"
+                      >
+                        <Copy className="h-3.5 w-3.5" /> Копіювати
+                      </button>
+                    </div>
                   </div>
+                ) : customer.passwordSetup ? (
+                  <p className="text-[12px] text-zinc-500">
+                    Попереднє посилання дійсне до {formatOrderDate(customer.passwordSetup.expiresAt)}.
+                  </p>
                 ) : null}
-                {setupLinkUrl ? (
-                  <div className="rounded-none border border-white/10 bg-black/25 px-3 py-3">
-                    <div className="break-all font-mono text-xs text-zinc-200">{setupLinkUrl}</div>
-                    <button
-                      type="button"
-                      onClick={() => void copySetupLink()}
-                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/10"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      {copiedSetupLink ? 'Скопійовано' : 'Скопіювати посилання'}
-                    </button>
-                  </div>
-                ) : null}
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void runAction("send_password_reset")}
+                  className={quietButton}
+                >
+                  <Mail className="h-4 w-4" /> Лист для зміни пароля
+                </button>
+                <button
+                  type="button"
+                  disabled={saving || !customer.isActive}
+                  onClick={() => void startImpersonation()}
+                  className={quietButton}
+                >
+                  <Eye className="h-4 w-4" /> Подивитися сайт як клієнт
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void toggleActive()}
+                  className={cn(
+                    quietButton,
+                    customer.isActive ? "border-red-500/30 text-red-200 hover:bg-red-500/10" : ""
+                  )}
+                >
+                  <Power className="h-4 w-4" />
+                  {customer.isActive ? "Вимкнути акаунт" : "Увімкнути акаунт"}
+                </button>
               </div>
             </AdminInspectorCard>
 
-            <AdminInspectorCard
-              title="Дефолтна адреса доставки"
-              description="Знімок основної адреси доставки клієнта."
-            >
-              <AdminKeyValueGrid
-                rows={[
-                  { label: 'Адреса', value: customer.defaultShippingAddress?.line1 || '—' },
-                  { label: 'Кв./офіс', value: customer.defaultShippingAddress?.line2 || '—' },
-                  { label: 'Місто', value: customer.defaultShippingAddress?.city || '—' },
-                  { label: 'Регіон', value: customer.defaultShippingAddress?.region || '—' },
-                  { label: 'Країна', value: customer.defaultShippingAddress?.country || '—' },
-                ]}
-              />
+            <AdminInspectorCard title="Адреси">
+              {customer.addresses.length ? (
+                <ul className="space-y-2">
+                  {customer.addresses.map((address) => (
+                    <li key={address.id} className="text-[13px] leading-5 text-zinc-300">
+                      <span className="text-zinc-100">{address.label || "Адреса"}</span>
+                      {address.isDefaultShipping ? (
+                        <span className="ml-2 text-[11px] text-blue-300">основна</span>
+                      ) : null}
+                      <span className="block text-zinc-400">
+                        {[address.country, address.region, address.city, address.line1, address.line2, address.postcode]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] text-zinc-500">Адрес не збережено.</p>
+              )}
+              {customer.carts.length ? (
+                <p className="mt-3 border-t border-white/[0.06] pt-3 text-[12px] text-zinc-500">
+                  Кошик на сайті: {customer.carts[0].itemCount} шт., змінено{" "}
+                  {formatOrderDate(customer.carts[0].updatedAt)}
+                </p>
+              ) : null}
             </AdminInspectorCard>
 
-            <AdminInspectorCard
-              title="Теги"
-              description="Внутрішні мітки для фільтрації та сегментації."
-            >
-              <AdminTagInput
-                entityType="shop.customer"
-                entityId={customer.id}
-                suggestions={['vip', 'bad-payer', 'wholesale', 'champion', 'churn-risk', 'do-not-contact']}
-              />
-            </AdminInspectorCard>
-
-            <AdminInspectorCard
-              title="Нотатки"
-              description="Внутрішні нотатки для адмінів (клієнт не бачить)."
-            >
+            <AdminInspectorCard title="Нотатки команди">
               <AdminNotes entityType="shop.customer" entityId={customer.id} />
             </AdminInspectorCard>
 
             <CustomerCreditPanel customerId={customer.id} preferredCurrency="EUR" />
 
-            <AdminInspectorCard
-              title="Активність"
-              description="Останні дії адмінів над цим клієнтом."
-            >
-              <AdminActivityTimeline
-                entityType="shop.customer"
-                entityId={customer.id}
-                emptyTitle="Поки немає активності"
-                emptyDescription="Тут зʼявляться редагування профілю, зміни груп і затвердження."
-              />
-            </AdminInspectorCard>
+            <details className={cn(cardClass, "p-4")}>
+              <summary className="cursor-pointer text-[13px] text-zinc-300">Теги</summary>
+              <div className="mt-4">
+                <AdminTagInput
+                  entityType="shop.customer"
+                  entityId={customer.id}
+                  suggestions={["vip", "bad-payer", "wholesale", "champion", "churn-risk", "do-not-contact"]}
+                />
+              </div>
+            </details>
+
+            <details className={cn(cardClass, "p-4")}>
+              <summary className="cursor-pointer text-[13px] text-zinc-300">Журнал дій</summary>
+              <div className="mt-4">
+                <AdminActivityTimeline
+                  entityType="shop.customer"
+                  entityId={customer.id}
+                  emptyTitle="Журнал порожній"
+                  emptyDescription="Тут з’являться зміни профілю, знижок і доступу."
+                />
+              </div>
+            </details>
           </>
         }
       />

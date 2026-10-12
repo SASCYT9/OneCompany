@@ -42,18 +42,13 @@ test("orders and customers workbench pages use shared ops primitives", () => {
       markers: ["AdminEditorShell", "AdminEditorSection", "AdminActionBar"],
     },
     {
+      // 2026-10: group tabs + a B2B request queue replaced the metric cards and filter bar.
       path: "src/app/admin/shop/customers/page.tsx",
-      markers: ["AdminPageHeader", "AdminMetricGrid", "AdminFilterBar", "AdminTableShell"],
+      markers: ["AdminPageHeader", "AdminTableShell", "CustomerTypeBadge"],
     },
     {
       path: "src/app/admin/shop/customers/[id]/page.tsx",
-      markers: [
-        "AdminPageHeader",
-        "AdminEntityToolbar",
-        "AdminSplitDetailShell",
-        "AdminInspectorCard",
-        "AdminActivityTimeline",
-      ],
+      markers: ["AdminSplitDetailShell", "AdminInspectorCard", "AdminActivityTimeline"],
     },
   ];
 
