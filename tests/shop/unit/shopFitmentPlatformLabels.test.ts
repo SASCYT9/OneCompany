@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { ShopProduct } from "../../../src/lib/shopCatalog";
-import { extractProductFitment } from "../../../src/lib/crossShopFitment";
+import { areChassisCompatible, extractProductFitment } from "../../../src/lib/crossShopFitment";
 import { shopFitmentMatchesVehicleConstraints } from "../../../src/lib/shopVehicleConstraints";
 
 function product(title: string, brand = "Test", tags: string[] = []): ShopProduct {
@@ -58,4 +58,33 @@ test("a platform label means nothing for another make", () => {
   const fitment = extractProductFitment(product("Exhaust for Audi A4 G2X"));
   assert.equal(fitment.make, "Audi");
   assert.ok(!fitment.chassisCodes.some((code) => /^G2\d$/.test(code)));
+});
+
+test("a bare number in the title is a spec, not a model badge", () => {
+  const fitment = extractProductFitment(product("BMW G2X 400 Cell Downpipe", "Test"));
+  assert.deepEqual([...fitment.models].sort(), ["3 Series", "4 Series"]);
+  const narrowed = extractProductFitment(product("BMW 430i G2X 300 CPSI Downpipe", "Test"));
+  assert.deepEqual(narrowed.models, ["4 Series"]);
+});
+
+test("every member of a platform is filed, even the ones the code table lacked", () => {
+  assert.ok(extractProductFitment(product("BMW 5 Series F1X Intake")).chassisCodes.includes("F11"));
+  assert.ok(extractProductFitment(product("BMW 5 Series E6X Intake")).chassisCodes.includes("E61"));
+  assert.ok(extractProductFitment(product("BMW 1 Series E8X Intake")).chassisCodes.includes("E81"));
+});
+
+test("a platform written as the supplier's model tag is a chassis list, not a model", () => {
+  const fitment = extractProductFitment(
+    product("Downpipe", "Test", ["fits-make:bmw", "fits-model:bmw:g2x"])
+  );
+  assert.ok(!fitment.models.some((model) => /g2x/i.test(model)));
+  assert.ok(fitment.models.includes("3 Series") || fitment.models.includes("4 Series"));
+});
+
+test("a platform label and one of its members confirm each other", () => {
+  assert.ok(areChassisCompatible("G2X", "G20"));
+  assert.ok(areChassisCompatible("g22", "G2X"));
+  assert.ok(areChassisCompatible("E9X", "E92"));
+  assert.ok(!areChassisCompatible("G2X", "G80"));
+  assert.ok(!areChassisCompatible("G2X", "G8X"));
 });

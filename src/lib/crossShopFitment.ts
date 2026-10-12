@@ -1987,7 +1987,9 @@ function isModelGroupPlaceholder(model: string) {
 /** A model tag that names chassis codes and no known model of the make. */
 function isChassisListModelTag(model: string, make?: string | null) {
   const tokens = model.toUpperCase().split(/[\s,/]+/).filter(Boolean);
-  if (!tokens.some((token) => CHASSIS_CODES.has(token))) return false;
+  if (!tokens.some((token) => CHASSIS_CODES.has(token) || BMW_CHASSIS_FAMILIES[token])) {
+    return false;
+  }
   if (!make || !MODEL_PATTERNS[make === "VW" ? "Volkswagen" : make]?.length) return false;
   return !isKnownVehicleModelForMake(make, model);
 }
@@ -2829,7 +2831,8 @@ function inferModelFromChassis(make: string, chassis: string): string | null {
     )
       return "3 Series";
     if (["F32", "F33", "F36", "G22", "G23", "G26"].includes(upper)) return "4 Series";
-    if (["E34", "E39", "E60", "F10", "G30", "G31"].includes(upper)) return "5 Series";
+    if (["E34", "E39", "E60", "E61", "F10", "F11", "G30", "G31"].includes(upper))
+      return "5 Series";
     if (["E63", "E64", "F06", "F12", "F13", "G32"].includes(upper)) return "6 Series";
     if (["G11", "G12", "G70"].includes(upper)) return "7 Series";
     if (["G14", "G15", "G16"].includes(upper)) return "8 Series";
@@ -3486,9 +3489,7 @@ export function extractProductFitment(product: ShopProduct): Fitment {
       // `G8X` also names G80..G87: keep the platform label where it is a known
       // code and add the members, so every one of those chassis finds it.
       if (makeChassisSet?.has(upperC)) finalChassis.push(upperC);
-      for (const member of family) {
-        if (makeChassisSet?.has(member)) finalChassis.push(member);
-      }
+      finalChassis.push(...family);
       continue;
     }
     if (makeChassisSet) {
@@ -3513,9 +3514,10 @@ export function extractProductFitment(product: ShopProduct): Fitment {
     }
     if (cleanMake === "BMW" && inferred.size > 1) {
       // A platform label spans several series (`G2x` = 3 + 4 Series); an
-      // engine designation in the title (`430i`) says which one is meant.
+      // engine designation in the title (`430i`) says which one is meant. The
+      // suffix is required: a bare `400` is a spec (`400 Cell`), not a badge.
       const named = new Set<string>();
-      for (const match of fitmentEvidenceText.matchAll(/\b([1-8])\d{2}(?:xd|xi|[die])?\b/gi)) {
+      for (const match of fitmentEvidenceText.matchAll(/\b([1-8])\d{2}(?:xd|xi|[die])\b/gi)) {
         named.add(`${match[1]} Series`);
       }
       const narrowed = [...inferred].filter((model) => named.has(model));
@@ -4159,6 +4161,11 @@ export function areChassisCompatible(a: string, b: string): boolean {
   const x = a.toUpperCase();
   const y = b.toUpperCase();
   if (x === y) return true;
+  // A platform label and one of its members confirm each other (`G2X`, `G20`).
+  const xMembers = BMW_CHASSIS_FAMILIES[x];
+  const yMembers = BMW_CHASSIS_FAMILIES[y];
+  if (xMembers?.includes(y) || yMembers?.includes(x)) return true;
+  if (xMembers && yMembers && xMembers.some((member) => yMembers.includes(member))) return true;
 
   // MQB platform compatibility
   const isMqbA =
