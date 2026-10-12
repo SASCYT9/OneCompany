@@ -372,9 +372,11 @@ type VehiclePickerOption = { value: string; group?: string };
  * the customer is about to tap (Android shows it for programmatic focus), so a
  * list's search field takes focus on its own only with a mouse or keyboard.
  */
-function focusPickerSearch(input: HTMLInputElement | null) {
-  if (!window.matchMedia("(pointer: fine)").matches) return;
-  input?.focus();
+function focusPickerSearch(input: HTMLInputElement | null, touchTarget?: HTMLElement | null) {
+  if (window.matchMedia("(pointer: fine)").matches) input?.focus();
+  // A modal still takes focus on touch (screen readers, external keyboards),
+  // on a control that does not raise the keyboard.
+  else touchTarget?.focus({ preventScroll: true });
 }
 
 type VehiclePickerSelectProps = {
@@ -1644,6 +1646,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const [vehiclePicker, setVehiclePicker] = useState<"make" | "model" | "chassis" | null>(null);
   const makePickerDialogRef = useRef<HTMLDivElement | null>(null);
   const makePickerSearchInputRef = useRef<HTMLInputElement | null>(null);
+  const makePickerCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const handleVehicleModeChange = useCallback(
     (mode: VehicleMode) => {
       if (mode === vehicleMode) return;
@@ -1836,7 +1839,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     const previousOverflow = document.body.style.overflow;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const focusFrame = window.requestAnimationFrame(() =>
-      focusPickerSearch(makePickerSearchInputRef.current)
+      focusPickerSearch(makePickerSearchInputRef.current, makePickerCloseButtonRef.current)
     );
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -4245,6 +4248,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     </p>
                   </div>
                   <button
+                    ref={makePickerCloseButtonRef}
                     type="button"
                     onClick={() => setMakePickerOpen(false)}
                     className="flex h-10 w-10 shrink-0 items-center justify-center border border-foreground/12 text-foreground/55 transition hover:border-foreground/35 hover:text-foreground"

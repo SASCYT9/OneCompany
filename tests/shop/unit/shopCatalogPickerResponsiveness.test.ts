@@ -115,6 +115,20 @@ test("price and stock edits keep selector options; fitment edits refresh them in
   assert.doesNotMatch(revalidation, /SHOP_CATALOG_SELECTOR_CACHE_TAG, \{ expire: 0 \}/);
 });
 
+test("pickers skip the keyboard on touch, but the make modal still takes focus", () => {
+  const helper = stockPage.slice(stockPage.indexOf("function focusPickerSearch"));
+  assert.match(
+    helper.slice(0, 400),
+    /matchMedia\("\(pointer: fine\)"\)\.matches\) input\?\.focus\(\)/
+  );
+  assert.match(helper.slice(0, 400), /touchTarget\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(
+    stockPage,
+    /focusPickerSearch\(makePickerSearchInputRef\.current, makePickerCloseButtonRef\.current\)/
+  );
+  assert.match(stockPage, /ref=\{makePickerCloseButtonRef\}/);
+});
+
 test("choosing a make keeps the vehicle finder in view when the hero above it hides", () => {
   const effect = stockPage.slice(stockPage.indexOf("const previousShowWarehouseHeroRef"));
   const body = effect.slice(0, effect.indexOf("}, [showWarehouseHero]);"));
