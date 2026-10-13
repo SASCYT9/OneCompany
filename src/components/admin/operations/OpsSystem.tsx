@@ -107,6 +107,7 @@ const JOB_TYPE_LABELS: Readonly<Record<string, string>> = {
   telegram_task_assigned: "Уведомление о назначении",
   telegram_task_reminder: "Напоминание о задаче",
   telegram_internal_report: "Внутренний отчёт",
+  telegram_knowledge_followup: "Ответ из базы знаний",
   "automation:research_draft": "Помощник: поиск",
   "automation:document_summary": "Помощник: документ",
   "automation:catalog_check": "Помощник: товар",

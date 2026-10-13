@@ -28,6 +28,12 @@ import {
   answerOpsKnowledgeQuestion,
   extractOpsKnowledgeQuestion,
 } from "@/lib/operations/knowledgeAnswers";
+import {
+  enqueueOpsKnowledgeFollowUp,
+  executeOpsKnowledgeFollowUpJob,
+  OPS_KNOWLEDGE_FOLLOW_UP_JOB,
+  OPS_KNOWLEDGE_FOLLOW_UP_NOTE,
+} from "@/lib/operations/knowledgeFollowUp";
 import { opsAdminLink, opsMiniAppUrl, resolveOpsAdminBaseUrl } from "@/lib/operations/adminLinks";
 import {
   buildOpsSystemAlert,
@@ -2341,6 +2347,17 @@ async function executeTelegramIntakeStage(input: {
         : null;
     if (question) {
       const answer = await answerOpsKnowledgeQuestion({ client: input.client, question });
+      const followUp = answer.aiOverloaded
+        ? await enqueueOpsKnowledgeFollowUp({
+            client: input.client,
+            sourceJobId: input.job.id,
+            inboxItemId: input.job.inboxItemId,
+            question,
+          }).catch((error) => {
+            console.error("[operations.knowledge.followup] enqueue failed", error);
+            return false;
+          })
+        : false;
       await input.client.opsInboxItem.update({
         where: { id: input.job.inboxItemId },
         data: {
@@ -2356,13 +2373,17 @@ async function executeTelegramIntakeStage(input: {
         stage: OpsJobStage.NOTIFY,
         payload: {
           ...payload,
-          commandReply: { text: answer.text, replyMarkup: answer.replyMarkup },
+          commandReply: {
+            text: followUp ? `${answer.text}\n\n${OPS_KNOWLEDGE_FOLLOW_UP_NOTE}` : answer.text,
+            replyMarkup: answer.replyMarkup,
+          },
         },
         result: {
           knowledgeQuestion: true,
           aiUsed: answer.aiUsed,
           model: answer.model ?? null,
           aiError: answer.aiError ?? null,
+          followUp,
         },
       };
     }
@@ -3904,6 +3925,13 @@ export function createOpsJobStageExecutor(input: {
         client: input.client,
         job,
         dependencies: input.dependencies ?? {},
+      });
+    }
+    if (job.type === OPS_KNOWLEDGE_FOLLOW_UP_JOB && job.stage === OpsJobStage.NOTIFY) {
+      return executeOpsKnowledgeFollowUpJob({
+        client: input.client,
+        job,
+        fetchImpl: input.dependencies?.fetchImpl,
       });
     }
     if (job.type.startsWith("automation:") && job.stage === OpsJobStage.EXECUTE_AUTOMATIONS) {
