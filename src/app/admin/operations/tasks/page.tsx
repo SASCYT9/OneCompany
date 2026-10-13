@@ -14,7 +14,9 @@ export default async function OperationsTasksPage({
 }) {
   const access = await requireOpsPageAccess(ADMIN_PERMISSIONS.OPS_TASKS_READ);
   const query = await searchParams;
-  const rawScope = typeof query.scope === "string" ? query.scope : "all";
+  // Telegram links use «?mine=1» for «Все мои задачи».
+  const rawScope =
+    typeof query.scope === "string" ? query.scope : query.mine === "1" ? "mine" : "all";
   const initialScope = taskScopes.has(rawScope)
     ? (rawScope as "all" | "mine" | "today" | "overdue" | "waiting")
     : "all";

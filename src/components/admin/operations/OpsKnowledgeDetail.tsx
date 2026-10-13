@@ -47,14 +47,17 @@ function InlineMarkdown({ value }: { value: string }) {
         .map((part, index) => {
           if (part.startsWith("**") && part.endsWith("**")) {
             return (
-              <strong key={index} className="font-semibold text-slate-950">
+              <strong key={index} className="font-semibold text-zinc-50">
                 {part.slice(2, -2)}
               </strong>
             );
           }
           if (part.startsWith("`") && part.endsWith("`")) {
             return (
-              <code key={index} className="bg-slate-100 px-1.5 py-0.5 text-[0.9em] text-slate-900">
+              <code
+                key={index}
+                className="bg-white/[0.06] px-1.5 py-0.5 text-[0.9em] text-zinc-100"
+              >
                 {part.slice(1, -1)}
               </code>
             );
@@ -67,7 +70,7 @@ function InlineMarkdown({ value }: { value: string }) {
                 href={link[2]}
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium text-blue-700 underline decoration-blue-300 underline-offset-2"
+                className="font-medium text-blue-300 underline decoration-blue-500/50 underline-offset-2"
               >
                 {link[1]}
               </a>
@@ -82,7 +85,7 @@ function InlineMarkdown({ value }: { value: string }) {
 export function MarkdownContent({ content }: { content: string }) {
   const blocks = useMemo(() => content.split(/\n{2,}/), [content]);
   return (
-    <div className="space-y-4 text-[15px] leading-7 text-slate-700">
+    <div className="space-y-4 text-[15px] leading-7 text-zinc-300">
       {blocks.map((block, blockIndex) => {
         const value = block.trim();
         if (!value) return null;
@@ -112,14 +115,14 @@ export function MarkdownContent({ content }: { content: string }) {
           const headers = cells(tableLines[0]);
           const rows = tableLines.slice(2).map(cells);
           return (
-            <div key={blockIndex} className="overflow-x-auto border border-slate-200">
+            <div key={blockIndex} className="overflow-x-auto border border-white/10">
               <table className="min-w-full border-collapse text-left text-sm">
-                <thead className="bg-slate-100 text-slate-800">
+                <thead className="bg-white/[0.06] text-zinc-200">
                   <tr>
                     {headers.map((header, index) => (
                       <th
                         key={index}
-                        className="border-b border-slate-200 px-3 py-2.5 font-semibold"
+                        className="border-b border-white/10 px-3 py-2.5 font-semibold"
                       >
                         <InlineMarkdown value={header} />
                       </th>
@@ -128,7 +131,7 @@ export function MarkdownContent({ content }: { content: string }) {
                 </thead>
                 <tbody>
                   {rows.map((row, rowIndex) => (
-                    <tr key={rowIndex} className="border-b border-slate-100 last:border-0">
+                    <tr key={rowIndex} className="border-b border-white/5 last:border-0">
                       {headers.map((_, cellIndex) => (
                         <td key={cellIndex} className="whitespace-normal px-3 py-2.5 align-top">
                           <InlineMarkdown value={row[cellIndex] ?? ""} />
@@ -143,21 +146,21 @@ export function MarkdownContent({ content }: { content: string }) {
         }
         if (value.startsWith("# ")) {
           return (
-            <h1 key={blockIndex} className="pt-3 text-2xl font-bold text-slate-950">
+            <h1 key={blockIndex} className="pt-3 text-2xl font-bold text-zinc-50">
               {value.slice(2)}
             </h1>
           );
         }
         if (value.startsWith("## ")) {
           return (
-            <h2 key={blockIndex} className="pt-3 text-xl font-bold text-slate-950">
+            <h2 key={blockIndex} className="pt-3 text-xl font-bold text-zinc-50">
               {value.slice(3)}
             </h2>
           );
         }
         if (value.startsWith("### ")) {
           return (
-            <h3 key={blockIndex} className="pt-2 text-lg font-bold text-slate-950">
+            <h3 key={blockIndex} className="pt-2 text-lg font-bold text-zinc-50">
               {value.slice(4)}
             </h3>
           );
@@ -166,7 +169,7 @@ export function MarkdownContent({ content }: { content: string }) {
           return (
             <blockquote
               key={blockIndex}
-              className="rounded-r-lg border-l-4 border-blue-500 bg-blue-50 px-4 py-3 text-blue-950"
+              className="rounded-r-lg border-l-4 border-blue-500 bg-blue-500/10 px-4 py-3 text-blue-100"
             >
               {value.replace(/^>\s?/gm, "")}
             </blockquote>
@@ -177,7 +180,7 @@ export function MarkdownContent({ content }: { content: string }) {
             <ul key={blockIndex} className="space-y-2 pl-1">
               {value.split("\n").map((line, index) => (
                 <li key={index} className="flex gap-3">
-                  <Check className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
+                  <Check className="mt-1 h-4 w-4 shrink-0 text-blue-400" />
                   <span>
                     <InlineMarkdown value={line.replace(/^[-*]\s*/, "")} />
                   </span>
@@ -191,7 +194,7 @@ export function MarkdownContent({ content }: { content: string }) {
             <ol key={blockIndex} className="space-y-2">
               {value.split("\n").map((line, index) => (
                 <li key={index} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-xs font-bold text-blue-300">
                     {index + 1}
                   </span>
                   <span>
@@ -244,7 +247,6 @@ export function OpsKnowledgeDetail({
   canWrite = false,
   canPublish = false,
   editingInitially = false,
-  permissions,
 }: {
   articleId: string;
   initialArticle?: OpsKnowledgeArticle;
@@ -468,8 +470,8 @@ export function OpsKnowledgeDetail({
 
   if (loading) {
     return (
-      <OpsSurface permissions={permissions}>
-        <div className="flex min-h-[70vh] items-center justify-center gap-2 text-sm text-slate-500">
+      <OpsSurface>
+        <div className="flex min-h-[70vh] items-center justify-center gap-2 text-sm text-zinc-500">
           <Loader2 className="h-5 w-5 animate-spin" />
           Загрузка статьи…
         </div>
@@ -479,22 +481,22 @@ export function OpsKnowledgeDetail({
 
   if (!article && articleId !== "new" && !editing) {
     return (
-      <OpsSurface permissions={permissions}>
+      <OpsSurface>
         <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
           <CircleAlert className="h-9 w-9 text-red-500" />
           <h1 className="mt-3 text-xl font-bold">Статья не открылась</h1>
-          <p className="mt-2 text-sm text-slate-500">{error || "Материал не найден."}</p>
+          <p className="mt-2 text-sm text-zinc-500">{error || "Материал не найден."}</p>
         </div>
       </OpsSurface>
     );
   }
 
   return (
-    <OpsSurface permissions={permissions}>
-      <div className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+    <OpsSurface>
+      <div className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b border-white/10 bg-[#171717]/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <Link
           href="/admin/operations/knowledge"
-          className="flex min-w-0 items-center gap-2 text-sm font-medium text-slate-600 hover:text-blue-600"
+          className="flex min-w-0 items-center gap-2 text-sm font-medium text-zinc-400 hover:text-blue-400"
         >
           <ArrowLeft className="h-4 w-4 shrink-0" />
           <span className="truncate">Назад в БАЗУ</span>
@@ -506,7 +508,7 @@ export function OpsKnowledgeDetail({
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="hidden h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-medium sm:flex"
+                  className="hidden h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-medium sm:flex"
                 >
                   <X className="h-4 w-4" />
                   Отмена
@@ -532,7 +534,7 @@ export function OpsKnowledgeDetail({
                 <button
                   type="button"
                   onClick={() => setHistoryOpen((current) => !current)}
-                  className="hidden h-10 items-center gap-2 border border-slate-300 px-3 text-sm font-medium sm:flex"
+                  className="hidden h-10 items-center gap-2 border border-white/15 px-3 text-sm font-medium sm:flex"
                 >
                   <History className="h-4 w-4" />
                   История
@@ -542,7 +544,7 @@ export function OpsKnowledgeDetail({
                 <button
                   type="button"
                   onClick={() => setEditing(true)}
-                  className="flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-medium"
+                  className="flex h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-medium"
                 >
                   <Pencil className="h-4 w-4" />
                   Редактировать
@@ -566,43 +568,43 @@ export function OpsKnowledgeDetail({
 
       <div className="mx-auto max-w-4xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
         {error ? (
-          <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-5 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
         ) : null}
         {editing ? (
           <div className="space-y-5">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-600">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-400">
               <FilePenLine className="h-4 w-4" />
               {article ? "Редактирование статьи" : "Новая статья"}
             </div>
             <label className="block">
-              <span className="text-xs font-semibold text-slate-600">Название</span>
+              <span className="text-xs font-semibold text-zinc-400">Название</span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Понятное название инструкции"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:text-2xl"
+                className="mt-2 w-full rounded-xl border border-white/15 px-4 py-3 text-xl font-bold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 sm:text-2xl"
               />
             </label>
             <label className="block">
-              <span className="text-xs font-semibold text-slate-600">Краткое описание</span>
+              <span className="text-xs font-semibold text-zinc-400">Краткое описание</span>
               <textarea
                 value={excerpt}
                 onChange={(event) => setExcerpt(event.target.value)}
                 rows={2}
                 placeholder="Что сотрудник узнает из этой статьи"
-                className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full resize-none rounded-xl border border-white/15 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="text-xs font-semibold text-slate-600">Категория</span>
+                <span className="text-xs font-semibold text-zinc-400">Категория</span>
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500"
                 >
                   {categoryOptions.map(([value, label]) => (
                     <option key={value} value={value}>
@@ -612,19 +614,19 @@ export function OpsKnowledgeDetail({
                 </select>
               </label>
               <label className="block">
-                <span className="text-xs font-semibold text-slate-600">Теги через запятую</span>
+                <span className="text-xs font-semibold text-zinc-400">Теги через запятую</span>
                 <input
                   value={tags}
                   onChange={(event) => setTags(event.target.value)}
                   placeholder="maxton, совместимость"
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500"
                 />
               </label>
             </div>
             <div>
               <div className="mb-2">
-                <span className="text-xs font-semibold text-slate-600">Содержание статьи</span>
-                <p className="mt-1 text-xs text-slate-400">
+                <span className="text-xs font-semibold text-zinc-400">Содержание статьи</span>
+                <p className="mt-1 text-xs text-zinc-500">
                   Выделите текст и используйте кнопки форматирования. Результат можно проверить во
                   вкладке «Просмотр».
                 </p>
@@ -636,26 +638,26 @@ export function OpsKnowledgeDetail({
               />
             </div>
             <label className="block">
-              <span className="text-xs font-semibold text-slate-600">
-                Что изменилось <span className="font-normal text-slate-400">· необязательно</span>
+              <span className="text-xs font-semibold text-zinc-400">
+                Что изменилось <span className="font-normal text-zinc-500">· необязательно</span>
               </span>
               <input
                 value={changeNote}
                 onChange={(event) => setChangeNote(event.target.value)}
                 placeholder="Например: обновлена формула доставки и контакт поставщика"
                 maxLength={1_000}
-                className="mt-2 h-11 w-full border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+                className="mt-2 h-11 w-full border border-white/15 px-3 text-sm outline-none focus:border-blue-500"
               />
             </label>
           </div>
         ) : article ? (
           <article>
             {historyOpen && article.revisions?.length ? (
-              <section className="mb-7 border border-slate-200 bg-slate-50">
-                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <section className="mb-7 border border-white/10 bg-white/[0.03]">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                   <div>
-                    <h2 className="text-sm font-bold text-slate-950">История изменений</h2>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <h2 className="text-sm font-bold text-zinc-50">История изменений</h2>
+                    <p className="mt-0.5 text-xs text-zinc-500">
                       Восстановление создаёт новую черновую версию — история не удаляется.
                     </p>
                   </div>
@@ -663,30 +665,30 @@ export function OpsKnowledgeDetail({
                     type="button"
                     onClick={() => setHistoryOpen(false)}
                     aria-label="Закрыть историю"
-                    className="p-2 text-slate-500 hover:text-slate-950"
+                    className="p-2 text-zinc-500 hover:text-zinc-50"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="max-h-80 divide-y divide-slate-200 overflow-y-auto">
+                <div className="max-h-80 divide-y divide-white/10 overflow-y-auto">
                   {article.revisions.map((revision) => (
                     <div
                       key={revision.id}
-                      className="flex items-start justify-between gap-4 bg-white px-4 py-3"
+                      className="flex items-start justify-between gap-4 bg-[#171717] px-4 py-3"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-zinc-100">
                           Версия {revision.revision}
                           {revision.revision === article.version ? (
-                            <span className="ml-2 text-xs font-medium text-blue-600">текущая</span>
+                            <span className="ml-2 text-xs font-medium text-blue-400">текущая</span>
                           ) : null}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-zinc-500">
                           {revision.changedBy?.name || "Сотрудник"} ·{" "}
                           {new Date(revision.createdAt).toLocaleString("ru-RU")}
                         </p>
                         {revision.changeNote ? (
-                          <p className="mt-1 text-xs text-slate-700">{revision.changeNote}</p>
+                          <p className="mt-1 text-xs text-zinc-300">{revision.changeNote}</p>
                         ) : null}
                       </div>
                       {revision.revision !== article.version ? (
@@ -694,7 +696,7 @@ export function OpsKnowledgeDetail({
                           type="button"
                           disabled={saving}
                           onClick={() => void restoreRevision(revision.revision)}
-                          className="flex shrink-0 items-center gap-1.5 border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
+                          className="flex shrink-0 items-center gap-1.5 border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-300 hover:border-blue-400 hover:text-blue-400 disabled:opacity-50"
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
                           Вернуть
@@ -705,25 +707,25 @@ export function OpsKnowledgeDetail({
                 </div>
               </section>
             ) : null}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-600">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-400">
               <BookOpen className="h-4 w-4" />
               {knowledgeCategoryLabel(article.category)}
-              <span className="text-slate-300">·</span>
+              <span className="text-zinc-600">·</span>
               <span
                 className={cn(
-                  article.status === "PUBLISHED" ? "text-emerald-600" : "text-amber-600"
+                  article.status === "PUBLISHED" ? "text-emerald-400" : "text-amber-400"
                 )}
               >
                 {article.status === "PUBLISHED" ? "Опубликовано" : "Черновик"}
               </span>
             </div>
-            <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-zinc-50 sm:text-4xl">
               {article.title}
             </h1>
             {article.excerpt ? (
-              <p className="mt-4 text-lg leading-8 text-slate-500">{article.excerpt}</p>
+              <p className="mt-4 text-lg leading-8 text-zinc-500">{article.excerpt}</p>
             ) : null}
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-slate-200 py-4 text-xs text-slate-500">
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-white/10 py-4 text-xs text-zinc-500">
               <span className="flex items-center gap-1.5">
                 <Clock3 className="h-4 w-4" />
                 Обновлено{" "}
@@ -742,14 +744,14 @@ export function OpsKnowledgeDetail({
             </div>
             <div className="mt-8">
               {article.slug === "automotive-terms-for-managers" ? (
-                <div className="mb-6 border border-slate-200 bg-white p-3 sm:p-4">
+                <div className="mb-6 border border-white/10 bg-[#171717] p-3 sm:p-4">
                   <label className="relative block">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                     <input
                       value={glossaryQuery}
                       onChange={(event) => setGlossaryQuery(event.target.value)}
                       placeholder="Найти термин, синоним или объяснение…"
-                      className="h-11 w-full border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      className="h-11 w-full border border-white/15 bg-[#171717] pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     />
                   </label>
                 </div>
@@ -760,7 +762,7 @@ export function OpsKnowledgeDetail({
                     content={filterGlossaryContent(article.contentMarkdown, glossaryQuery)!}
                   />
                 ) : (
-                  <div className="border border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                  <div className="border border-white/10 bg-white/[0.03] px-4 py-10 text-center text-sm text-zinc-500">
                     По вашему запросу терминов не найдено.
                   </div>
                 )

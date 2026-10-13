@@ -77,7 +77,7 @@ export function OpsProjectTaskForm({
   }
 
   const fieldClass =
-    "mt-1.5 h-11 w-full border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+    "mt-1.5 h-11 w-full border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 
   return (
     <div
@@ -87,7 +87,7 @@ export function OpsProjectTaskForm({
       aria-labelledby="ops-project-task-title"
     >
       <form
-        className="max-h-[94dvh] w-full overflow-y-auto bg-white p-5 shadow-2xl sm:max-w-xl sm:p-6"
+        className="max-h-[94dvh] w-full overflow-y-auto bg-[#171717] p-5 shadow-2xl sm:max-w-xl sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
@@ -95,26 +95,26 @@ export function OpsProjectTaskForm({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="ops-project-task-title" className="text-xl font-bold text-slate-950">
+            <h2 id="ops-project-task-title" className="text-xl font-bold text-zinc-50">
               Новая задача
             </h2>
-            <p className="mt-1 text-sm text-slate-500">Проект: {project.title}</p>
+            <p className="mt-1 text-sm text-zinc-500">Проект: {project.title}</p>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="p-2 text-slate-500 hover:bg-slate-100"
+            className="p-2 text-zinc-500 hover:bg-white/[0.06]"
             aria-label="Закрыть"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
         {error ? (
-          <div className="mt-4 border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
             {error}
           </div>
         ) : null}
-        <label className="mt-5 block text-sm font-medium text-slate-700">
+        <label className="mt-5 block text-sm font-medium text-zinc-300">
           Что нужно сделать
           <input
             autoFocus
@@ -123,17 +123,17 @@ export function OpsProjectTaskForm({
             className={fieldClass}
           />
         </label>
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+        <label className="mt-4 block text-sm font-medium text-zinc-300">
           Описание
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={4}
-            className="mt-1.5 w-full border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 w-full border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </label>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Приоритет
             <select
               value={priority}
@@ -146,7 +146,7 @@ export function OpsProjectTaskForm({
               <option value="URGENT">Срочный</option>
             </select>
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Срок
             <input
               type="datetime-local"
@@ -157,7 +157,7 @@ export function OpsProjectTaskForm({
           </label>
         </div>
 
-        <label className="mt-5 flex cursor-pointer items-start gap-3 border border-blue-200 bg-blue-50 p-4">
+        <label className="mt-5 flex cursor-pointer items-start gap-3 border border-blue-500/25 bg-blue-500/10 p-4">
           <input
             type="checkbox"
             checked={isShared}
@@ -168,11 +168,11 @@ export function OpsProjectTaskForm({
             className="mt-1 h-4 w-4 accent-blue-600"
           />
           <span>
-            <span className="flex items-center gap-2 font-semibold text-slate-950">
-              <UsersRound className="h-4 w-4 text-blue-600" />
+            <span className="flex items-center gap-2 font-semibold text-zinc-50">
+              <UsersRound className="h-4 w-4 text-blue-400" />
               Общая задача для всей команды
             </span>
-            <span className="mt-1 block text-xs leading-5 text-slate-600">
+            <span className="mt-1 block text-xs leading-5 text-zinc-400">
               Все участники с доступом к доске смогут изменять статус, добавлять комментарии и
               доводить задачу до результата.
             </span>
@@ -181,11 +181,11 @@ export function OpsProjectTaskForm({
 
         {canAssign && !isShared ? (
           <fieldset className="mt-4">
-            <legend className="text-sm font-medium text-slate-700">Исполнители</legend>
-            <p className="mt-1 text-xs text-slate-500">
+            <legend className="text-sm font-medium text-zinc-300">Исполнители</legend>
+            <p className="mt-1 text-xs text-zinc-500">
               Можно назначить одного или нескольких участников.
             </p>
-            <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto border border-slate-200 p-2 sm:grid-cols-2">
+            <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto border border-white/10 p-2 sm:grid-cols-2">
               {members.map((member) => {
                 const checked = assigneeIds.includes(member.id);
                 return (
@@ -193,8 +193,8 @@ export function OpsProjectTaskForm({
                     key={member.id}
                     className={`flex min-w-0 cursor-pointer items-center gap-2 border px-3 py-2.5 text-sm transition ${
                       checked
-                        ? "border-blue-500 bg-blue-50 text-blue-900"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-200"
+                        ? "border-blue-500 bg-blue-500/10 text-blue-100"
+                        : "border-white/10 bg-[#171717] text-zinc-300 hover:border-blue-500/25"
                     }`}
                   >
                     <input
@@ -215,7 +215,7 @@ export function OpsProjectTaskForm({
               })}
             </div>
             {assigneeIds.length ? (
-              <p className="mt-2 text-xs font-medium text-blue-700">
+              <p className="mt-2 text-xs font-medium text-blue-300">
                 Выбрано: {assigneeIds.length}
               </p>
             ) : null}
@@ -226,7 +226,7 @@ export function OpsProjectTaskForm({
           <button
             type="button"
             onClick={onCancel}
-            className="h-11 border border-slate-300 px-4 text-sm font-medium"
+            className="h-11 border border-white/15 px-4 text-sm font-medium"
           >
             Отмена
           </button>

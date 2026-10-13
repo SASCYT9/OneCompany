@@ -24,7 +24,16 @@ import {
   type OpsExtraction,
 } from "@/lib/operations/ai";
 import { opsBrandProperNameHintsForClient } from "@/lib/operations/brandGuides";
-import { opsAdminLink, resolveOpsAdminBaseUrl } from "@/lib/operations/adminLinks";
+import {
+  answerOpsKnowledgeQuestion,
+  extractOpsKnowledgeQuestion,
+} from "@/lib/operations/knowledgeAnswers";
+import { opsAdminLink, opsMiniAppUrl, resolveOpsAdminBaseUrl } from "@/lib/operations/adminLinks";
+import {
+  buildOpsSystemAlert,
+  buildOpsWeeklySummary,
+  opsRolesAreOwner,
+} from "@/lib/operations/ownerReports";
 import {
   createOpsTelegramCallbackState,
   executeOpsTelegramCallback,
@@ -54,11 +63,24 @@ import {
 } from "@/lib/operations/media";
 import {
   buildOpsInboxNotification,
+  OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
   OpsNotificationError,
   sendOpsTelegramNotification,
+  type OpsTelegramInlineButton,
   type OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
 import { opsRolesAllowNotification } from "@/lib/operations/notificationAccess";
+import {
+  buildOpsDueTodayNudge,
+  buildOpsMorningDigest,
+  buildOpsWeeklyReview,
+  loadOpsReminderTasks,
+  opsAssignedTo,
+  opsRolesCanAssign,
+  opsRolesCanWrite,
+  OPS_UNASSIGNED_TASK_WHERE,
+  type OpsReminderButtonFactory,
+} from "@/lib/operations/reminders";
 import type { OpsTelegramMediaDescriptor } from "@/lib/operations/telegram";
 import { createOpsExternalId } from "@/lib/operations/ids";
 import { appendOpsSourceUrls, linkMatchingBrandGuides } from "@/lib/operations/brandGuides";
@@ -69,6 +91,8 @@ import {
   OPS_TASK_AI_RECONCILE_JOB,
 } from "@/lib/operations/taskAiReconcile";
 import { assertValidOpsTaskRelations } from "@/lib/operations/taskRelations";
+import { findOpsDuplicateTask, suggestOpsAssignee } from "@/lib/operations/taskSimilarity";
+import { parseOpsRepeatRule, withOpsRepeatRule } from "@/lib/operations/recurrence";
 
 type ResolvedOpsContext = {
   source: "reply" | "topic" | "explicit" | "single_active" | "none";
@@ -129,6 +153,10 @@ export type TelegramJobPayload = {
   callbackResponse?: string;
   callbackLink?: string | null;
   taskUpdateEventId?: string | null;
+  /** A ready answer (knowledge-base question) sent as-is at NOTIFY. */
+  commandReply?: { text: string; replyMarkup?: OpsTelegramReplyMarkup } | null;
+  /** An older open task that looks like the one just created. */
+  duplicateOfTaskId?: string | null;
   autoApplied?: boolean;
   autoAppliedTaskIds?: string[];
   batchId?: string;
@@ -392,6 +420,14 @@ export function asPayload(job: OpsJob): TelegramJobPayload {
         : undefined,
     callbackResponse: payload.callbackResponse ? String(payload.callbackResponse) : undefined,
     callbackLink: payload.callbackLink ? String(payload.callbackLink) : null,
+    taskUpdateEventId: payload.taskUpdateEventId ? String(payload.taskUpdateEventId) : null,
+    commandReply:
+      payload.commandReply &&
+      typeof payload.commandReply === "object" &&
+      typeof (payload.commandReply as Record<string, unknown>).text === "string"
+        ? (payload.commandReply as { text: string; replyMarkup?: OpsTelegramReplyMarkup })
+        : null,
+    duplicateOfTaskId: payload.duplicateOfTaskId ? String(payload.duplicateOfTaskId) : null,
     autoApplied: payload.autoApplied === true,
     autoAppliedTaskIds: Array.isArray(payload.autoAppliedTaskIds)
       ? payload.autoAppliedTaskIds.map(String).filter(Boolean).slice(0, 5)
@@ -952,6 +988,11 @@ async function createProposals(client: PrismaClient, job: OpsJob, payload: Teleg
         payload.extraction.project_candidates.length > 0 ||
         payload.extraction.order_candidates.length > 0));
   let ordinal = 0;
+  // «каждую неделю», «щодня»… in a single-task message makes it repeating.
+  const repeatRule =
+    payload.extraction.tasks.length === 1
+      ? parseOpsRepeatRule(payload.transcription ?? payload.text ?? "")
+      : null;
   for (const extracted of payload.extraction.tasks.slice(0, 5)) {
     const explicitAssigneeId = extracted.assignee_ref
       ? referencesRequester(extracted.assignee_ref)
@@ -965,7 +1006,10 @@ async function createProposals(client: PrismaClient, job: OpsJob, payload: Teleg
     const proposal = {
       title: extracted.title,
       description: extracted.description,
-      tags: extractedTaskTags(extracted),
+      tags:
+        repeatRule && repeatRule !== "off"
+          ? withOpsRepeatRule(extractedTaskTags(extracted), repeatRule)
+          : extractedTaskTags(extracted),
       status: "INBOX",
       priority: extracted.priority.toUpperCase(),
       executorType: extracted.executor_type.toUpperCase(),
@@ -2102,6 +2146,117 @@ async function executeTelegramBatchMediaStages(input: {
   return null;
 }
 
+const OPS_ASSIGNEE_CHOICE_LIMIT = 4;
+
+async function suggestedAssigneeId(client: PrismaClient, taskId: string) {
+  try {
+    const task = await client.opsTask.findUnique({
+      where: { id: taskId },
+      select: { id: true, title: true, tags: true },
+    });
+    if (!task?.title) return null;
+    return (await suggestOpsAssignee({ client, task, now: new Date() }))?.adminUserId ?? null;
+  } catch (error) {
+    // A hint only: never let it block the «Кому поручить?» buttons.
+    console.error("[operations.telegram.assignee-hint] failed", error);
+    return null;
+  }
+}
+
+/** «Igor» when similar tasks were usually handled by one person. */
+async function describeOpsAssigneeSuggestion(client: PrismaClient, taskId: string) {
+  const adminUserId = await suggestedAssigneeId(client, taskId);
+  if (!adminUserId) return null;
+  const person = await client.adminUser.findFirst({
+    where: { id: adminUserId, isActive: true },
+    select: { name: true, email: true },
+  });
+  return person ? person.name?.trim().split(/\s+/)[0] || person.email.split("@")[0] : null;
+}
+
+/**
+ * «👤 Кому?» under a freshly created task that has no assignee: «🙋 Мне» for
+ * the sender and, for people allowed to assign, one button per teammate.
+ */
+export async function buildOpsAssigneeChoiceRows(input: {
+  client: PrismaClient;
+  taskId: string;
+  actorAdminUserId: string;
+}): Promise<OpsTelegramInlineButton[][]> {
+  const task = await input.client.opsTask.findUnique({
+    where: { id: input.taskId },
+    select: { assigneeId: true, isShared: true, _count: { select: { assignees: true } } },
+  });
+  if (!task || task.assigneeId || task.isShared || task._count.assignees > 0) return [];
+  const actor = await input.client.adminUser.findFirst({
+    where: { id: input.actorAdminUserId, isActive: true },
+    select: { roles: { select: { role: { select: { key: true, permissions: true } } } } },
+  });
+  if (!actor || !opsRolesCanWrite(actor.roles)) return [];
+  const ttlMs = 2 * 24 * 60 * 60 * 1000;
+  const buttons: OpsTelegramInlineButton[] = [];
+  const take = await createOpsTelegramCallbackState({
+    client: input.client,
+    action: "take",
+    resourceId: input.taskId,
+    actorAdminUserId: input.actorAdminUserId,
+    ttlMs,
+  });
+  if (take) buttons.push({ text: "🙋 Мне", callback_data: take });
+  if (opsRolesCanAssign(actor.roles)) {
+    const teammates = await input.client.opsMemberProfile.findMany({
+      where: {
+        telegramEnabled: true,
+        telegramUserId: { not: null },
+        adminUserId: { not: input.actorAdminUserId },
+        adminUser: { isActive: true },
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        adminUserId: true,
+        adminUser: {
+          select: {
+            name: true,
+            email: true,
+            roles: { select: { role: { select: { key: true, permissions: true } } } },
+          },
+        },
+      },
+    });
+    const suggested = await suggestedAssigneeId(input.client, input.taskId);
+    const eligible = teammates.filter((candidate) =>
+      opsRolesAllowNotification(candidate.adminUser.roles, "telegram_task_assigned")
+    );
+    eligible.sort(
+      (left, right) =>
+        Number(right.adminUserId === suggested) - Number(left.adminUserId === suggested)
+    );
+    for (const mate of eligible.slice(0, OPS_ASSIGNEE_CHOICE_LIMIT)) {
+      const callbackData = await createOpsTelegramCallbackState({
+        client: input.client,
+        action: "assign_to",
+        resourceId: input.taskId,
+        actorAdminUserId: input.actorAdminUserId,
+        value: mate.adminUserId,
+        ttlMs,
+      });
+      const name =
+        mate.adminUser.name?.trim().split(/\s+/)[0] || mate.adminUser.email.split("@")[0];
+      if (callbackData) {
+        buttons.push({
+          text: `${mate.adminUserId === suggested ? "⭐" : "👤"} ${name}`,
+          callback_data: callbackData,
+        });
+      }
+    }
+  }
+  const rows: OpsTelegramInlineButton[][] = [];
+  for (let index = 0; index < buttons.length; index += 3) {
+    rows.push(buttons.slice(index, index + 3));
+  }
+  return rows;
+}
+
 async function executeTelegramIntakeStage(input: {
   client: PrismaClient;
   job: OpsJob;
@@ -2179,6 +2334,32 @@ async function executeTelegramIntakeStage(input: {
         }
         throw error;
       }
+    }
+    const question =
+      !payload.media && !payload.batchId && !payload.isUntrustedForward
+        ? extractOpsKnowledgeQuestion(payload.text)
+        : null;
+    if (question) {
+      const answer = await answerOpsKnowledgeQuestion({ client: input.client, question });
+      await input.client.opsInboxItem.update({
+        where: { id: input.job.inboxItemId },
+        data: {
+          extractionStatus: OpsInboxExtractionStatus.READY,
+          reviewStatus: OpsInboxReviewStatus.IGNORED,
+          summary: `Вопрос к базе знаний: ${question.slice(0, 300)}`,
+          processedAt: new Date(),
+          reviewedAt: new Date(),
+        },
+      });
+      return {
+        outcome: "advance" as const,
+        stage: OpsJobStage.NOTIFY,
+        payload: {
+          ...payload,
+          commandReply: { text: answer.text, replyMarkup: answer.replyMarkup },
+        },
+        result: { knowledgeQuestion: true, aiUsed: answer.aiUsed },
+      };
     }
     return {
       outcome: "advance" as const,
@@ -2513,6 +2694,17 @@ async function executeTelegramIntakeStage(input: {
             decision: "no_task_proposals" as const,
           };
     const result = { ...preview, ...applied };
+    let duplicateOfTaskId: string | null = null;
+    if (applied.autoApplied && applied.autoAppliedTaskIds.length === 1) {
+      const created = await input.client.opsTask.findUnique({
+        where: { id: applied.autoAppliedTaskIds[0] },
+        select: { id: true, title: true, tags: true },
+      });
+      duplicateOfTaskId = created
+        ? ((await findOpsDuplicateTask({ client: input.client, task: created, now: new Date() }))
+            ?.id ?? null)
+        : null;
+    }
     return {
       outcome: "advance" as const,
       stage: OpsJobStage.NOTIFY,
@@ -2520,8 +2712,9 @@ async function executeTelegramIntakeStage(input: {
         ...payload,
         autoApplied: applied.autoApplied,
         autoAppliedTaskIds: applied.autoAppliedTaskIds,
+        duplicateOfTaskId,
       },
-      result,
+      result: { ...result, duplicateOfTaskId },
     };
   }
 
@@ -2563,6 +2756,36 @@ async function executeTelegramIntakeStage(input: {
         result: { notification: "skipped_recipient_no_longer_allowed" },
       };
     }
+    if (payload.commandReply) {
+      try {
+        const sent = await sendOpsTelegramNotification({
+          chatId: inbox.telegramUpdate.chatId,
+          text: payload.commandReply.text,
+          replyToMessageId: inbox.telegramUpdate.messageId,
+          replyMarkup: payload.commandReply.replyMarkup,
+          fetchImpl: input.dependencies.fetchImpl,
+        });
+        return {
+          outcome: "succeeded" as const,
+          result: { notification: "sent", telegramMessageId: sent.messageId },
+        };
+      } catch (error) {
+        if (
+          error instanceof OpsNotificationError &&
+          (error.code === "NOTIFICATIONS_DISABLED" ||
+            error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE)
+        ) {
+          return {
+            outcome: "succeeded" as const,
+            result: {
+              notification:
+                error.code === "NOTIFICATIONS_DISABLED" ? "disabled" : "recipient_unavailable",
+            },
+          };
+        }
+        throw error;
+      }
+    }
     const requestedTaskIds = payload.autoApplied
       ? (payload.autoAppliedTaskIds ?? inbox.appliedTaskIds).slice(0, 5)
       : [];
@@ -2577,7 +2800,15 @@ async function executeTelegramIntakeStage(input: {
       const task = tasksById.get(id);
       return task ? [task] : [];
     });
-    const text = payload.callbackResponse
+    const assigneeRows =
+      !payload.callbackResponse && autoAppliedTasks.length === 1 && payload.actorAdminUserId
+        ? await buildOpsAssigneeChoiceRows({
+            client: input.client,
+            taskId: autoAppliedTasks[0].id,
+            actorAdminUserId: payload.actorAdminUserId,
+          })
+        : [];
+    const baseText = payload.callbackResponse
       ? payload.callbackResponse
       : buildOpsInboxNotification({
           taskCount: inbox._count.proposals,
@@ -2592,6 +2823,42 @@ async function executeTelegramIntakeStage(input: {
               : "message",
           autoAppliedTasks,
         });
+    const duplicate =
+      !payload.callbackResponse && autoAppliedTasks.length === 1 && payload.duplicateOfTaskId
+        ? await input.client.opsTask.findFirst({
+            where: {
+              id: payload.duplicateOfTaskId,
+              archivedAt: null,
+              status: { notIn: [OpsTaskStatus.DONE, OpsTaskStatus.CANCELLED] },
+            },
+            select: { id: true, number: true, title: true },
+          })
+        : null;
+    const mergeData = duplicate
+      ? await createOpsTelegramCallbackState({
+          client: input.client,
+          action: "merge_into",
+          resourceId: autoAppliedTasks[0].id,
+          actorAdminUserId: payload.actorAdminUserId,
+          value: duplicate.id,
+          ttlMs: 2 * 24 * 60 * 60 * 1000,
+        })
+      : null;
+    const suggestion =
+      assigneeRows.length && autoAppliedTasks[0]
+        ? await describeOpsAssigneeSuggestion(input.client, autoAppliedTasks[0].id)
+        : null;
+    const text = [
+      baseText,
+      duplicate && mergeData
+        ? `🔁 Похоже на #${duplicate.number} «${duplicate.title.slice(0, 120)}». Если это одно и то же — объединю.`
+        : null,
+      assigneeRows.length
+        ? `👤 Кому поручить?${suggestion ? ` Похожие задачи вёл ${suggestion}.` : ""}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
     const cancelData = payload.callbackResponse
       ? payload.taskUpdateEventId
         ? await createOpsTelegramCallbackState({
@@ -2615,9 +2882,20 @@ async function executeTelegramIntakeStage(input: {
         ? opsAdminLink(`/admin/operations/tasks/${encodeURIComponent(autoAppliedTasks[0].id)}`)
         : opsAdminLink(`/admin/operations/inbox?selected=${encodeURIComponent(inbox.id)}`));
     const replyMarkup =
-      openUrl || cancelData
+      openUrl || cancelData || assigneeRows.length || mergeData
         ? {
             inline_keyboard: [
+              ...(duplicate && mergeData
+                ? [
+                    [
+                      {
+                        text: `🔗 Объединить с #${duplicate.number}`,
+                        callback_data: mergeData,
+                      },
+                    ],
+                  ]
+                : []),
+              ...assigneeRows,
               ...(openUrl
                 ? [
                     [
@@ -2686,6 +2964,15 @@ async function executeTelegramIntakeStage(input: {
         return {
           outcome: "succeeded" as const,
           result: { notification: "disabled" },
+        };
+      }
+      if (
+        error instanceof OpsNotificationError &&
+        error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE
+      ) {
+        return {
+          outcome: "succeeded" as const,
+          result: { notification: "recipient_unavailable" },
         };
       }
       throw error;
@@ -3334,9 +3621,110 @@ async function executeInternalNotificationJob(input: {
       };
     }
   }
+  // Gentle reminders (digest, deadline nudge, Friday review) are rebuilt from
+  // the current tasks at send time, so anything closed meanwhile drops out.
+  const reminderButton: OpsReminderButtonFactory = async (action, taskId, label) => {
+    const callbackData = await createOpsTelegramCallbackState({
+      client: input.client,
+      action,
+      resourceId: taskId,
+      actorAdminUserId: profile.adminUserId,
+      ttlMs:
+        payload.reportPeriod === "weekly_review"
+          ? 7 * 24 * 60 * 60 * 1000
+          : 2 * 24 * 60 * 60 * 1000,
+    });
+    return callbackData ? { text: label, callback_data: callbackData } : null;
+  };
+  const mine = opsAssignedTo(profile.adminUserId);
+  const now = new Date();
+  let gentle: { text: string; replyMarkup?: OpsTelegramReplyMarkup } | null | undefined;
+  if (input.job.type === "telegram_task_reminder" && payload.reminderKind === "due_today") {
+    const [task] = await loadOpsReminderTasks(input.client, [payload.taskId], mine);
+    const taskUrl = task ? opsAdminLink(`/admin/operations/tasks/${task.id}`) : null;
+    gentle = task
+      ? await buildOpsDueTodayNudge({
+          task,
+          timeZone: profile.timezone,
+          taskUrl,
+          button: reminderButton,
+        })
+      : null;
+  } else if (
+    input.job.type === "telegram_internal_report" &&
+    payload.reportPeriod === "morning_digest"
+  ) {
+    const [today, yesterday, shop] = await Promise.all([
+      loadOpsReminderTasks(input.client, payload.todayTaskIds, mine),
+      loadOpsReminderTasks(input.client, payload.yesterdayTaskIds, mine),
+      loadOpsReminderTasks(input.client, payload.shopTaskIds, OPS_UNASSIGNED_TASK_WHERE),
+    ]);
+    gentle = await buildOpsMorningDigest({
+      today,
+      yesterday,
+      shop,
+      olderOverdueCount: Number(payload.olderOverdueCount ?? 0) || 0,
+      timeZone: profile.timezone,
+      now,
+      tasksUrl: opsAdminLink("/admin/operations/tasks?mine=1"),
+      miniAppUrl: opsMiniAppUrl(),
+      button: reminderButton,
+    });
+  } else if (
+    input.job.type === "telegram_internal_report" &&
+    (payload.reportPeriod === "weekly_summary" || payload.reportPeriod === "system_alert")
+  ) {
+    // Owner-only reports: the role is re-checked at send time.
+    if (!opsRolesAreOwner(profile.adminUser.roles)) {
+      gentle = null;
+    } else if (payload.reportPeriod === "weekly_summary") {
+      gentle = await buildOpsWeeklySummary({
+        client: input.client,
+        now,
+        timeZone: profile.timezone,
+        triageUrl: opsAdminLink("/admin/operations/triage"),
+        miniAppUrl: opsMiniAppUrl(),
+      });
+    } else {
+      const since = new Date(String(payload.since ?? ""));
+      gentle = await buildOpsSystemAlert({
+        client: input.client,
+        since: Number.isNaN(since.getTime()) ? new Date(now.getTime() - 86_400_000) : since,
+        systemUrl: opsAdminLink("/admin/operations/system"),
+      });
+    }
+  } else if (
+    input.job.type === "telegram_internal_report" &&
+    payload.reportPeriod === "weekly_review"
+  ) {
+    const [stale, unassigned] = await Promise.all([
+      loadOpsReminderTasks(input.client, payload.staleTaskIds, mine),
+      loadOpsReminderTasks(input.client, payload.unassignedTaskIds, OPS_UNASSIGNED_TASK_WHERE),
+    ]);
+    gentle = await buildOpsWeeklyReview({
+      stale,
+      staleTotal: Math.max(stale.length, Number(payload.staleTotal ?? 0) || 0),
+      unassigned,
+      unassignedTotal: Math.max(unassigned.length, Number(payload.unassignedTotal ?? 0) || 0),
+      timeZone: profile.timezone,
+      now,
+      tasksUrl: opsAdminLink("/admin/operations/tasks"),
+      button: reminderButton,
+    });
+  }
+  if (gentle === null) {
+    return {
+      outcome: "succeeded" as const,
+      result: { notification: "nothing_to_send" },
+    };
+  }
+
   let text: string;
   let replyMarkup: OpsTelegramReplyMarkup | undefined;
-  if (input.job.type === "telegram_task_assigned") {
+  if (gentle) {
+    text = gentle.text;
+    replyMarkup = gentle.replyMarkup;
+  } else if (input.job.type === "telegram_task_assigned") {
     const title = String(payload.title ?? "Задача").slice(0, 500);
     const recipientName = String(profile.adminUser.name ?? "").trim() || "Вы";
     const dueAt = payload.dueAt ? new Date(String(payload.dueAt)) : null;
@@ -3481,6 +3869,17 @@ async function executeInternalNotificationJob(input: {
       return {
         outcome: "succeeded" as const,
         result: { notification: "disabled" },
+      };
+    }
+    if (
+      error instanceof OpsNotificationError &&
+      error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE
+    ) {
+      // Blocked bot or deleted chat: retrying cannot deliver. Later notices to
+      // this person are paused by findPausedOpsTelegramRecipients.
+      return {
+        outcome: "succeeded" as const,
+        result: { notification: "recipient_unavailable" },
       };
     }
     throw error;

@@ -86,13 +86,13 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
   {
     key: "work",
     label: "Работа",
-    description: "Проекты, задачи, входящие и база знаний команды.",
+    description: "Задачи команды, входящие из Telegram и база знаний.",
     icon: "tasks",
     items: [
       {
         href: "/admin/operations",
-        label: "Обзор",
-        description: "Текущая работа команды, сроки и блокеры.",
+        label: "Мой день",
+        description: "Что сделать сейчас, мои задачи и кто чем занят.",
         icon: "dashboard",
         exactMatch: true,
         requiredPermissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ],
@@ -103,13 +103,6 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Сообщения Telegram и предложения перед созданием задач.",
         icon: "inbox",
         requiredPermissions: [ADMIN_PERMISSIONS.OPS_INBOX_READ],
-      },
-      {
-        href: "/admin/operations/projects",
-        label: "Проекты",
-        description: "Активные проекты, владельцы и следующие действия.",
-        icon: "projects",
-        requiredPermissions: [ADMIN_PERMISSIONS.OPS_TASKS_READ],
       },
       {
         href: "/admin/operations/tasks",
@@ -131,13 +124,6 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         description: "Обучение, инструкции и процессы для команды.",
         icon: "knowledge",
         requiredPermissions: [ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ],
-      },
-      {
-        href: "/admin/operations/approvals",
-        label: "Согласования",
-        description: "Запросы, которые требуют зафиксированного решения сотрудника.",
-        icon: "approvals",
-        requiredPermissions: [ADMIN_PERMISSIONS.OPS_APPROVALS_DECIDE],
       },
       {
         href: "/admin/operations/system",
@@ -538,6 +524,7 @@ const ADMIN_PAGE_TITLES: Readonly<Record<string, string>> = {
   "/admin/settings/integrations": "Інтеграції",
   "/admin/backups": "Резервні копії",
   "/admin/thought-space": "Thought space",
+  "/admin/operations/triage": "Разбор зависших",
 };
 
 export type AdminBreadcrumb = { label: string; href?: string };

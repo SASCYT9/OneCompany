@@ -58,7 +58,8 @@ test("task-based groups keep every page from the previous navigation", () => {
 
   const hrefs = ADMIN_NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.href));
   assert.equal(new Set(hrefs).size, hrefs.length, "no page is listed twice");
-  assert.equal(hrefs.length, 37);
+  // 37 before Operations «Проекты» and «Согласования» were hidden (2026-10-13).
+  assert.equal(hrefs.length, 35);
 });
 
 test("every section has an icon for the collapsed sidebar rail", () => {
@@ -139,14 +140,14 @@ test("disabled Ops UI is removed from navigation and cannot become the first all
   );
 });
 
-test("approval navigation is visible only to approval decision makers", () => {
-  const withoutApproval = filterAdminNavSections(["ops.tasks.read"]);
-  const withApproval = filterAdminNavSections(["ops.approvals.decide"]);
-  const withoutHrefs = withoutApproval.flatMap((section) => section.items.map((item) => item.href));
-  const withHrefs = withApproval.flatMap((section) => section.items.map((item) => item.href));
-
-  assert.equal(withoutHrefs.includes("/admin/operations/approvals"), false);
-  assert.equal(withHrefs.includes("/admin/operations/approvals"), true);
+test("unused Operations sections stay out of the menu (owner, 2026-10-13)", () => {
+  const everything = filterAdminNavSections(["*"]).flatMap((section) =>
+    section.items.map((item) => item.href)
+  );
+  // Pages and data remain reachable by URL; they are only hidden from navigation.
+  assert.equal(everything.includes("/admin/operations/approvals"), false);
+  assert.equal(everything.includes("/admin/operations/projects"), false);
+  assert.equal(everything.includes("/admin/operations/tasks"), true);
 });
 
 test("breadcrumbs name the section, the page and nested detail screens", () => {

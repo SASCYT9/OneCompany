@@ -42,6 +42,7 @@ import { OrderCustomerBlock } from "@/components/admin/OrderCustomerBlock";
 import { OrderStatusDialog } from "@/components/admin/orders/OrderStatusDialog";
 import { OrderWorkflowPanel } from "@/components/admin/orders/OrderWorkflowPanel";
 import { OrderEditPanel } from "@/components/admin/orders/OrderEditPanel";
+import { OrderOpsTasksCard } from "@/components/admin/orders/OrderOpsTasksCard";
 import {
   formatOrderDate,
   formatOrderMoney,
@@ -1244,6 +1245,8 @@ export default function AdminOrderDetailPage() {
                 ) : null}
               </div>
             </AdminInspectorCard>
+
+            <OrderOpsTasksCard orderId={order.id} orderNumber={order.orderNumber} />
 
             <AdminInspectorCard title="Нотатки" description="Внутрішні нотатки команди.">
               <AdminNotes entityType="shop.order" entityId={order.id} />

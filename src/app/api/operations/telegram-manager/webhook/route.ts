@@ -1,5 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { opsMiniAppUrl } from "@/lib/operations/adminLinks";
 import { drainOpsJobs } from "@/lib/operations/jobs";
+import { setOpsTelegramChatMenuButton } from "@/lib/operations/notifications";
 import { createOpsJobStageExecutor } from "@/lib/operations/telegramJobs";
 import {
   createOpsTelegramWebhookReply,
@@ -20,6 +22,7 @@ import {
   syncOpsTelegramBatchFinalStatus,
   syncOpsTelegramBatchStatus,
 } from "@/lib/operations/telegramBatch";
+import { handleOpsTelegramBotUpdate } from "@/lib/operations/telegramBot";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -114,6 +117,31 @@ export async function POST(request: NextRequest) {
         callback_query_id: normalized.callbackQueryId,
         text: batchResult.response,
       });
+    }
+    // Menu commands, replies like «готово» and inline queries are answered
+    // right here: no Inbox row, no AI, no waiting for the job queue.
+    const botReply = await handleOpsTelegramBotUpdate({
+      client: prisma,
+      rawUpdate: update,
+      update: normalized,
+    });
+    if (botReply) {
+      const menuChatId = botReply.menuButtonChatId;
+      const miniAppUrl = opsMiniAppUrl();
+      if (menuChatId && miniAppUrl) {
+        after(async () => {
+          try {
+            await setOpsTelegramChatMenuButton({
+              chatId: menuChatId,
+              text: "Мой день",
+              url: miniAppUrl,
+            });
+          } catch (error) {
+            console.error("[operations.telegram.menu-button] failed", error);
+          }
+        });
+      }
+      return noStoreJson(botReply.body);
     }
     if (
       normalized &&

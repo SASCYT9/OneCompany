@@ -23,3 +23,9 @@ export function opsAdminLink(path: string, environment: OpsAdminLinkEnvironment 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${resolveOpsAdminBaseUrl(environment)}${normalizedPath}`;
 }
+
+/** «Мой день» inside Telegram. Telegram only opens web apps over HTTPS. */
+export function opsMiniAppUrl(environment: OpsAdminLinkEnvironment = process.env) {
+  const url = opsAdminLink("/ops-app", environment);
+  return url.startsWith("https://") ? url : null;
+}

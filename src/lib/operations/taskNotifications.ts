@@ -1,5 +1,8 @@
 import { OpsJobStage, OpsJobStatus, type Prisma, type PrismaClient } from "@prisma/client";
 
+import { nextOpsNotifyTime } from "@/lib/operations/reminders";
+import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
+
 type OpsNotificationClient = Prisma.TransactionClient | PrismaClient;
 
 function asJson(value: unknown) {
@@ -43,12 +46,16 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
     select: {
       adminUserId: true,
       telegramUserId: true,
+      timezone: true,
+      updatedAt: true,
     },
   });
-  if (!profiles.length) return false;
+  const paused = await findPausedOpsTelegramRecipients(input.client, profiles);
+  const reachable = profiles.filter((profile) => !paused.has(profile.adminUserId));
+  if (!reachable.length) return false;
 
   const result = await input.client.opsJob.createMany({
-    data: profiles.flatMap((profile) =>
+    data: reachable.flatMap((profile) =>
       profile.telegramUserId
         ? [
             {
@@ -63,6 +70,8 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
               type: "telegram_task_assigned",
               status: OpsJobStatus.QUEUED,
               stage: OpsJobStage.NOTIFY,
+              // Quiet hours: an assignment at 23:00 arrives at 09:00.
+              availableAt: nextOpsNotifyTime(new Date(), profile.timezone ?? "Europe/Kyiv"),
               payload: asJson({
                 taskId: input.task.id,
                 recipientAdminUserId: profile.adminUserId,

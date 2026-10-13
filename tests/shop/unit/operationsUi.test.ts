@@ -364,7 +364,7 @@ test("brand directory is separate, responsive, and linked from task details", ()
   );
   assert.match(directory, /Бренд, алиас, формула, страна или ссылка/);
   assert.match(directory, /md:hidden/);
-  assert.match(directory, /hidden border border-slate-200 bg-white md:block/);
+  assert.match(directory, /hidden border border-white\/10 bg-\[#171717\] md:block/);
   assert.match(detail, /Ориентиры доставки/);
   assert.match(detail, /Источники и ссылки/);
   assert.match(detail, /Редактировать бренд/);

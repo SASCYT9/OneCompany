@@ -23,13 +23,25 @@ import {
   X,
 } from "lucide-react";
 
-import { opsRu } from "@/lib/operations/i18n";
+import { formatOpsWhen, opsRu } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
 
 import { OpsPageHeader } from "./OpsPageHeader";
 import { OpsSurface } from "./OpsSurface";
 import { opsGet, opsMutation } from "./opsApi";
 import type { OpsInboxItem, OpsPerson, OpsPriority, OpsProject } from "./types";
+
+type InboxView = "decide" | "tasks";
+
+/** The bot already turned this message into a task (kept for review). */
+function becameTask(item: OpsInboxItem) {
+  return Boolean(item.proposals?.some((proposal) => proposal.appliedTaskId));
+}
+
+/** Button presses are logged as Inbox rows but never need a decision. */
+function isButtonPress(item: OpsInboxItem) {
+  return item.telegramUpdate?.updateType === "callback_query";
+}
 
 function proposalAssigneeLabel(assigneeId: unknown, members: readonly OpsPerson[]) {
   const id = String(assigneeId ?? "");
@@ -41,7 +53,6 @@ function proposalAssigneeLabel(assigneeId: unknown, members: readonly OpsPerson[
 export function OpsInbox({
   initialItems,
   demoMode = false,
-  permissions,
   canReview = false,
   canApply = false,
   canAssign = false,
@@ -58,6 +69,7 @@ export function OpsInbox({
   const [items, setItems] = useState(initialItems ?? []);
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? null);
   const [query, setQuery] = useState("");
+  const [view, setView] = useState<InboxView>("decide");
   const [loading, setLoading] = useState(!initialItems);
   const [error, setError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -105,11 +117,22 @@ export function OpsInbox({
       });
   }, [canAssign, demoMode, membersLoaded]);
 
+  const pending = useMemo(
+    () => items.filter((item) => item.reviewStatus === "PENDING" && !isButtonPress(item)),
+    [items]
+  );
+  const viewCounts = useMemo(
+    () => ({
+      decide: pending.filter((item) => !becameTask(item)).length,
+      tasks: pending.filter(becameTask).length,
+    }),
+    [pending]
+  );
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
-    return items.filter(
+    return pending.filter(
       (item) =>
-        item.reviewStatus === "PENDING" &&
+        (view === "tasks") === becameTask(item) &&
         (!value ||
           [item.summary, item.originalMessage, item.transcription].some((field) =>
             String(field ?? "")
@@ -117,7 +140,7 @@ export function OpsInbox({
               .includes(value)
           ))
     );
-  }, [items, query]);
+  }, [pending, query, view]);
 
   const selected = items.find((item) => item.id === selectedId) ?? null;
   const selectedAudioAttachments =
@@ -290,30 +313,65 @@ export function OpsInbox({
   }
 
   return (
-    <OpsSurface inboxCount={filtered.length} permissions={permissions}>
+    <OpsSurface>
       <OpsPageHeader title={opsRu.inbox.title} description={opsRu.inbox.subtitle} />
-      <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
-        <label className="relative block max-w-xl">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="flex flex-col gap-3 border-b border-white/10 bg-[#171717] px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+        <div className="flex border border-white/10" role="tablist" aria-label="Входящие">
+          {(
+            [
+              ["decide", "Ждут решения"],
+              ["tasks", "Уже стали задачами"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={view === value}
+              onClick={() => {
+                setView(value);
+                setSelectedId(null);
+              }}
+              className={cn(
+                "flex h-10 items-center gap-2 px-4 text-sm font-medium transition",
+                view === value
+                  ? "bg-blue-600 text-white"
+                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+              )}
+            >
+              {label}
+              <span
+                className={cn(
+                  "tabular-nums text-xs",
+                  view === value ? "text-blue-100" : "text-zinc-500"
+                )}
+              >
+                {viewCounts[value]}
+              </span>
+            </button>
+          ))}
+        </div>
+        <label className="relative block w-full max-w-xl">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Поиск сообщений…"
-            className="h-11 w-full rounded-lg border border-slate-300 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="h-11 w-full rounded-lg border border-white/15 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
         </label>
       </div>
 
       {loading ? (
-        <div className="flex min-h-[65vh] items-center justify-center gap-2 text-sm text-slate-500">
+        <div className="flex min-h-[65vh] items-center justify-center gap-2 text-sm text-zinc-500">
           <Loader2 className="h-5 w-5 animate-spin" />
           {opsRu.common.loading}
         </div>
       ) : (
-        <div className="grid min-h-[650px] grid-cols-1 bg-white lg:grid-cols-[minmax(360px,38%)_minmax(0,1fr)]">
+        <div className="grid min-h-[650px] grid-cols-1 bg-[#171717] lg:grid-cols-[minmax(360px,38%)_minmax(0,1fr)]">
           <aside
             className={cn(
-              "border-r border-slate-200 bg-slate-50 p-3 sm:p-5",
+              "border-r border-white/10 bg-white/[0.03] p-3 sm:p-5",
               selected && "hidden lg:block"
             )}
           >
@@ -329,14 +387,14 @@ export function OpsInbox({
                         setTranscriptOpen(false);
                       }}
                       className={cn(
-                        "w-full rounded-xl border bg-white p-4 text-left shadow-sm transition hover:border-blue-200",
+                        "w-full rounded-xl border bg-[#171717] p-4 text-left shadow-sm transition hover:border-blue-500/25",
                         item.id === selected?.id
                           ? "border-blue-500 ring-1 ring-blue-500"
-                          : "border-slate-200"
+                          : "border-white/10"
                       )}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
                           {item.telegramUpdate?.updateType === "VOICE" ? (
                             <FileAudio className="h-4 w-4" />
                           ) : (
@@ -344,22 +402,19 @@ export function OpsInbox({
                           )}
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
+                          <span className="line-clamp-2 text-sm font-semibold leading-5 text-zinc-100">
                             {item.summary || item.originalMessage}
                           </span>
                           <span className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-xs font-medium text-slate-500">
+                            <span className="text-xs font-medium text-zinc-500">
                               {item.telegramUpdate?.updateType === "VOICE"
                                 ? "Голосовое"
                                 : item.telegramUpdate?.isUntrustedForward
                                   ? "Пересланное сообщение"
                                   : "Telegram"}
                             </span>
-                            <span className="text-xs text-slate-400">
-                              {new Intl.DateTimeFormat("ru-RU", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }).format(new Date(item.createdAt))}
+                            <span className="shrink-0 text-xs text-zinc-500">
+                              {formatOpsWhen(item.createdAt)}
                             </span>
                           </span>
                         </span>
@@ -370,36 +425,40 @@ export function OpsInbox({
               </div>
             ) : (
               <div className="flex min-h-72 flex-col items-center justify-center px-5 text-center">
-                <Inbox className="h-9 w-9 text-slate-300" />
-                <p className="mt-3 text-sm font-medium text-slate-700">{opsRu.inbox.empty}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">
-                  Новые сообщения Telegram появятся здесь.
+                <Inbox className="h-9 w-9 text-zinc-600" />
+                <p className="mt-3 text-sm font-medium text-zinc-300">
+                  {view === "decide" ? "Всё разобрано" : opsRu.inbox.empty}
+                </p>
+                <p className="mt-1 max-w-xs text-xs leading-5 text-zinc-500">
+                  {view === "decide"
+                    ? "Сюда попадают сообщения из Telegram, из которых бот не смог сам сделать задачу."
+                    : "Сообщения, из которых бот уже сделал задачи, появятся здесь."}
                 </p>
               </div>
             )}
           </aside>
 
-          <main className={cn("min-w-0 bg-white", !selected && "hidden lg:block")}>
+          <main className={cn("min-w-0 bg-[#171717]", !selected && "hidden lg:block")}>
             {selected ? (
               <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
                 <button
                   type="button"
                   onClick={() => setSelectedId(null)}
-                  className="mb-4 flex h-10 items-center gap-2 text-sm font-medium text-slate-600 lg:hidden"
+                  className="mb-4 flex h-10 items-center gap-2 text-sm font-medium text-zinc-400 lg:hidden"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Все входящие
                 </button>
                 <div className="flex items-start gap-4">
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-600">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-sky-400">
                       <Send className="h-4 w-4" />
                       Telegram Manager
                     </div>
-                    <h2 className="mt-2 text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
+                    <h2 className="mt-2 text-xl font-bold leading-tight text-zinc-50 sm:text-2xl">
                       {selected.summary || "Новое сообщение"}
                     </h2>
-                    <p className="mt-2 text-xs text-slate-400">
+                    <p className="mt-2 text-xs text-zinc-500">
                       {new Intl.DateTimeFormat("ru-RU", {
                         day: "numeric",
                         month: "long",
@@ -411,31 +470,31 @@ export function OpsInbox({
                 </div>
 
                 {selected.telegramUpdate?.isUntrustedForward ? (
-                  <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     Пересланный текст считается внешним источником. Проверьте его перед созданием.
                   </div>
                 ) : null}
 
-                <section className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                <section className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="text-xs font-bold uppercase tracking-wide text-zinc-500">
                     Оригинал
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-800">
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-200">
                     {selected.originalMessage}
                   </p>
                 </section>
 
                 {selectedAudioAttachments.length ? (
-                  <section className="mt-4 rounded-xl border border-slate-200 p-4">
+                  <section className="mt-4 rounded-xl border border-white/10 p-4">
                     <div className="flex items-center gap-2 text-sm font-semibold">
-                      <FileAudio className="h-5 w-5 text-blue-600" />
+                      <FileAudio className="h-5 w-5 text-blue-400" />
                       Голосовые сообщения · {selectedAudioAttachments.length}
                     </div>
                     <div className="mt-3 space-y-3">
                       {selectedAudioAttachments.map((attachment, index) => (
                         <div key={attachment.id}>
-                          <div className="mb-1 text-xs font-medium text-slate-500">
+                          <div className="mb-1 text-xs font-medium text-zinc-500">
                             Голосовое {index + 1}
                           </div>
                           <audio
@@ -457,7 +516,7 @@ export function OpsInbox({
                 ) : null}
 
                 {selected.transcription ? (
-                  <section className="mt-4 rounded-xl border border-slate-200">
+                  <section className="mt-4 rounded-xl border border-white/10">
                     <button
                       type="button"
                       onClick={() => setTranscriptOpen((open) => !open)}
@@ -467,13 +526,13 @@ export function OpsInbox({
                       Транскрипция
                       <ChevronDown
                         className={cn(
-                          "h-4 w-4 text-slate-500 transition-transform",
+                          "h-4 w-4 text-zinc-500 transition-transform",
                           transcriptOpen && "rotate-180"
                         )}
                       />
                     </button>
                     {transcriptOpen ? (
-                      <p className="border-t border-slate-100 px-4 py-4 text-sm leading-6 text-slate-600">
+                      <p className="border-t border-white/5 px-4 py-4 text-sm leading-6 text-zinc-400">
                         {selected.transcription}
                       </p>
                     ) : null}
@@ -481,32 +540,32 @@ export function OpsInbox({
                 ) : null}
 
                 <section className="mt-5">
-                  <h3 className="text-sm font-bold text-slate-950">Что нужно сделать</h3>
+                  <h3 className="text-sm font-bold text-zinc-50">Что нужно сделать</h3>
                   <div className="mt-3 space-y-3">
                     {selected.proposals?.map((proposal, index) => (
                       <article
                         key={proposal.id}
-                        className="rounded-xl border border-blue-200 bg-blue-50/40 p-4"
+                        className="rounded-xl border border-blue-500/25 bg-blue-500/[0.06] p-4"
                       >
                         <div className="flex items-start gap-3">
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                             {index + 1}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-semibold text-slate-900">
+                            <h4 className="font-semibold text-zinc-100">
                               {String(proposal.payload.title || "Название не извлечено")}
                             </h4>
-                            <p className="mt-1 text-sm text-slate-600">
+                            <p className="mt-1 text-sm text-zinc-400">
                               {proposalAssigneeLabel(proposal.payload.assigneeId, members)}
                             </p>
-                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-500">
                               {proposal.payload.priority ? (
-                                <span className="rounded-full bg-white px-2 py-1">
+                                <span className="rounded-full bg-[#171717] px-2 py-1">
                                   Приоритет: {String(proposal.payload.priority)}
                                 </span>
                               ) : null}
                               {proposal.payload.dueAt ? (
-                                <span className="rounded-full bg-white px-2 py-1">
+                                <span className="rounded-full bg-[#171717] px-2 py-1">
                                   Срок:{" "}
                                   {new Intl.DateTimeFormat("ru-RU", {
                                     day: "numeric",
@@ -530,7 +589,7 @@ export function OpsInbox({
                               type="button"
                               onClick={() => void openProposalEditor(proposal.id)}
                               aria-label="Исправить предложение"
-                              className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-blue-600"
+                              className="rounded-lg p-2 text-zinc-500 hover:bg-[#171717] hover:text-blue-400"
                             >
                               <Pencil className="h-4 w-4" />
                             </button>
@@ -542,7 +601,7 @@ export function OpsInbox({
                 </section>
 
                 {error ? (
-                  <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">
                     <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     {error}
                   </div>
@@ -576,7 +635,7 @@ export function OpsInbox({
                         <button
                           type="button"
                           onClick={() => void openProposalEditor()}
-                          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700"
+                          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-300"
                         >
                           <SlidersHorizontal className="h-4 w-4" />
                           {selected.proposals?.some((proposal) => proposal.status === "PENDING")
@@ -590,7 +649,7 @@ export function OpsInbox({
                         type="button"
                         onClick={() => void review("ignore")}
                         disabled={Boolean(pendingAction)}
-                        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-600 disabled:opacity-50"
+                        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-400 disabled:opacity-50"
                       >
                         {pendingAction === "ignore" ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -605,9 +664,9 @@ export function OpsInbox({
               </div>
             ) : (
               <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-                <Inbox className="h-9 w-9 text-slate-300" />
-                <h2 className="mt-3 font-semibold text-slate-800">Выберите сообщение</h2>
-                <p className="mt-1 text-sm text-slate-500">Предложения появятся справа.</p>
+                <Inbox className="h-9 w-9 text-zinc-600" />
+                <h2 className="mt-3 font-semibold text-zinc-200">Выберите сообщение</h2>
+                <p className="mt-1 text-sm text-zinc-500">Предложения появятся справа.</p>
               </div>
             )}
           </main>
@@ -626,13 +685,13 @@ export function OpsInbox({
             }
           }}
         >
-          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-2xl">
+          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-2xl sm:rounded-2xl">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 id="ops-proposal-edit-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-proposal-edit-title" className="text-lg font-bold text-zinc-50">
                   Настроить задачу
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-zinc-500">
                   Проверьте текст и выберите исполнителя. Создание — отдельной кнопкой.
                 </p>
               </div>
@@ -641,14 +700,14 @@ export function OpsInbox({
                 onClick={() => setEditingProposalId(null)}
                 disabled={Boolean(pendingAction)}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {error ? (
-              <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+              <div className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-300">
                 <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -656,29 +715,29 @@ export function OpsInbox({
 
             <div className="mt-5 space-y-4">
               <label className="block">
-                <span className="text-sm font-medium text-slate-700">Название</span>
+                <span className="text-sm font-medium text-zinc-300">Название</span>
                 <input
                   value={proposalTitle}
                   onChange={(event) => setProposalTitle(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-medium text-slate-700">Описание</span>
+                <span className="text-sm font-medium text-zinc-300">Описание</span>
                 <textarea
                   value={proposalDescription}
                   onChange={(event) => setProposalDescription(event.target.value)}
                   rows={3}
-                  className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">Приоритет</span>
+                  <span className="text-sm font-medium text-zinc-300">Приоритет</span>
                   <select
                     value={proposalPriority}
                     onChange={(event) => setProposalPriority(event.target.value as OpsPriority)}
-                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500"
+                    className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500"
                   >
                     <option value="LOW">Низкий</option>
                     <option value="NORMAL">Обычный</option>
@@ -687,23 +746,23 @@ export function OpsInbox({
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">Срок</span>
+                  <span className="text-sm font-medium text-zinc-300">Срок</span>
                   <input
                     type="datetime-local"
                     value={proposalDueAt}
                     onChange={(event) => setProposalDueAt(event.target.value)}
-                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+                    className="mt-2 h-11 w-full rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500"
                   />
                 </label>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">Проект</span>
+                  <span className="text-sm font-medium text-zinc-300">Проект</span>
                   <select
                     value={proposalProjectId}
                     onChange={(event) => setProposalProjectId(event.target.value)}
                     disabled={referenceLoading}
-                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 disabled:opacity-60"
+                    className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500 disabled:opacity-60"
                   >
                     <option value="">Без проекта</option>
                     {projects.map((project) => (
@@ -715,12 +774,12 @@ export function OpsInbox({
                 </label>
                 {canAssign ? (
                   <label className="block">
-                    <span className="text-sm font-medium text-slate-700">Исполнитель</span>
+                    <span className="text-sm font-medium text-zinc-300">Исполнитель</span>
                     <select
                       value={proposalAssigneeId}
                       onChange={(event) => setProposalAssigneeId(event.target.value)}
                       disabled={referenceLoading}
-                      className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 disabled:opacity-60"
+                      className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500 disabled:opacity-60"
                     >
                       <option value="">Не назначен</option>
                       {members.map((member) => (
@@ -738,7 +797,7 @@ export function OpsInbox({
                 type="button"
                 onClick={() => setEditingProposalId(null)}
                 disabled={Boolean(pendingAction)}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium disabled:opacity-50"
               >
                 Отмена
               </button>

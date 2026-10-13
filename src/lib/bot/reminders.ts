@@ -115,13 +115,13 @@ export async function sendAdminReminders() {
             [
               {
                 text: `📬 Нові (${urgent})`,
-                web_app: { url: `${siteUrl}/telegram-app/admin?filter=new` },
+                url: `${siteUrl}/admin/messages`,
               },
             ],
             [
               {
                 text: `🤝 Партнери (${partnerships})`,
-                web_app: { url: `${siteUrl}/telegram-app/admin?category=PARTNERSHIP` },
+                url: `${siteUrl}/admin/messages`,
               },
             ],
           ],

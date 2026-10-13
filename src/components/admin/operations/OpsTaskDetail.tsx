@@ -22,6 +22,7 @@ import {
   Loader2,
   MessageSquareText,
   Pencil,
+  Repeat,
   Plus,
   RotateCcw,
   Save,
@@ -34,6 +35,13 @@ import {
 
 import { OPS_PRIORITY_LABELS, OPS_STATUS_LABELS } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
+import {
+  OPS_REPEAT_RULES,
+  opsRepeatLabel,
+  opsRepeatRuleFromTags,
+  withOpsRepeatRule,
+  type OpsRepeatRule,
+} from "@/lib/operations/repeatRules";
 
 import { OpsApiError, opsGet, opsMutation } from "./opsApi";
 import { OpsTaskAutomation } from "./OpsTaskAutomation";
@@ -76,7 +84,7 @@ function OpsLinkedText({ text }: { text: string }) {
               href={cleanUrl}
               target="_blank"
               rel="noreferrer"
-              className="break-all font-medium text-blue-700 underline decoration-blue-200 underline-offset-2 hover:decoration-blue-600"
+              className="break-all font-medium text-blue-300 underline decoration-blue-500/40 underline-offset-2 hover:decoration-blue-400"
             >
               {cleanUrl}
             </a>
@@ -89,7 +97,7 @@ function OpsLinkedText({ text }: { text: string }) {
 }
 
 const priorityColor: Record<OpsPriority, string> = {
-  LOW: "bg-slate-300",
+  LOW: "bg-white/15",
   NORMAL: "bg-amber-400",
   HIGH: "bg-red-500",
   URGENT: "bg-rose-600",
@@ -111,25 +119,39 @@ function taskTagPresentation(tag: string) {
   const separator = tag.indexOf(":");
   const type = separator > 0 ? tag.slice(0, separator) : "other";
   const value = separator > 0 ? tag.slice(separator + 1) : tag;
+  const repeat = opsRepeatRuleFromTags([tag]);
+  if (repeat) {
+    return {
+      label: `🔁 ${opsRepeatLabel(repeat)}`,
+      className: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+    };
+  }
+  if (tag === "source:shop") {
+    return {
+      label: "🛒 Из магазина",
+      className: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+    };
+  }
   if (type === "brand") {
-    return { label: value, className: "border-violet-200 bg-violet-50 text-violet-700" };
+    return { label: value, className: "border-violet-500/30 bg-violet-500/10 text-violet-300" };
   }
   if (type === "product") {
-    return { label: value, className: "border-sky-200 bg-sky-50 text-sky-700" };
+    return { label: value, className: "border-sky-500/30 bg-sky-500/10 text-sky-300" };
   }
   return {
     label: processTagLabels[value] ?? value,
-    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   };
 }
 
+// «Нужно согласовать» is hidden with the approvals workflow (owner, 2026-10-13);
+// tasks already in it can still move out.
 const transitionTargets: Record<OpsTaskStatus, OpsTaskStatus[]> = {
   INBOX: [
     "PLANNED",
     "IN_PROGRESS",
     "WAITING_HUMAN",
     "WAITING_EXTERNAL",
-    "NEEDS_APPROVAL",
     "REVIEW",
     "BLOCKED",
     "DONE",
@@ -140,7 +162,6 @@ const transitionTargets: Record<OpsTaskStatus, OpsTaskStatus[]> = {
     "IN_PROGRESS",
     "WAITING_HUMAN",
     "WAITING_EXTERNAL",
-    "NEEDS_APPROVAL",
     "REVIEW",
     "BLOCKED",
     "DONE",
@@ -151,7 +172,6 @@ const transitionTargets: Record<OpsTaskStatus, OpsTaskStatus[]> = {
     "PLANNED",
     "WAITING_HUMAN",
     "WAITING_EXTERNAL",
-    "NEEDS_APPROVAL",
     "REVIEW",
     "BLOCKED",
     "DONE",
@@ -958,9 +978,9 @@ export function OpsTaskDetail({
     (!transitionNeedsComment || Boolean(transitionComment.trim()));
 
   return (
-    <article className={cn("relative min-w-0 bg-white", compact ? "h-full" : "min-h-full")}>
+    <article className={cn("relative min-w-0 bg-[#171717]", compact ? "h-full" : "min-h-full")}>
       {!compact ? (
-        <div className="flex h-16 items-center justify-between bg-[#0b1b2d] px-4 text-white lg:hidden">
+        <div className="flex h-16 items-center justify-between border-b border-white/10 bg-[#171717] px-4 text-white lg:hidden">
           <Link
             href="/admin/operations/tasks"
             aria-label="Назад к задачам"
@@ -983,9 +1003,9 @@ export function OpsTaskDetail({
 
       <div className={cn("mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8", compact && "py-7")}>
         {editOpen ? (
-          <div className="border border-blue-200 bg-blue-50/40 p-3 sm:p-4">
+          <div className="border border-blue-500/25 bg-blue-500/[0.06] p-3 sm:p-4">
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Название
               </span>
               <textarea
@@ -995,13 +1015,13 @@ export function OpsTaskDetail({
                 onChange={(event) => setEditTitle(event.target.value)}
                 rows={2}
                 className={cn(
-                  "mt-2 w-full resize-none border border-slate-300 bg-white px-3 py-2 font-bold leading-tight tracking-tight text-slate-950 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
+                  "mt-2 w-full resize-none border border-white/15 bg-[#171717] px-3 py-2 font-bold leading-tight tracking-tight text-zinc-50 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                   compact ? "text-lg xl:text-xl 2xl:text-2xl" : "text-2xl sm:text-3xl"
                 )}
               />
             </label>
             <label className="mt-4 block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Описание
               </span>
               <textarea
@@ -1010,17 +1030,17 @@ export function OpsTaskDetail({
                 onChange={(event) => setEditDescription(event.target.value)}
                 rows={4}
                 placeholder="Добавьте детали, ссылки или важный контекст"
-                className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full resize-y border border-white/15 bg-[#171717] p-3 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </label>
             <div
               className={cn(
                 "mt-3 flex items-start justify-between gap-3 border px-3 py-2 text-xs",
                 aiDraftStatus === "error"
-                  ? "border-red-200 bg-red-50 text-red-700"
+                  ? "border-red-500/30 bg-red-500/10 text-red-300"
                   : aiDraftStatus === "review"
-                    ? "border-amber-200 bg-amber-50 text-amber-800"
-                    : "border-blue-200 bg-blue-50 text-blue-700"
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+                    : "border-blue-500/25 bg-blue-500/10 text-blue-300"
               )}
             >
               <span className="min-w-0 leading-5">
@@ -1037,11 +1057,11 @@ export function OpsTaskDetail({
               </button>
             </div>
             {aiDraftSuggestion ? (
-              <div className="mt-3 border border-slate-200 bg-white p-3">
+              <div className="mt-3 border border-white/10 bg-[#171717] p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">Предложение AI</p>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="text-sm font-semibold text-zinc-100">Предложение AI</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
                       Изменения не применятся, пока вы их не подтвердите.
                     </p>
                   </div>
@@ -1049,7 +1069,7 @@ export function OpsTaskDetail({
                     <button
                       type="button"
                       onClick={() => setAiDraftSuggestion(null)}
-                      className="h-9 border border-slate-300 px-3 text-xs font-semibold text-slate-600"
+                      className="h-9 border border-white/15 px-3 text-xs font-semibold text-zinc-400"
                     >
                       Отклонить
                     </button>
@@ -1070,12 +1090,12 @@ export function OpsTaskDetail({
                     ["Готово, когда", editDefinitionOfDone, aiDraftSuggestion.definitionOfDone],
                   ].map(([label, before, after]) =>
                     after && (before ?? "").trim() !== after.trim() ? (
-                      <div key={label} className="border border-slate-200 p-2.5">
-                        <p className="font-semibold text-slate-700">{label}</p>
-                        <p className="mt-1 line-clamp-2 text-slate-400 line-through">
+                      <div key={label} className="border border-white/10 p-2.5">
+                        <p className="font-semibold text-zinc-300">{label}</p>
+                        <p className="mt-1 line-clamp-2 text-zinc-500 line-through">
                           {before || "—"}
                         </p>
-                        <p className="mt-1 line-clamp-3 text-slate-800">{after}</p>
+                        <p className="mt-1 line-clamp-3 text-zinc-200">{after}</p>
                       </div>
                     ) : null
                   )}
@@ -1084,7 +1104,7 @@ export function OpsTaskDetail({
             ) : null}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                   Следующее действие
                 </span>
                 <textarea
@@ -1092,11 +1112,11 @@ export function OpsTaskDetail({
                   value={editNextAction}
                   onChange={(event) => setEditNextAction(event.target.value)}
                   rows={3}
-                  className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 w-full resize-y border border-white/15 bg-[#171717] p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </label>
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                   Готово, когда
                 </span>
                 <textarea
@@ -1104,7 +1124,7 @@ export function OpsTaskDetail({
                   value={editDefinitionOfDone}
                   onChange={(event) => setEditDefinitionOfDone(event.target.value)}
                   rows={3}
-                  className="mt-2 w-full resize-y border border-slate-300 bg-white p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="mt-2 w-full resize-y border border-white/15 bg-[#171717] p-3 text-sm leading-5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </label>
             </div>
@@ -1131,7 +1151,7 @@ export function OpsTaskDetail({
                 type="button"
                 onClick={() => setEditOpen(false)}
                 disabled={pending}
-                className="h-10 border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
+                className="h-10 border border-white/15 bg-[#171717] px-4 text-sm font-medium text-zinc-300 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -1155,7 +1175,7 @@ export function OpsTaskDetail({
             <div className="flex items-start gap-3">
               <h2
                 className={cn(
-                  "min-w-0 flex-1 font-bold leading-tight tracking-tight text-slate-950",
+                  "min-w-0 flex-1 font-bold leading-tight tracking-tight text-zinc-50",
                   compact ? "text-lg xl:text-xl 2xl:text-2xl" : "text-[24px] sm:text-3xl"
                 )}
               >
@@ -1165,7 +1185,7 @@ export function OpsTaskDetail({
                 <button
                   type="button"
                   onClick={() => void openTaskEditor()}
-                  className="mt-0.5 flex h-10 items-center gap-2 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                  className="mt-0.5 flex h-10 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-medium text-zinc-300 hover:border-blue-500/40 hover:text-blue-300"
                 >
                   <Pencil className="h-4 w-4" />
                   <span className="hidden sm:inline">Редактировать</span>
@@ -1173,12 +1193,12 @@ export function OpsTaskDetail({
               ) : null}
             </div>
             {current.number ? (
-              <p className="mt-1 font-mono text-xs font-semibold text-blue-600">
+              <p className="mt-1 font-mono text-xs font-semibold text-blue-400">
                 Задача #{current.number}
               </p>
             ) : null}
             {current.description ? (
-              <div className="mt-3 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-slate-600">
+              <div className="mt-3 max-w-3xl whitespace-pre-wrap text-sm leading-6 text-zinc-400">
                 <OpsLinkedText text={current.description} />
               </div>
             ) : null}
@@ -1205,7 +1225,7 @@ export function OpsTaskDetail({
 
         <div
           className={cn(
-            "mt-6 grid border-b border-slate-200 pb-5",
+            "mt-6 grid border-b border-white/10 pb-5",
             compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-4"
           )}
         >
@@ -1213,12 +1233,12 @@ export function OpsTaskDetail({
             className={cn(
               "relative",
               compact
-                ? "border-r border-slate-200 pr-3"
-                : "border-b border-slate-200 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4"
+                ? "border-r border-white/10 pr-3"
+                : "border-b border-white/10 pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4"
             )}
           >
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Check className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <Check className="h-4 w-4 text-blue-400" />
               Статус
             </div>
             {canWrite && current.status !== "AGENT_RUNNING" ? (
@@ -1226,26 +1246,26 @@ export function OpsTaskDetail({
                 type="button"
                 onClick={() => setStatusOpen((open) => !open)}
                 disabled={pending}
-                className="mt-2 flex min-h-9 items-center gap-2 text-left text-sm font-medium text-blue-600 disabled:opacity-50"
+                className="mt-2 flex min-h-9 items-center gap-2 text-left text-sm font-medium text-blue-400 disabled:opacity-50"
               >
                 {OPS_STATUS_LABELS[current.status]}
                 <ChevronDown className="h-4 w-4" />
               </button>
             ) : (
-              <div className="mt-2 flex min-h-9 items-center text-sm font-medium text-slate-700">
+              <div className="mt-2 flex min-h-9 items-center text-sm font-medium text-zinc-300">
                 {OPS_STATUS_LABELS[current.status]}
               </div>
             )}
             {statusOpen ? (
-              <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+              <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-xl border border-white/10 bg-[#171717] p-1.5 shadow-xl">
                 {transitionTargets[current.status].map((status) => (
                   <button
                     type="button"
                     key={status}
                     onClick={() => openTransitionDialog(status)}
                     className={cn(
-                      "block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100",
-                      status === current.status && "bg-blue-50 text-blue-700"
+                      "block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-white/[0.06]",
+                      status === current.status && "bg-blue-500/10 text-blue-300"
                     )}
                   >
                     {OPS_STATUS_LABELS[status]}
@@ -1258,10 +1278,10 @@ export function OpsTaskDetail({
             className={cn(
               compact
                 ? "pl-3"
-                : "border-b border-slate-200 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
+                : "border-b border-white/10 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
             )}
           >
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
               <Flag className="h-4 w-4" />
               Приоритет
             </div>
@@ -1283,7 +1303,7 @@ export function OpsTaskDetail({
                       "priority"
                     )
                   }
-                  className="h-9 min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+                  className="h-9 min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-medium text-zinc-100 outline-none hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
                 >
                   {(Object.keys(OPS_PRIORITY_LABELS) as OpsPriority[]).map((priority) => (
                     <option key={priority} value={priority}>
@@ -1303,17 +1323,17 @@ export function OpsTaskDetail({
             className={cn(
               "relative",
               compact
-                ? "mt-4 border-r border-t border-slate-200 pr-3 pt-4"
-                : "border-b border-slate-200 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
+                ? "mt-4 border-r border-t border-white/10 pr-3 pt-4"
+                : "border-b border-white/10 py-4 sm:border-b-0 sm:border-r sm:px-4 sm:py-0"
             )}
           >
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
               <CircleUserRound className="h-4 w-4" />
               Исполнители
             </div>
             {current.isShared ? (
-              <div className="mt-2 flex min-h-9 items-center gap-2 text-sm font-semibold text-blue-700">
-                <span className="flex h-7 min-w-7 items-center justify-center bg-blue-100 px-1 text-[10px]">
+              <div className="mt-2 flex min-h-9 items-center gap-2 text-sm font-semibold text-blue-300">
+                <span className="flex h-7 min-w-7 items-center justify-center bg-blue-500/15 px-1 text-[10px]">
                   ВСЕ
                 </span>
                 Вся команда
@@ -1324,10 +1344,10 @@ export function OpsTaskDetail({
                   {currentAssignees.map((person) => (
                     <span
                       key={person.id}
-                      className="inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-blue-200 bg-blue-50 pl-1 pr-1.5 text-xs font-medium text-blue-800"
+                      className="inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-blue-500/25 bg-blue-500/10 pl-1 pr-1.5 text-xs font-medium text-blue-200"
                       title={displayPersonName(person)}
                     >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[9px] font-semibold">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-[9px] font-semibold">
                         {initials(person.name)}
                       </span>
                       <span className="max-w-28 truncate">{displayPersonName(person)}</span>
@@ -1336,7 +1356,7 @@ export function OpsTaskDetail({
                         onClick={() => void updateTaskAssignee(person.id, false)}
                         disabled={pending}
                         aria-label={`Убрать исполнителя ${displayPersonName(person)}`}
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-blue-500 hover:bg-blue-100 hover:text-blue-800 disabled:opacity-50"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-blue-500 hover:bg-blue-500/15 hover:text-blue-200 disabled:opacity-50"
                       >
                         <X className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
@@ -1353,7 +1373,7 @@ export function OpsTaskDetail({
                     }}
                     disabled={pending}
                     className={cn(
-                      "flex h-8 items-center gap-1 rounded-full border border-dashed border-slate-300 px-2 font-medium text-slate-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50",
+                      "flex h-8 items-center gap-1 rounded-full border border-dashed border-white/15 px-2 font-medium text-zinc-400 hover:border-blue-400 hover:bg-blue-500/10 hover:text-blue-300 disabled:opacity-50",
                       compact ? "text-[11px]" : "text-xs"
                     )}
                   >
@@ -1365,7 +1385,7 @@ export function OpsTaskDetail({
                   <div
                     role="dialog"
                     aria-label="Выбор исполнителей"
-                    className="absolute left-0 top-full z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+                    className="absolute left-0 top-full z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#171717] p-2 shadow-xl"
                   >
                     <div className="flex items-center gap-2">
                       <input
@@ -1375,7 +1395,7 @@ export function OpsTaskDetail({
                         onChange={(event) => setAssigneeSearch(event.target.value)}
                         placeholder="Найти сотрудника…"
                         aria-label="Поиск исполнителя"
-                        className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        className="h-10 min-w-0 flex-1 rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                       />
                       <button
                         type="button"
@@ -1384,14 +1404,14 @@ export function OpsTaskDetail({
                           setAssigneeSearch("");
                         }}
                         aria-label="Закрыть выбор исполнителей"
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/[0.06]"
                       >
                         <X className="h-4 w-4" aria-hidden="true" />
                       </button>
                     </div>
                     <div className="mt-2 max-h-56 overflow-y-auto overscroll-contain">
                       {inlineMembersLoading && taskMembers.length === 0 ? (
-                        <div className="flex h-16 items-center justify-center gap-2 text-sm text-slate-500">
+                        <div className="flex h-16 items-center justify-center gap-2 text-sm text-zinc-500">
                           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                           Загрузка…
                         </div>
@@ -1403,7 +1423,7 @@ export function OpsTaskDetail({
                           return (
                             <label
                               key={member.id}
-                              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-50"
+                              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-white/[0.03]"
                             >
                               <input
                                 type="checkbox"
@@ -1414,15 +1434,15 @@ export function OpsTaskDetail({
                                 }
                                 className="h-4 w-4 shrink-0 accent-blue-600"
                               />
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-700">
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[10px] font-semibold text-zinc-300">
                                 {initials(member.name)}
                               </span>
                               <span className="min-w-0">
-                                <span className="block truncate text-sm font-medium text-slate-900">
+                                <span className="block truncate text-sm font-medium text-zinc-100">
                                   {displayPersonName(member)}
                                 </span>
                                 {member.name ? (
-                                  <span className="block truncate text-xs text-slate-400">
+                                  <span className="block truncate text-xs text-zinc-500">
                                     {member.email}
                                   </span>
                                 ) : null}
@@ -1431,7 +1451,7 @@ export function OpsTaskDetail({
                           );
                         })
                       ) : (
-                        <p className="px-2 py-4 text-center text-sm text-slate-500">
+                        <p className="px-2 py-4 text-center text-sm text-zinc-500">
                           Никого не найдено
                         </p>
                       )}
@@ -1445,27 +1465,27 @@ export function OpsTaskDetail({
                   currentAssignees.map((person) => (
                     <span
                       key={person.id}
-                      className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full bg-slate-100 pl-1 pr-2 text-xs font-medium text-slate-800"
+                      className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full bg-white/[0.06] pl-1 pr-2 text-xs font-medium text-zinc-200"
                       title={displayPersonName(person)}
                     >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[9px]">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#171717] text-[9px]">
                         {initials(person.name)}
                       </span>
                       <span className="max-w-28 truncate">{displayPersonName(person)}</span>
                     </span>
                   ))
                 ) : (
-                  <span className="text-sm font-medium text-slate-500">Не назначены</span>
+                  <span className="text-sm font-medium text-zinc-500">Не назначены</span>
                 )}
               </div>
             )}
           </div>
           <div
             className={cn(
-              compact ? "mt-4 border-t border-slate-200 pl-3 pt-4" : "pt-4 sm:pl-4 sm:pt-0"
+              compact ? "mt-4 border-t border-white/10 pl-3 pt-4" : "pt-4 sm:pl-4 sm:pt-0"
             )}
           >
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
               <CalendarDays className="h-4 w-4" />
               Срок
             </div>
@@ -1484,18 +1504,56 @@ export function OpsTaskDetail({
                     event.preventDefault();
                   }
                 }}
-                className="mt-2 h-9 w-full min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-xs font-medium text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+                className="mt-2 h-9 w-full min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-xs font-medium text-zinc-100 outline-none hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
               />
             ) : (
               <div className="mt-2 flex min-h-9 items-center text-sm font-medium">
                 {formatDue(current.dueAt)}
               </div>
             )}
+            <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
+              <Repeat className="h-4 w-4" />
+              Повтор
+            </div>
+            {canWrite ? (
+              <select
+                aria-label="Повтор задачи"
+                value={opsRepeatRuleFromTags(current.tags ?? []) ?? ""}
+                disabled={pending}
+                onChange={(event) =>
+                  void saveInlineTaskPatch(
+                    {
+                      tags: withOpsRepeatRule(
+                        current.tags ?? [],
+                        (event.target.value || null) as OpsRepeatRule | null
+                      ),
+                    },
+                    "repeat"
+                  )
+                }
+                className="mt-1 h-9 w-full min-w-0 cursor-pointer border-0 bg-transparent px-1 text-xs font-medium text-zinc-100 outline-none hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
+                data-ops-repeat-select
+              >
+                <option value="">Не повторять</option>
+                {OPS_REPEAT_RULES.map((rule) => (
+                  <option key={rule} value={rule}>
+                    {opsRepeatLabel(rule)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-1 flex min-h-9 items-center text-sm font-medium">
+                {(() => {
+                  const rule = opsRepeatRuleFromTags(current.tags ?? []);
+                  return rule ? opsRepeatLabel(rule) : "Не повторять";
+                })()}
+              </div>
+            )}
           </div>
         </div>
-        <div className="grid gap-2 border-b border-slate-200 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <div className="flex min-w-0 items-center gap-2 text-slate-600">
-            <UserRoundCheck className="h-4 w-4 shrink-0 text-slate-400" />
+        <div className="grid gap-2 border-b border-white/10 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="flex min-w-0 items-center gap-2 text-zinc-400">
+            <UserRoundCheck className="h-4 w-4 shrink-0 text-zinc-500" />
             <span className="shrink-0">Поставил:</span>
             {canAssign ? (
               <select
@@ -1509,7 +1567,7 @@ export function OpsTaskDetail({
                     "requester"
                   )
                 }
-                className="h-9 min-w-0 max-w-full cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-slate-900 outline-none hover:bg-slate-50 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+                className="h-9 min-w-0 max-w-full cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-zinc-100 outline-none hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
               >
                 <option value="">Не определён</option>
                 {inlineMembersLoading ? <option disabled>Загрузка…</option> : null}
@@ -1520,12 +1578,12 @@ export function OpsTaskDetail({
                 ))}
               </select>
             ) : (
-              <strong className="truncate font-semibold text-slate-900">
+              <strong className="truncate font-semibold text-zinc-100">
                 {effectiveRequester ? displayPersonName(effectiveRequester) : "Не определён"}
               </strong>
             )}
           </div>
-          <span className="flex min-w-0 items-center gap-1.5 text-xs text-slate-400 sm:justify-end">
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-zinc-500 sm:justify-end">
             <CircleUserRound className="h-3.5 w-3.5 shrink-0" />
             Добавил в систему:
             <span className="truncate">{displayPersonName(current.createdBy)}</span>
@@ -1534,8 +1592,8 @@ export function OpsTaskDetail({
 
         {editOpen ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="block border border-slate-200 bg-white p-4 shadow-sm">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="block border border-white/10 bg-[#171717] p-4 shadow-sm">
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Проект
               </span>
               <select
@@ -1543,7 +1601,7 @@ export function OpsTaskDetail({
                 value={editProjectId}
                 onChange={(event) => setEditProjectId(event.target.value)}
                 disabled={taskReferencesLoading}
-                className="mt-2 h-11 w-full border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+                className="mt-2 h-11 w-full border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
               >
                 <option value="">Без проекта</option>
                 {editProjectId && !taskProjects.some((project) => project.id === editProjectId) ? (
@@ -1556,7 +1614,7 @@ export function OpsTaskDetail({
                 ))}
               </select>
             </label>
-            <label className="flex cursor-pointer items-start gap-3 border border-blue-200 bg-blue-50 p-4">
+            <label className="flex cursor-pointer items-start gap-3 border border-blue-500/25 bg-blue-500/10 p-4">
               <input
                 type="checkbox"
                 checked={editShared}
@@ -1564,16 +1622,16 @@ export function OpsTaskDetail({
                 className="mt-1 h-4 w-4 accent-blue-600"
               />
               <span>
-                <span className="block text-sm font-semibold text-slate-950">Общая задача</span>
-                <span className="mt-1 block text-xs leading-5 text-slate-600">
+                <span className="block text-sm font-semibold text-zinc-50">Общая задача</span>
+                <span className="mt-1 block text-xs leading-5 text-zinc-400">
                   Доступна для работы всей команде. Исполнитель не требуется.
                 </span>
               </span>
             </label>
           </div>
         ) : current.project ? (
-          <div className="mt-4 text-sm text-slate-600">
-            Проект: <span className="font-medium text-slate-900">{current.project.title}</span>
+          <div className="mt-4 text-sm text-zinc-400">
+            Проект: <span className="font-medium text-zinc-100">{current.project.title}</span>
           </div>
         ) : null}
 
@@ -1584,7 +1642,7 @@ export function OpsTaskDetail({
                 type="button"
                 onClick={() => openTransitionDialog("PLANNED")}
                 disabled={pending}
-                className="flex h-10 items-center gap-2 rounded-lg border border-blue-300 px-3 text-sm font-medium text-blue-700 disabled:opacity-50"
+                className="flex h-10 items-center gap-2 rounded-lg border border-blue-500/40 px-3 text-sm font-medium text-blue-300 disabled:opacity-50"
               >
                 <RotateCcw className="h-4 w-4" />
                 Открыть повторно
@@ -1607,7 +1665,7 @@ export function OpsTaskDetail({
                     type="button"
                     onClick={() => openTransitionDialog("BLOCKED")}
                     disabled={pending}
-                    className="flex h-10 items-center gap-2 rounded-lg border border-amber-300 px-3 text-sm font-medium text-amber-800 disabled:opacity-50"
+                    className="flex h-10 items-center gap-2 rounded-lg border border-amber-500/40 px-3 text-sm font-medium text-amber-200 disabled:opacity-50"
                   >
                     <CircleSlash2 className="h-4 w-4" />
                     Заблокировать
@@ -1622,7 +1680,7 @@ export function OpsTaskDetail({
                       }
                     }}
                     disabled={pending}
-                    className="flex h-10 items-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-medium text-red-700 disabled:opacity-50"
+                    className="flex h-10 items-center gap-2 rounded-lg border border-red-500/30 px-3 text-sm font-medium text-red-300 disabled:opacity-50"
                   >
                     <X className="h-4 w-4" />
                     Убрать
@@ -1636,7 +1694,7 @@ export function OpsTaskDetail({
         {error ? (
           <div
             role="alert"
-            className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300"
           >
             <X className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
@@ -1644,46 +1702,46 @@ export function OpsTaskDetail({
         ) : null}
 
         {current.telegramSource ? (
-          <section className="mt-5 rounded-xl border border-sky-200 bg-sky-50/50 p-4">
+          <section className="mt-5 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <MessageSquareText className="h-5 w-5 text-sky-600" />
-                <h3 className="text-sm font-semibold text-slate-900">Источник из Telegram</h3>
+                <MessageSquareText className="h-5 w-5 text-sky-400" />
+                <h3 className="text-sm font-semibold text-zinc-100">Источник из Telegram</h3>
               </div>
               <Link
                 href={`/admin/operations/inbox?selected=${encodeURIComponent(
                   current.telegramSource.inboxItemId
                 )}`}
-                className="text-xs font-medium text-sky-700 hover:underline"
+                className="text-xs font-medium text-sky-300 hover:underline"
               >
                 Открыть сообщение
               </Link>
             </div>
             {current.telegramSource.isForwarded && current.telegramSource.forwardedFrom ? (
-              <p className="mt-3 text-xs font-medium text-slate-500">
+              <p className="mt-3 text-xs font-medium text-zinc-500">
                 Переслано от {current.telegramSource.forwardedFrom}
               </p>
             ) : null}
             {current.telegramSource.replyTo?.text ? (
-              <div className="mt-3 rounded-lg border border-sky-100 bg-white/70 px-3 py-2">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              <div className="mt-3 rounded-lg border border-sky-500/15 bg-[#171717]/70 px-3 py-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                   Ответ на сообщение
                   {current.telegramSource.replyTo.sender
                     ? ` · ${current.telegramSource.replyTo.sender}`
                     : ""}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-slate-600">
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-zinc-400">
                   {current.telegramSource.replyTo.text}
                 </p>
               </div>
             ) : null}
             {current.telegramSource.originalMessage ? (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-800">
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-zinc-200">
                 {current.telegramSource.originalMessage}
               </p>
             ) : null}
             {!audioAttachments.length && current.telegramSource.transcription ? (
-              <p className="mt-3 border-t border-sky-100 pt-3 text-sm leading-6 text-slate-600">
+              <p className="mt-3 border-t border-sky-500/15 pt-3 text-sm leading-6 text-zinc-400">
                 {current.telegramSource.transcription}
               </p>
             ) : null}
@@ -1691,7 +1749,7 @@ export function OpsTaskDetail({
         ) : null}
 
         {audioAttachments.length ? (
-          <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2">
                 <Send className="h-5 w-5 shrink-0 text-sky-500" />
@@ -1703,7 +1761,7 @@ export function OpsTaskDetail({
             <div className="mt-4 space-y-3">
               {audioAttachments.map((attachment, index) => (
                 <div key={attachment.id}>
-                  <div className="mb-1 flex items-center justify-between gap-3 text-xs text-slate-500">
+                  <div className="mb-1 flex items-center justify-between gap-3 text-xs text-zinc-500">
                     <span>Голосовое {index + 1}</span>
                     <span className="truncate">{attachment.fileName}</span>
                   </div>
@@ -1720,11 +1778,11 @@ export function OpsTaskDetail({
                     Ваш браузер не поддерживает аудио.
                   </audio>
                   {attachment.transcription ? (
-                    <details className="mt-2 border-t border-slate-100 pt-2">
-                      <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                    <details className="mt-2 border-t border-white/5 pt-2">
+                      <summary className="cursor-pointer text-xs font-semibold text-zinc-300">
                         Транскрипция голосового {index + 1}
                       </summary>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-400">
                         {attachment.transcription}
                       </p>
                     </details>
@@ -1733,7 +1791,7 @@ export function OpsTaskDetail({
               ))}
             </div>
             {legacyTranscript ? (
-              <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="mt-3 border-t border-white/5 pt-3">
                 <button
                   type="button"
                   onClick={() => setTranscriptOpen((open) => !open)}
@@ -1746,7 +1804,7 @@ export function OpsTaskDetail({
                   />
                 </button>
                 {transcriptOpen ? (
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-zinc-400">
                     {legacyTranscript}
                   </p>
                 ) : null}
@@ -1756,10 +1814,10 @@ export function OpsTaskDetail({
         ) : null}
 
         {imageAttachments.length || videoAttachments.length || documentAttachments.length ? (
-          <section className="mt-5 border border-slate-200 bg-white p-4">
+          <section className="mt-5 border border-white/10 bg-[#171717] p-4">
             <div className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-blue-600" />
-              <h3 className="text-sm font-semibold text-slate-950">
+              <ImageIcon className="h-5 w-5 text-blue-400" />
+              <h3 className="text-sm font-semibold text-zinc-50">
                 Вложения ·{" "}
                 {imageAttachments.length + videoAttachments.length + documentAttachments.length}
               </h3>
@@ -1776,7 +1834,7 @@ export function OpsTaskDetail({
                       key={attachment.id}
                       type="button"
                       onClick={() => setPreviewAttachment(attachment)}
-                      className="group relative aspect-[4/3] overflow-hidden border border-slate-200 bg-slate-100 text-left focus-visible:outline-2 focus-visible:outline-blue-500"
+                      className="group relative aspect-[4/3] overflow-hidden border border-white/10 bg-white/[0.06] text-left focus-visible:outline-2 focus-visible:outline-blue-500"
                       aria-label={`Открыть изображение ${attachment.fileName ?? index + 1}`}
                     >
                       {accessUrl ? (
@@ -1789,7 +1847,7 @@ export function OpsTaskDetail({
                           className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                         />
                       ) : (
-                        <span className="flex h-full items-center justify-center text-xs text-slate-500">
+                        <span className="flex h-full items-center justify-center text-xs text-zinc-500">
                           Фото недоступно в демо
                         </span>
                       )}
@@ -1809,8 +1867,8 @@ export function OpsTaskDetail({
                     ? attachment.accessUrl
                     : `/api/admin/operations/tasks/${current.id}/attachments/${attachment.id}/access`;
                   return (
-                    <div key={attachment.id} className="border border-slate-200 bg-slate-50 p-3">
-                      <div className="mb-2 flex items-center gap-2 text-xs text-slate-600">
+                    <div key={attachment.id} className="border border-white/10 bg-white/[0.03] p-3">
+                      <div className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
                         <Video className="h-4 w-4" />
                         <span className="truncate">{attachment.fileName ?? "Видео"}</span>
                       </div>
@@ -1825,11 +1883,11 @@ export function OpsTaskDetail({
                         </video>
                       ) : null}
                       {attachment.transcription ? (
-                        <details className="mt-2 border-t border-slate-200 pt-2">
-                          <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                        <details className="mt-2 border-t border-white/10 pt-2">
+                          <summary className="cursor-pointer text-xs font-semibold text-zinc-300">
                             Транскрипция видеосообщения
                           </summary>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-400">
                             {attachment.transcription}
                           </p>
                         </details>
@@ -1841,7 +1899,7 @@ export function OpsTaskDetail({
             ) : null}
 
             {documentAttachments.length ? (
-              <div className="mt-4 divide-y divide-slate-100 border border-slate-200">
+              <div className="mt-4 divide-y divide-white/5 border border-white/10">
                 {documentAttachments.map((attachment) => {
                   const accessUrl = demoMode
                     ? attachment.accessUrl
@@ -1854,12 +1912,12 @@ export function OpsTaskDetail({
                     : null;
                   return (
                     <div key={attachment.id} className="flex min-w-0 items-center gap-3 px-3 py-3">
-                      <FileText className="h-5 w-5 shrink-0 text-slate-500" />
+                      <FileText className="h-5 w-5 shrink-0 text-zinc-500" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-slate-800">
+                        <div className="truncate text-sm font-medium text-zinc-200">
                           {attachment.fileName ?? "Документ"}
                         </div>
-                        <div className="mt-0.5 text-xs text-slate-500">
+                        <div className="mt-0.5 text-xs text-zinc-500">
                           {[attachment.mimeType, sizeLabel].filter(Boolean).join(" · ")}
                         </div>
                       </div>
@@ -1869,7 +1927,7 @@ export function OpsTaskDetail({
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`Открыть ${attachment.fileName ?? "документ"}`}
-                          className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-700"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center border border-white/10 text-zinc-400 hover:border-blue-500/40 hover:text-blue-300"
                         >
                           <Download className="h-4 w-4" />
                         </a>
@@ -1883,33 +1941,33 @@ export function OpsTaskDetail({
         ) : null}
 
         {!editOpen && current.nextAction ? (
-          <section className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+          <section className="mt-5 rounded-xl border border-blue-500/25 bg-blue-500/10 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-blue-300">
               Следующее действие
             </div>
-            <p className="mt-1 text-sm leading-6 text-slate-800">{current.nextAction}</p>
+            <p className="mt-1 text-sm leading-6 text-zinc-200">{current.nextAction}</p>
           </section>
         ) : current.blockerDescription ? (
-          <section className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+          <section className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-amber-300">
               Причина ожидания
             </div>
-            <p className="mt-1 text-sm leading-6 text-slate-800">{current.blockerDescription}</p>
+            <p className="mt-1 text-sm leading-6 text-zinc-200">{current.blockerDescription}</p>
           </section>
         ) : null}
 
         {canReadKnowledge && (current.knowledgeLinks?.length || canLinkKnowledge) ? (
-          <section className="mt-5 border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="mt-5 border border-white/10 bg-[#171717] p-4 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-blue-600" />
+                <BookOpen className="h-5 w-5 text-blue-400" />
                 <h3 className="text-sm font-semibold">Справочник и материалы задачи</h3>
               </div>
               {canLinkKnowledge ? (
                 <button
                   type="button"
                   onClick={() => void openKnowledgePicker()}
-                  className="flex h-9 items-center gap-1.5 rounded-lg border border-blue-200 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+                  className="flex h-9 items-center gap-1.5 rounded-lg border border-blue-500/25 px-3 text-xs font-semibold text-blue-300 hover:bg-blue-500/10"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Прикрепить статью
@@ -1921,7 +1979,7 @@ export function OpsTaskDetail({
                 {current.knowledgeLinks.map(({ article }) => (
                   <div
                     key={article.id}
-                    className="flex items-center gap-2 rounded-lg border border-slate-200 p-1.5 transition hover:border-blue-300 hover:bg-blue-50/40"
+                    className="flex items-center gap-2 rounded-lg border border-white/10 p-1.5 transition hover:border-blue-500/40 hover:bg-blue-500/[0.06]"
                   >
                     <Link
                       href={
@@ -1940,8 +1998,8 @@ export function OpsTaskDetail({
                             className={cn(
                               "mb-1 block text-[10px] font-bold uppercase tracking-wide",
                               article.tags.includes("formula-available")
-                                ? "text-emerald-700"
-                                : "text-amber-700"
+                                ? "text-emerald-300"
+                                : "text-amber-300"
                             )}
                           >
                             {article.tags.includes("formula-available")
@@ -1949,16 +2007,16 @@ export function OpsTaskDetail({
                               : "Формула бренда не подтверждена"}
                           </span>
                         ) : article.tags.includes("shipping-reference") ? (
-                          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-blue-300">
                             Ориентиры доставки · проверить актуальность
                           </span>
                         ) : null}
                         <span className="block truncate text-sm font-medium">{article.title}</span>
-                        <span className="mt-0.5 block text-xs text-slate-500">
+                        <span className="mt-0.5 block text-xs text-zinc-500">
                           {article.category}
                         </span>
                       </span>
-                      <ExternalLink className="h-4 w-4 text-slate-400" />
+                      <ExternalLink className="h-4 w-4 text-zinc-500" />
                     </Link>
                     {canLinkKnowledge ? (
                       <button
@@ -1966,7 +2024,7 @@ export function OpsTaskDetail({
                         onClick={() => void unlinkKnowledge(article.id)}
                         disabled={pending}
                         aria-label={`Отвязать статью ${article.title}`}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                       >
                         <Unlink className="h-4 w-4" />
                       </button>
@@ -1975,7 +2033,7 @@ export function OpsTaskDetail({
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-sm text-slate-500">
+              <p className="mt-3 text-sm text-zinc-500">
                 Прикрепите инструкцию, которая поможет выполнить задачу.
               </p>
             )}
@@ -1983,12 +2041,12 @@ export function OpsTaskDetail({
         ) : null}
 
         {!editOpen && current.definitionOfDone ? (
-          <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
             <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <Clipboard className="h-4 w-4 text-emerald-600" />
+              <Clipboard className="h-4 w-4 text-emerald-400" />
               Готово, когда
             </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{current.definitionOfDone}</p>
+            <p className="mt-2 text-sm leading-6 text-zinc-400">{current.definitionOfDone}</p>
           </section>
         ) : null}
 
@@ -2005,24 +2063,24 @@ export function OpsTaskDetail({
         />
 
         {progressUpdates.length ? (
-          <section className="mt-5 border border-blue-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 border-b border-blue-100 px-4 py-3">
-              <Activity className="h-5 w-5 text-blue-600" />
+          <section className="mt-5 border border-blue-500/25 bg-[#171717] shadow-sm">
+            <div className="flex items-center gap-2 border-b border-blue-500/15 px-4 py-3">
+              <Activity className="h-5 w-5 text-blue-400" />
               <h3 className="text-sm font-semibold">Прогресс</h3>
-              <span className="text-xs text-slate-500">· {progressUpdates.length}</span>
+              <span className="text-xs text-zinc-500">· {progressUpdates.length}</span>
             </div>
-            <ol className="divide-y divide-slate-100">
+            <ol className="divide-y divide-white/5">
               {progressUpdates.map((event) => (
                 <li key={event.id} className="grid grid-cols-[auto_1fr] gap-3 px-4 py-3">
-                  <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-[11px] font-semibold text-blue-700">
+                  <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-[11px] font-semibold text-blue-300">
                     {initials(event.actor?.name)}
                   </span>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-slate-600">
+                      <span className="text-xs font-medium text-zinc-400">
                         {event.actor?.name || "Система"}
                       </span>
-                      <time dateTime={event.createdAt} className="text-xs text-slate-400">
+                      <time dateTime={event.createdAt} className="text-xs text-zinc-500">
                         {new Intl.DateTimeFormat("ru-RU", {
                           day: "numeric",
                           month: "short",
@@ -2033,14 +2091,14 @@ export function OpsTaskDetail({
                     </div>
                     <p
                       className={cn(
-                        "mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-800",
-                        event.reverted && "text-slate-400 line-through"
+                        "mt-1 whitespace-pre-wrap text-sm leading-6 text-zinc-200",
+                        event.reverted && "text-zinc-500 line-through"
                       )}
                     >
                       {event.update}
                     </p>
                     {event.reverted ? (
-                      <span className="mt-1 inline-block text-[11px] font-medium text-amber-700">
+                      <span className="mt-1 inline-block text-[11px] font-medium text-amber-300">
                         Обновление отменено
                       </span>
                     ) : null}
@@ -2051,36 +2109,36 @@ export function OpsTaskDetail({
           </section>
         ) : null}
 
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] shadow-sm">
           <button
             type="button"
             onClick={() => setActivityOpen((open) => !open)}
             aria-expanded={activityOpen}
             className="flex w-full items-center gap-3 px-4 py-4 text-left"
           >
-            <Activity className="h-5 w-5 text-teal-600" />
+            <Activity className="h-5 w-5 text-teal-400" />
             <span className="flex-1 text-sm font-semibold">
               Активность{" "}
-              <span className="font-normal text-slate-500">· {activity.length} событий</span>
+              <span className="font-normal text-zinc-500">· {activity.length} событий</span>
             </span>
             <ChevronDown
               className={cn(
-                "h-4 w-4 text-slate-500 transition-transform",
+                "h-4 w-4 text-zinc-500 transition-transform",
                 activityOpen && "rotate-180"
               )}
             />
           </button>
           {activityOpen ? (
-            <div className="border-t border-slate-100 px-4 py-3">
+            <div className="border-t border-white/5 px-4 py-3">
               {activity.length ? (
                 <ol className="space-y-4">
                   {activity.map((event) => (
                     <li key={event.id} className="flex gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-medium">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[11px] font-medium">
                         {initials(event.actor?.name)}
                       </span>
                       <div className="min-w-0 text-sm">
-                        <p className="text-slate-700">
+                        <p className="text-zinc-300">
                           <span className="font-medium">{event.actor?.name || "Система"}</span>{" "}
                           {event.type === "CREATED"
                             ? "создал(а) задачу"
@@ -2088,7 +2146,7 @@ export function OpsTaskDetail({
                               ? "прикрепил(а) файл"
                               : "обновил(а) задачу"}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-400">
+                        <p className="mt-0.5 text-xs text-zinc-500">
                           {new Intl.DateTimeFormat("ru-RU", {
                             day: "numeric",
                             month: "short",
@@ -2101,23 +2159,23 @@ export function OpsTaskDetail({
                   ))}
                 </ol>
               ) : (
-                <p className="text-sm text-slate-500">История появится после первого изменения.</p>
+                <p className="text-sm text-zinc-500">История появится после первого изменения.</p>
               )}
             </div>
           ) : null}
         </section>
 
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
-            <MessageSquareText className="h-4 w-4 text-blue-600" />
+            <MessageSquareText className="h-4 w-4 text-blue-400" />
             Комментарии
           </h3>
           {current.comments?.length ? (
             <ol className="mt-3 space-y-3">
               {current.comments.map((comment) => (
-                <li key={comment.id} className="rounded-lg bg-slate-50 px-3 py-2.5">
-                  <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
-                    <span className="font-medium text-slate-600">
+                <li key={comment.id} className="rounded-lg bg-white/[0.03] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-3 text-xs text-zinc-500">
+                    <span className="font-medium text-zinc-400">
                       {comment.author?.name || "Сотрудник"}
                     </span>
                     <time dateTime={comment.createdAt}>
@@ -2129,14 +2187,14 @@ export function OpsTaskDetail({
                       }).format(new Date(comment.createdAt))}
                     </time>
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-slate-700">
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-5 text-zinc-300">
                     {comment.text}
                   </p>
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">Комментариев пока нет.</p>
+            <p className="mt-3 text-sm text-zinc-500">Комментариев пока нет.</p>
           )}
           {canWrite ? (
             <div className="mt-3 flex gap-2">
@@ -2150,7 +2208,7 @@ export function OpsTaskDetail({
                   }
                 }}
                 placeholder="Добавить комментарий…"
-                className="h-10 min-w-0 flex-1 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="h-10 min-w-0 flex-1 rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
               <button
                 type="button"
@@ -2205,7 +2263,7 @@ export function OpsTaskDetail({
       ) : null}
 
       {!compact && canWrite && current.status !== "AGENT_RUNNING" ? (
-        <div className="sticky bottom-0 z-30 grid grid-cols-2 gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div className="sticky bottom-0 z-30 grid grid-cols-2 gap-3 border-t border-white/10 bg-[#171717]/95 px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
           {["DONE", "CANCELLED"].includes(current.status) ? (
             <button
               type="button"
@@ -2224,7 +2282,7 @@ export function OpsTaskDetail({
                     transitionTargets[current.status].includes("BLOCKED") ? "BLOCKED" : "CANCELLED"
                   )
                 }
-                className="h-12 rounded-lg border border-slate-400 text-sm font-medium text-slate-800"
+                className="h-12 rounded-lg border border-white/25 text-sm font-medium text-zinc-200"
               >
                 {transitionTargets[current.status].includes("BLOCKED")
                   ? "Заблокировать"
@@ -2267,13 +2325,13 @@ export function OpsTaskDetail({
             }
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 id="ops-task-transition-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-task-transition-title" className="text-lg font-bold text-zinc-50">
                   Изменить статус
                 </h2>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-zinc-400">
                   «{OPS_STATUS_LABELS[current.status]}» → «
                   {OPS_STATUS_LABELS[transitionDialogStatus]}»
                 </p>
@@ -2283,7 +2341,7 @@ export function OpsTaskDetail({
                 onClick={() => setTransitionDialogStatus(null)}
                 disabled={pending}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -2292,8 +2350,8 @@ export function OpsTaskDetail({
             <div className="mt-5 space-y-4">
               {transitionNeedsNextAction ? (
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">
-                    Следующее действие <span className="text-red-600">*</span>
+                  <span className="text-sm font-medium text-zinc-300">
+                    Следующее действие <span className="text-red-400">*</span>
                   </span>
                   <textarea
                     value={transitionNextAction}
@@ -2303,16 +2361,16 @@ export function OpsTaskDetail({
                     }}
                     rows={3}
                     placeholder="Конкретный следующий шаг без выдуманных значений"
-                    className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </label>
               ) : null}
 
               {transitionIsWaiting ? (
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-zinc-300">
                     Причина ожидания или блокировки{" "}
-                    <span className="font-normal text-slate-400">(необязательно)</span>
+                    <span className="font-normal text-zinc-500">(необязательно)</span>
                   </span>
                   <textarea
                     value={transitionBlockerDescription}
@@ -2322,16 +2380,16 @@ export function OpsTaskDetail({
                     }}
                     rows={3}
                     placeholder="Что именно мешает продолжить работу?"
-                    className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </label>
               ) : null}
 
               {transitionNeedsComment ? (
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-zinc-300">
                     {transitionIsReopening ? "Причина повторного открытия" : "Причина отмены"}{" "}
-                    <span className="text-red-600">*</span>
+                    <span className="text-red-400">*</span>
                   </span>
                   <textarea
                     value={transitionComment}
@@ -2341,13 +2399,13 @@ export function OpsTaskDetail({
                     }}
                     rows={3}
                     placeholder="Комментарий сохранится в истории задачи"
-                    className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </label>
               ) : null}
 
               {!transitionNeedsNextAction && !transitionIsWaiting && !transitionNeedsComment ? (
-                <p className="rounded-lg bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-600">
+                <p className="rounded-lg bg-white/[0.03] px-3 py-3 text-sm leading-6 text-zinc-400">
                   Подтвердите изменение. Оно будет сохранено в истории задачи и журнале аудита.
                 </p>
               ) : null}
@@ -2356,7 +2414,7 @@ export function OpsTaskDetail({
             {error ? (
               <div
                 role="alert"
-                className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300"
               >
                 <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {error}
@@ -2368,7 +2426,7 @@ export function OpsTaskDetail({
                 type="button"
                 onClick={() => setTransitionDialogStatus(null)}
                 disabled={pending}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-300 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -2400,13 +2458,13 @@ export function OpsTaskDetail({
             if (event.target === event.currentTarget) setKnowledgePickerOpen(false);
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 id="ops-knowledge-picker-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-knowledge-picker-title" className="text-lg font-bold text-zinc-50">
                   Прикрепить статью
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-zinc-500">
                   Материал будет виден всем, у кого есть доступ к задаче и БАЗЕ.
                 </p>
               </div>
@@ -2414,22 +2472,22 @@ export function OpsTaskDetail({
                 type="button"
                 onClick={() => setKnowledgePickerOpen(false)}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             {knowledgeLoading ? (
-              <div className="mt-5 flex h-24 items-center justify-center text-sm text-slate-500">
+              <div className="mt-5 flex h-24 items-center justify-center text-sm text-zinc-500">
                 Загрузка БАЗЫ…
               </div>
             ) : (
               <label className="mt-5 block">
-                <span className="text-sm font-medium text-slate-700">Статья</span>
+                <span className="text-sm font-medium text-zinc-300">Статья</span>
                 <select
                   value={selectedKnowledgeId}
                   onChange={(event) => setSelectedKnowledgeId(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500"
+                  className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500"
                 >
                   <option value="">Выберите материал</option>
                   {knowledgeArticles
@@ -2450,7 +2508,7 @@ export function OpsTaskDetail({
               <button
                 type="button"
                 onClick={() => setKnowledgePickerOpen(false)}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium"
               >
                 Отмена
               </button>

@@ -23,7 +23,6 @@ export function OpsTaskScreen({
   demoMode = false,
   canLinkKnowledge = false,
   initialKnowledge,
-  permissions,
   canWrite = false,
   canReadKnowledge = false,
   currentAdminId,
@@ -62,7 +61,7 @@ export function OpsTaskScreen({
   }, [demoMode, initialTask, taskId]);
 
   return (
-    <OpsSurface showMobileNav={false} permissions={permissions}>
+    <OpsSurface>
       {task ? (
         <OpsTaskDetail
           task={task}
@@ -86,10 +85,10 @@ export function OpsTaskScreen({
         <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
           <CircleAlert className="h-9 w-9 text-red-500" />
           <h1 className="mt-3 text-xl font-bold">Задача не открылась</h1>
-          <p className="mt-2 max-w-md text-sm text-slate-500">{error}</p>
+          <p className="mt-2 max-w-md text-sm text-zinc-500">{error}</p>
         </div>
       ) : (
-        <div className="flex min-h-[70vh] items-center justify-center gap-2 text-sm text-slate-500">
+        <div className="flex min-h-[70vh] items-center justify-center gap-2 text-sm text-zinc-500">
           <Loader2 className="h-5 w-5 animate-spin" />
           Загрузка задачи…
         </div>

@@ -91,7 +91,7 @@ test("private update is normalized and accepted through the linked admin allowli
   }
 });
 
-test("group messages require mention or reply to the Lab bot", async () => {
+test("group messages are ignored, even when the bot is @mentioned", async () => {
   const ignored = await intakeOpsTelegramUpdate({
     rawUpdate: {
       update_id: 1002,
@@ -111,7 +111,7 @@ test("group messages require mention or reply to the Lab bot", async () => {
   });
   assert.equal(ignored.outcome, "ignored");
   if (ignored.outcome === "ignored") {
-    assert.equal(ignored.reason, "group_requires_mention_or_reply");
+    assert.equal(ignored.reason, "group_chat_disabled");
   }
 
   const mentioned = await intakeOpsTelegramUpdate({
@@ -125,9 +125,13 @@ test("group messages require mention or reply to the Lab bot", async () => {
       },
     },
     botUsername: "ops_manager_bot",
-    repository: repository(),
+    repository: repository({
+      async persist() {
+        assert.fail("@mentions in groups were switched off on the owner's request");
+      },
+    }),
   });
-  assert.equal(mentioned.outcome, "accepted");
+  assert.equal(mentioned.outcome, "ignored");
 });
 
 test("group command preserves the replied human as an assignee candidate", () => {

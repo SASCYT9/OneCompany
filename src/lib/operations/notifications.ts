@@ -17,7 +17,9 @@ export type OpsTelegramButtonStyle = "primary" | "success" | "danger";
 
 export type OpsTelegramInlineButton =
   | { text: string; url: string; style?: OpsTelegramButtonStyle }
-  | { text: string; callback_data: string; style?: OpsTelegramButtonStyle };
+  | { text: string; callback_data: string; style?: OpsTelegramButtonStyle }
+  /** Opens the «Мой день» mini app inside Telegram (private chats only). */
+  | { text: string; web_app: { url: string }; style?: OpsTelegramButtonStyle };
 
 export type OpsTelegramReplyMarkup = {
   inline_keyboard: OpsTelegramInlineButton[][];
@@ -25,6 +27,19 @@ export type OpsTelegramReplyMarkup = {
 
 function enabled(value: string | undefined) {
   return value === "1" || value?.toLocaleLowerCase("en-US") === "true";
+}
+
+/**
+ * The person blocked the bot, deleted their account, or never opened the chat.
+ * Retrying cannot help, so these sends finish at once instead of dead-lettering.
+ */
+export const OPS_TELEGRAM_RECIPIENT_UNAVAILABLE = "TELEGRAM_RECIPIENT_UNAVAILABLE";
+
+async function isTelegramRecipientUnavailable(response: Response) {
+  if (response.status === 403) return true;
+  if (response.status !== 400) return false;
+  const body = (await response.json().catch(() => null)) as { description?: unknown } | null;
+  return /chat not found|user is deactivated/i.test(String(body?.description ?? ""));
 }
 
 function russianTaskWord(count: number) {
@@ -127,6 +142,12 @@ export async function sendOpsTelegramNotification(input: {
     }
   );
   if (!response.ok) {
+    if (await isTelegramRecipientUnavailable(response)) {
+      throw new OpsNotificationError(
+        OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
+        `Telegram sendMessage returned ${response.status}: recipient unavailable`
+      );
+    }
     throw new OpsNotificationError(
       "TELEGRAM_SEND_FAILED",
       `Telegram sendMessage returned ${response.status}`
@@ -199,4 +220,34 @@ export async function editOpsTelegramNotification(input: {
       "Telegram returned an invalid editMessageText response"
     );
   }
+}
+
+/**
+ * Puts «Мой день» on the chat's menu button so the mini app is one tap away.
+ * Best effort: a failure only means the person keeps the default menu.
+ */
+export async function setOpsTelegramChatMenuButton(input: {
+  chatId: bigint;
+  text: string;
+  url: string;
+  token?: string | null;
+  fetchImpl?: typeof fetch;
+}) {
+  if (!enabled(process.env.OPS_TELEGRAM_NOTIFICATIONS_ENABLED)) return false;
+  const token = String(input.token ?? process.env.OPS_TELEGRAM_BOT_TOKEN ?? "").trim();
+  if (!token || !input.url.startsWith("https://")) return false;
+  const response = await (input.fetchImpl ?? fetch)(
+    `https://api.telegram.org/bot${token}/setChatMenuButton`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: input.chatId.toString(),
+        menu_button: { type: "web_app", text: input.text, web_app: { url: input.url } },
+      }),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    }
+  );
+  return response.ok;
 }

@@ -8,6 +8,7 @@ import {
   type PrismaClient,
 } from "@prisma/client";
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
+import { extractOpsKnowledgeQuestion } from "@/lib/operations/knowledgeQuestion";
 
 export const OPS_TELEGRAM_UPDATE_MAX_BYTES = 512 * 1024;
 export const OPS_TELEGRAM_RATE_LIMIT_PER_MINUTE = 120;
@@ -193,11 +194,7 @@ export type OpsTelegramIntakeResult =
     }
   | {
       outcome: "ignored";
-      reason:
-        | "unsupported_update"
-        | "unlinked_user"
-        | "group_requires_mention_or_reply"
-        | "rate_limited";
+      reason: "unsupported_update" | "unlinked_user" | "group_chat_disabled" | "rate_limited";
       update: NormalizedOpsTelegramUpdate | null;
     };
 
@@ -441,13 +438,12 @@ export function normalizeOpsTelegramUpdate(
   };
 }
 
+/**
+ * The bot works only in private chats. Calling it with «@bot» in groups was
+ * removed on the owner's request (2026-10-13): it got in the way of chats.
+ */
 export function isOpsTelegramGroupAllowed(update: NormalizedOpsTelegramUpdate) {
-  return (
-    update.chatType === "private" ||
-    update.mentionedBot ||
-    update.repliedToBot ||
-    update.updateType === "callback_query"
-  );
+  return update.chatType === "private";
 }
 
 function startOfMinute(now: Date) {
@@ -647,7 +643,7 @@ export async function intakeOpsTelegramUpdate(input: {
   }
 
   if (!isOpsTelegramGroupAllowed(update)) {
-    return { outcome: "ignored", reason: "group_requires_mention_or_reply", update };
+    return { outcome: "ignored", reason: "group_chat_disabled", update };
   }
 
   const member = await input.repository.resolveMember(update.telegramUserId);
@@ -686,11 +682,13 @@ export function createOpsTelegramWebhookReply(
   const text =
     result.outcome === "duplicate"
       ? "✅ Уже принято. Повторную задачу не создаю."
-      : result.update.media && result.update.replyToMessageId
-        ? "✅ Принял голосовое или файл как обновление. Расшифрую, проверю связанную задачу и пришлю результат."
-        : result.update.media
-          ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
-          : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
+      : !result.update.media && extractOpsKnowledgeQuestion(result.update.text)
+        ? "🔎 Ищу ответ в базе знаний…"
+        : result.update.media && result.update.replyToMessageId
+          ? "✅ Принял голосовое или файл как обновление. Расшифрую, проверю связанную задачу и пришлю результат."
+          : result.update.media
+            ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
+            : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
   return {
     method: "sendMessage",
     chat_id: result.update.chatId.toString(),

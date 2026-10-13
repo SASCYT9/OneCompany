@@ -150,11 +150,9 @@ if (mode !== "prepare") {
   requireValue("OPS_TELEGRAM_WEBHOOK_SECRET", { minLength: 32 });
   requireValue("OPS_TELEGRAM_CALLBACK_SECRET", { minLength: 32 });
 
-  if (
-    !value("OPS_BLOB_STORE_ID") &&
-    !value("OPS_BLOB_READ_WRITE_TOKEN") &&
-    !value("BLOB_READ_WRITE_TOKEN")
-  ) {
+  // The shared BLOB_READ_WRITE_TOKEN belongs to the public storefront store and
+  // is never used for Ops attachments.
+  if (!value("OPS_BLOB_STORE_ID") && !value("OPS_BLOB_READ_WRITE_TOKEN")) {
     fail("A dedicated private Ops Blob store is not configured.");
   }
   if (value("OPS_LOCAL_MEDIA_DIR")) {

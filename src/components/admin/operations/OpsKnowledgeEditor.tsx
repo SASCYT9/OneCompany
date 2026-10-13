@@ -118,8 +118,8 @@ export function OpsKnowledgeEditor({ value, onChange, renderPreview }: Props) {
   }
 
   return (
-    <div className="overflow-hidden border border-slate-300 bg-white">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 p-2">
+    <div className="overflow-hidden border border-white/15 bg-[#171717]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-white/[0.03] p-2">
         <div className="flex flex-wrap items-center gap-1">
           {tools.map((tool) => (
             <button
@@ -128,19 +128,19 @@ export function OpsKnowledgeEditor({ value, onChange, renderPreview }: Props) {
               title={tool.label}
               aria-label={tool.label}
               onClick={() => applyTool(tool)}
-              className="flex h-9 w-9 items-center justify-center border border-transparent text-slate-600 hover:border-slate-300 hover:bg-white hover:text-blue-600"
+              className="flex h-9 w-9 items-center justify-center border border-transparent text-zinc-400 hover:border-white/15 hover:bg-[#171717] hover:text-blue-400"
             >
               <tool.icon className="h-4 w-4" />
             </button>
           ))}
-          <span className="mx-1 h-6 w-px bg-slate-300" />
+          <span className="mx-1 h-6 w-px bg-white/15" />
           <button
             type="button"
             aria-label="Отменить изменение текста"
             title="Отменить"
             disabled={historyIndex <= 0}
             onClick={() => moveHistory(-1)}
-            className="flex h-9 w-9 items-center justify-center text-slate-600 disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center text-zinc-400 disabled:opacity-30"
           >
             <Undo2 className="h-4 w-4" />
           </button>
@@ -150,18 +150,18 @@ export function OpsKnowledgeEditor({ value, onChange, renderPreview }: Props) {
             title="Вернуть"
             disabled={historyIndex >= history.length - 1}
             onClick={() => moveHistory(1)}
-            className="flex h-9 w-9 items-center justify-center text-slate-600 disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center text-zinc-400 disabled:opacity-30"
           >
             <Redo2 className="h-4 w-4" />
           </button>
         </div>
-        <div className="flex border border-slate-300 bg-white p-0.5">
+        <div className="flex border border-white/15 bg-[#171717] p-0.5">
           <button
             type="button"
             onClick={() => setMode("write")}
             className={cn(
               "flex h-8 items-center gap-1.5 px-2.5 text-xs font-semibold",
-              mode === "write" ? "bg-blue-600 text-white" : "text-slate-600"
+              mode === "write" ? "bg-blue-600 text-white" : "text-zinc-400"
             )}
           >
             <PencilLine className="h-3.5 w-3.5" />
@@ -172,7 +172,7 @@ export function OpsKnowledgeEditor({ value, onChange, renderPreview }: Props) {
             onClick={() => setMode("preview")}
             className={cn(
               "flex h-8 items-center gap-1.5 px-2.5 text-xs font-semibold",
-              mode === "preview" ? "bg-blue-600 text-white" : "text-slate-600"
+              mode === "preview" ? "bg-blue-600 text-white" : "text-zinc-400"
             )}
           >
             <Eye className="h-3.5 w-3.5" />
@@ -187,14 +187,14 @@ export function OpsKnowledgeEditor({ value, onChange, renderPreview }: Props) {
           onChange={(event) => onChange(event.target.value)}
           rows={22}
           placeholder="Начните писать инструкцию. Кнопки сверху помогут оформить заголовки, списки, ссылки и таблицы."
-          className="block min-h-[430px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-slate-900 outline-none"
+          className="block min-h-[430px] w-full resize-y border-0 px-4 py-4 text-[15px] leading-7 text-zinc-100 outline-none"
         />
       ) : (
         <div className="min-h-[430px] px-5 py-5">
           {value.trim() ? (
             renderPreview(value)
           ) : (
-            <p className="text-sm text-slate-400">Здесь появится предварительный просмотр.</p>
+            <p className="text-sm text-zinc-500">Здесь появится предварительный просмотр.</p>
           )}
         </div>
       )}

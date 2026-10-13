@@ -32,11 +32,11 @@ function RuleCard({
     <section
       className={cn(
         "border p-4 sm:p-5",
-        important ? "border-blue-200 bg-blue-50/60" : "border-slate-200 bg-white"
+        important ? "border-blue-500/25 bg-blue-500/[0.08]" : "border-white/10 bg-[#171717]"
       )}
     >
-      <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{title}</h2>
-      <p className="mt-2 whitespace-pre-wrap text-sm font-medium leading-6 text-slate-800">
+      <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">{title}</h2>
+      <p className="mt-2 whitespace-pre-wrap text-sm font-medium leading-6 text-zinc-200">
         {operatorFacingReferenceText(value || "Не указано")}
       </p>
     </section>
@@ -45,7 +45,6 @@ function RuleCard({
 
 export function OpsBrandDirectoryDetail({
   entry,
-  permissions,
   canWrite,
   brandArticleId,
   shippingArticleId,
@@ -66,23 +65,23 @@ export function OpsBrandDirectoryDetail({
     );
 
   return (
-    <OpsSurface permissions={permissions}>
-      <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+    <OpsSurface>
+      <div className="border-b border-white/10 bg-[#171717] px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/admin/operations/directory"
-            className="inline-flex h-10 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-700"
+            className="inline-flex h-10 items-center gap-2 text-sm font-semibold text-zinc-400 hover:text-blue-300"
           >
             <ArrowLeft className="h-4 w-4" />
             Справочник
           </Link>
           <div className="mt-3 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
             <div>
-              <div className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+              <div className="text-xs font-bold uppercase tracking-[0.16em] text-blue-300">
                 Карточка бренда
               </div>
-              <h1 className="mt-1 text-3xl font-bold text-slate-950 sm:text-4xl">{entry.brand}</h1>
-              <p className="mt-2 text-sm text-slate-500">
+              <h1 className="mt-1 text-3xl font-bold text-zinc-50 sm:text-4xl">{entry.brand}</h1>
+              <p className="mt-2 text-sm text-zinc-500">
                 {[entry.country, entry.ruleGroup].filter(Boolean).join(" · ") ||
                   "Регион и группа не указаны"}
               </p>
@@ -91,7 +90,7 @@ export function OpsBrandDirectoryDetail({
               {canWrite && brandArticleId ? (
                 <Link
                   href={`/admin/operations/knowledge/${brandArticleId}/edit`}
-                  className="inline-flex min-h-11 items-center gap-2 border border-blue-200 bg-blue-50 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                  className="inline-flex min-h-11 items-center gap-2 border border-blue-500/25 bg-blue-500/10 px-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/15"
                 >
                   <Pencil className="h-4 w-4" />
                   Редактировать бренд
@@ -101,8 +100,8 @@ export function OpsBrandDirectoryDetail({
                 className={cn(
                   "inline-flex w-fit items-center gap-2 border px-3 py-2 text-sm font-semibold",
                   available
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-amber-200 bg-amber-50 text-amber-800"
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                    : "border-amber-500/30 bg-amber-500/10 text-amber-200"
                 )}
               >
                 {available ? (
@@ -128,21 +127,21 @@ export function OpsBrandDirectoryDetail({
 
           {entry.notes ? <RuleCard title="Важные заметки" value={entry.notes} /> : null}
 
-          <section className="border border-slate-200 bg-white">
-            <div className="flex items-center gap-2 border-b border-slate-200 p-4 sm:p-5">
-              <Truck className="h-5 w-5 text-blue-600" />
+          <section className="border border-white/10 bg-[#171717]">
+            <div className="flex items-center gap-2 border-b border-white/10 p-4 sm:p-5">
+              <Truck className="h-5 w-5 text-blue-400" />
               <div>
-                <h2 className="font-bold text-slate-950">Ориентиры доставки</h2>
-                <p className="text-xs text-slate-500">Не являются финальной стоимостью</p>
+                <h2 className="font-bold text-zinc-50">Ориентиры доставки</h2>
+                <p className="text-xs text-zinc-500">Не являются финальной стоимостью</p>
               </div>
             </div>
             {showUsaTable ? (
               <>
-                <div className="grid grid-cols-2 gap-px bg-slate-200 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
                   {shippingEstimates.slice(0, 8).map((estimate) => (
-                    <div key={estimate.key} className="bg-white p-3">
-                      <div className="text-xs leading-4 text-slate-500">{estimate.label}</div>
-                      <div className="mt-1 text-lg font-bold text-slate-950">
+                    <div key={estimate.key} className="bg-[#171717] p-3">
+                      <div className="text-xs leading-4 text-zinc-500">{estimate.label}</div>
+                      <div className="mt-1 text-lg font-bold text-zinc-50">
                         ≈ ${estimate.amountUsd}
                       </div>
                     </div>
@@ -154,7 +153,7 @@ export function OpsBrandDirectoryDetail({
                       ? `/admin/operations/knowledge/${shippingArticleId}${canWrite ? "/edit" : ""}`
                       : "/admin/operations/knowledge?category=delivery"
                   }
-                  className="flex h-12 items-center justify-between border-t border-slate-200 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                  className="flex h-12 items-center justify-between border-t border-white/10 px-4 text-sm font-semibold text-blue-300 hover:bg-blue-500/10"
                 >
                   {canWrite && shippingArticleId
                     ? "Редактировать доставку"
@@ -163,7 +162,7 @@ export function OpsBrandDirectoryDetail({
                 </Link>
               </>
             ) : (
-              <div className="p-4 text-sm leading-6 text-slate-600 sm:p-5">
+              <div className="p-4 text-sm leading-6 text-zinc-400 sm:p-5">
                 Для этого направления нет безопасного универсального тарифа. Используйте правило
                 бренда и уточните склад, вес/объём, локальную доставку и VAT.
               </div>
@@ -172,11 +171,11 @@ export function OpsBrandDirectoryDetail({
         </div>
 
         <aside className="space-y-4">
-          <section className="border border-slate-200 bg-white p-4">
-            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+          <section className="border border-white/10 bg-[#171717] p-4">
+            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
               Перед расчётом
             </h2>
-            <ol className="mt-3 space-y-3 text-sm leading-5 text-slate-700">
+            <ol className="mt-3 space-y-3 text-sm leading-5 text-zinc-300">
               {[
                 "Проверить текущую цену и наличие.",
                 "Проверить VAT/tax и скидку аккаунта.",
@@ -184,7 +183,7 @@ export function OpsBrandDirectoryDetail({
                 "Не добавлять shipping повторно, если он уже в total.",
               ].map((item, index) => (
                 <li key={item} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-slate-950 text-xs font-bold text-white">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-white/10 text-xs font-bold text-white">
                     {index + 1}
                   </span>
                   <span>{item}</span>
@@ -193,10 +192,10 @@ export function OpsBrandDirectoryDetail({
             </ol>
           </section>
 
-          <section className="border border-slate-200 bg-white p-4">
+          <section className="border border-white/10 bg-[#171717] p-4">
             <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-blue-600" />
-              <h2 className="font-bold text-slate-950">Источники и ссылки</h2>
+              <FileText className="h-4 w-4 text-blue-400" />
+              <h2 className="font-bold text-zinc-50">Источники и ссылки</h2>
             </div>
             <div className="mt-3 space-y-2">
               {entry.sourceUrl ? (
@@ -204,7 +203,7 @@ export function OpsBrandDirectoryDetail({
                   href={entry.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex min-h-11 items-center justify-between gap-3 border border-slate-200 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                  className="flex min-h-11 items-center justify-between gap-3 border border-white/10 px-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/10"
                 >
                   <span className="truncate">
                     {operatorFacingReferenceText(entry.source || "Открыть источник")}
@@ -212,21 +211,21 @@ export function OpsBrandDirectoryDetail({
                   <ExternalLink className="h-4 w-4 shrink-0" />
                 </a>
               ) : (
-                <p className="text-sm text-slate-500">Ссылка на источник не указана.</p>
+                <p className="text-sm text-zinc-500">Ссылка на источник не указана.</p>
               )}
             </div>
           </section>
 
           {entry.aliases.length ? (
-            <section className="border border-slate-200 bg-white p-4">
-              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+            <section className="border border-white/10 bg-[#171717] p-4">
+              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
                 Другие названия
               </h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {entry.aliases.map((alias) => (
                   <span
                     key={alias}
-                    className="border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700"
+                    className="border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-zinc-300"
                   >
                     {alias}
                   </span>

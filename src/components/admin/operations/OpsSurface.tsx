@@ -1,27 +1,22 @@
 import type { ReactNode } from "react";
 
-import { OpsMobileNav } from "./OpsMobileNav";
-
+/**
+ * Dark Operations canvas inside the admin shell. Navigation (including the
+ * mobile drawer) comes from the shell, so there is no separate bottom bar.
+ */
 export function OpsSurface({
   children,
-  inboxCount,
-  showMobileNav = true,
   className = "",
-  permissions = [],
 }: {
   children: ReactNode;
-  inboxCount?: number;
-  showMobileNav?: boolean;
   className?: string;
-  permissions?: readonly string[];
 }) {
   return (
     <div
-      className={`min-h-full bg-[#f7f9fc] text-slate-900 [color-scheme:light] ${className}`}
+      className={`min-h-full bg-[#0A0A0A] text-zinc-100 [color-scheme:dark] ${className}`}
       data-ops-workspace
     >
-      <div className={showMobileNav ? "min-h-full pb-24 lg:pb-0" : "min-h-full"}>{children}</div>
-      {showMobileNav ? <OpsMobileNav inboxCount={inboxCount} permissions={permissions} /> : null}
+      {children}
     </div>
   );
 }

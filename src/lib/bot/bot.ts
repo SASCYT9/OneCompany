@@ -140,7 +140,7 @@ export async function setWebhook(token: string, url: string) {
   const botInstance = getBot(token);
   await botInstance.api.setWebhook(url, {
     drop_pending_updates: true,
-    allowed_updates: ['message', 'callback_query', 'inline_query'],
+    allowed_updates: ['message', 'callback_query'],
     ...(process.env.TELEGRAM_WEBHOOK_SECRET
       ? { secret_token: process.env.TELEGRAM_WEBHOOK_SECRET }
       : {}),

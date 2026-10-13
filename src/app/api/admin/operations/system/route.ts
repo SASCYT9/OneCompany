@@ -11,21 +11,29 @@ import {
   withEntityHeaders,
 } from "@/lib/operations/request";
 import { serializeOpsJson } from "@/lib/operations/selects";
-import { getOpsSystemHealth, retryOpsSystemJob } from "@/lib/operations/system";
+import {
+  dismissOpsSystemJob,
+  getOpsSystemHealth,
+  retryOpsSystemJob,
+} from "@/lib/operations/system";
 import { prisma } from "@/lib/prisma";
 
 function parseSystemAction(value: unknown) {
   const input = (
     value && typeof value === "object" && !Array.isArray(value) ? value : {}
   ) as Record<string, unknown>;
-  if (input.action !== "retry") {
-    throw new OpsError("SYSTEM_ACTION_INVALID", 400, "Only the retry action is supported");
+  if (input.action !== "retry" && input.action !== "dismiss") {
+    throw new OpsError(
+      "SYSTEM_ACTION_INVALID",
+      400,
+      "Only the retry and dismiss actions are supported"
+    );
   }
   const jobId = typeof input.jobId === "string" ? input.jobId.trim() : "";
   if (!jobId || jobId.length > 200) {
     throw new OpsError("JOB_ID_INVALID", 400, "A valid job id is required");
   }
-  return { action: "retry" as const, jobId };
+  return { action: input.action, jobId };
 }
 
 export async function GET(request: NextRequest) {
@@ -53,6 +61,40 @@ export async function POST(request: NextRequest) {
     const access = await requireOperationsAccess(ADMIN_PERMISSIONS.OPS_SYSTEM_MANAGE);
     const key = requireIdempotencyKey(request);
     const action = parseSystemAction(await request.json());
+
+    if (action.action === "dismiss") {
+      const dismissed = await runOpsIdempotentMutation({
+        prisma,
+        scope: `ops.system.job.dismiss:${action.jobId}`,
+        key,
+        payload: action,
+        execute: async (tx) => {
+          const job = await dismissOpsSystemJob({ tx, jobId: action.jobId });
+          await writeOpsAudit(tx, access, {
+            action: "system.job.dismiss",
+            entityType: "ops.job",
+            entityId: job.id,
+            metadata: {
+              jobType: job.type,
+              stage: job.stage,
+              previousStatus: job.previousStatus,
+              attempts: job.attempts,
+            },
+          });
+          return {
+            body: serializeOpsJson({ job }),
+            statusCode: 200,
+            resourceType: "ops.job",
+            resourceId: job.id,
+          };
+        },
+      });
+      return withEntityHeaders(
+        NextResponse.json(dismissed.body, { status: dismissed.statusCode }),
+        undefined,
+        dismissed.replayed
+      );
+    }
 
     const result = await runOpsIdempotentMutation({
       prisma,

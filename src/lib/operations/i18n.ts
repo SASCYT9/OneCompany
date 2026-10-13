@@ -96,3 +96,33 @@ export const OPS_PRIORITY_LABELS = {
 } as const;
 
 export type OpsLocaleKey = keyof typeof opsRu;
+
+function sameLocalDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+/** «сегодня, 16:18», «вчера, 09:05», «29 сент., 16:18», «29 сент. 2025 г.». */
+export function formatOpsWhen(value: string | Date, now = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  const time = new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(
+    date
+  );
+  if (sameLocalDay(date, now)) return `сегодня, ${time}`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameLocalDay(date, yesterday)) return `вчера, ${time}`;
+  if (date.getFullYear() === now.getFullYear()) {
+    const day = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" }).format(date);
+    return `${day}, ${time}`;
+  }
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}

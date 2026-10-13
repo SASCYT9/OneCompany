@@ -17,7 +17,11 @@ import {
   toOpsSystemJobSummary,
   type OpsSystemJobRow,
 } from "../../../src/lib/operations/system";
-import { getOpsMediaConfiguration } from "../../../src/lib/operations/media";
+import {
+  getOpsMediaConfiguration,
+  OpsMediaError,
+  resolveOpsBlobAuth,
+} from "../../../src/lib/operations/media";
 
 function source(relativePath: string) {
   return fs.readFileSync(path.resolve(relativePath), "utf8");
@@ -150,19 +154,42 @@ test("Ops media readiness is secret-free and rejects local storage in production
       productionReady: true,
     }
   );
+  // The shared BLOB_READ_WRITE_TOKEN is the public storefront store; on
+  // 2026-09-17 it silently captured Ops attachments, so it never counts.
+  const shopTokenOnly: Record<string, string> = {
+    NODE_ENV: "production",
+    OPS_LOCAL_MEDIA_DIR: "",
+    OPS_BLOB_READ_WRITE_TOKEN: "",
+    BLOB_READ_WRITE_TOKEN: "blob-integration-secret",
+    OPS_BLOB_STORE_ID: "",
+  };
+  assert.deepEqual(getOpsMediaConfiguration(shopTokenOnly), {
+    provider: "missing",
+    configured: false,
+    productionReady: false,
+  });
+});
+
+test("Ops attachments use only Ops Blob credentials, never the shop token", () => {
   assert.deepEqual(
-    getOpsMediaConfiguration({
-      NODE_ENV: "production",
-      OPS_LOCAL_MEDIA_DIR: "",
-      OPS_BLOB_READ_WRITE_TOKEN: "",
-      BLOB_READ_WRITE_TOKEN: "blob-integration-secret",
-      OPS_BLOB_STORE_ID: "",
+    resolveOpsBlobAuth({
+      OPS_BLOB_READ_WRITE_TOKEN: "ops-token",
+      OPS_BLOB_STORE_ID: "store_private",
+      BLOB_READ_WRITE_TOKEN: "shop-token",
     }),
-    {
-      provider: "vercel_blob",
-      configured: true,
-      productionReady: true,
-    }
+    { token: "ops-token" }
+  );
+  assert.deepEqual(
+    resolveOpsBlobAuth({
+      OPS_BLOB_STORE_ID: " store_private ",
+      BLOB_READ_WRITE_TOKEN: "shop-token",
+    }),
+    { storeId: "store_private" }
+  );
+  assert.throws(
+    () => resolveOpsBlobAuth({ BLOB_READ_WRITE_TOKEN: "shop-token" }),
+    (error: unknown) =>
+      error instanceof OpsMediaError && error.code === "PRIVATE_BLOB_NOT_CONFIGURED"
   );
 });
 
@@ -236,8 +263,10 @@ test("Ops System route is current-DB RBAC protected, CSRF safe, idempotent and a
     "requireIdempotencyKey",
     "runOpsIdempotentMutation",
     "retryOpsSystemJob",
+    "dismissOpsSystemJob",
     "writeOpsAudit",
     "system.job.retry",
+    "system.job.dismiss",
     "reusedDurableJob: true",
   ]) {
     assert.match(route, new RegExp(required), `system route must use ${required}`);
@@ -292,7 +321,9 @@ test("Ops System UI is permission-gated, responsive, and only retries the select
   assert.match(page, /requireOpsPageAccess\(\s*ADMIN_PERMISSIONS\.OPS_SYSTEM_MANAGE/);
   assert.match(ui, /\/api\/admin\/operations\/system\?take=50/);
   assert.match(ui, /action:\s*"retry"/);
-  assert.match(ui, /jobId:\s*selectedJob\.id/);
+  assert.match(ui, /action:\s*"dismiss"/);
+  assert.match(ui, /jobId:\s*job\.id/);
+  assert.match(ui, /data-ops-telegram-recipients/);
   assert.match(ui, /sm:grid-cols/);
   assert.match(ui, /data-ops-media-store-status/);
   assert.match(ui, /pb-\[env\(safe-area-inset-bottom\)\]/);

@@ -88,7 +88,7 @@ export function OpsProjectForm({
   }
 
   const fieldClass =
-    "mt-1.5 h-11 w-full border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+    "mt-1.5 h-11 w-full border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
 
   return (
     <div
@@ -101,7 +101,7 @@ export function OpsProjectForm({
       }}
     >
       <form
-        className="max-h-[94dvh] w-full overflow-y-auto bg-white p-5 shadow-2xl sm:max-w-2xl sm:p-6"
+        className="max-h-[94dvh] w-full overflow-y-auto bg-[#171717] p-5 shadow-2xl sm:max-w-2xl sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
@@ -109,17 +109,17 @@ export function OpsProjectForm({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 id="ops-project-form-title" className="text-xl font-bold text-slate-950">
+            <h2 id="ops-project-form-title" className="text-xl font-bold text-zinc-50">
               {project ? "Настроить проект" : "Новый проект"}
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-zinc-500">
               Объедините связанные задачи в одно рабочее направление.
             </p>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="p-2 text-slate-500 hover:bg-slate-100"
+            className="p-2 text-zinc-500 hover:bg-white/[0.06]"
             aria-label="Закрыть"
           >
             <X className="h-5 w-5" />
@@ -127,12 +127,12 @@ export function OpsProjectForm({
         </div>
 
         {error ? (
-          <div className="mt-4 border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-4 border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
             {error}
           </div>
         ) : null}
 
-        <label className="mt-5 block text-sm font-medium text-slate-700">
+        <label className="mt-5 block text-sm font-medium text-zinc-300">
           Название проекта
           <input
             autoFocus
@@ -142,19 +142,19 @@ export function OpsProjectForm({
             placeholder="Например: Заказ BMW Competition 2026"
           />
         </label>
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+        <label className="mt-4 block text-sm font-medium text-zinc-300">
           Описание
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={4}
-            className="mt-1.5 w-full resize-y border border-slate-300 bg-white p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 w-full resize-y border border-white/15 bg-[#171717] p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             placeholder="Цель проекта и важный контекст"
           />
         </label>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Статус
             <select
               value={status}
@@ -167,7 +167,7 @@ export function OpsProjectForm({
               <option value="CANCELLED">Отменён</option>
             </select>
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Приоритет
             <select
               value={priority}
@@ -180,7 +180,7 @@ export function OpsProjectForm({
               <option value="URGENT">Срочный</option>
             </select>
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Начало
             <input
               type="date"
@@ -189,7 +189,7 @@ export function OpsProjectForm({
               className={fieldClass}
             />
           </label>
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-zinc-300">
             Срок
             <input
               type="date"
@@ -201,7 +201,7 @@ export function OpsProjectForm({
         </div>
 
         {canAssign ? (
-          <label className="mt-4 block text-sm font-medium text-slate-700">
+          <label className="mt-4 block text-sm font-medium text-zinc-300">
             Ответственный за проект
             <select
               value={ownerId}
@@ -218,22 +218,22 @@ export function OpsProjectForm({
           </label>
         ) : null}
 
-        <label className="mt-4 block text-sm font-medium text-slate-700">
+        <label className="mt-4 block text-sm font-medium text-zinc-300">
           Следующее действие
           <textarea
             value={nextAction}
             onChange={(event) => setNextAction(event.target.value)}
             rows={2}
-            className="mt-1.5 w-full resize-y border border-slate-300 bg-white p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 w-full resize-y border border-white/15 bg-[#171717] p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             placeholder="Что конкретно нужно сделать дальше"
           />
         </label>
 
-        <div className="sticky bottom-0 -mx-5 mt-6 flex justify-end gap-2 border-t border-slate-200 bg-white px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 sm:-mx-6 sm:px-6">
+        <div className="sticky bottom-0 -mx-5 mt-6 flex justify-end gap-2 border-t border-white/10 bg-[#171717] px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 sm:-mx-6 sm:px-6">
           <button
             type="button"
             onClick={onCancel}
-            className="h-11 border border-slate-300 px-4 text-sm font-medium text-slate-700"
+            className="h-11 border border-white/15 px-4 text-sm font-medium text-zinc-300"
           >
             Отмена
           </button>

@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             url: webhookUrl,
-            allowed_updates: ['message', 'callback_query', 'inline_query'],
+            allowed_updates: ['message', 'callback_query'],
             drop_pending_updates: true,
             ...(WEBHOOK_SECRET && { secret_token: WEBHOOK_SECRET }),
           }),
