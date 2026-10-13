@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   buildShopBrandDiscountMap,
   createShopB2bTermsResolver,
+  mergeShopPartnerBrandDiscountMaps,
   resolveShopB2bDiscount,
 } from "../../../src/lib/shopB2bBrandDiscounts";
 import { draftCatalogPrice } from "../../../src/lib/admin/proformaDraft";
@@ -44,6 +45,99 @@ test("two partners get different discounts on the same brand", () => {
     resolveShopB2bDiscount({ ...base, brand: "Brabus", customerBrandDiscountMap: partnerA }),
     { percent: 8, source: "system-brand" }
   );
+});
+
+test("a tariff group sits between the partner's own rule and the rule for every partner", () => {
+  const gold = buildShopBrandDiscountMap([
+    { brand: "Akrapovic", discountPct: 20 },
+    { brand: "Remus", discountPct: 12 },
+    { brand: "Brabus", discountPct: 0 },
+  ]);
+  const own = buildShopBrandDiscountMap([{ brand: "akrapovic", discountPct: 25 }]);
+  const base = {
+    customerGroup: "B2B_APPROVED",
+    systemBrandDiscountMap: system,
+    groupBrandDiscountMap: gold,
+    customerB2BDiscountPercent: 4,
+  };
+
+  assert.deepEqual(resolveShopB2bDiscount({ ...base, brand: "Akrapovic" }), {
+    percent: 20,
+    source: "group-brand",
+  });
+  assert.deepEqual(
+    resolveShopB2bDiscount({ ...base, brand: "AKRAPOVIC", customerBrandDiscountMap: own }),
+    { percent: 25, source: "customer-brand" }
+  );
+  // The group beats the "all partners" 0 % on Remus and 8 % on Brabus.
+  assert.deepEqual(resolveShopB2bDiscount({ ...base, brand: "Remus" }), {
+    percent: 12,
+    source: "group-brand",
+  });
+  assert.deepEqual(resolveShopB2bDiscount({ ...base, brand: "Brabus" }), {
+    percent: 0,
+    source: "group-brand",
+  });
+  // Brands the group does not list fall through as before.
+  assert.deepEqual(resolveShopB2bDiscount({ ...base, brand: "GiroDisc" }), {
+    percent: 4,
+    source: "customer-global",
+  });
+  assert.deepEqual(
+    resolveShopB2bDiscount({ ...base, customerGroup: "B2B_PENDING", brand: "Akrapovic" }),
+    { percent: 0, source: "none" }
+  );
+});
+
+test("the storefront map (group under own rules) prices like the separate tiers", () => {
+  const group = buildShopBrandDiscountMap([
+    { brand: "Akrapovic", discountPct: 20 },
+    { brand: "Brabus", discountPct: 0 },
+    { brand: "Eventuri", discountPct: 9 },
+  ]);
+  const own = buildShopBrandDiscountMap([
+    { brand: "Akrapovic", discountPct: 5 },
+    { brand: "Remus", discountPct: 30 },
+  ]);
+  const merged = mergeShopPartnerBrandDiscountMaps(group, own);
+  for (const brand of ["Akrapovic", "Brabus", "Eventuri", "Remus", "GiroDisc", "", null]) {
+    const common = {
+      customerGroup: "B2B_APPROVED",
+      brand,
+      systemBrandDiscountMap: system,
+      customerB2BDiscountPercent: 3,
+      defaultB2BDiscountPercent: 1,
+    };
+    assert.equal(
+      resolveShopB2bDiscount({ ...common, customerBrandDiscountMap: merged }).percent,
+      resolveShopB2bDiscount({
+        ...common,
+        customerBrandDiscountMap: own,
+        groupBrandDiscountMap: group,
+      }).percent,
+      String(brand)
+    );
+  }
+});
+
+test("admin terms resolver names the tariff group as the source", () => {
+  const resolve = createShopB2bTermsResolver({
+    group: "B2B_APPROVED",
+    b2bDiscountPercent: null,
+    defaultB2bDiscountPercent: null,
+    tariffGroup: { id: "g1", name: "Gold" },
+    systemBrandDiscounts: [{ brand: "Akrapovic", discountPct: 10 }],
+    groupBrandDiscounts: [{ brand: "Akrapovic", discountPct: 15 }],
+    customerBrandDiscounts: [{ brand: "Remus", discountPct: 7 }],
+  });
+  assert.deepEqual(resolve("akrapovic"), { percent: 15, source: "group-brand" });
+  assert.deepEqual(resolve("Remus"), { percent: 7, source: "customer-brand" });
+});
+
+test("every storefront price path loads the partner's tariff group", () => {
+  const loader = readFileSync("src/lib/shopPricingContext.server.ts", "utf8");
+  assert.match(loader, /shopB2bTariffGroupBrandDiscount\.findMany/);
+  assert.match(loader, /mergeShopPartnerBrandDiscountMaps\(/);
 });
 
 test("a 0% brand rule is a real rule and stops the fall-through", () => {
@@ -97,7 +191,9 @@ test("Urban products match a rule on the storefront brand, not the car make", ()
     group: "B2B_APPROVED",
     b2bDiscountPercent: null,
     defaultB2bDiscountPercent: null,
+    tariffGroup: null,
     systemBrandDiscounts: [],
+    groupBrandDiscounts: [],
     customerBrandDiscounts: [{ brand: "Urban Automotive", discountPct: 7 }],
   });
   assert.equal(resolve(brand).percent, 7);
@@ -109,7 +205,9 @@ test("admin terms resolver ignores the public default for retail customers", () 
     group: "B2C",
     b2bDiscountPercent: 10,
     defaultB2bDiscountPercent: 5,
+    tariffGroup: null,
     systemBrandDiscounts: [{ brand: "Akrapovic", discountPct: 15 }],
+    groupBrandDiscounts: [{ brand: "Akrapovic", discountPct: 20 }],
     customerBrandDiscounts: [],
   });
   assert.deepEqual(resolve("Akrapovic"), { percent: 0, source: "none" });

@@ -1295,6 +1295,9 @@ model ShopCustomer {
   createdAt          DateTime                        @default(now())
   updatedAt          DateTime                        @updatedAt
   b2bDiscountPercent Decimal?                        @db.Decimal(5, 2)
+  /// B2B tariff group (Silver / Gold / Dealer…): a shared set of brand discounts.
+  tariffGroupId      String?
+  tariffGroup        ShopB2bTariffGroup?             @relation(fields: [tariffGroupId], references: [id], onDelete: SetNull)
   carts              ShopCart[]
   account            ShopCustomerAccount?
   passwordSetupToken ShopCustomerPasswordSetupToken?
@@ -1306,6 +1309,34 @@ model ShopCustomer {
   @@index([group, isActive])
   @@index([createdAt])
   @@index([archivedAt])
+  @@index([tariffGroupId])
+}
+
+/// A named package of per-brand B2B discounts (e.g. Silver / Gold / Dealer).
+/// Partners in the group get these discounts unless their own brand rule
+/// (ShopCustomerBrandDiscount) says otherwise; see `resolveShopB2bDiscount`.
+model ShopB2bTariffGroup {
+  id             String                            @id @default(cuid())
+  name           String                            @unique
+  description    String?
+  createdAt      DateTime                          @default(now())
+  updatedAt      DateTime                          @updatedAt
+  brandDiscounts ShopB2bTariffGroupBrandDiscount[]
+  customers      ShopCustomer[]
+}
+
+model ShopB2bTariffGroupBrandDiscount {
+  id          String             @id @default(cuid())
+  groupId     String
+  brand       String
+  discountPct Decimal            @db.Decimal(5, 2)
+  notes       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  group       ShopB2bTariffGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, brand])
+  @@index([brand])
 }
 
 /// Per-customer per-brand discount override. When a row exists for a customer

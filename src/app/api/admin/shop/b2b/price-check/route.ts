@@ -8,7 +8,8 @@ import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
-import { resolveShopB2bDiscount } from "@/lib/shopB2bBrandDiscounts";
+import { createShopB2bTermsResolver } from "@/lib/shopB2bBrandDiscounts";
+import { loadShopB2bCustomerPricingTerms } from "@/lib/shopB2bAdmin.server";
 
 const MAX_RESULTS = 8;
 
@@ -50,8 +51,9 @@ export async function GET(request: NextRequest) {
         ],
       })),
     };
-    const [settingsRecord, matches] = await Promise.all([
+    const [settingsRecord, terms, matches] = await Promise.all([
       getOrCreateShopSettings(prisma),
+      loadShopB2bCustomerPricingTerms(prisma, customer.id),
       prisma.shopProduct.findMany({
         where,
         take: MAX_RESULTS,
@@ -71,6 +73,9 @@ export async function GET(request: NextRequest) {
       priceCountry: country,
     });
 
+    // Same tiers as the storefront, kept apart so the manager sees which rule won
+    // (the storefront folds the tariff group into the partner map).
+    const ruleFor = createShopB2bTermsResolver(terms);
     const items = [];
     // Sequential on purpose: each lookup is a full product read.
     for (const { slug } of matches) {
@@ -78,14 +83,7 @@ export async function GET(request: NextRequest) {
       if (!product) continue;
       const brand = product.brand || product.vendor || null;
       const pricing = resolveShopProductPricing(product, context);
-      const rule = resolveShopB2bDiscount({
-        customerGroup: context.customerGroup,
-        brand,
-        customerBrandDiscountMap: context.customerBrandDiscountMap,
-        systemBrandDiscountMap: context.systemBrandDiscountMap,
-        customerB2BDiscountPercent: context.customerB2BDiscountPercent,
-        defaultB2BDiscountPercent: context.defaultB2BDiscountPercent,
-      });
+      const rule = ruleFor(brand);
       const partnerPricing = pricing.audience === "b2b";
       items.push({
         slug: product.slug,
@@ -102,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { items, customerGroup: customer.group, country },
+      { items, customerGroup: customer.group, tariffGroup: terms?.tariffGroup ?? null, country },
       { headers: { "Cache-Control": "private, no-store" } }
     );
   } catch (error) {

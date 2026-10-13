@@ -13,6 +13,7 @@ import {
   listSystemBrandDiscounts,
   upsertSystemBrandDiscount,
 } from "@/lib/shopB2bAdmin.server";
+import { shopB2bAdminErrorResponse } from "@/lib/shopB2bAdminErrors";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -67,18 +68,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 function mapError(error: unknown) {
-  const message = (error as Error).message;
-  if (message === "UNAUTHORIZED")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (message === "BRAND_REQUIRED") {
-    return NextResponse.json({ error: "Оберіть бренд" }, { status: 400 });
-  }
-  if (message === "DISCOUNT_OUT_OF_RANGE") {
-    return NextResponse.json({ error: "Знижка має бути від 0 до 100%" }, { status: 400 });
-  }
-  console.error("Admin B2B brand discounts", error);
-  return NextResponse.json({ error: "Не вдалося зберегти" }, { status: 500 });
+  return shopB2bAdminErrorResponse(error, "Admin B2B brand discounts");
 }
 
 export const runtime = "nodejs";

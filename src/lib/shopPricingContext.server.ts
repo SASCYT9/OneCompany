@@ -1,19 +1,32 @@
 import type { CustomerGroup, PrismaClient } from "@prisma/client";
 import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
-import { buildShopBrandDiscountMap } from "@/lib/shopB2bBrandDiscounts";
+import {
+  buildShopBrandDiscountMap,
+  mergeShopPartnerBrandDiscountMaps,
+} from "@/lib/shopB2bBrandDiscounts";
 import {
   buildShopViewerPricingContext,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
 
+/**
+ * `customerBrandDiscountMap` is the partner's whole brand layer: their tariff
+ * group's rules with their own rules on top. The two tiers are adjacent in
+ * `resolveShopB2bDiscount`, so merging them prices exactly the same while the
+ * storefront, cart and SQL price paths keep a single partner map.
+ */
 export async function loadShopBrandDiscountMaps(
   prisma: PrismaClient,
   customerId: string | null | undefined,
   customerGroup: CustomerGroup | null | undefined
 ) {
   if (!customerId || customerGroup !== "B2B_APPROVED") return undefined;
-  const [system, customer] = await Promise.all([
+  const [system, group, customer] = await Promise.all([
     prisma.shopBrandB2bDiscount.findMany({ select: { brand: true, discountPct: true } }),
+    prisma.shopB2bTariffGroupBrandDiscount.findMany({
+      where: { group: { customers: { some: { id: customerId } } } },
+      select: { brand: true, discountPct: true },
+    }),
     prisma.shopCustomerBrandDiscount.findMany({
       where: { customerId },
       select: { brand: true, discountPct: true },
@@ -21,7 +34,10 @@ export async function loadShopBrandDiscountMaps(
   ]);
   return {
     systemBrandDiscountMap: buildShopBrandDiscountMap(system),
-    customerBrandDiscountMap: buildShopBrandDiscountMap(customer),
+    customerBrandDiscountMap: mergeShopPartnerBrandDiscountMaps(
+      buildShopBrandDiscountMap(group),
+      buildShopBrandDiscountMap(customer)
+    ),
   };
 }
 

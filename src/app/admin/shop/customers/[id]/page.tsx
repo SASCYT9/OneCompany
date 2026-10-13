@@ -36,6 +36,8 @@ import {
 import { formatOrderDate, formatOrderMoney } from "@/components/admin/orders/orderFormat";
 import { CustomerCreditPanel } from "@/app/admin/shop/customers/components/CustomerCreditPanel";
 import { CustomerBrandDiscountsPanel } from "@/app/admin/shop/customers/components/CustomerBrandDiscountsPanel";
+import { CustomerTariffGroupPanel } from "@/app/admin/shop/customers/components/CustomerTariffGroupPanel";
+import { useB2bTariffGroups } from "@/components/admin/b2b/useB2bTariffGroups";
 import { orderStatusLabel, orderStatusTone } from "@/lib/admin/orderWorkflow";
 import { orderPaymentLabel } from "@/lib/shopOrderPresentation";
 import {
@@ -58,6 +60,7 @@ type CustomerDetail = {
   vatNumber: string | null;
   group: CustomerGroup;
   b2bDiscountPercent: number | null;
+  tariffGroup: { id: string; name: string } | null;
   isActive: boolean;
   notes: string | null;
   preferredLocale: string;
@@ -217,6 +220,15 @@ function auditToFeed(entry: CustomerDetail["auditLog"][number]): FeedItem | null
       };
     case "customer.brand_discount.delete":
       return { ...base, mark: "%", tone: "gray", title: `Знижку на ${brand} прибрано` };
+    case "customer.tariff_group.assign": {
+      const groupName = metaText(entry.metadata, "groupName");
+      return {
+        ...base,
+        mark: "%",
+        tone: groupName ? "blue" : "gray",
+        title: groupName ? `Тарифна група: ${groupName}` : "Прибрано з тарифної групи",
+      };
+    }
     case "customer.password_setup.create":
       return { ...base, mark: "→", tone: "gray", title: "Створено посилання для входу" };
     case "customer.password_reset.send":
@@ -287,6 +299,7 @@ function CustomerRecord() {
   const [noteText, setNoteText] = useState("");
   const [postingNote, setPostingNote] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { groups: tariffGroups, loading: tariffGroupsLoading } = useB2bTariffGroups();
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -447,7 +460,7 @@ function CustomerRecord() {
     const confirmations = {
       approve_b2b: {
         title: `Затвердити ${name} як B2B-партнера?`,
-        description: "Знижки на бренди задаються на вкладці «Знижки на бренди».",
+        description: "Тарифну групу й знижки на бренди задають на вкладці «Знижки на бренди».",
         confirmLabel: "Затвердити B2B",
       },
       revert_b2c: {
@@ -772,6 +785,9 @@ function CustomerRecord() {
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="crm-title text-[22px] font-semibold text-white">{title}</h1>
             {customerTypeChip(customer.group)}
+            {customer.tariffGroup && customer.group !== "B2C" ? (
+              <CrmChip tone="blue">{customer.tariffGroup.name}</CrmChip>
+            ) : null}
             {customer.account?.hasPassword ? (
               <CrmChip tone="green">Є пароль</CrmChip>
             ) : (
@@ -1018,6 +1034,23 @@ function CustomerRecord() {
                 mono: true,
               })}
               {attr({ label: "Тип", display: customerTypeChip(customer.group) })}
+              {customer.group !== "B2C"
+                ? attr({
+                    label: "Тарифна група",
+                    display: (
+                      <button
+                        type="button"
+                        onClick={() => setTab("discounts")}
+                        className={cn(
+                          "text-left hover:text-white",
+                          customer.tariffGroup ? "text-[#9CC0FF]" : "text-zinc-600"
+                        )}
+                      >
+                        {customer.tariffGroup?.name ?? "Без групи"}
+                      </button>
+                    ),
+                  })
+                : null}
               {attr({
                 field: "notes",
                 label: "Примітка",
@@ -1303,27 +1336,38 @@ function CustomerRecord() {
                 </div>
               ) : (
                 <>
-                  <p className="text-zinc-400">
-                    Знижка партнера на бренд важливіша за{" "}
-                    <Link
-                      href="/admin/shop/customers/b2b-pricing"
-                      className="text-[#9CC0FF] hover:text-white"
-                    >
-                      знижку бренду для всіх партнерів
-                    </Link>
-                    .{" "}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-zinc-400">
+                      {customer.group === "B2B_PENDING"
+                        ? "Заявку ще не затверджено — група й винятки запрацюють після затвердження."
+                        : "Ціну партнера складають тарифна група і винятки нижче."}
+                    </p>
                     <Link
                       href={`/admin/shop/customers/b2b-pricing?tab=check&customer=${customer.id}`}
-                      className="text-[#9CC0FF] hover:text-white"
+                      className={crmButton}
                     >
-                      Перевірити ціни партнера →
+                      Перевірити ціни партнера
                     </Link>
-                    {customer.group === "B2B_PENDING" ? " Діятиме після затвердження заявки." : ""}
-                  </p>
+                  </div>
+                  <CustomerTariffGroupPanel
+                    customerId={customer.id}
+                    value={customer.tariffGroup}
+                    groups={tariffGroups}
+                    loading={tariffGroupsLoading}
+                    onChanged={(next) =>
+                      setCustomer((current) =>
+                        current ? { ...current, tariffGroup: next } : current
+                      )
+                    }
+                  />
                   <CustomerBrandDiscountsPanel
-                    embedded
                     customerId={customer.id}
                     globalDiscountPct={customer.b2bDiscountPercent}
+                    groupName={customer.tariffGroup?.name ?? null}
+                    groupDiscounts={
+                      tariffGroups.find((group) => group.id === customer.tariffGroup?.id)
+                        ?.brandDiscounts
+                    }
                   />
                   <div className="-mx-5 border-t border-[#1F2125] pt-2 sm:-mx-6">
                     {attr({

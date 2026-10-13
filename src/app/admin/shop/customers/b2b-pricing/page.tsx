@@ -2,20 +2,39 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { AlertTriangle, ArrowUpRight, Search, Trash2 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArrowUpRight, RefreshCcw, Search, X } from "lucide-react";
 
-import {
-  AdminButton,
-  AdminInlineAlert,
-  AdminPage,
-  AdminPageHeader,
-  AdminTableShell,
-} from "@/components/admin/AdminPrimitives";
 import { useToast } from "@/components/admin/AdminToast";
-import { useB2bBrandOptions, type B2bBrandOption } from "@/components/admin/b2b/B2bBrandSelect";
+import { useB2bBrandOptions } from "@/components/admin/b2b/B2bBrandSelect";
 import {
-  normalizeShopBrandKey,
+  CrmPicker,
+  formatPct,
+  groupAccent,
+  GroupMark,
+  pluralGroups,
+  pluralPartners,
+  TariffPriorityNote,
+} from "@/components/admin/b2b/B2bPricingUi";
+import { DiscountMatrixTab } from "@/components/admin/b2b/DiscountMatrixTab";
+import {
+  assignPartnerTariffGroup,
+  partnerLabel,
+  TariffGroupsTab,
+} from "@/components/admin/b2b/TariffGroupsTab";
+import { useB2bTariffGroups, type B2bTariffGroup } from "@/components/admin/b2b/useB2bTariffGroups";
+import {
+  CrmAvatar,
+  CrmChip,
+  CrmSurface,
+  CrmTabs,
+  crmAgo,
+  crmButton,
+  crmIconButton,
+  crmInput,
+  crmPrimaryButton,
+} from "@/components/admin/crm/CrmUi";
+import {
   SHOP_B2B_DISCOUNT_SOURCE_LABELS,
   type ShopB2bDiscountSource,
 } from "@/lib/shopB2bBrandDiscounts";
@@ -35,6 +54,7 @@ type Partner = {
   email: string;
   placeholderEmail: boolean;
   b2bDiscountPercent: number | null;
+  tariffGroup: { id: string; name: string } | null;
   brandDiscounts: Array<{ brand: string; discountPct: number }>;
   canSignIn: boolean;
   lastLoginAt: string | null;
@@ -56,17 +76,17 @@ type PriceCheckItem = {
 };
 
 const TABS = [
-  { key: "brands", label: "Знижки брендів" },
+  { key: "groups", label: "Тарифні групи" },
+  { key: "matrix", label: "Таблиця знижок" },
   { key: "partners", label: "Партнери" },
   { key: "check", label: "Перевірка ціни" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
-const inputClass =
-  "h-9 rounded-none border border-white/10 bg-black/40 px-3 text-sm text-white placeholder:text-zinc-600 focus:border-blue-500/60 focus:outline-hidden";
-
-function formatPct(value: number) {
-  return `${Number.isInteger(value) ? value : value.toFixed(2)}%`;
+function tabFromParam(value: string | null): TabKey {
+  // «brands» is the old name of the matrix tab; card links still use it.
+  if (value === "brands") return "matrix";
+  return TABS.find((entry) => entry.key === value)?.key ?? "groups";
 }
 
 function formatMoney(amount: number, currency: "UAH" | "EUR") {
@@ -78,551 +98,487 @@ function formatMoney(amount: number, currency: "UAH" | "EUR") {
   }).format(amount);
 }
 
-function partnerLabel(partner: Partner) {
-  return partner.companyName && partner.companyName !== partner.name
-    ? `${partner.companyName} · ${partner.name}`
-    : partner.companyName || partner.name;
-}
-
 async function readJson<T>(response: Response): Promise<T> {
   const data = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(data.error || "Запит не вдався");
   return data;
 }
 
-function initialTab(value: string | null): TabKey {
-  return TABS.some((entry) => entry.key === value) ? (value as TabKey) : "brands";
-}
-
 export default function AdminB2bPricingPage() {
   return (
     <Suspense fallback={null}>
-      <AdminB2bPricingContent />
+      <B2bPricingScreen />
     </Suspense>
   );
 }
 
-function AdminB2bPricingContent() {
+function B2bPricingScreen() {
   const toast = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [tab, setTab] = useState<TabKey>(() => initialTab(searchParams.get("tab")));
+  const tab = tabFromParam(searchParams.get("tab"));
+  const groupParam = searchParams.get("group") ?? "";
   const initialPartnerId = searchParams.get("customer") ?? "";
+
   const { brands, loading: brandsLoading, error: brandsError } = useB2bBrandOptions();
+  const {
+    groups,
+    loading: groupsLoading,
+    error: groupsError,
+    reload: reloadGroups,
+  } = useB2bTariffGroups();
   const [discounts, setDiscounts] = useState<SystemDiscount[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const loadDiscounts = useCallback(async () => {
+    const data = await fetch("/api/admin/shop/b2b/brand-discounts", { cache: "no-store" }).then(
+      (response) => readJson<{ discounts: SystemDiscount[] }>(response)
+    );
+    setDiscounts(data.discounts ?? []);
+  }, []);
+
+  const loadPartners = useCallback(async () => {
+    const data = await fetch("/api/admin/shop/b2b/partners", { cache: "no-store" }).then(
+      (response) => readJson<{ partners: Partner[] }>(response)
+    );
+    setPartners(data.partners ?? []);
+  }, []);
+
+  const loadAll = useCallback(async () => {
     setError("");
     try {
-      const [discountData, partnerData] = await Promise.all([
-        fetch("/api/admin/shop/b2b/brand-discounts", { cache: "no-store" }).then((response) =>
-          readJson<{ discounts: SystemDiscount[] }>(response)
-        ),
-        fetch("/api/admin/shop/b2b/partners", { cache: "no-store" }).then((response) =>
-          readJson<{ partners: Partner[] }>(response)
-        ),
-      ]);
-      setDiscounts(discountData.discounts ?? []);
-      setPartners(partnerData.partners ?? []);
+      await Promise.all([loadDiscounts(), loadPartners(), reloadGroups()]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не вдалося завантажити дані");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadDiscounts, loadPartners, reloadGroups]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void loadAll();
+  }, [loadAll]);
 
-  const cannotSignIn = partners.filter((partner) => !partner.canSignIn).length;
+  /** Quiet refresh after an edit: tables stay on screen. */
+  const refreshAfterEdit = useCallback(
+    async (options?: { partners?: boolean; discounts?: boolean }) => {
+      try {
+        await Promise.all([
+          reloadGroups(),
+          options?.partners ? loadPartners() : null,
+          options?.discounts ? loadDiscounts() : null,
+        ]);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Не вдалося оновити дані");
+      }
+    },
+    [loadDiscounts, loadPartners, reloadGroups, toast]
+  );
+
+  function setParams(next: { tab?: TabKey; group?: string }) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.tab) {
+      if (next.tab === "groups") params.delete("tab");
+      else params.set("tab", next.tab);
+    }
+    if (next.group !== undefined) {
+      if (next.group) params.set("group", next.group);
+      else params.delete("group");
+    }
+    const search = params.toString();
+    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  }
+
+  const stats = useMemo(() => {
+    const inGroups = partners.filter((partner) => partner.tariffGroup).length;
+    return [
+      { label: "Партнерів", value: partners.length },
+      { label: "У тарифних групах", value: inGroups },
+      { label: "Без групи", value: partners.length - inGroups },
+      { label: "Можуть увійти на сайт", value: partners.filter((p) => p.canSignIn).length },
+      { label: "Брендів зі знижкою для всіх", value: discounts.length },
+    ];
+  }, [discounts.length, partners]);
+
+  const errors = [error, brandsError, groupsError].filter(Boolean);
 
   return (
-    <AdminPage>
-      <AdminPageHeader
-        eyebrow="Клієнти"
-        title="B2B-знижки"
-        description="Знижки партнерам на конкретні бренди. Сайт, кошик, замовлення й проформи рахують ціну партнера за цими правилами однаково."
-      />
-
-      <div className="mt-4 flex flex-wrap gap-px border border-white/10 bg-white/10" role="tablist">
-        {TABS.map((entry) => (
+    <CrmSurface className="flex min-h-full flex-col bg-[#0A0A0B]">
+      <header className="flex flex-wrap items-center gap-3 border-b border-[#1F2125] px-4 py-3 sm:px-5">
+        <h1 className="crm-title text-[20px] font-semibold text-white">B2B-знижки</h1>
+        <span className="crm-mono text-[12px] text-zinc-500">
+          {partners.length
+            ? `${partners.length} ${pluralPartners(partners.length)} · ${groups.length} ${pluralGroups(groups.length)}`
+            : ""}
+        </span>
+        <div className="ml-auto flex items-center gap-2">
           <button
-            key={entry.key}
             type="button"
-            role="tab"
-            aria-selected={tab === entry.key}
-            onClick={() => setTab(entry.key)}
-            className={cn(
-              "flex-1 px-4 py-2.5 text-[13px] font-medium transition sm:flex-none",
-              tab === entry.key
-                ? "bg-blue-600 text-white"
-                : "bg-[#151515] text-zinc-300 hover:bg-[#1c1c1c] hover:text-white"
-            )}
+            onClick={async () => {
+              setRefreshing(true);
+              await loadAll();
+              setRefreshing(false);
+            }}
+            aria-label="Оновити"
+            title="Оновити"
+            className={crmIconButton}
           >
-            {entry.label}
-            {entry.key === "partners" && partners.length ? (
-              <span className="ml-1.5 text-white/60">{partners.length}</span>
-            ) : null}
+            <RefreshCcw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
           </button>
+          <Link href="/admin/shop/customers?tab=b2b" className={crmButton}>
+            Клієнти-партнери <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </header>
+
+      <dl className="no-scrollbar flex divide-x divide-[#1F2125] overflow-x-auto border-b border-[#1F2125]">
+        {stats.map((stat) => (
+          <div key={stat.label} className="min-w-[150px] flex-1 px-4 py-2.5 sm:px-5">
+            <dt className="text-[12px] text-zinc-500">{stat.label}</dt>
+            <dd className="crm-mono mt-0.5 text-[16px] text-white">{loading ? "…" : stat.value}</dd>
+          </div>
         ))}
+      </dl>
+
+      <div className="border-b border-[#1F2125] px-2 sm:px-3">
+        <CrmTabs
+          label="Розділи B2B-знижок"
+          tabs={TABS.map((entry) => ({
+            key: entry.key,
+            label: entry.label,
+            count:
+              entry.key === "groups" && groups.length
+                ? groups.length
+                : entry.key === "partners" && partners.length
+                  ? partners.length
+                  : null,
+          }))}
+          active={tab}
+          onChange={(next) => setParams({ tab: next })}
+        />
       </div>
 
-      {error ? (
-        <div className="mt-4">
-          <AdminInlineAlert tone="error">{error}</AdminInlineAlert>
-        </div>
-      ) : null}
-      {brandsError ? (
-        <div className="mt-4">
-          <AdminInlineAlert tone="error">{brandsError}</AdminInlineAlert>
+      {errors.length ? (
+        <div>
+          {errors.map((message) => (
+            <p
+              key={message}
+              className="border-b border-[#5B2323] bg-[#1F0E0E] px-5 py-2.5 text-[#F19B9B]"
+            >
+              {message}
+            </p>
+          ))}
         </div>
       ) : null}
 
-      <div className="mt-5">
-        {tab === "brands" ? (
-          <BrandDiscountsTab
-            brands={brands}
-            brandsLoading={brandsLoading || loading}
-            discounts={discounts}
+      <div className="flex flex-1 flex-col">
+        {tab === "groups" ? (
+          <TariffGroupsTab
+            groups={groups}
+            groupsLoading={groupsLoading || loading}
             partners={partners}
-            onSaved={(next) => {
-              setDiscounts(next);
-              toast.success("Знижку збережено");
-            }}
-            onError={(message) => toast.error(message)}
+            brands={brands}
+            brandsLoading={brandsLoading}
+            systemDiscounts={discounts}
+            selectedId={groupParam}
+            onSelect={(groupId) => setParams({ group: groupId })}
+            onChanged={(options) => refreshAfterEdit(options)}
+          />
+        ) : null}
+        {tab === "matrix" ? (
+          <DiscountMatrixTab
+            brands={brands}
+            brandsLoading={brandsLoading}
+            groups={groups}
+            systemDiscounts={discounts}
+            partners={partners}
+            onChanged={() => refreshAfterEdit({ discounts: true })}
+            onOpenGroup={(groupId) => setParams({ tab: "groups", group: groupId })}
           />
         ) : null}
         {tab === "partners" ? (
-          <PartnersTab partners={partners} loading={loading} cannotSignIn={cannotSignIn} />
+          <PartnersTab
+            partners={partners}
+            groups={groups}
+            loading={loading}
+            onAssigned={() => refreshAfterEdit({ partners: true })}
+          />
         ) : null}
         {tab === "check" ? (
           <PriceCheckTab
             partners={partners}
+            groups={groups}
             loading={loading}
             initialPartnerId={initialPartnerId}
           />
         ) : null}
       </div>
-    </AdminPage>
-  );
-}
 
-function BrandDiscountsTab({
-  brands,
-  brandsLoading,
-  discounts,
-  partners,
-  onSaved,
-  onError,
-}: {
-  brands: B2bBrandOption[];
-  brandsLoading: boolean;
-  discounts: SystemDiscount[];
-  partners: Partner[];
-  onSaved: (discounts: SystemDiscount[]) => void;
-  onError: (message: string) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [savingKey, setSavingKey] = useState<string | null>(null);
-
-  const ruleByKey = useMemo(
-    () => new Map(discounts.map((row) => [normalizeShopBrandKey(row.brand), row])),
-    [discounts]
-  );
-  const partnersByBrand = useMemo(() => {
-    const map = new Map<string, Partner[]>();
-    for (const partner of partners) {
-      for (const rule of partner.brandDiscounts) {
-        const key = normalizeShopBrandKey(rule.brand);
-        map.set(key, [...(map.get(key) ?? []), partner]);
-      }
-    }
-    return map;
-  }, [partners]);
-  const brandKeys = useMemo(
-    () => new Set(brands.map((option) => normalizeShopBrandKey(option.brand))),
-    [brands]
-  );
-  // Rules whose brand no published product carries never apply on the site.
-  const orphanRules = brandsLoading
-    ? []
-    : discounts.filter((row) => !brandKeys.has(normalizeShopBrandKey(row.brand)));
-
-  const needle = query.trim().toLowerCase();
-  const rows = brands.filter((option) => !needle || option.brand.toLowerCase().includes(needle));
-
-  async function refresh() {
-    const data = await fetch("/api/admin/shop/b2b/brand-discounts", { cache: "no-store" }).then(
-      (response) => readJson<{ discounts: SystemDiscount[] }>(response)
-    );
-    onSaved(data.discounts ?? []);
-  }
-
-  /** An empty value removes the brand rule. */
-  async function save(brand: string, value: string) {
-    const key = normalizeShopBrandKey(brand);
-    const raw = value.trim().replace(",", ".");
-    setSavingKey(key);
-    try {
-      if (raw === "") {
-        const response = await fetch(
-          `/api/admin/shop/b2b/brand-discounts?brand=${encodeURIComponent(brand)}`,
-          { method: "DELETE" }
-        );
-        await readJson(response);
-      } else {
-        const response = await fetch("/api/admin/shop/b2b/brand-discounts", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ brand, discountPct: Number(raw) }),
-        });
-        await readJson(response);
-      }
-      setDrafts((current) => {
-        const next = { ...current };
-        delete next[key];
-        return next;
-      });
-      await refresh();
-    } catch (err) {
-      onError(err instanceof Error ? err.message : "Не вдалося зберегти");
-    } finally {
-      setSavingKey(null);
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="max-w-3xl text-[13px] leading-5 text-zinc-400">
-        Знижка в цьому списку діє для <span className="text-zinc-200">всіх</span> B2B-партнерів. Щоб
-        дати одному партнеру іншу знижку на бренд — задайте її на картці партнера: вона важливіша за
-        цю. Порожнє поле — знижки на бренд немає.
-      </p>
-
-      {orphanRules.length ? (
-        <AdminInlineAlert tone="warning">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div>
-              Ці знижки не діють — серед товарів немає такого бренду:{" "}
-              {orphanRules.map((row, index) => (
-                <span key={row.brand}>
-                  {index ? ", " : ""}
-                  <button
-                    type="button"
-                    className="underline decoration-dotted underline-offset-2 hover:text-white"
-                    onClick={() => void save(row.brand, "")}
-                  >
-                    {row.brand} −{formatPct(row.discountPct)} (видалити)
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-        </AdminInlineAlert>
+      {tab === "groups" || tab === "matrix" ? (
+        <footer className="border-t border-[#1F2125] px-4 py-3 sm:px-5">
+          <TariffPriorityNote />
+        </footer>
       ) : null}
-
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Знайти бренд"
-          className={cn(inputClass, "w-full pl-9")}
-        />
-      </div>
-
-      <AdminTableShell>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                <th className="px-4 py-3 font-medium">Бренд</th>
-                <th className="px-4 py-3 text-right font-medium">Товарів</th>
-                <th className="px-4 py-3 font-medium">Знижка для всіх партнерів</th>
-                <th className="px-4 py-3 font-medium">Свої умови в партнерів</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/6">
-              {brandsLoading ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-zinc-500">
-                    Завантаження…
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-zinc-500">
-                    Бренд не знайдено.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((option) => {
-                  const key = normalizeShopBrandKey(option.brand);
-                  const rule = ruleByKey.get(key);
-                  const saved = rule ? String(rule.discountPct) : "";
-                  const draft = drafts[key];
-                  const value = draft ?? saved;
-                  const dirty = draft != null && draft.trim().replace(",", ".") !== saved;
-                  const own = partnersByBrand.get(key) ?? [];
-                  return (
-                    <tr key={option.brand} className="transition hover:bg-white/2">
-                      <td className="px-4 py-2.5 font-medium text-zinc-100">{option.brand}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-zinc-400">
-                        {option.productCount}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <form
-                          className="flex items-center gap-2"
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            if (dirty) void save(rule?.brand ?? option.brand, value);
-                          }}
-                        >
-                          <div className="relative w-28">
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              min={0}
-                              max={100}
-                              step={0.5}
-                              value={value}
-                              placeholder="—"
-                              aria-label={`Знижка на ${option.brand} для всіх партнерів, %`}
-                              onChange={(event) =>
-                                setDrafts((current) => ({ ...current, [key]: event.target.value }))
-                              }
-                              className={cn(
-                                inputClass,
-                                "w-full pr-7 text-right tabular-nums",
-                                rule && !dirty && "border-emerald-500/30 text-emerald-200"
-                              )}
-                            />
-                            <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
-                              %
-                            </span>
-                          </div>
-                          {dirty ? (
-                            <>
-                              <AdminButton
-                                type="submit"
-                                size="sm"
-                                variant="primary"
-                                loading={savingKey === key}
-                              >
-                                {value.trim() === "" ? "Прибрати" : "Зберегти"}
-                              </AdminButton>
-                              <AdminButton
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  setDrafts((current) => {
-                                    const next = { ...current };
-                                    delete next[key];
-                                    return next;
-                                  })
-                                }
-                              >
-                                Скасувати
-                              </AdminButton>
-                            </>
-                          ) : rule ? (
-                            <button
-                              type="button"
-                              title="Прибрати знижку"
-                              aria-label={`Прибрати знижку на ${option.brand}`}
-                              disabled={savingKey === key}
-                              onClick={() => void save(rule.brand, "")}
-                              className="p-1.5 text-zinc-500 transition hover:text-red-300 disabled:opacity-50"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          ) : null}
-                        </form>
-                      </td>
-                      <td className="px-4 py-2.5 text-[13px] text-zinc-400">
-                        {own.length ? (
-                          <span title={own.map(partnerLabel).join("\n")}>
-                            {own.length === 1 ? partnerLabel(own[0]!) : `${own.length} партнери`}
-                          </span>
-                        ) : (
-                          <span className="text-zinc-600">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </AdminTableShell>
-    </div>
+    </CrmSurface>
   );
 }
 
 function PartnersTab({
   partners,
+  groups,
   loading,
-  cannotSignIn,
+  onAssigned,
 }: {
   partners: Partner[];
+  groups: B2bTariffGroup[];
   loading: boolean;
-  cannotSignIn: number;
+  onAssigned: () => Promise<void>;
 }) {
+  const toast = useToast();
   const [query, setQuery] = useState("");
-  const needle = query.trim().toLowerCase();
-  const placeholderCount = partners.filter(
-    (partner) => !partner.canSignIn && partner.placeholderEmail
-  ).length;
-  const rows = partners.filter(
-    (partner) =>
-      !needle ||
-      [partner.name, partner.companyName, partner.email]
-        .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(needle))
-  );
+  const [groupFilter, setGroupFilter] = useState("");
+  const [assigning, setAssigning] = useState<string | null>(null);
+
+  const cannotSignIn = partners.filter((partner) => !partner.canSignIn);
+  const placeholderCount = cannotSignIn.filter((partner) => partner.placeholderEmail).length;
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const rows = partners.filter((partner) => {
+    if (groupFilter === "none" && partner.tariffGroup) return false;
+    if (groupFilter && groupFilter !== "none" && partner.tariffGroup?.id !== groupFilter)
+      return false;
+    if (!words.length) return true;
+    const haystack = [partner.name, partner.companyName, partner.email]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return words.every((word) => haystack.includes(word));
+  });
+
+  async function assign(partner: Partner, groupId: string) {
+    setAssigning(partner.id);
+    try {
+      const result = await assignPartnerTariffGroup(partner.id, groupId || null);
+      await onAssigned();
+      toast.success(
+        result.tariffGroup
+          ? `${partnerLabel(partner)} — у групі «${result.tariffGroup.name}»`
+          : `${partnerLabel(partner)} — без групи`
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не вдалося змінити групу");
+    } finally {
+      setAssigning(null);
+    }
+  }
+
+  const filters = [
+    { key: "", label: "Усі", count: partners.length },
+    ...groups.map((group) => ({
+      key: group.id,
+      label: group.name,
+      count: partners.filter((partner) => partner.tariffGroup?.id === group.id).length,
+    })),
+    {
+      key: "none",
+      label: "Без групи",
+      count: partners.filter((partner) => !partner.tariffGroup).length,
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      {cannotSignIn ? (
-        <AdminInlineAlert tone="warning">
-          {cannotSignIn} з {partners.length} партнерів не можуть увійти на сайт, тож бачать
+    <div className="flex flex-1 flex-col">
+      {cannotSignIn.length && !loading ? (
+        <p className="border-b border-[#3A2E14] bg-[#17130A] px-4 py-2.5 text-[#F5DDA6] sm:px-5">
+          {cannotSignIn.length} з {partners.length} партнерів не можуть увійти на сайт і бачать
           роздрібні ціни.
-          {placeholderCount ? (
-            <>
-              {" "}
-              У {placeholderCount} з них пошта-заглушка з CRM (…@crm.onecompany.local): спершу
-              вкажіть на картці справжній email партнера, потім створіть посилання для пароля — його
-              можна переслати в месенджер.
-            </>
-          ) : (
-            <>
-              {" "}
-              Створіть посилання для пароля на картці партнера — його можна переслати в месенджер.
-            </>
-          )}
-        </AdminInlineAlert>
+          {placeholderCount
+            ? ` У ${placeholderCount} — пошта-заглушка з CRM: впишіть справжній email на картці, потім створіть посилання для входу.`
+            : " Створіть посилання для входу на картці партнера."}
+        </p>
       ) : null}
 
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Партнер, компанія або email"
-          className={cn(inputClass, "w-full pl-9")}
-        />
+      <div className="flex flex-wrap items-center gap-3 border-b border-[#1F2125] px-4 py-3 sm:px-5">
+        <label className="flex h-8 w-full max-w-[320px] items-center gap-2 border border-[#24262B] bg-[#111113] px-2.5 focus-within:border-[#3B82F6]">
+          <Search className="h-3.5 w-3.5 text-zinc-500" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Компанія, ім’я або email"
+            aria-label="Пошук партнерів"
+            className="w-full bg-transparent text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
+          />
+        </label>
+        <div className="flex flex-wrap border border-[#24262B]" role="group" aria-label="Група">
+          {filters.map((filter) => (
+            <button
+              key={filter.key || "all"}
+              type="button"
+              aria-pressed={groupFilter === filter.key}
+              onClick={() => setGroupFilter(filter.key)}
+              className={cn(
+                "h-8 px-3 text-[12px] transition",
+                groupFilter === filter.key
+                  ? "bg-[#1A2236] text-white"
+                  : "text-zinc-400 hover:bg-[#141518] hover:text-zinc-100"
+              )}
+            >
+              {filter.label} <span className="crm-mono text-zinc-500">{filter.count}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <AdminTableShell>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] table-fixed text-left text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                <th className="w-[30%] px-4 py-3 font-medium">Партнер</th>
-                <th className="px-4 py-3 font-medium">Свої знижки на бренди</th>
-                <th className="w-[140px] px-4 py-3 font-medium">Вхід на сайт</th>
-                <th className="w-[100px] px-4 py-3" />
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] table-fixed border-collapse text-left">
+          <thead>
+            <tr className="h-[34px] border-b border-[#1F2125] text-[12px] text-zinc-500">
+              <th className="px-4 font-normal sm:px-5">Партнер</th>
+              <th className="w-[210px] px-3 font-normal">Тарифна група</th>
+              <th className="w-[280px] px-3 font-normal">Винятки на бренди</th>
+              <th className="w-[150px] px-3 font-normal">Вхід на сайт</th>
+              <th className="w-[52px]" />
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="px-5 py-8 text-zinc-500">
+                  Завантажуємо партнерів…
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-white/6">
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-zinc-500">
-                    Завантаження…
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-zinc-500">
-                    Партнерів не знайдено.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((partner) => (
-                  <tr key={partner.id} className="align-top transition hover:bg-white/2">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-zinc-100">
-                        {partner.companyName || partner.name}
-                      </div>
-                      <div className="break-all text-xs text-zinc-500">
-                        {partner.companyName && partner.companyName !== partner.name
-                          ? `${partner.name} · `
-                          : ""}
-                        {partner.email}
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-5 py-8 text-zinc-500">
+                  Партнерів не знайдено.
+                </td>
+              </tr>
+            ) : (
+              rows.map((partner) => {
+                const groupIndex = groups.findIndex(
+                  (group) => group.id === partner.tariffGroup?.id
+                );
+                return (
+                  <tr
+                    key={partner.id}
+                    className="h-[52px] border-b border-[#17181B] hover:bg-[#0E0F11]"
+                  >
+                    <td className="px-4 sm:px-5">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <CrmAvatar name={partner.companyName || partner.name} partner size={28} />
+                        <div className="min-w-0">
+                          <Link
+                            href={`/admin/shop/customers/${partner.id}?tab=discounts`}
+                            className="block truncate text-zinc-100 hover:text-white"
+                          >
+                            {partner.companyName || partner.name}
+                          </Link>
+                          <div className="truncate text-[12px] text-zinc-500">
+                            {partner.companyName && partner.companyName !== partner.name
+                              ? `${partner.name} · `
+                              : ""}
+                            {partner.placeholderEmail ? (
+                              <span className="text-[#C9A869]">пошта-заглушка з CRM</span>
+                            ) : (
+                              partner.email
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      {partner.brandDiscounts.length ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {partner.brandDiscounts.map((rule) => (
-                            <span
-                              key={rule.brand}
-                              className="border border-emerald-500/25 bg-emerald-500/5 px-2 py-0.5 text-xs text-emerald-200"
-                            >
-                              {rule.brand} −{formatPct(rule.discountPct)}
-                            </span>
+                    <td className="px-3">
+                      <div className="flex items-center gap-2">
+                        {partner.tariffGroup && groupIndex >= 0 ? (
+                          <GroupMark
+                            name={partner.tariffGroup.name}
+                            accent={groupAccent(partner.tariffGroup.name, groupIndex)}
+                            size={22}
+                          />
+                        ) : null}
+                        <select
+                          value={partner.tariffGroup?.id ?? ""}
+                          disabled={assigning === partner.id}
+                          onChange={(event) => void assign(partner, event.target.value)}
+                          aria-label={`Тарифна група ${partnerLabel(partner)}`}
+                          className={cn(
+                            crmInput,
+                            "disabled:opacity-50",
+                            !partner.tariffGroup && "text-zinc-500"
+                          )}
+                        >
+                          <option value="">Без групи</option>
+                          {groups.map((group) => (
+                            <option key={group.id} value={group.id}>
+                              {group.name}
+                            </option>
                           ))}
+                        </select>
+                      </div>
+                    </td>
+                    <td className="overflow-hidden px-3">
+                      {partner.brandDiscounts.length || partner.b2bDiscountPercent ? (
+                        <div className="flex gap-1 overflow-hidden">
+                          {partner.brandDiscounts.slice(0, 3).map((rule) => (
+                            <CrmChip key={rule.brand} tone="green">
+                              {rule.brand} −{formatPct(rule.discountPct)}
+                            </CrmChip>
+                          ))}
+                          {partner.brandDiscounts.length > 3 ? (
+                            <CrmChip>+{partner.brandDiscounts.length - 3}</CrmChip>
+                          ) : null}
+                          {partner.b2bDiscountPercent ? (
+                            <CrmChip>інші −{formatPct(partner.b2bDiscountPercent)}</CrmChip>
+                          ) : null}
                         </div>
                       ) : (
-                        <span className="text-xs text-zinc-500">Діють знижки брендів для всіх</span>
+                        <span className="text-zinc-700">—</span>
                       )}
-                      {partner.b2bDiscountPercent ? (
-                        <div className="mt-1.5 text-xs text-zinc-500">
-                          Інші бренди: −{formatPct(partner.b2bDiscountPercent)}
-                        </div>
-                      ) : null}
                     </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td className="px-3">
                       {partner.canSignIn ? (
                         <span className="text-zinc-300">
                           Є пароль
-                          <span className="block text-zinc-500">
+                          <span className="block text-[12px] text-zinc-500">
                             {partner.lastLoginAt
-                              ? `Входив ${new Date(partner.lastLoginAt).toLocaleDateString("uk-UA")}`
-                              : "Ще не входив"}
+                              ? `входив ${crmAgo(partner.lastLoginAt)}`
+                              : "ще не входив"}
                           </span>
                         </span>
                       ) : (
-                        <span className="text-amber-300">
-                          Немає пароля
-                          {partner.placeholderEmail ? (
-                            <span className="block text-zinc-500">Пошта-заглушка з CRM</span>
-                          ) : null}
-                        </span>
+                        <CrmChip tone="amber">Немає пароля</CrmChip>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="pr-4 text-right">
                       <Link
-                        href={`/admin/shop/customers/${partner.id}`}
-                        className="inline-flex items-center gap-1 whitespace-nowrap text-xs text-blue-300 hover:text-blue-200"
+                        href={`/admin/shop/customers/${partner.id}?tab=discounts`}
+                        aria-label={`Картка ${partnerLabel(partner)}`}
+                        className="inline-flex p-1 text-zinc-500 hover:text-white"
                       >
-                        Відкрити <ArrowUpRight className="h-3.5 w-3.5" />
+                        <ArrowUpRight className="h-4 w-4" />
                       </Link>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </AdminTableShell>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
 function PriceCheckTab({
   partners,
+  groups,
   loading,
   initialPartnerId,
 }: {
   partners: Partner[];
+  groups: B2bTariffGroup[];
   loading: boolean;
   initialPartnerId: string;
 }) {
@@ -632,6 +588,9 @@ function PriceCheckTab({
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+  const [checkedGroup, setCheckedGroup] = useState<string | null>(null);
+  const partner = partners.find((entry) => entry.id === partnerId) ?? null;
+  const groupIndex = groups.findIndex((group) => group.id === partner?.tariffGroup?.id);
 
   async function run(event?: React.FormEvent) {
     event?.preventDefault();
@@ -642,8 +601,11 @@ function PriceCheckTab({
       const params = new URLSearchParams({ customerId: partnerId, q: query.trim() });
       const data = await fetch(`/api/admin/shop/b2b/price-check?${params.toString()}`, {
         cache: "no-store",
-      }).then((response) => readJson<{ items: PriceCheckItem[] }>(response));
+      }).then((response) =>
+        readJson<{ items: PriceCheckItem[]; tariffGroup?: { name: string } | null }>(response)
+      );
       setItems(data.items ?? []);
+      setCheckedGroup(data.tariffGroup?.name ?? null);
       setSearched(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Перевірка не вдалася");
@@ -653,115 +615,151 @@ function PriceCheckTab({
   }
 
   return (
-    <div className="space-y-4">
-      <p className="max-w-3xl text-[13px] leading-5 text-zinc-400">
-        Оберіть партнера і знайдіть товар — тут видно ціну, яку партнер бачить на сайті й отримає в
-        кошику (доставка в Україну), і яке правило дало знижку.
-      </p>
-      <form onSubmit={run} className="grid gap-2 sm:grid-cols-[minmax(0,320px)_minmax(0,1fr)_auto]">
-        <select
-          value={partnerId}
-          onChange={(event) => setPartnerId(event.target.value)}
-          disabled={loading}
-          className={cn(inputClass, "w-full")}
-          aria-label="Партнер"
+    <div className="flex flex-1 flex-col">
+      <div className="space-y-3 border-b border-[#1F2125] px-4 py-4 sm:px-5">
+        <p className="max-w-3xl text-zinc-400">
+          Оберіть партнера і знайдіть товар — тут видно ціну, яку партнер бачить на сайті й отримає
+          в кошику (доставка в Україну), і яке правило дало знижку.
+        </p>
+        <form
+          onSubmit={run}
+          className="grid gap-2 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)_auto]"
         >
-          <option value="">{loading ? "Завантаження…" : "Оберіть партнера"}</option>
-          {partners.map((partner) => (
-            <option key={partner.id} value={partner.id}>
-              {partnerLabel(partner)}
-            </option>
-          ))}
-        </select>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Назва, артикул або бренд товару"
-          className={cn(inputClass, "w-full")}
-          aria-label="Товар"
-        />
-        <AdminButton
-          type="submit"
-          variant="primary"
-          loading={searching}
-          disabled={!partnerId || query.trim().length < 2}
-          icon={<Search />}
-        >
-          Перевірити
-        </AdminButton>
-      </form>
-
-      {error ? <AdminInlineAlert tone="error">{error}</AdminInlineAlert> : null}
+          {partner ? (
+            <div className="flex h-8 min-w-0 items-center gap-2 border border-[#24262B] bg-[#0A0A0B] pl-1 pr-1.5">
+              <CrmAvatar name={partner.companyName || partner.name} partner size={22} />
+              <span className="min-w-0 flex-1 truncate text-zinc-100">{partnerLabel(partner)}</span>
+              {partner.tariffGroup && groupIndex >= 0 ? (
+                <GroupMark
+                  name={partner.tariffGroup.name}
+                  accent={groupAccent(partner.tariffGroup.name, groupIndex)}
+                  size={20}
+                />
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setPartnerId("");
+                  setSearched(false);
+                }}
+                aria-label="Обрати іншого партнера"
+                className="p-0.5 text-zinc-500 hover:text-white"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <CrmPicker
+              label="Партнер"
+              placeholder={loading ? "Завантажуємо партнерів…" : "Оберіть партнера…"}
+              loading={loading}
+              options={partners.map((entry) => ({
+                value: entry.id,
+                label: partnerLabel(entry),
+                keywords: entry.email,
+                meta: entry.tariffGroup?.name,
+              }))}
+              onSelect={(value) => {
+                setPartnerId(value);
+                setSearched(false);
+              }}
+            />
+          )}
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Назва, артикул або бренд товару"
+            aria-label="Товар"
+            className={crmInput}
+          />
+          <button
+            type="submit"
+            disabled={searching || !partnerId || query.trim().length < 2}
+            className={crmPrimaryButton}
+          >
+            <Search className="h-3.5 w-3.5" /> {searching ? "Шукаємо…" : "Перевірити"}
+          </button>
+        </form>
+        {partner ? (
+          <p className="text-[12px] text-zinc-500">
+            Тарифна група:{" "}
+            <span className="text-zinc-300">{partner.tariffGroup?.name ?? "без групи"}</span>
+            {partner.brandDiscounts.length
+              ? ` · винятків на бренди: ${partner.brandDiscounts.length}`
+              : ""}
+            {partner.canSignIn ? "" : " · партнер ще не може увійти на сайт"}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="border-l-2 border-[#F19B9B] bg-[#1F0E0E] px-3 py-2 text-[#F19B9B]">
+            {error}
+          </p>
+        ) : null}
+      </div>
 
       {searched ? (
-        <AdminTableShell>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.14em] text-zinc-500">
-                  <th className="px-4 py-3 font-medium">Товар</th>
-                  <th className="px-4 py-3 font-medium">Бренд</th>
-                  <th className="px-4 py-3 text-right font-medium">Роздрібна ціна</th>
-                  <th className="px-4 py-3 text-right font-medium">Ціна партнера</th>
-                  <th className="px-4 py-3 font-medium">Звідки знижка</th>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[820px] border-collapse text-left">
+            <thead>
+              <tr className="h-[34px] border-b border-[#1F2125] text-[12px] text-zinc-500">
+                <th className="px-4 font-normal sm:px-5">Товар</th>
+                <th className="px-3 font-normal">Бренд</th>
+                <th className="px-3 text-right font-normal">Роздріб</th>
+                <th className="px-3 text-right font-normal">Ціна партнера</th>
+                <th className="px-4 font-normal sm:px-5">Звідки знижка</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-zinc-500">
+                    Нічого не знайдено серед опублікованих товарів.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-white/6">
-                {items.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-zinc-500">
-                      Нічого не знайдено серед опублікованих товарів.
+              ) : (
+                items.map((item) => (
+                  <tr key={item.slug} className="border-b border-[#17181B] hover:bg-[#0E0F11]">
+                    <td className="px-4 py-2.5 sm:px-5">
+                      <div className="text-zinc-100">{item.title}</div>
+                      {item.sku ? (
+                        <div className="crm-mono text-[11px] text-zinc-500">{item.sku}</div>
+                      ) : null}
+                    </td>
+                    <td className="px-3 text-zinc-300">{item.brand || "—"}</td>
+                    <td className="crm-mono px-3 text-right text-[12px] text-zinc-400">
+                      <div>{formatMoney(item.retail.uah, "UAH")}</div>
+                      <div className="text-zinc-600">{formatMoney(item.retail.eur, "EUR")}</div>
+                    </td>
+                    <td className="crm-mono px-3 text-right text-[12px]">
+                      <div
+                        className={item.discountPercent > 0 ? "text-[#86E0A3]" : "text-zinc-200"}
+                      >
+                        {formatMoney(item.partner.uah, "UAH")}
+                      </div>
+                      <div className="text-zinc-500">{formatMoney(item.partner.eur, "EUR")}</div>
+                    </td>
+                    <td className="px-4 sm:px-5">
+                      {item.priceSource === "b2b-explicit" ? (
+                        <span className="text-zinc-200">Окрема оптова ціна товару</span>
+                      ) : item.discountPercent > 0 ? (
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <CrmChip tone="green">−{formatPct(item.discountPercent)}</CrmChip>
+                          <span className="text-zinc-400">
+                            {item.rule === "group-brand" && checkedGroup
+                              ? `Тарифна група «${checkedGroup}»`
+                              : SHOP_B2B_DISCOUNT_SOURCE_LABELS[item.rule]}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-zinc-500">Без знижки — роздрібна ціна</span>
+                      )}
                     </td>
                   </tr>
-                ) : (
-                  items.map((item) => (
-                    <tr key={item.slug} className="align-top transition hover:bg-white/2">
-                      <td className="px-4 py-3">
-                        <div className="text-zinc-100">{item.title}</div>
-                        {item.sku ? <div className="text-xs text-zinc-500">{item.sku}</div> : null}
-                      </td>
-                      <td className="px-4 py-3 text-zinc-300">{item.brand || "—"}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-zinc-400">
-                        <div>{formatMoney(item.retail.uah, "UAH")}</div>
-                        <div className="text-xs text-zinc-600">
-                          {formatMoney(item.retail.eur, "EUR")}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums">
-                        <div
-                          className={
-                            item.discountPercent > 0
-                              ? "font-semibold text-emerald-300"
-                              : "text-zinc-200"
-                          }
-                        >
-                          {formatMoney(item.partner.uah, "UAH")}
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          {formatMoney(item.partner.eur, "EUR")}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-[13px]">
-                        {item.priceSource === "b2b-explicit" ? (
-                          <span className="text-zinc-200">Окрема оптова ціна товару</span>
-                        ) : item.discountPercent > 0 ? (
-                          <span className="text-zinc-200">
-                            −{formatPct(item.discountPercent)} ·{" "}
-                            <span className="text-zinc-400">
-                              {SHOP_B2B_DISCOUNT_SOURCE_LABELS[item.rule]}
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-zinc-500">Без знижки — роздрібна ціна</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </AdminTableShell>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

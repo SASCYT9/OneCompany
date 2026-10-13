@@ -23,7 +23,9 @@ export type ShopViewerPricingContext = {
    * Optional pre-loaded discount maps (lowercased brand → discount %).
    * If absent, only customer-global → system-default applies. Loaded once
    * per request by `loadShopBrandDiscountMaps`; priority lives in
-   * `resolveShopB2bDiscount` (`src/lib/shopB2bBrandDiscounts.ts`).
+   * `resolveShopB2bDiscount` (`src/lib/shopB2bBrandDiscounts.ts`). The
+   * customer map already carries the partner's tariff-group rules underneath
+   * their own ones.
    */
   systemBrandDiscountMap?: ReadonlyMap<string, number>;
   customerBrandDiscountMap?: ReadonlyMap<string, number>;

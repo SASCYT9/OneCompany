@@ -22,6 +22,15 @@ test("server pricing maps are B2B-only and normalize brand keys once", async () 
         return [{ brand: " Eventuri ", discountPct: 15 }];
       },
     },
+    shopB2bTariffGroupBrandDiscount: {
+      findMany: async () => {
+        calls += 1;
+        return [
+          { brand: "Eventuri", discountPct: 18 },
+          { brand: "Akrapovic", discountPct: 12 },
+        ];
+      },
+    },
     shopCustomerBrandDiscount: {
       findMany: async () => {
         calls += 1;
@@ -33,9 +42,11 @@ test("server pricing maps are B2B-only and normalize brand keys once", async () 
   assert.equal(await loadShopBrandDiscountMaps(fakePrisma, "customer-1", "B2C"), undefined);
   assert.equal(calls, 0);
   const maps = await loadShopBrandDiscountMaps(fakePrisma, "customer-1", "B2B_APPROVED");
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
   assert.equal(maps?.systemBrandDiscountMap.get("eventuri"), 15);
+  // The partner map carries the tariff group, with the partner's own rules on top.
   assert.equal(maps?.customerBrandDiscountMap.get("eventuri"), 20);
+  assert.equal(maps?.customerBrandDiscountMap.get("akrapovic"), 12);
 });
 
 test("cart, checkout, product APIs, stock search, and AI share the server pricing context", () => {
