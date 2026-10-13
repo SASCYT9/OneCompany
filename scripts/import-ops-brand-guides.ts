@@ -3,6 +3,7 @@ import { config as loadEnv } from "dotenv";
 
 import catalogJson from "../src/data/operations/brand-guides.json";
 import { operatorFacingReferenceText } from "../src/lib/operations/brandGuides";
+import { applyOpsUsaFormulaToBrandGuide } from "../src/lib/operations/usaPricing";
 
 if (!process.env.DATABASE_URL && !process.env.DIRECT_URL) {
   loadEnv({ path: ".env.ops-lab.local", override: true });
@@ -25,7 +26,13 @@ function groupLabel(value: string) {
   return (labels[value] ?? value) || "Не указана";
 }
 
+// US brands follow the general US formula agreed on 03.09.2026.
 function articleContent(entry: CatalogEntry) {
+  const content = legacyArticleContent(entry);
+  return entry.siteGroup === "usa" ? applyOpsUsaFormulaToBrandGuide(content) : content;
+}
+
+function legacyArticleContent(entry: CatalogEntry) {
   const formulaAvailable = Boolean(entry.retailFormula || entry.wholesaleFormula || entry.ourCost);
   const warning = formulaAvailable
     ? "Правило найдено в старом рабочем источнике. Перед расчётом проверьте актуальность цены, скидки, VAT/tax и доставки."
@@ -120,7 +127,7 @@ async function main() {
       for (const entry of batch) {
         const contentMarkdown = articleContent(entry);
         const formulaAvailable = Boolean(
-          entry.retailFormula || entry.wholesaleFormula || entry.ourCost
+          entry.siteGroup === "usa" || entry.retailFormula || entry.wholesaleFormula || entry.ourCost
         );
         const tags = [
           "brand-guide",

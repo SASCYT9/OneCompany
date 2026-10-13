@@ -780,9 +780,24 @@ test("AI extraction requires factual execution fields and preserves typed task t
 });
 
 test("Ops AI uses Gemini 3.5 Flash-Lite pricing and no deprecated sampling parameters", async () => {
-  const { calculateOpsAiCostMicros, OPS_AI_PRIMARY_MODEL, OPS_AI_TASK_THINKING_LEVEL } =
-    await aiModule;
+  const {
+    calculateOpsAiCostMicros,
+    OPS_AI_FALLBACK_MODEL,
+    OPS_AI_PRIMARY_MODEL,
+    OPS_AI_TASK_THINKING_LEVEL,
+  } = await aiModule;
   assert.equal(OPS_AI_PRIMARY_MODEL, "gemini-3.5-flash-lite");
+  assert.equal(OPS_AI_FALLBACK_MODEL, "gemini-3.8-flash");
+  assert.equal(
+    calculateOpsAiCostMicros({
+      inputTokens: 1_000,
+      outputTokens: 100,
+      includesAudio: false,
+      model: "gemini-3.8-flash",
+    }),
+    BigInt(2_250),
+    "3.8 Flash is budgeted at its list price, not the introductory one"
+  );
   assert.equal(OPS_AI_TASK_THINKING_LEVEL, "MEDIUM");
   assert.equal(
     calculateOpsAiCostMicros({
