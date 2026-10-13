@@ -93,7 +93,7 @@ test("client viewer context deduplicates and applies four-tier brand discounts",
   assert.match(hook, /brandDiscountRequests = new Map/);
   assert.match(hook, /fetch\("\/api\/shop\/pricing-context"/);
   assert.match(hook, /cache: "no-store"/);
-  assert.match(hook, /brandDiscountRequests\.delete\(customerId\)/);
+  assert.match(hook, /brandDiscountRequests\.delete\(requestKey\)/);
   assert.match(hook, /payload\.customerId === customerId/);
   assert.match(hook, /systemBrandDiscountMap:/);
   assert.match(hook, /customerBrandDiscountMap:/);

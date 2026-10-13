@@ -4,6 +4,7 @@ import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS } from "@/lib/admin/adminPermissions";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 
 export async function GET(request: Request) {
   const cookieStore = await cookies();
@@ -68,7 +69,9 @@ export async function GET(request: Request) {
         productId: v.productId,
         product_name: v.product?.titleEn || v.product?.titleUa || v.title || "",
         part_number: v.sku || "",
-        brand: v.product?.brand || "",
+        // Storefront brand (Urban products → "Urban Automotive"), which is
+        // what partner brand discounts are matched against.
+        brand: v.product ? resolveShopProductBrand(v.product) : "",
         weight: v.weight || 0, // In our custom shop, weight is usually defined as float
         primary_image: v.image || v.product?.image || "",
 

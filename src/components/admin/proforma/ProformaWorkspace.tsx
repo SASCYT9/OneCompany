@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -41,6 +41,8 @@ import {
   type Line,
 } from "./shared";
 import styles from "./proforma.module.css";
+import { createShopB2bTermsResolver, type ShopB2bPricingTerms } from "@/lib/shopB2bBrandDiscounts";
+import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 
 type ProductBrand = { brand: string; count: number };
 
@@ -82,18 +84,40 @@ export function ProformaWorkspace() {
   const saveLock = useRef(false);
   const successRef = useRef<HTMLElement>(null);
   const approvedB2b = customer?.group === "B2B_APPROVED";
+  // The partner's brand discounts, so lines match the partner's site prices.
+  const [pricingTerms, setPricingTerms] = useState<ShopB2bPricingTerms | null>(null);
+  const partnerDiscount = useMemo(() => {
+    const resolve = createShopB2bTermsResolver(approvedB2b ? pricingTerms : null);
+    return (product: Product) => resolve(resolveShopProductBrand(product)).percent;
+  }, [approvedB2b, pricingTerms]);
+
+  useEffect(() => {
+    setPricingTerms(null);
+    if (!customer?.id || !approvedB2b) return;
+    const controller = new AbortController();
+    fetch(`/api/admin/shop/customers/${customer.id}/pricing-terms`, {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { terms?: ShopB2bPricingTerms } | null) => {
+        if (!controller.signal.aborted) setPricingTerms(data?.terms ?? null);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [customer?.id, approvedB2b]);
   const dirty =
     !saved &&
     Boolean(
       name ||
-      email ||
-      phone ||
-      address ||
-      items.length ||
-      note ||
-      validUntil ||
-      Number(shipping) ||
-      Number(tax)
+        email ||
+        phone ||
+        address ||
+        items.length ||
+        note ||
+        validUntil ||
+        Number(shipping) ||
+        Number(tax)
     );
 
   useEffect(() => {
@@ -199,7 +223,13 @@ export function ProformaWorkspace() {
   }, [brandFilter, search, productPage, retry]);
 
   function addProduct(product: Product, variant: Variant | null) {
-    const price = draftCatalogPrice(product, variant, currency, approvedB2b);
+    const price = draftCatalogPrice(
+      product,
+      variant,
+      currency,
+      approvedB2b,
+      partnerDiscount(product)
+    );
     const imageSources = catalogImageSources([
       variant?.image,
       product.image,
@@ -299,7 +329,13 @@ export function ProformaWorkspace() {
     : "";
   const selectedVariant = selectedProduct?.variants?.find((v) => v.id === variantId) ?? null;
   const selectedPrice = selectedProduct
-    ? draftCatalogPrice(selectedProduct, selectedVariant, currency, approvedB2b)
+    ? draftCatalogPrice(
+        selectedProduct,
+        selectedVariant,
+        currency,
+        approvedB2b,
+        partnerDiscount(selectedProduct)
+      )
     : null;
   function updateItem(index: number, patch: Partial<Line>) {
     setItems((current) =>
@@ -677,7 +713,7 @@ export function ProformaWorkspace() {
               <p className={styles.hint}>
                 Пошук охоплює весь каталог; показано до 50 товарів на сторінці.{" "}
                 {approvedB2b
-                  ? "Підставляємо доступні каталожні B2B-ціни; персональні знижки узгодьте вручну."
+                  ? "Підставляємо ціну партнера: оптову ціну товару або роздрібну мінус його знижку на бренд."
                   : "Підставляємо роздрібні ціни каталогу."}
               </p>
               {selectedProduct && (

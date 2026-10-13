@@ -5,6 +5,7 @@ import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
 import { addRevozportUkraineShippingToPriceSet } from "@/lib/revozportShipping";
 import { expandShopPrices } from "./shopPriceConversion";
 import { isShopSourcePriceBook, tagShopMoneySource } from "./shopPriceBookCurrency";
+import { clampShopDiscountPercent, resolveShopB2bDiscount } from "./shopB2bBrandDiscounts";
 
 export type ShopPriceAudience = "b2c" | "b2b";
 export type ShopResolvedPriceSource = "b2c" | "b2b-explicit" | "b2b-discount";
@@ -19,12 +20,10 @@ export type ShopViewerPricingContext = {
   priceCountry: string | null;
   currencyRates?: { EUR: number; USD: number; UAH: number };
   /**
-   * Optional pre-loaded discount maps (lowercased brand → discount %)
-   * used by the 3-tier per-brand resolution. If absent, only the
-   * legacy 2-tier (customer-global → system-default) applies.
-   * Loaded by call sites (server components / API routes) once per
-   * request via loadBrandDiscountMap / loadCustomerBrandDiscountMap
-   * from `src/lib/shopBrandB2bDiscounts.ts`.
+   * Optional pre-loaded discount maps (lowercased brand → discount %).
+   * If absent, only customer-global → system-default applies. Loaded once
+   * per request by `loadShopBrandDiscountMaps`; priority lives in
+   * `resolveShopB2bDiscount` (`src/lib/shopB2bBrandDiscounts.ts`).
    */
   systemBrandDiscountMap?: ReadonlyMap<string, number>;
   customerBrandDiscountMap?: ReadonlyMap<string, number>;
@@ -112,11 +111,7 @@ function normalizeCompareSet(input?: Partial<PriceSet> | null): CompareSet {
   return normalized;
 }
 
-function clampDiscountPercent(value: unknown) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
-  return Math.min(parsed, 100);
-}
+const clampDiscountPercent = clampShopDiscountPercent;
 
 function hasAnyPositiveValue(set?: Partial<PriceSet> | null) {
   return Number(set?.eur ?? 0) > 0 || Number(set?.usd ?? 0) > 0 || Number(set?.uah ?? 0) > 0;
@@ -155,40 +150,16 @@ function applyPercentDiscount(base: PriceSet, discountPercent: number): PriceSet
   };
 }
 
-/**
- * 4-tier B2B discount resolution (highest → lowest priority):
- *   1. ShopCustomerBrandDiscount    — per-customer per-brand override
- *   2. ShopBrandB2bDiscount         — system-wide per-brand
- *   3. ShopCustomer.b2bDiscountPercent — per-customer global
- *   4. ShopSettings.defaultB2BDiscountPercent — system fallback
- *
- * `brand` is the product's brand string (case-insensitive). When omitted
- * or no brand-level rule exists, falls back through tiers 3 and 4. The
- * per-brand maps live on `context.customerBrandDiscountMap` /
- * `systemBrandDiscountMap` — both are optional, so callers that didn't
- * preload them still get a working 2-tier result.
- */
+/** Tier priority lives in `resolveShopB2bDiscount`, shared with the admin. */
 function resolveEffectiveDiscountPercent(context: ShopViewerPricingContext, brand?: string | null) {
-  // Per-brand tiers only apply to approved B2B customers — guest/B2C
-  // viewers never get B2B pricing regardless of brand rules.
-  if (context.customerGroup === "B2B_APPROVED" && brand) {
-    const key = brand.trim().toLowerCase();
-    if (key) {
-      const customerBrand = context.customerBrandDiscountMap?.get(key);
-      if (customerBrand != null) return clampDiscountPercent(customerBrand);
-      const systemBrand = context.systemBrandDiscountMap?.get(key);
-      if (systemBrand != null) return clampDiscountPercent(systemBrand);
-    }
-  }
-
-  if (context.customerGroup === "B2B_APPROVED") {
-    const customerOverride = clampDiscountPercent(context.customerB2BDiscountPercent);
-    if (customerOverride > 0) {
-      return customerOverride;
-    }
-  }
-
-  return clampDiscountPercent(context.defaultB2BDiscountPercent);
+  return resolveShopB2bDiscount({
+    customerGroup: context.customerGroup,
+    brand,
+    customerBrandDiscountMap: context.customerBrandDiscountMap,
+    systemBrandDiscountMap: context.systemBrandDiscountMap,
+    customerB2BDiscountPercent: context.customerB2BDiscountPercent,
+    defaultB2BDiscountPercent: context.defaultB2BDiscountPercent,
+  }).percent;
 }
 
 function mergeB2BPriceSet(
