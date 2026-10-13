@@ -28,6 +28,9 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+// Long enough that a slow AI stage does not strand the reply (NOTIFY) until
+// the next cron run; budget + one stage timeout stays under maxDuration.
+const OPS_WEBHOOK_DRAIN_BUDGET_MS = 150_000;
 
 function telegramManagerEnabled() {
   return /^(1|true)$/i.test(String(process.env.OPS_TELEGRAM_MANAGER_ENABLED ?? ""));
@@ -105,7 +108,7 @@ export async function POST(request: NextRequest) {
               client: prisma,
               execute: createOpsJobStageExecutor({ client: prisma }),
               maxJobs: 8,
-              timeBudgetMs: 55_000,
+              timeBudgetMs: OPS_WEBHOOK_DRAIN_BUDGET_MS,
             });
           } catch (error) {
             console.error("[operations.telegram.batch.after] durable job kick failed", error);
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest) {
             client: prisma,
             execute: createOpsJobStageExecutor({ client: prisma }),
             maxJobs: 8,
-            timeBudgetMs: 55_000,
+            timeBudgetMs: OPS_WEBHOOK_DRAIN_BUDGET_MS,
           });
         } catch (error) {
           console.error("[operations.telegram.after] durable job kick failed", error);

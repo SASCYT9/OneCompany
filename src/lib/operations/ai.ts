@@ -88,6 +88,7 @@ export type OpsAiProvider = {
     model: string;
     question: string;
     articles: OpsKnowledgeAnswerSource[];
+    timeoutMs?: number;
   }): Promise<{ value: unknown; usage: Omit<OpsAiUsage, "audioSeconds" | "costMicros"> }>;
 };
 
@@ -630,6 +631,7 @@ function createGoogleOpsKnowledgeAnswerer(apiKey = process.env.OPS_GEMINI_API_KE
     model: string;
     question: string;
     articles: OpsKnowledgeAnswerSource[];
+    timeoutMs?: number;
   }) => {
     const client = new GoogleGenAI({ apiKey: normalizedApiKey, apiVersion: "v1beta" });
     const response = await client.models.generateContent({
@@ -648,7 +650,7 @@ ${JSON.stringify(input.articles)}
 QUESTION:
 ${JSON.stringify(input.question)}`,
       config: {
-        httpOptions: { timeout: 45_000 },
+        httpOptions: { timeout: input.timeoutMs ?? 25_000 },
         // Thinking tokens count against the limit: keep thinking short and
         // leave room for the answer itself.
         maxOutputTokens: 4_000,
@@ -691,6 +693,11 @@ async function callWithSingleFallback<T>(input: {
   models?: readonly string[];
   /** Test hook: how long to wait before retrying an overloaded model. */
   retryDelayMs?: number;
+  /**
+   * Retry an overloaded model once before moving on. Off when a person is
+   * waiting for the reply: the next model is faster than a second attempt.
+   */
+  retryTransient?: boolean;
 }) {
   const failures: string[] = [];
   for (const model of input.models ?? [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]) {
@@ -719,6 +726,7 @@ async function callWithSingleFallback<T>(input: {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         failures.push(`${model}: ${message.slice(0, 200)}`);
+        console.warn("[operations.ai] model attempt failed", model, message.slice(0, 300));
         const transient = isTransientOpsAiError(error);
         if (transient) {
           // Overloaded/rate-limited calls are not billed: give the budget back.
@@ -732,7 +740,7 @@ async function callWithSingleFallback<T>(input: {
             })
             .catch(() => undefined);
         }
-        if (!transient || attempt > 0) break;
+        if (!transient || attempt > 0 || input.retryTransient === false) break;
         await new Promise((resolve) =>
           setTimeout(resolve, input.retryDelayMs ?? TRANSIENT_RETRY_DELAY_MS)
         );
@@ -793,6 +801,9 @@ export async function transcribeOpsMediaWithAi(input: {
   });
 }
 
+const KNOWLEDGE_STRONG_MODEL_TIMEOUT_MS = 15_000;
+const KNOWLEDGE_FAST_MODEL_TIMEOUT_MS = 25_000;
+
 export async function answerOpsKnowledgeQuestionWithAi(input: {
   question: string;
   articles: OpsKnowledgeAnswerSource[];
@@ -810,7 +821,18 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
     expectedOutputTokens: 4_000,
   });
   return callWithSingleFallback({
-    call: (model) => answer({ model, question: input.question, articles: input.articles }),
+    call: (model) =>
+      answer({
+        model,
+        question: input.question,
+        articles: input.articles,
+        // A person is waiting: the strong model gets a short window, the
+        // fast one a little more, ~40 s worst case in total.
+        timeoutMs:
+          model === OPS_AI_FALLBACK_MODEL
+            ? KNOWLEDGE_STRONG_MODEL_TIMEOUT_MS
+            : KNOWLEDGE_FAST_MODEL_TIMEOUT_MS,
+      }),
     normalize: normalizeOpsKnowledgeAnswer,
     budget: input.budget,
     audioSeconds: 0,
@@ -818,5 +840,6 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
     includesAudio: false,
     // Answers are read by people: the smarter model goes first.
     models: Array.from(new Set([OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL])),
+    retryTransient: false,
   });
 }
