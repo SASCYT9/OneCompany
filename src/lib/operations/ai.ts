@@ -5,8 +5,9 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 
 export const OPS_AI_PRIMARY_MODEL =
   process.env.OPS_GEMINI_PRIMARY_MODEL?.trim() || "gemini-3.5-flash-lite";
+/** Stronger model: fallback for parsing, first choice for knowledge answers. */
 export const OPS_AI_FALLBACK_MODEL =
-  process.env.OPS_GEMINI_FALLBACK_MODEL?.trim() || "gemini-3.5-flash";
+  process.env.OPS_GEMINI_FALLBACK_MODEL?.trim() || "gemini-3.8-flash";
 export const OPS_AI_FEATURE = "telegram_manager";
 export const OPS_AI_WARNING_MICROS = BigInt(1_500_000);
 export const OPS_AI_HARD_STOP_MICROS = BigInt(2_000_000);
@@ -372,6 +373,10 @@ function opsAiRates(model: string | undefined, includesAudio: boolean) {
       return { input: 0.3, output: 2.5 };
     case "gemini-3.5-flash":
       return { input: 1.5, output: 9 };
+    case "gemini-3.8-flash":
+      // Introductory $0.75/$3.75 until 31.12.2026; budgeted at the list price
+      // ($1.50/$7.50) so the monthly hard stop never under-counts.
+      return { input: 1.5, output: 7.5 };
     case "gemini-3.1-flash-lite":
       return { input: includesAudio ? 0.5 : 0.25, output: 1.5 };
     case "gemini-2.5-flash-lite":
@@ -671,9 +676,11 @@ async function callWithSingleFallback<T>(input: {
   audioSeconds: number;
   reservation: bigint;
   includesAudio: boolean;
+  /** Order to try; defaults to the cheap primary, then the stronger fallback. */
+  models?: readonly string[];
 }) {
   let lastError: unknown;
-  for (const model of [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]) {
+  for (const model of input.models ?? [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]) {
     const reservation =
       model === OPS_AI_FALLBACK_MODEL ? input.reservation * BigInt(7) : input.reservation;
     await input.budget.reserve(reservation);
@@ -779,5 +786,7 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
     audioSeconds: 0,
     reservation,
     includesAudio: false,
+    // Answers are read by people: the smarter model goes first.
+    models: Array.from(new Set([OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL])),
   });
 }

@@ -118,7 +118,12 @@ export async function answerOpsKnowledgeQuestion(input: {
   client: PrismaClient;
   question: string;
   provider?: OpsAiProvider;
-}): Promise<{ text: string; replyMarkup?: OpsTelegramReplyMarkup; aiUsed: boolean }> {
+}): Promise<{
+  text: string;
+  replyMarkup?: OpsTelegramReplyMarkup;
+  aiUsed: boolean;
+  model?: string;
+}> {
   const articles: OpsKnowledgeAnswerSource[] = await findOpsKnowledgeForQuestion(
     input.client,
     input.question
@@ -151,6 +156,7 @@ export async function answerOpsKnowledgeQuestion(input: {
         ].join("\n"),
         replyMarkup: articleButtons(articles),
         aiUsed: true,
+        model: response.model,
       };
     }
     return {
@@ -161,6 +167,7 @@ export async function answerOpsKnowledgeQuestion(input: {
       ].join("\n"),
       replyMarkup: articleButtons(sources),
       aiUsed: true,
+      model: response.model,
     };
   } catch {
     return {

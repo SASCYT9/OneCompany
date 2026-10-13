@@ -2358,7 +2358,7 @@ async function executeTelegramIntakeStage(input: {
           ...payload,
           commandReply: { text: answer.text, replyMarkup: answer.replyMarkup },
         },
-        result: { knowledgeQuestion: true, aiUsed: answer.aiUsed },
+        result: { knowledgeQuestion: true, aiUsed: answer.aiUsed, model: answer.model ?? null },
       };
     }
     return {
