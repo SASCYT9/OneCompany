@@ -66,6 +66,12 @@ export const ADMIN_ROUTE_POLICY: readonly AdminRoutePolicyRule[] = [
     permission: ADMIN_PERMISSIONS.OPS_TASKS_READ,
   },
   {
+    id: "ops-triage-page",
+    pattern: "/admin/operations/triage/**",
+    methods: READ,
+    permission: ADMIN_PERMISSIONS.OPS_TASKS_READ,
+  },
+  {
     id: "ops-knowledge-pages",
     pattern: "/admin/operations/knowledge/**",
     methods: READ,

@@ -230,7 +230,7 @@ test("the digest names tasks and offers Готово / Завтра buttons", as
   assert.match(digest.text, /Ещё 9 давно просроченных — разберём в пятницу/);
   const rows = digest.replyMarkup!.inline_keyboard;
   assert.deepEqual(
-    rows[0].map((button) => ("callback_data" in button ? button.callback_data : button.url)),
+    rows[0].map((button) => ("callback_data" in button ? button.callback_data : button.text)),
     ["done:task_yday00001", "snooze_tomorrow:task_yday00001"]
   );
   assert.equal(rows.at(-1)![0].text, "📋 Все мои задачи");
@@ -520,6 +520,9 @@ test("a new unassigned task offers «🙋 Мне» and teammates who can take ta
       opsTask: {
         async findUnique() {
           return { assigneeId, isShared: false, _count: { assignees: assigneeId ? 1 : 0 } };
+        },
+        async findMany() {
+          return [];
         },
       },
       adminUser: {

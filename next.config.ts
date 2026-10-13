@@ -463,6 +463,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // «Мой день» opens inside Telegram; Telegram Web embeds mini apps in
+        // an iframe, so only this page may be framed by telegram.org.
+        source: "/ops-app",
+        headers: [
+          ...(isProd
+            ? [
+                {
+                  key: "Content-Security-Policy",
+                  value: CONTENT_SECURITY_POLICY.replace(
+                    "frame-ancestors 'self'",
+                    "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
+                  ),
+                },
+              ]
+            : []),
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
         // Cache static assets
         source: "/branding/:path*",
         headers: [

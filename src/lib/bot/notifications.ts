@@ -73,7 +73,7 @@ export async function notifyAdminsNewMessage(
               [
                 {
                   text: "👁️ Переглянути",
-                  web_app: { url: `${siteUrl}/telegram-app/admin/message/${messageId}` },
+                  url: `${siteUrl}/admin/messages`,
                 },
                 {
                   text: "✉️ Відповісти",

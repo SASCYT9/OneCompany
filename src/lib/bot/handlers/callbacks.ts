@@ -80,8 +80,8 @@ export function registerCallbacks(bot: Bot<BotContext>) {
         reply_markup: {
           inline_keyboard: [[
             {
-              text: '📱 Відповісти через Web App',
-              web_app: { url: `${siteUrl}/telegram-app/admin/reply/${messageId}` }
+              text: '🖥 Відповісти в адмінці',
+              url: `${siteUrl}/admin/messages`
             }
           ]]
         }

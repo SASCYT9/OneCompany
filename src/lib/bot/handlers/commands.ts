@@ -3,10 +3,10 @@ import type { Bot } from 'grammy';
 import type { BotContext } from '../types';
 import { mainMenu, languageMenu, adminMenu, catalogMenu } from '../menus';
 
-// Web App URL
-const WEBAPP_URL = process.env.NEXT_PUBLIC_SITE_URL 
-  ? `${process.env.NEXT_PUBLIC_SITE_URL}/ua/tg`
-  : 'https://onecompany.global/ua/tg';
+// Web App URL: the site itself (the old /ua/tg mini app page was removed in 2026-01).
+const WEBAPP_URL = process.env.NEXT_PUBLIC_SITE_URL
+  ? `${process.env.NEXT_PUBLIC_SITE_URL}/ua`
+  : 'https://onecompany.global/ua';
 
 export function registerCommands(bot: Bot<BotContext>) {
   // /start command - opens Web App

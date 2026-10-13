@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     const search = params.get("search")?.trim().slice(0, 200) ?? "";
     const statuses = parseStatuses(params.get("status"));
     const projectId = params.get("projectId")?.trim() || undefined;
+    const shopOrderId = params.get("shopOrderId")?.trim().slice(0, 100) || undefined;
     const includeArchived = params.get("archived") === "1";
     const mine = params.get("mine") === "1";
     const today = params.get("today") === "1";
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
       ...(includeArchived ? {} : { archivedAt: null }),
       ...(statuses ? { status: { in: statuses } } : {}),
       ...(projectId ? { projectId } : {}),
+      ...(shopOrderId ? { shopOrderId } : {}),
       ...(mine || assigneeId
         ? {
             AND: [

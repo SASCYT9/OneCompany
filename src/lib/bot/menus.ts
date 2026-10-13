@@ -226,8 +226,9 @@ export const adminMenu = new Menu<BotContext>('admin-menu')
         reply_markup: {
           inline_keyboard: [[
             {
-              text: '📱 Відкрити панель',
-              web_app: { url: `${siteUrl}/telegram-app/admin?filter=new` }
+              // The Telegram mini panel was removed (2026-05); messages live in the admin.
+              text: '🖥 Відкрити в адмінці',
+              url: `${siteUrl}/admin/messages`
             }
           ]]
         }
@@ -245,8 +246,8 @@ export const adminMenu = new Menu<BotContext>('admin-menu')
         reply_markup: {
           inline_keyboard: [[
             {
-              text: '📱 Відкрити панель',
-              web_app: { url: `${siteUrl}/telegram-app/admin?category=PARTNERSHIP` }
+              text: '🖥 Відкрити в адмінці',
+              url: `${siteUrl}/admin/messages`
             }
           ]]
         }
@@ -265,8 +266,8 @@ export const adminMenu = new Menu<BotContext>('admin-menu')
         reply_markup: {
           inline_keyboard: [[
             {
-              text: '📱 Відкрити панель',
-              web_app: { url: `${siteUrl}/telegram-app/admin` }
+              text: '🖥 Відкрити в адмінці',
+              url: `${siteUrl}/admin/messages`
             }
           ]]
         }

@@ -524,6 +524,7 @@ const ADMIN_PAGE_TITLES: Readonly<Record<string, string>> = {
   "/admin/settings/integrations": "Інтеграції",
   "/admin/backups": "Резервні копії",
   "/admin/thought-space": "Thought space",
+  "/admin/operations/triage": "Разбор зависших",
 };
 
 export type AdminBreadcrumb = { label: string; href?: string };

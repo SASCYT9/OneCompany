@@ -776,7 +776,7 @@ test("AI extraction requires factual execution fields and preserves typed task t
   const jobSource = fs.readFileSync(path.resolve("src/lib/operations/telegramJobs.ts"), "utf8");
   assert.match(jobSource, /processedAttachments/);
   assert.match(jobSource, /transcriptionModel: response\.model/);
-  assert.match(jobSource, /tags: extractedTaskTags\(extracted\)/);
+  assert.match(jobSource, /tags:[\s\S]{0,200}extractedTaskTags\(extracted\)/);
 });
 
 test("Ops AI uses Gemini 3.5 Flash-Lite pricing and no deprecated sampling parameters", async () => {

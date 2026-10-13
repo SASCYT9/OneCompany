@@ -6,7 +6,10 @@ import {
   type OpsPrivateMediaStore,
 } from "@/lib/operations/media";
 import { opsRolesAllowNotification } from "@/lib/operations/notificationAccess";
+import { enqueueOpsOwnerReports } from "@/lib/operations/ownerReports";
+import { spawnOpsRecurringTasks } from "@/lib/operations/recurrence";
 import { enqueueOpsMemberReminders } from "@/lib/operations/reminders";
+import { syncOpsShopOrderTasks } from "@/lib/operations/shopOrderTasks";
 import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
 
 export async function enqueueOpsInternalNotifications(input: { client: PrismaClient; now: Date }) {
@@ -23,6 +26,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       updatedAt: true,
       adminUser: {
         select: {
+          lastLoginAt: true,
           roles: {
             select: {
               role: { select: { key: true, permissions: true } },
@@ -33,23 +37,39 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     },
   });
   const paused = await findPausedOpsTelegramRecipients(input.client, candidateProfiles);
-  const totals = { reminders: 0, reports: 0, reviews: 0, pausedRecipients: paused.size };
+  const totals = {
+    reminders: 0,
+    reports: 0,
+    reviews: 0,
+    summaries: 0,
+    alerts: 0,
+    pausedRecipients: paused.size,
+  };
   for (const profile of candidateProfiles) {
     if (!profile.telegramUserId || paused.has(profile.adminUserId)) continue;
     if (!opsRolesAllowNotification(profile.adminUser.roles, "telegram_internal_report")) continue;
+    const member = {
+      adminUserId: profile.adminUserId,
+      telegramUserId: profile.telegramUserId,
+      timezone: profile.timezone,
+      roles: profile.adminUser.roles,
+    };
     const queued = await enqueueOpsMemberReminders({
       client: input.client,
       now: input.now,
-      member: {
-        adminUserId: profile.adminUserId,
-        telegramUserId: profile.telegramUserId,
-        timezone: profile.timezone,
-        roles: profile.adminUser.roles,
-      },
+      member,
     });
     totals.reminders += queued.nudges;
     totals.reports += queued.digests;
     totals.reviews += queued.reviews;
+    const ownerReports = await enqueueOpsOwnerReports({
+      client: input.client,
+      now: input.now,
+      member,
+      lastLoginAt: profile.adminUser.lastLoginAt ?? null,
+    });
+    totals.summaries += ownerReports.summaries;
+    totals.alerts += ownerReports.alerts;
   }
   return totals;
 }
@@ -103,6 +123,16 @@ export async function runOpsJobsWatchdog(input: {
   now?: Date;
 }) {
   const now = input.now ?? new Date();
+  // Order matters: shop tasks and the next repeat of finished tasks exist
+  // before reminders are planned, so the morning digest already sees them.
+  const shopTasks = await syncOpsShopOrderTasks({ client: input.client, now }).catch((error) => {
+    console.error("[operations.watchdog] shop order tasks failed", error);
+    return { failed: true as const };
+  });
+  const recurring = await spawnOpsRecurringTasks({ client: input.client, now }).catch((error) => {
+    console.error("[operations.watchdog] recurring tasks failed", error);
+    return { failed: true as const };
+  });
   const expiredCallbackStates = await input.client.opsIdempotencyRecord.findMany({
     where: {
       scope: "telegram.callback",
@@ -167,6 +197,8 @@ export async function runOpsJobsWatchdog(input: {
     leases,
     cancelled,
     notifications,
+    shopTasks,
+    recurring,
     retention,
     idempotencyRecordsDeleted: callbackCleanup.count + idempotencyCleanup.count,
     callbackStatesDeleted: callbackCleanup.count,

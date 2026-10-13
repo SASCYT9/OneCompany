@@ -11,8 +11,10 @@ import {
   CalendarClock,
   ChevronDown,
   Inbox,
+  Layers,
   ListTodo,
   Loader2,
+  Repeat,
   Send,
   UserRoundPlus,
   Users,
@@ -24,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { OpsPageHeader } from "./OpsPageHeader";
 import { OpsSurface } from "./OpsSurface";
 import { opsGet } from "./opsApi";
+import { opsTriageReason } from "./OpsTriage";
 import type { OpsDemoData, OpsPerson, OpsTask } from "./types";
 
 const CLOSED = new Set(["DONE", "CANCELLED"]);
@@ -172,6 +175,10 @@ export function OpsOverview({
     return Array.from(byPerson.values()).sort((a, b) => b.overdue - a.overdue || b.open - a.open);
   }, [now, open]);
 
+  const stuckCount = useMemo(
+    () => open.filter((task) => opsTriageReason(task, now) !== null).length,
+    [now, open]
+  );
   const myOverdue = mine.filter((task) => dueGroup(task, now) === "overdue").length;
   const myToday = mine.filter((task) => dueGroup(task, now) === "today").length;
 
@@ -236,6 +243,16 @@ export function OpsOverview({
         }).format(now)}
         actions={
           <>
+            {stuckCount ? (
+              <Link
+                href="/admin/operations/triage"
+                className="flex h-10 items-center gap-2 border border-amber-400/40 bg-amber-400/10 px-4 text-sm font-semibold text-amber-200 hover:bg-amber-400/15"
+                data-ops-triage-link
+              >
+                <Layers className="h-4 w-4" />
+                Разобрать зависшие · {stuckCount}
+              </Link>
+            ) : null}
             <Link
               href="/admin/operations/tasks"
               className="flex h-10 items-center gap-2 bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-500"
@@ -478,13 +495,14 @@ export function OpsOverview({
               />
             </button>
             {helpOpen ? (
-              <div className="grid gap-px border-t border-white/10 bg-white/10 md:grid-cols-3">
+              <div className="grid gap-px border-t border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-4">
                 <HelpBlock
                   icon={Send}
                   title="Поставить задачу"
                   lines={[
-                    "Напишите боту в Telegram: текстом, голосом или перешлите сообщение.",
-                    "Бот сам сформулирует задачу и срок. Если непонятно, кому, — спросит кнопками.",
+                    "Напишите боту в личку: текстом, голосом или перешлите сообщение.",
+                    "Бот сформулирует задачу, предложит кому поручить (⭐ — кто вёл похожие) и предупредит, если такая уже есть.",
+                    "«Каждую неделю…» в тексте — задача станет повторяющейся.",
                   ]}
                 />
                 <HelpBlock
@@ -494,14 +512,26 @@ export function OpsOverview({
                     "09:00 — утренняя сводка, только если есть срок сегодня или вчера.",
                     "За 2 часа до срока — одно напоминание. Потом не повторяет.",
                     "Пятница 10:00 — разбор зависших задач. С 21:00 до 09:00 бот молчит.",
+                    "Владельцу: понедельник 10:00 — итоги недели, а если бот сломался — одно сообщение в сутки.",
                   ]}
                 />
                 <HelpBlock
                   icon={ListTodo}
                   title="Ответить не открывая админку"
                   lines={[
-                    "Под каждым напоминанием кнопки: ✅ Готово, ⏰ Завтра, 🗑 Не нужно, 🙋 Беру.",
-                    "Всё, что нажато в Telegram, сразу видно здесь и в истории задачи.",
+                    "Кнопки под напоминаниями: ✅ Готово, ⏰ Завтра, 🗑 Не нужно, 🙋 Беру.",
+                    "Или ответьте на сообщение бота: «готово», «перенеси на пятницу», «передай Игорю», «повторять каждую неделю».",
+                    "Меню бота: 📌 Сегодня, 📋 Мои задачи, 📱 Мой день — все задачи с кнопками прямо в Telegram.",
+                    "Вопрос к базе знаний начните с «?» — например «? доставка из Великобритании».",
+                  ]}
+                />
+                <HelpBlock
+                  icon={Repeat}
+                  title="Само по себе"
+                  lines={[
+                    "Заказ оплачен, а ТТН нет через сутки — появится задача «Отправить заказ».",
+                    "Заказ не оплачен 3 дня — задача «напомнить или закрыть». Закроется сама, когда заказ оплатят или отправят.",
+                    "Выполнили повторяющуюся задачу — следующая появится сама.",
                   ]}
                 />
               </div>

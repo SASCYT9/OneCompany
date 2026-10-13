@@ -22,6 +22,7 @@ import {
   Loader2,
   MessageSquareText,
   Pencil,
+  Repeat,
   Plus,
   RotateCcw,
   Save,
@@ -34,6 +35,13 @@ import {
 
 import { OPS_PRIORITY_LABELS, OPS_STATUS_LABELS } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
+import {
+  OPS_REPEAT_RULES,
+  opsRepeatLabel,
+  opsRepeatRuleFromTags,
+  withOpsRepeatRule,
+  type OpsRepeatRule,
+} from "@/lib/operations/repeatRules";
 
 import { OpsApiError, opsGet, opsMutation } from "./opsApi";
 import { OpsTaskAutomation } from "./OpsTaskAutomation";
@@ -111,6 +119,19 @@ function taskTagPresentation(tag: string) {
   const separator = tag.indexOf(":");
   const type = separator > 0 ? tag.slice(0, separator) : "other";
   const value = separator > 0 ? tag.slice(separator + 1) : tag;
+  const repeat = opsRepeatRuleFromTags([tag]);
+  if (repeat) {
+    return {
+      label: `🔁 ${opsRepeatLabel(repeat)}`,
+      className: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+    };
+  }
+  if (tag === "source:shop") {
+    return {
+      label: "🛒 Из магазина",
+      className: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+    };
+  }
   if (type === "brand") {
     return { label: value, className: "border-violet-500/30 bg-violet-500/10 text-violet-300" };
   }
@@ -1488,6 +1509,44 @@ export function OpsTaskDetail({
             ) : (
               <div className="mt-2 flex min-h-9 items-center text-sm font-medium">
                 {formatDue(current.dueAt)}
+              </div>
+            )}
+            <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
+              <Repeat className="h-4 w-4" />
+              Повтор
+            </div>
+            {canWrite ? (
+              <select
+                aria-label="Повтор задачи"
+                value={opsRepeatRuleFromTags(current.tags ?? []) ?? ""}
+                disabled={pending}
+                onChange={(event) =>
+                  void saveInlineTaskPatch(
+                    {
+                      tags: withOpsRepeatRule(
+                        current.tags ?? [],
+                        (event.target.value || null) as OpsRepeatRule | null
+                      ),
+                    },
+                    "repeat"
+                  )
+                }
+                className="mt-1 h-9 w-full min-w-0 cursor-pointer border-0 bg-transparent px-1 text-xs font-medium text-zinc-100 outline-none hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
+                data-ops-repeat-select
+              >
+                <option value="">Не повторять</option>
+                {OPS_REPEAT_RULES.map((rule) => (
+                  <option key={rule} value={rule}>
+                    {opsRepeatLabel(rule)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-1 flex min-h-9 items-center text-sm font-medium">
+                {(() => {
+                  const rule = opsRepeatRuleFromTags(current.tags ?? []);
+                  return rule ? opsRepeatLabel(rule) : "Не повторять";
+                })()}
               </div>
             )}
           </div>

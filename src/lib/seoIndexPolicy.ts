@@ -68,7 +68,7 @@ export const localizedStaticSlugs = [
   "/categories",
 ] as const;
 
-export const noindexPrefixes = ["/admin", "/api", "/quote"] as const;
+export const noindexPrefixes = ["/admin", "/api", "/quote", "/ops-app"] as const;
 
 export const removedBlogSlugs = ["one-company-dtskmdmjfgf"] as const;
 
@@ -87,6 +87,8 @@ export const noindexPatterns = [
   /^\/admin(?:\/.*)?$/,
   /^\/api(?:\/.*)?$/,
   /^\/quote(?:\/.*)?$/,
+  // Team «Мой день» opened inside Telegram; private, never indexed.
+  /^\/ops-app(?:\/.*)?$/,
   /^\/(ua|en)\/admin(?:\/.*)?$/,
   /^\/(ua|en)\/shop\/(?:account|cart|checkout|stock)(?:\/.*)?$/,
 ] as const;

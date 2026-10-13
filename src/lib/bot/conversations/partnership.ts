@@ -245,7 +245,7 @@ ${data.message ? `\n💬 <b>Додатково:</b>\n${escapeHtml(data.message)}
               [
                 {
                   text: '👁️ Відкрити в панелі',
-                  web_app: { url: `${siteUrl}/telegram-app/admin?filter=partnership` }
+                  url: `${siteUrl}/admin/messages`
                 },
               ],
               [

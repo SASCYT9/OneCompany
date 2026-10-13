@@ -37,6 +37,9 @@ export const OPS_STALE_TASK_DAYS = 7;
 const DIGEST_TASK_LIMIT = 6;
 const REVIEW_TASK_LIMIT = 8;
 const REVIEW_UNASSIGNED_LIMIT = 5;
+const DIGEST_SHOP_LIMIT = 3;
+/** Automatic tasks created from shop orders (see shopOrderTasks.ts). */
+const SHOP_TASK_SOURCE_PREFIX = "shop:order:";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const OPS_OPEN_TASK_STATUSES = Object.values(OpsTaskStatus).filter(
@@ -164,10 +167,11 @@ export function opsAssignedTo(adminUserId: string): Prisma.OpsTaskWhereInput {
   };
 }
 
-const OPEN_TASK_WHERE = {
+export const OPS_OPEN_TASK_WHERE = {
   archivedAt: null,
   status: { in: OPS_OPEN_TASK_STATUSES },
 } satisfies Prisma.OpsTaskWhereInput;
+const OPEN_TASK_WHERE = OPS_OPEN_TASK_WHERE;
 
 function opsRolesGrant(roles: readonly OpsNotificationRoleGrant[], permission: string) {
   const keys = roles.map(({ role }) => role.key);
@@ -231,7 +235,22 @@ export async function enqueueOpsMemberReminders(input: {
       take: 50,
       select: { id: true },
     });
-    if (dueToday.length || dueYesterday.length) {
+    // Shop tasks nobody took yet are shown once, in the first digest after
+    // they appear, to the people who hand out work.
+    const shopTasks = opsRolesCanAssign(member.roles)
+      ? await client.opsTask.findMany({
+          where: {
+            ...OPEN_TASK_WHERE,
+            ...OPS_UNASSIGNED_TASK_WHERE,
+            sourceKey: { startsWith: SHOP_TASK_SOURCE_PREFIX },
+            createdAt: { gte: new Date(now.getTime() - DAY_MS) },
+          },
+          orderBy: { createdAt: "asc" },
+          take: DIGEST_SHOP_LIMIT,
+          select: { id: true },
+        })
+      : [];
+    if (dueToday.length || dueYesterday.length || shopTasks.length) {
       const olderOverdueCount = await client.opsTask.count({
         where: { ...mine, dueAt: { lt: yesterday.start } },
       });
@@ -248,6 +267,7 @@ export async function enqueueOpsMemberReminders(input: {
               reportDate: clock.date,
               todayTaskIds: dueToday.map((task) => task.id),
               yesterdayTaskIds: dueYesterday.map((task) => task.id),
+              shopTaskIds: shopTasks.map((task) => task.id),
               olderOverdueCount,
             }),
           },
@@ -426,21 +446,33 @@ async function buttonRow(
   return row;
 }
 
-function withLink(rows: OpsTelegramInlineButton[][], text: string, url: string | null) {
-  return url ? [...rows, [{ text, url } satisfies OpsTelegramInlineButton]] : rows;
+function withLink(
+  rows: OpsTelegramInlineButton[][],
+  text: string,
+  url: string | null,
+  miniAppUrl?: string | null
+) {
+  const footer: OpsTelegramInlineButton[] = [];
+  if (url) footer.push({ text, url });
+  if (miniAppUrl) footer.push({ text: "📱 Мой день", web_app: { url: miniAppUrl } });
+  return footer.length ? [...rows, footer] : rows;
 }
 
 export async function buildOpsMorningDigest(input: {
   today: OpsReminderTask[];
   yesterday: OpsReminderTask[];
+  /** Unassigned tasks created from shop orders since the last digest. */
+  shop?: OpsReminderTask[];
   olderOverdueCount: number;
   timeZone: string;
   now: Date;
   tasksUrl: string | null;
+  miniAppUrl?: string | null;
   button: OpsReminderButtonFactory;
 }): Promise<{ text: string; replyMarkup?: OpsTelegramReplyMarkup } | null> {
   const listed = [...input.yesterday, ...input.today].slice(0, DIGEST_TASK_LIMIT);
-  if (!listed.length) return null;
+  const shop = (input.shop ?? []).slice(0, DIGEST_SHOP_LIMIT);
+  if (!listed.length && !shop.length) return null;
   const numberOf = new Map(listed.map((task, index) => [task.id, index + 1]));
   const line = (task: OpsReminderTask) => {
     const due = task.dueAt ? localTime(task.dueAt, input.timeZone) : null;
@@ -451,11 +483,17 @@ export async function buildOpsMorningDigest(input: {
   const yesterday = input.yesterday.filter((task) => numberOf.has(task.id));
   const today = input.today.filter((task) => numberOf.has(task.id));
   const hidden = input.today.length + input.yesterday.length - listed.length;
+  const shopNumber = new Map(shop.map((task, index) => [task.id, listed.length + index + 1]));
   const text = [
     "☀️ Доброе утро! Что важно сегодня:",
     yesterday.length ? `\n⚠️ Вчера истёк срок:\n${yesterday.map(line).join("\n")}` : null,
     today.length ? `\n📌 Срок сегодня:\n${today.map(line).join("\n")}` : null,
     hidden > 0 ? `\nИ ещё ${hidden} — в админке.` : null,
+    shop.length
+      ? `\n🛒 Из магазина, никто не взял:\n${shop
+          .map((task) => `${shopNumber.get(task.id)}. ${shortTitle(task)}`)
+          .join("\n")}`
+      : null,
     input.olderOverdueCount > 0
       ? `\nЕщё ${input.olderOverdueCount} давно просроченных — разберём в пятницу, сейчас не отвлекаю.`
       : null,
@@ -470,7 +508,13 @@ export async function buildOpsMorningDigest(input: {
     ]);
     if (row.length) rows.push(row);
   }
-  const keyboard = withLink(rows, "📋 Все мои задачи", input.tasksUrl);
+  for (const task of shop) {
+    const row = await buttonRow(input.button, [
+      ["take", task.id, `🙋 ${shopNumber.get(task.id)}. Беру`],
+    ]);
+    if (row.length) rows.push(row);
+  }
+  const keyboard = withLink(rows, "📋 Все мои задачи", input.tasksUrl, input.miniAppUrl);
   return { text, ...(keyboard.length ? { replyMarkup: { inline_keyboard: keyboard } } : {}) };
 }
 
