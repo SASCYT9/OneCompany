@@ -669,6 +669,14 @@ ${JSON.stringify(input.question)}`,
   };
 }
 
+/** Gemini overload / rate limits: worth one quick retry and not billed. */
+export function isTransientOpsAiError(error: unknown) {
+  const text = error instanceof Error ? error.message : String(error ?? "");
+  return /\b(?:503|429)\b|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(text);
+}
+
+const TRANSIENT_RETRY_DELAY_MS = 2_000;
+
 async function callWithSingleFallback<T>(input: {
   call(model: string): Promise<{
     value: unknown;
@@ -681,38 +689,57 @@ async function callWithSingleFallback<T>(input: {
   includesAudio: boolean;
   /** Order to try; defaults to the cheap primary, then the stronger fallback. */
   models?: readonly string[];
+  /** Test hook: how long to wait before retrying an overloaded model. */
+  retryDelayMs?: number;
 }) {
-  let lastError: unknown;
+  const failures: string[] = [];
   for (const model of input.models ?? [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]) {
     const reservation =
       model === OPS_AI_FALLBACK_MODEL ? input.reservation * BigInt(7) : input.reservation;
-    await input.budget.reserve(reservation);
-    try {
-      const response = await input.call(model);
-      const measuredCostMicros = calculateOpsAiCostMicros({
-        ...response.usage,
-        includesAudio: input.includesAudio,
-        model,
-      });
-      const costMicros =
-        response.usage.inputTokens || response.usage.outputTokens
-          ? measuredCostMicros
-          : reservation;
-      await input.budget.record({
-        ...response.usage,
-        audioSeconds: input.audioSeconds,
-        costMicros,
-        reservedCostMicros: reservation,
-      });
-      return { value: input.normalize(response.value), model };
-    } catch (error) {
-      lastError = error;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await input.budget.reserve(reservation);
+      try {
+        const response = await input.call(model);
+        const measuredCostMicros = calculateOpsAiCostMicros({
+          ...response.usage,
+          includesAudio: input.includesAudio,
+          model,
+        });
+        const costMicros =
+          response.usage.inputTokens || response.usage.outputTokens
+            ? measuredCostMicros
+            : reservation;
+        await input.budget.record({
+          ...response.usage,
+          audioSeconds: input.audioSeconds,
+          costMicros,
+          reservedCostMicros: reservation,
+        });
+        return { value: input.normalize(response.value), model };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`${model}: ${message.slice(0, 200)}`);
+        const transient = isTransientOpsAiError(error);
+        if (transient) {
+          // Overloaded/rate-limited calls are not billed: give the budget back.
+          await input.budget
+            .record({
+              inputTokens: 0,
+              outputTokens: 0,
+              audioSeconds: 0,
+              costMicros: BigInt(0),
+              reservedCostMicros: reservation,
+            })
+            .catch(() => undefined);
+        }
+        if (!transient || attempt > 0) break;
+        await new Promise((resolve) =>
+          setTimeout(resolve, input.retryDelayMs ?? TRANSIENT_RETRY_DELAY_MS)
+        );
+      }
     }
   }
-  throw new OpsAiError(
-    "AI_PROVIDER_FAILED",
-    lastError instanceof Error ? lastError.message : "AI provider failed"
-  );
+  throw new OpsAiError("AI_PROVIDER_FAILED", failures.join(" | ") || "AI provider failed");
 }
 
 export async function extractOpsProposalWithAi(input: {
