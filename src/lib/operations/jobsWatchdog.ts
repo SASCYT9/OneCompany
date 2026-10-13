@@ -13,6 +13,7 @@ import {
   type OpsPrivateMediaStore,
 } from "@/lib/operations/media";
 import { opsRolesAllowNotification } from "@/lib/operations/notificationAccess";
+import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
 
 const ACTIVE_TASK_STATUSES = [
   OpsTaskStatus.PLANNED,
@@ -100,6 +101,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       adminUserId: true,
       telegramUserId: true,
       timezone: true,
+      updatedAt: true,
       adminUser: {
         select: {
           roles: {
@@ -113,7 +115,11 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
   });
   let reminders = 0;
   let reports = 0;
-  const reminderProfiles = candidateProfiles.filter((profile) =>
+  const paused = await findPausedOpsTelegramRecipients(input.client, candidateProfiles);
+  const reachableProfiles = candidateProfiles.filter(
+    (profile) => !paused.has(profile.adminUserId)
+  );
+  const reminderProfiles = reachableProfiles.filter((profile) =>
     opsRolesAllowNotification(profile.adminUser.roles, "telegram_task_reminder")
   );
   for (const profile of reminderProfiles) {
@@ -154,7 +160,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     });
     reminders += result.count;
   }
-  const reportProfiles = candidateProfiles.filter((profile) =>
+  const reportProfiles = reachableProfiles.filter((profile) =>
     opsRolesAllowNotification(profile.adminUser.roles, "telegram_internal_report")
   );
   for (const profile of reportProfiles) {
@@ -222,7 +228,7 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     });
     reports += result.count;
   }
-  return { reminders, reports };
+  return { reminders, reports, pausedRecipients: paused.size };
 }
 
 async function cleanupExpiredAttachments(input: {

@@ -23,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 
-import { opsRu } from "@/lib/operations/i18n";
+import { formatOpsWhen, opsRu } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
 
 import { OpsPageHeader } from "./OpsPageHeader";
@@ -355,11 +355,8 @@ export function OpsInbox({
                                   ? "Пересланное сообщение"
                                   : "Telegram"}
                             </span>
-                            <span className="text-xs text-slate-400">
-                              {new Intl.DateTimeFormat("ru-RU", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }).format(new Date(item.createdAt))}
+                            <span className="shrink-0 text-xs text-slate-400">
+                              {formatOpsWhen(item.createdAt)}
                             </span>
                           </span>
                         </span>

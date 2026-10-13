@@ -225,12 +225,15 @@ function dueText(date?: string | null) {
 }
 
 function taskGroup(task: OpsTask) {
+  // Closed tasks used to fall into «Сегодня» once their due date passed, so the
+  // counter showed every finished task as due today.
+  if (["DONE", "CANCELLED"].includes(task.status)) return "Готово";
   if (!task.dueAt) return "Следующие";
   const due = new Date(task.dueAt);
   const now = new Date();
   const end = new Date();
   end.setHours(23, 59, 59, 999);
-  if (due < now && !["DONE", "CANCELLED"].includes(task.status)) return "Просрочено";
+  if (due < now) return "Просрочено";
   if (due <= end) return "Сегодня";
   return "Следующие";
 }
@@ -853,7 +856,7 @@ export function OpsTaskWorkspace({
 
   const groups = useMemo(
     () =>
-      ["Просрочено", "Сегодня", "Следующие"]
+      ["Просрочено", "Сегодня", "Следующие", "Готово"]
         .map((label) => ({ label, tasks: filtered.filter((task) => taskGroup(task) === label) }))
         .filter((group) => group.tasks.length),
     [filtered]

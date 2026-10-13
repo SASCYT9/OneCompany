@@ -1,5 +1,7 @@
 import { OpsJobStage, OpsJobStatus, type Prisma, type PrismaClient } from "@prisma/client";
 
+import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
+
 type OpsNotificationClient = Prisma.TransactionClient | PrismaClient;
 
 function asJson(value: unknown) {
@@ -43,12 +45,15 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
     select: {
       adminUserId: true,
       telegramUserId: true,
+      updatedAt: true,
     },
   });
-  if (!profiles.length) return false;
+  const paused = await findPausedOpsTelegramRecipients(input.client, profiles);
+  const reachable = profiles.filter((profile) => !paused.has(profile.adminUserId));
+  if (!reachable.length) return false;
 
   const result = await input.client.opsJob.createMany({
-    data: profiles.flatMap((profile) =>
+    data: reachable.flatMap((profile) =>
       profile.telegramUserId
         ? [
             {

@@ -27,6 +27,19 @@ function enabled(value: string | undefined) {
   return value === "1" || value?.toLocaleLowerCase("en-US") === "true";
 }
 
+/**
+ * The person blocked the bot, deleted their account, or never opened the chat.
+ * Retrying cannot help, so these sends finish at once instead of dead-lettering.
+ */
+export const OPS_TELEGRAM_RECIPIENT_UNAVAILABLE = "TELEGRAM_RECIPIENT_UNAVAILABLE";
+
+async function isTelegramRecipientUnavailable(response: Response) {
+  if (response.status === 403) return true;
+  if (response.status !== 400) return false;
+  const body = (await response.json().catch(() => null)) as { description?: unknown } | null;
+  return /chat not found|user is deactivated/i.test(String(body?.description ?? ""));
+}
+
 function russianTaskWord(count: number) {
   const lastTwo = Math.abs(count) % 100;
   const last = lastTwo % 10;
@@ -127,6 +140,12 @@ export async function sendOpsTelegramNotification(input: {
     }
   );
   if (!response.ok) {
+    if (await isTelegramRecipientUnavailable(response)) {
+      throw new OpsNotificationError(
+        OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
+        `Telegram sendMessage returned ${response.status}: recipient unavailable`
+      );
+    }
     throw new OpsNotificationError(
       "TELEGRAM_SEND_FAILED",
       `Telegram sendMessage returned ${response.status}`

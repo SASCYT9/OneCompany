@@ -14,6 +14,7 @@ import {
   Loader2,
   RefreshCw,
   RotateCcw,
+  Send,
   ShieldCheck,
   TriangleAlert,
   X,
@@ -93,10 +94,17 @@ type SystemHealth = {
     failedLast24Hours: number;
   };
   usage: UsageBucket[];
+  telegram: {
+    linkedMembers: number;
+    pausedRecipients: Array<{ adminUserId: string; name: string; pausedAt: string }>;
+  };
 };
+
+type JobAction = "retry" | "dismiss";
 
 const JOB_TYPE_LABELS: Readonly<Record<string, string>> = {
   telegram_intake: "Входящее Telegram",
+  telegram_task_assigned: "Уведомление о назначении",
   telegram_task_reminder: "Напоминание о задаче",
   telegram_internal_report: "Внутренний отчёт",
   "automation:research_draft": "Помощник: поиск",
@@ -190,9 +198,9 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [selectedJob, setSelectedJob] = useState<SystemJob | null>(null);
-  const [retrying, setRetrying] = useState(false);
-  const [retryError, setRetryError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ job: SystemJob; action: JobAction } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [reloadNonce, setReloadNonce] = useState(0);
 
@@ -219,33 +227,34 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
     [health]
   );
 
-  async function retryJob() {
-    if (!selectedJob || retrying) return;
-    setRetrying(true);
-    setRetryError(null);
+  async function submitJobAction() {
+    if (!selected || submitting) return;
+    const { job, action } = selected;
+    setSubmitting(true);
+    setActionError(null);
     try {
-      await opsMutation<{
-        job: {
-          id: string;
-          status: "QUEUED";
-        };
-      }>({
+      await opsMutation<{ job: { id: string; status: string } }>({
         path: "/api/admin/operations/system",
-        body: {
-          action: "retry",
-          jobId: selectedJob.id,
-        },
-        scope: `system-job-retry:${selectedJob.id}`,
+        body: { action, jobId: job.id },
+        scope: `system-job-${action}:${job.id}`,
       });
-      setNotice("Задача повторно поставлена в очередь без создания дубликата.");
-      setSelectedJob(null);
+      setNotice(
+        action === "retry"
+          ? "Задача повторно поставлена в очередь без создания дубликата."
+          : "Ошибка закрыта и убрана из списка. Запись осталась в журнале."
+      );
+      setSelected(null);
       setReloadNonce((value) => value + 1);
     } catch (cause) {
-      setRetryError(
-        cause instanceof Error ? cause.message : "Не удалось повторно поставить задачу в очередь."
+      setActionError(
+        cause instanceof Error
+          ? cause.message
+          : action === "retry"
+            ? "Не удалось повторно поставить задачу в очередь."
+            : "Не удалось закрыть ошибку."
       );
     } finally {
-      setRetrying(false);
+      setSubmitting(false);
     }
   }
 
@@ -436,17 +445,32 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                             ) : null}
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedJob(job);
-                              setRetryError(null);
-                            }}
-                            className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-100 sm:w-auto"
-                          >
-                            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                            Повторить
-                          </button>
+                          <div className="flex gap-2 sm:flex-col">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelected({ job, action: "retry" });
+                                setActionError(null);
+                              }}
+                              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-100"
+                            >
+                              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                              Повторить
+                            </button>
+                            {job.status === "DEAD_LETTER" ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelected({ job, action: "dismiss" });
+                                  setActionError(null);
+                                }}
+                                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:border-slate-400"
+                              >
+                                <X className="h-4 w-4" aria-hidden="true" />
+                                Закрыть
+                              </button>
+                            ) : null}
+                          </div>
                         </article>
                       ))}
                     </div>
@@ -465,6 +489,66 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
               </section>
 
               <aside className="space-y-6">
+                <section aria-labelledby="ops-system-telegram-title">
+                  <h2
+                    id="ops-system-telegram-title"
+                    className="text-base font-semibold text-slate-950"
+                  >
+                    Уведомления в Telegram
+                  </h2>
+                  <div
+                    className={cn(
+                      "mt-3 rounded-xl border bg-white p-4 shadow-sm",
+                      health.telegram.pausedRecipients.length
+                        ? "border-amber-200"
+                        : "border-emerald-200"
+                    )}
+                    data-ops-telegram-recipients
+                  >
+                    <div className="flex items-start gap-3">
+                      <Send
+                        className={cn(
+                          "mt-0.5 h-5 w-5 shrink-0",
+                          health.telegram.pausedRecipients.length
+                            ? "text-amber-600"
+                            : "text-emerald-600"
+                        )}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {health.telegram.pausedRecipients.length
+                            ? `Не доходят: ${health.telegram.pausedRecipients.length} из ${health.telegram.linkedMembers}`
+                            : `Доходят всем: ${health.telegram.linkedMembers}`}
+                        </p>
+                        {health.telegram.pausedRecipients.length ? (
+                          <>
+                            <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                              {health.telegram.pausedRecipients.map((recipient) => (
+                                <li key={recipient.adminUserId}>
+                                  {recipient.name}{" "}
+                                  <span className="text-xs text-slate-500">
+                                    — бот заблокирован, пауза с {formatDate(recipient.pausedAt)}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                              Бот больше не пробует писать им каждый день. Уведомления включатся
+                              сами, когда сотрудник снова напишет боту, или после сохранения его
+                              Telegram-настроек в разделе «Пользователи».
+                            </p>
+                          </>
+                        ) : (
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                            Напоминания и утренние сводки уходят всем, у кого привязан Telegram.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
                 <section aria-labelledby="ops-system-inbox-title">
                   <h2
                     id="ops-system-inbox-title"
@@ -542,33 +626,34 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
         ) : null}
       </main>
 
-      {selectedJob ? (
+      {selected ? (
         <div
           className="fixed inset-0 z-[90] flex items-end bg-slate-950/50 backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-6"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="ops-system-retry-title"
+          aria-labelledby="ops-system-action-title"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !retrying) {
-              setSelectedJob(null);
+            if (event.target === event.currentTarget && !submitting) {
+              setSelected(null);
             }
           }}
         >
           <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 id="ops-system-retry-title" className="text-lg font-bold text-slate-950">
-                  Повторить системную задачу?
+                <h2 id="ops-system-action-title" className="text-lg font-bold text-slate-950">
+                  {selected.action === "retry" ? "Повторить системную задачу?" : "Закрыть ошибку?"}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Будет использована та же durable job и тот же idempotency key. Новые сущности не
-                  создаются.
+                  {selected.action === "retry"
+                    ? "Будет использована та же durable job и тот же idempotency key. Новые сущности не создаются."
+                    : "Ошибка уйдёт из списка «Требуют внимания». Повторной отправки не будет, запись останется в журнале."}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedJob(null)}
-                disabled={retrying}
+                onClick={() => setSelected(null)}
+                disabled={submitting}
                 aria-label="Закрыть"
                 className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
               >
@@ -578,48 +663,53 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
 
             <div className="mt-4 rounded-lg bg-slate-50 p-3">
               <p className="text-sm font-semibold text-slate-800">
-                {JOB_TYPE_LABELS[selectedJob.type] ?? "Внутренняя задача"}
+                {JOB_TYPE_LABELS[selected.job.type] ?? "Внутренняя задача"}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Этап: {STAGE_LABELS[selectedJob.stage] ?? "Внутренний этап"}
+                Этап: {STAGE_LABELS[selected.job.stage] ?? "Внутренний этап"} ·{" "}
+                {formatDate(selected.job.updatedAt)}
               </p>
-              <p className="mt-2 text-xs leading-5 text-slate-600">
-                Счётчик попыток начнётся заново, но автоматический цикл останется ограничен максимум
-                четырьмя попытками.
-              </p>
+              {selected.action === "retry" ? (
+                <p className="mt-2 text-xs leading-5 text-slate-600">
+                  Счётчик попыток начнётся заново, но автоматический цикл останется ограничен
+                  максимум четырьмя попытками.
+                </p>
+              ) : null}
             </div>
 
-            {retryError ? (
+            {actionError ? (
               <div
                 role="alert"
                 className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
               >
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                {retryError}
+                {actionError}
               </div>
             ) : null}
 
             <div className="mt-5 flex justify-end gap-2 pb-[env(safe-area-inset-bottom)]">
               <button
                 type="button"
-                onClick={() => setSelectedJob(null)}
-                disabled={retrying}
+                onClick={() => setSelected(null)}
+                disabled={submitting}
                 className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
               >
                 Отмена
               </button>
               <button
                 type="button"
-                onClick={() => void retryJob()}
-                disabled={retrying}
+                onClick={() => void submitJobAction()}
+                disabled={submitting}
                 className="flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {retrying ? (
+                {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                ) : (
+                ) : selected.action === "retry" ? (
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <X className="h-4 w-4" aria-hidden="true" />
                 )}
-                Поставить в очередь
+                {selected.action === "retry" ? "Поставить в очередь" : "Закрыть ошибку"}
               </button>
             </div>
           </div>

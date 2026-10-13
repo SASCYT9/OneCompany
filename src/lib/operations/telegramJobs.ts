@@ -54,6 +54,7 @@ import {
 } from "@/lib/operations/media";
 import {
   buildOpsInboxNotification,
+  OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
   OpsNotificationError,
   sendOpsTelegramNotification,
   type OpsTelegramReplyMarkup,
@@ -2688,6 +2689,15 @@ async function executeTelegramIntakeStage(input: {
           result: { notification: "disabled" },
         };
       }
+      if (
+        error instanceof OpsNotificationError &&
+        error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE
+      ) {
+        return {
+          outcome: "succeeded" as const,
+          result: { notification: "recipient_unavailable" },
+        };
+      }
       throw error;
     }
   }
@@ -3481,6 +3491,14 @@ async function executeInternalNotificationJob(input: {
       return {
         outcome: "succeeded" as const,
         result: { notification: "disabled" },
+      };
+    }
+    if (error instanceof OpsNotificationError && error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE) {
+      // Blocked bot or deleted chat: retrying cannot deliver. Later notices to
+      // this person are paused by findPausedOpsTelegramRecipients.
+      return {
+        outcome: "succeeded" as const,
+        result: { notification: "recipient_unavailable" },
       };
     }
     throw error;

@@ -9,6 +9,7 @@ import {
 import { OpsError } from "@/lib/operations/errors";
 import { OPS_JOB_MAX_ATTEMPTS } from "@/lib/operations/jobs";
 import { getOpsMediaConfiguration } from "@/lib/operations/media";
+import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
 
 export const OPS_SYSTEM_RECENT_JOBS_LIMIT = 50;
 
@@ -42,10 +43,12 @@ const OPS_SYSTEM_SAFE_ERROR_LABELS: Readonly<Record<string, string>> = {
   MEDIA_MONTHLY_UPLOAD_CAP: "Месячный лимит загрузок исчерпан.",
   MEDIA_RETAINED_SOFT_CAP: "Достигнут лимит сохранённых медиа.",
   PRIVATE_BLOB_NOT_CONFIGURED: "Закрытое файловое хранилище не настроено.",
+  PRIVATE_BLOB_WRONG_STORE: "Вложения ушли в публичное хранилище вместо закрытого.",
   TELEGRAM_DOWNLOAD_FAILED: "Telegram не отдал файл.",
   TELEGRAM_FILE_INVALID: "Telegram вернул некорректный файл.",
   TELEGRAM_GET_FILE_FAILED: "Telegram не отдал метаданные файла.",
   TELEGRAM_SEND_FAILED: "Telegram не принял уведомление.",
+  TELEGRAM_RECIPIENT_UNAVAILABLE: "Сотрудник заблокировал бота или удалил чат.",
   TELEGRAM_SEND_INVALID: "Telegram вернул некорректный ответ.",
   TELEGRAM_TOKEN_NOT_CONFIGURED: "Lab-бот не настроен.",
   NOTIFICATIONS_DISABLED: "Внутренние уведомления выключены.",
@@ -241,6 +244,43 @@ export async function retryOpsSystemJob(input: {
   };
 }
 
+/**
+ * Closes a dead-letter job the team has looked at and decided not to retry,
+ * e.g. old reports to someone who blocked the bot. The row is kept for audit.
+ */
+export async function dismissOpsSystemJob(input: {
+  tx: Prisma.TransactionClient;
+  jobId: string;
+  now?: Date;
+}) {
+  const job = await input.tx.opsJob.findUnique({
+    where: { id: input.jobId },
+    select: { id: true, type: true, status: true, stage: true, attempts: true },
+  });
+  if (!job) {
+    throw new OpsError("NOT_FOUND", 404, "Operations job not found");
+  }
+  if (job.status !== OpsJobStatus.DEAD_LETTER) {
+    throw new OpsError("JOB_NOT_DISMISSIBLE", 409, "Only dead-letter jobs can be closed");
+  }
+  const now = input.now ?? new Date();
+  const changed = await input.tx.opsJob.updateMany({
+    where: { id: job.id, status: OpsJobStatus.DEAD_LETTER },
+    data: { status: OpsJobStatus.CANCELLED, cancelRequestedAt: now },
+  });
+  if (changed.count !== 1) {
+    throw new OpsError("JOB_DISMISS_CONFLICT", 409, "The job changed before it was closed");
+  }
+  return {
+    id: job.id,
+    type: safeJobType(job.type),
+    previousStatus: job.status,
+    stage: job.stage,
+    attempts: job.attempts,
+    status: OpsJobStatus.CANCELLED,
+  };
+}
+
 export async function getOpsSystemHealth(input: {
   client: PrismaClient;
   now?: Date;
@@ -261,6 +301,7 @@ export async function getOpsSystemHealth(input: {
     failedPendingReview,
     failedInboxLast24Hours,
     usageBuckets,
+    telegramMembers,
   ] = await Promise.all([
     input.client.opsJob.groupBy({
       by: ["status"],
@@ -321,7 +362,21 @@ export async function getOpsSystemHealth(input: {
         updatedAt: true,
       },
     }),
+    input.client.opsMemberProfile.findMany({
+      where: {
+        telegramEnabled: true,
+        telegramUserId: { not: null },
+        adminUser: { isActive: true },
+      },
+      select: {
+        adminUserId: true,
+        telegramUserId: true,
+        updatedAt: true,
+        adminUser: { select: { name: true, email: true } },
+      },
+    }),
   ]);
+  const pausedRecipients = await findPausedOpsTelegramRecipients(input.client, telegramMembers);
 
   const jobs = Object.fromEntries(
     Object.values(OpsJobStatus).map((status) => [status, 0])
@@ -335,6 +390,16 @@ export async function getOpsSystemHealth(input: {
     media: getOpsMediaConfiguration(),
     jobs,
     attention: recentJobs.map(toOpsSystemJobSummary),
+    telegram: {
+      linkedMembers: telegramMembers.length,
+      pausedRecipients: telegramMembers
+        .filter((member) => pausedRecipients.has(member.adminUserId))
+        .map((member) => ({
+          adminUserId: member.adminUserId,
+          name: member.adminUser.name || member.adminUser.email,
+          pausedAt: pausedRecipients.get(member.adminUserId)!.pausedAt,
+        })),
+    },
     inbox: {
       failed: failedInbox,
       failedPendingReview,

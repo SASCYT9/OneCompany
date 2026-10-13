@@ -19,7 +19,7 @@ import {
   UserRoundPlus,
 } from "lucide-react";
 
-import { OPS_STATUS_LABELS, opsRu } from "@/lib/operations/i18n";
+import { formatOpsWhen, OPS_STATUS_LABELS, opsRu } from "@/lib/operations/i18n";
 import { cn } from "@/lib/utils";
 
 import { OpsPageHeader } from "./OpsPageHeader";
@@ -351,7 +351,10 @@ export function OpsOverview({
                           {item.summary || item.originalMessage}
                         </span>
                         <span className="mt-1 block text-xs text-slate-400">
-                          Уверенность {Math.round(Number(item.confidence ?? 0) * 100)}%
+                          {formatOpsWhen(item.createdAt)}
+                          {Number(item.confidence ?? 0) > 0
+                            ? ` · уверенность ${Math.round(Number(item.confidence) * 100)}%`
+                            : null}
                         </span>
                       </span>
                     </div>

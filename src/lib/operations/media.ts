@@ -476,37 +476,68 @@ export function opsAttachmentRetentionAt(now = new Date()) {
   return new Date(now.getTime() + OPS_ATTACHMENT_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 }
 
-export function createVercelPrivateOpsMediaStore(
-  token = process.env.OPS_BLOB_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN,
-  storeId = process.env.OPS_BLOB_STORE_ID
-): OpsPrivateMediaStore {
-  const normalizedToken = String(token ?? "").trim();
-  const normalizedStoreId = String(storeId ?? "").trim();
-  if (!normalizedToken && !normalizedStoreId) {
-    throw new OpsMediaError(
-      "PRIVATE_BLOB_NOT_CONFIGURED",
-      "OPS_BLOB_READ_WRITE_TOKEN or OPS_BLOB_STORE_ID is required"
+/**
+ * Credentials for the private Operations store. The shop's shared
+ * `BLOB_READ_WRITE_TOKEN` is deliberately never used: it belongs to the public
+ * storefront media store, and on 2026-09-17 it silently redirected every
+ * Telegram attachment there ("Cannot use private access on a public store").
+ * Without an Ops token the store id is used with Vercel OIDC.
+ */
+export function resolveOpsBlobAuth(
+  env: Record<string, string | undefined> = process.env
+): { token: string } | { storeId: string } {
+  const token = String(env.OPS_BLOB_READ_WRITE_TOKEN ?? "").trim();
+  if (token) return { token };
+  const storeId = String(env.OPS_BLOB_STORE_ID ?? "").trim();
+  if (storeId) return { storeId };
+  throw new OpsMediaError(
+    "PRIVATE_BLOB_NOT_CONFIGURED",
+    "OPS_BLOB_READ_WRITE_TOKEN or OPS_BLOB_STORE_ID is required"
+  );
+}
+
+function privateBlobError(error: unknown): unknown {
+  // With a store id but no OIDC token, @vercel/blob falls back to the shared
+  // BLOB_READ_WRITE_TOKEN; name that misconfiguration instead of leaking it.
+  if (error instanceof Error && /public store/i.test(error.message)) {
+    return new OpsMediaError(
+      "PRIVATE_BLOB_WRONG_STORE",
+      "Operations attachments resolved to a public Blob store"
     );
   }
-  const auth = normalizedToken ? { token: normalizedToken } : { storeId: normalizedStoreId };
+  return error;
+}
+
+export function createVercelPrivateOpsMediaStore(
+  auth: { token: string } | { storeId: string } = resolveOpsBlobAuth()
+): OpsPrivateMediaStore {
   return {
     async put(input) {
       const { put } = await import("@vercel/blob");
-      const result = await put(input.storageKey, Buffer.from(input.body), {
-        access: "private",
-        addRandomSuffix: false,
-        contentType: input.contentType,
-        ...auth,
-      });
-      return { storageKey: result.pathname };
+      try {
+        const result = await put(input.storageKey, Buffer.from(input.body), {
+          access: "private",
+          addRandomSuffix: false,
+          contentType: input.contentType,
+          ...auth,
+        });
+        return { storageKey: result.pathname };
+      } catch (error) {
+        throw privateBlobError(error);
+      }
     },
     async get(storageKey) {
       const { get } = await import("@vercel/blob");
-      const result = await get(storageKey, {
-        access: "private",
-        ...auth,
-        useCache: false,
-      });
+      let result: Awaited<ReturnType<typeof get>>;
+      try {
+        result = await get(storageKey, {
+          access: "private",
+          ...auth,
+          useCache: false,
+        });
+      } catch (error) {
+        throw privateBlobError(error);
+      }
       if (!result) {
         throw new OpsMediaError("ATTACHMENT_NOT_FOUND", "Private attachment was not found");
       }
@@ -516,7 +547,11 @@ export function createVercelPrivateOpsMediaStore(
     },
     async remove(storageKey) {
       const { del } = await import("@vercel/blob");
-      await del(storageKey, auth);
+      try {
+        await del(storageKey, auth);
+      } catch (error) {
+        throw privateBlobError(error);
+      }
     },
   };
 }
@@ -584,16 +619,14 @@ export function getOpsMediaConfiguration(
       | "NODE_ENV"
       | "OPS_LOCAL_MEDIA_DIR"
       | "OPS_BLOB_READ_WRITE_TOKEN"
-      | "BLOB_READ_WRITE_TOKEN"
       | "OPS_BLOB_STORE_ID"
     >
   > = process.env
 ): OpsMediaConfiguration {
   const localConfigured = Boolean(env.OPS_LOCAL_MEDIA_DIR?.trim());
+  // The shared BLOB_READ_WRITE_TOKEN is the public storefront store, never Ops.
   const blobConfigured = Boolean(
-    env.OPS_BLOB_READ_WRITE_TOKEN?.trim() ||
-      env.BLOB_READ_WRITE_TOKEN?.trim() ||
-      env.OPS_BLOB_STORE_ID?.trim()
+    env.OPS_BLOB_READ_WRITE_TOKEN?.trim() || env.OPS_BLOB_STORE_ID?.trim()
   );
 
   if (localConfigured) {
@@ -625,16 +658,7 @@ export function getOpsMediaConfiguration(
 }
 
 export function getOpsBlobAuthOptions() {
-  const token = (
-    process.env.OPS_BLOB_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN
-  )?.trim();
-  if (token) return { token } as const;
-  const storeId = process.env.OPS_BLOB_STORE_ID?.trim();
-  if (storeId) return { storeId } as const;
-  throw new OpsMediaError(
-    "PRIVATE_BLOB_NOT_CONFIGURED",
-    "OPS_BLOB_READ_WRITE_TOKEN or OPS_BLOB_STORE_ID is required"
-  );
+  return resolveOpsBlobAuth();
 }
 
 export function createConfiguredOpsMediaStore(): OpsPrivateMediaStore {

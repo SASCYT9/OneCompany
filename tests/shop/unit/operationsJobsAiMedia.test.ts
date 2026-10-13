@@ -992,6 +992,9 @@ test("Telegram notification permission is rechecked after enqueue and role revoc
       },
     },
     opsJob: {
+      async findMany() {
+        return [];
+      },
       async createMany(args: { data: Record<string, unknown>[] }) {
         createdJobs.push(...args.data);
         return { count: args.data.length };
@@ -1105,6 +1108,9 @@ test("an overdue task queues only one Telegram reminder per assignee", async () 
       },
     },
     opsJob: {
+      async findMany() {
+        return [];
+      },
       async createMany(args: { data: Record<string, unknown>[] }) {
         let count = 0;
         for (const job of args.data) {
@@ -1143,6 +1149,9 @@ test("assignment notifications fan out once to every newly assigned Telegram par
       },
     },
     opsJob: {
+      async findMany() {
+        return [];
+      },
       async createMany(args: { data: Record<string, unknown>[]; skipDuplicates: boolean }) {
         assert.equal(args.skipDuplicates, true);
         createdJobs.push(...args.data);
