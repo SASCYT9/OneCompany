@@ -186,3 +186,41 @@ test("logistics references move from ~$11/kg to the agreed $9/kg", () => {
   assert.match(guide, /## США\n\nДля товаров из США с 03\.09\.2026 действует общая формула/);
   assert.equal(applyUsaFormulaGuideSection(guide), guide);
 });
+
+test("US suppliers filed under another group switch too; CT Carbon and Maxton get the bot's formula", async () => {
+  const { applyBotObservedFormulaSection } = await import(
+    "../../../src/lib/operations/knowledgeDataPatches"
+  );
+  const adro = `# ADRO
+
+> Правило найдено в старом рабочем источнике.
+
+| Поле | Значение |
+| --- | --- |
+| Группа | Европа |
+| Статус формулы | Есть исходное правило — требуется контроль |
+
+| Тип | Правило |
+| --- | --- |
+| Розница | Американський сайт без скидки + 5% + shipping до NY + вага в Україну |
+| Логистика | Не указано |
+`;
+  assert.equal(
+    applyOpsUsaFormulaToBrandGuide(adro),
+    adro,
+    "without forceUsa a European card is kept"
+  );
+  const forced = applyOpsUsaFormulaToBrandGuide(adro, { forceUsa: true });
+  assert.match(forced, /\| Группа \| США \|/);
+  assert.match(forced, /Было до 03\.09\.2026: Американський сайт без скидки \+ 5%/);
+
+  const ct = "# CT Carbon\n\n## Следующее действие\n\nПроверить.\n";
+  const withBot = applyBotObservedFormulaSection(ct, "CT Carbon");
+  assert.match(
+    withBot,
+    /## Как считает бот @OneCompany1_bot \(проверено 13\.10\.2026\)\n\nРозница: цена сайта в £ \(с VAT\) × 1,15/
+  );
+  assert.ok(withBot.indexOf("## Как считает бот") < withBot.indexOf("## Следующее действие"));
+  assert.equal(applyBotObservedFormulaSection(withBot, "CT Carbon"), withBot);
+  assert.equal(applyBotObservedFormulaSection(ct, "Unknown"), ct);
+});

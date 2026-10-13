@@ -9,6 +9,7 @@ import {
   applyOpsUsaFormulaToBrandGuide,
   buildOpsUsaFormulaArticle,
   isOpsUsaBrandGuide,
+  OPS_USA_EXTRA_BRAND_TITLES,
   OPS_USA_FORMULA_STATUS,
   OPS_USA_FORMULA_TEXT,
   OPS_USA_PRICE_FORMULA,
@@ -209,6 +210,28 @@ export function applyUsaFormulaGuideSection(content: string) {
 `;
 }
 
+/**
+ * How @OneCompany1_bot priced these non-US suppliers on 13.10.2026 (read from
+ * its own «как считали» breakdowns). It matches the cards' old rules and adds
+ * the concrete rates, so managers can reproduce the bot's number.
+ */
+export const OPS_BOT_OBSERVED_FORMULAS: Record<string, string> = {
+  "CT Carbon":
+    "Розница: цена сайта в £ (с VAT) × 1,15 + доставка до Medyka £20–75 (по типу детали) → × курс 1,334 → + объём в Украину $20–130 (по типу детали) → округление вверх до $5.",
+  Maxton:
+    "Розница: (цена сайта в zł с VAT + доставка по живому тарифу) × 1,3529 (это 1,15 / 0,85) → × курс 0,257 → округление вверх до $5. Комплекты бот не считает — ручная обработка.",
+};
+const BOT_SECTION_TITLE = "## Как считает бот @OneCompany1_bot (проверено 13.10.2026)";
+
+export function applyBotObservedFormulaSection(content: string, title: string) {
+  const formula = OPS_BOT_OBSERVED_FORMULAS[title];
+  if (!formula || content.includes(BOT_SECTION_TITLE)) return content;
+  const section = `${BOT_SECTION_TITLE}\n\n${formula}\n\n`;
+  return content.includes("## Следующее действие")
+    ? content.replace("## Следующее действие", `${section}## Следующее действие`)
+    : `${content.trimEnd()}\n\n${section}`;
+}
+
 type PatchActor = { id: string; email: string; name: string | null };
 
 async function findPatchActor(client: PrismaClient): Promise<PatchActor | null> {
@@ -307,6 +330,8 @@ async function applyUsaFormulaPatch(client: PrismaClient) {
           },
         },
         { brandKey: { not: null }, contentMarkdown: { contains: "| Группа | США |" } },
+        { brandKey: { not: null }, title: { in: [...OPS_USA_EXTRA_BRAND_TITLES] } },
+        { brandKey: { not: null }, title: { in: Object.keys(OPS_BOT_OBSERVED_FORMULAS) } },
       ],
     },
   });
@@ -324,8 +349,13 @@ async function applyUsaFormulaPatch(client: PrismaClient) {
         contentMarkdown = applyUsaShippingTableNote(contentMarkdown);
       } else if (article.slug === "internal-pricing-formula-reading-guide") {
         contentMarkdown = applyUsaFormulaGuideSection(contentMarkdown);
-      } else if (isOpsUsaBrandGuide(contentMarkdown)) {
-        contentMarkdown = applyOpsUsaFormulaToBrandGuide(contentMarkdown);
+      } else if (article.title in OPS_BOT_OBSERVED_FORMULAS) {
+        contentMarkdown = applyBotObservedFormulaSection(contentMarkdown, article.title);
+      } else if (
+        isOpsUsaBrandGuide(contentMarkdown) ||
+        (OPS_USA_EXTRA_BRAND_TITLES as readonly string[]).includes(article.title)
+      ) {
+        contentMarkdown = applyOpsUsaFormulaToBrandGuide(contentMarkdown, { forceUsa: true });
         tags = Array.from(
           new Set(tags.map((tag) => (tag === "formula-missing" ? "formula-available" : tag)))
         );

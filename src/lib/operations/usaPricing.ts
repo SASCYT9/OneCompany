@@ -180,6 +180,12 @@ function replaceTableCell(content: string, label: string, next: (current: string
   });
 }
 
+/**
+ * US suppliers whose cards were filed under another group («Европа»,
+ * «Общее правило») although they sell from the USA.
+ */
+export const OPS_USA_EXTRA_BRAND_TITLES = ["ADRO", "Performance Speed Shop", "SooQoo"] as const;
+
 export function isOpsUsaBrandGuide(content: string) {
   return /^\|\s*Группа\s*\|\s*США\s*\|\s*$/mu.test(content);
 }
@@ -188,9 +194,13 @@ export function isOpsUsaBrandGuide(content: string) {
  * Rewrites a US brand guide for the new formula. The old brand rule stays
  * visible as history, partner/wholesale and our-cost rows are not touched.
  */
-export function applyOpsUsaFormulaToBrandGuide(content: string) {
-  if (!isOpsUsaBrandGuide(content) || content.includes(OPS_USA_FORMULA_STATUS)) return content;
-  let next = content.replace(/^> .*$/mu, USA_BANNER);
+export function applyOpsUsaFormulaToBrandGuide(
+  content: string,
+  options: { forceUsa?: boolean } = {}
+) {
+  const source = options.forceUsa ? replaceTableCell(content, "Группа", () => "США") : content;
+  if (!isOpsUsaBrandGuide(source) || source.includes(OPS_USA_FORMULA_STATUS)) return content;
+  let next = source.replace(/^> .*$/mu, USA_BANNER);
   next = replaceTableCell(next, "Статус формулы", () => OPS_USA_FORMULA_STATUS);
   next = replaceTableCell(next, "Розница", (current) =>
     current && current !== "Не указано"
@@ -236,9 +246,14 @@ export function buildOpsUsaFormulaArticle() {
 
 Напишите боту: \`? США 1000 + 50 доставка, 10 кг\` — он посчитает по формуле и покажет разбивку.
 
+## Где применяется
+
+Все бренды с группой «США» в базе и американские поставщики: RW Carbon, ADRO, Vorsteiner, Burger Motorsports, Performance Speed Shop (в том числе SooQoo), IND Distribution, USP Motorsports, Turn14, Real Street, FMIC.
+
 ## Что важно
 
 - 20% считаем на товар **вместе** с внутренней доставкой по США, а $${OPS_USA_PRICE_FORMULA.perKgUsd}/кг добавляем уже после наценки.
 - Партнёрские и оптовые условия отдельных брендов (если записаны в карточке бренда) — без изменений.
+- ⚠️ На 13.10.2026 бот @OneCompany1_bot ещё считает розницу США по-старому: сайт ×1,1 + доставка до NY + $2 за позицию + $9/кг авиа (или $6/кг море), вес — типовой по виду детали. Его цена выходит на 6–9% ниже этой формулы — сверяйтесь с формулой.
 `;
 }
