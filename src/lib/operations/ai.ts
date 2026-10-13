@@ -677,10 +677,12 @@ ${JSON.stringify(input.question)}`,
   };
 }
 
-/** Gemini overload / rate limits: worth one quick retry and not billed. */
+/** Gemini overload / rate limits / server deadline: worth another try and not billed. */
 export function isTransientOpsAiError(error: unknown) {
   const text = error instanceof Error ? error.message : String(error ?? "");
-  return /\b(?:503|429)\b|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(text);
+  return /\b(?:503|504|429)\b|UNAVAILABLE|DEADLINE_EXCEEDED|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(
+    text
+  );
 }
 
 const TRANSIENT_RETRY_DELAY_MS = 2_000;
