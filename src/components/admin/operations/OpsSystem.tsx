@@ -194,7 +194,7 @@ function mediaStoreLabel(provider: SystemHealth["media"]["provider"]) {
   return "Не настроено";
 }
 
-export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
+export function OpsSystem() {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -259,7 +259,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
   }
 
   return (
-    <OpsSurface permissions={permissions}>
+    <OpsSurface>
       <OpsPageHeader
         title="Система"
         description="Безопасный обзор очереди, ошибок и лимитов One Company Operations."
@@ -271,7 +271,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
               setReloadNonce((value) => value + 1);
             }}
             disabled={loading}
-            className="flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:border-blue-300 hover:text-blue-700 disabled:opacity-50"
+            className="flex h-10 items-center gap-2 rounded-lg border border-white/15 bg-[#171717] px-3 text-sm font-medium text-zinc-300 hover:border-blue-500/40 hover:text-blue-300 disabled:opacity-50"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} aria-hidden="true" />
             Обновить
@@ -283,7 +283,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
         {notice ? (
           <div
             role="status"
-            className="mb-5 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
+            className="mb-5 flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200"
           >
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <span className="flex-1">{notice}</span>
@@ -291,7 +291,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
               type="button"
               onClick={() => setNotice(null)}
               aria-label="Закрыть сообщение"
-              className="rounded-md p-1 hover:bg-emerald-100"
+              className="rounded-md p-1 hover:bg-emerald-500/15"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -301,7 +301,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
         {loadError ? (
           <div
             role="alert"
-            className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"
           >
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <div>
@@ -310,7 +310,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
             </div>
           </div>
         ) : loading && !health ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 text-sm text-slate-500">
+          <div className="flex min-h-64 items-center justify-center gap-2 text-sm text-zinc-500">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             Проверяем очередь и лимиты…
           </div>
@@ -321,17 +321,17 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 <div>
                   <h2
                     id="ops-system-summary-title"
-                    className="text-base font-semibold text-slate-950"
+                    className="text-base font-semibold text-zinc-50"
                   >
                     Состояние очереди
                   </h2>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-zinc-500">
                     Обновлено {formatDate(health.generatedAt)}
                   </p>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-zinc-500">
                   Требуют внимания:{" "}
-                  <span className="font-semibold text-slate-800">{attentionCount}</span>
+                  <span className="font-semibold text-zinc-200">{attentionCount}</span>
                 </p>
               </div>
 
@@ -373,22 +373,22 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                   <div>
                     <h2
                       id="ops-system-attention-title"
-                      className="text-base font-semibold text-slate-950"
+                      className="text-base font-semibold text-zinc-50"
                     >
                       Требуют внимания
                     </h2>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-zinc-500">
                       Только безопасные технические данные без сообщений и вложений.
                     </p>
                   </div>
-                  <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-zinc-300">
                     {health.attention.length}
                   </span>
                 </div>
 
                 {health.attention.length ? (
-                  <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <div className="divide-y divide-slate-200">
+                  <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#171717] shadow-sm">
+                    <div className="divide-y divide-white/10">
                       {health.attention.map((job) => (
                         <article
                           key={job.id}
@@ -400,26 +400,26 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                                 className={cn(
                                   "rounded-full px-2.5 py-1 text-[11px] font-semibold",
                                   job.status === "DEAD_LETTER"
-                                    ? "bg-red-50 text-red-700"
-                                    : "bg-amber-50 text-amber-800"
+                                    ? "bg-red-500/10 text-red-300"
+                                    : "bg-amber-500/10 text-amber-200"
                                 )}
                               >
                                 {job.status === "DEAD_LETTER" ? "Dead letter" : "Нужен сотрудник"}
                               </span>
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs text-zinc-500">
                                 {STAGE_LABELS[job.stage] ?? "Внутренний этап"}
                               </span>
                             </div>
-                            <h3 className="mt-2 truncate text-sm font-semibold text-slate-950">
+                            <h3 className="mt-2 truncate text-sm font-semibold text-zinc-50">
                               {JOB_TYPE_LABELS[job.type] ?? "Внутренняя задача"}
                             </h3>
-                            <p className="mt-1 text-sm leading-5 text-slate-600">
+                            <p className="mt-1 text-sm leading-5 text-zinc-400">
                               {job.error.message}
                             </p>
-                            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
                               <span>
                                 Код:{" "}
-                                <span className="font-mono text-slate-700">{job.error.type}</span>
+                                <span className="font-mono text-zinc-300">{job.error.type}</span>
                               </span>
                               <span>
                                 Попытки: {job.attempts}/{job.maxAttempts}
@@ -429,7 +429,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                             {job.task ? (
                               <Link
                                 href={`/admin/operations/tasks/${job.task.id}`}
-                                className="mt-2 inline-flex max-w-full items-center gap-1 text-xs font-semibold text-blue-700 hover:underline"
+                                className="mt-2 inline-flex max-w-full items-center gap-1 text-xs font-semibold text-blue-300 hover:underline"
                               >
                                 <span className="shrink-0">{job.task.externalId}</span>
                                 <span className="truncate">Открыть связанную задачу</span>
@@ -437,7 +437,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                             ) : job.inboxItem ? (
                               <Link
                                 href={`/admin/operations/inbox?selected=${encodeURIComponent(job.inboxItem.id)}`}
-                                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:underline"
+                                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-300 hover:underline"
                               >
                                 <Inbox className="h-3.5 w-3.5" aria-hidden="true" />
                                 Открыть Входящие
@@ -452,7 +452,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                                 setSelected({ job, action: "retry" });
                                 setActionError(null);
                               }}
-                              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-100"
+                              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 text-sm font-semibold text-blue-300 hover:border-blue-500/40 hover:bg-blue-500/15"
                             >
                               <RotateCcw className="h-4 w-4" aria-hidden="true" />
                               Повторить
@@ -464,7 +464,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                                   setSelected({ job, action: "dismiss" });
                                   setActionError(null);
                                 }}
-                                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:border-slate-400"
+                                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-white/15 bg-[#171717] px-3 text-sm font-semibold text-zinc-300 hover:border-white/25"
                               >
                                 <X className="h-4 w-4" aria-hidden="true" />
                                 Закрыть
@@ -476,12 +476,12 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-3 flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center">
+                  <div className="mt-3 flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-white/15 bg-[#171717] p-6 text-center">
                     <ShieldCheck className="h-9 w-9 text-emerald-500" aria-hidden="true" />
-                    <h3 className="mt-3 text-sm font-semibold text-slate-800">
+                    <h3 className="mt-3 text-sm font-semibold text-zinc-200">
                       Очередь не требует вмешательства
                     </h3>
-                    <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
+                    <p className="mt-1 max-w-sm text-xs leading-5 text-zinc-500">
                       Нет dead-letter или waiting-human задач.
                     </p>
                   </div>
@@ -492,16 +492,16 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 <section aria-labelledby="ops-system-telegram-title">
                   <h2
                     id="ops-system-telegram-title"
-                    className="text-base font-semibold text-slate-950"
+                    className="text-base font-semibold text-zinc-50"
                   >
                     Уведомления в Telegram
                   </h2>
                   <div
                     className={cn(
-                      "mt-3 rounded-xl border bg-white p-4 shadow-sm",
+                      "mt-3 rounded-xl border bg-[#171717] p-4 shadow-sm",
                       health.telegram.pausedRecipients.length
-                        ? "border-amber-200"
-                        : "border-emerald-200"
+                        ? "border-amber-500/30"
+                        : "border-emerald-500/30"
                     )}
                     data-ops-telegram-recipients
                   >
@@ -510,37 +510,37 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                         className={cn(
                           "mt-0.5 h-5 w-5 shrink-0",
                           health.telegram.pausedRecipients.length
-                            ? "text-amber-600"
-                            : "text-emerald-600"
+                            ? "text-amber-400"
+                            : "text-emerald-400"
                         )}
                         aria-hidden="true"
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-zinc-100">
                           {health.telegram.pausedRecipients.length
                             ? `Не доходят: ${health.telegram.pausedRecipients.length} из ${health.telegram.linkedMembers}`
                             : `Доходят всем: ${health.telegram.linkedMembers}`}
                         </p>
                         {health.telegram.pausedRecipients.length ? (
                           <>
-                            <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                            <ul className="mt-2 space-y-1 text-sm text-zinc-300">
                               {health.telegram.pausedRecipients.map((recipient) => (
                                 <li key={recipient.adminUserId}>
                                   {recipient.name}{" "}
-                                  <span className="text-xs text-slate-500">
+                                  <span className="text-xs text-zinc-500">
                                     — бот заблокирован, пауза с {formatDate(recipient.pausedAt)}
                                   </span>
                                 </li>
                               ))}
                             </ul>
-                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                            <p className="mt-2 text-xs leading-5 text-zinc-500">
                               Бот больше не пробует писать им каждый день. Уведомления включатся
                               сами, когда сотрудник снова напишет боту, или после сохранения его
                               Telegram-настроек в разделе «Пользователи».
                             </p>
                           </>
                         ) : (
-                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                          <p className="mt-1 text-xs leading-5 text-zinc-500">
                             Напоминания и утренние сводки уходят всем, у кого привязан Telegram.
                           </p>
                         )}
@@ -550,13 +550,10 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 </section>
 
                 <section aria-labelledby="ops-system-inbox-title">
-                  <h2
-                    id="ops-system-inbox-title"
-                    className="text-base font-semibold text-slate-950"
-                  >
+                  <h2 id="ops-system-inbox-title" className="text-base font-semibold text-zinc-50">
                     Ошибки Входящих
                   </h2>
-                  <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="mt-3 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
                     <dl className="grid grid-cols-3 gap-2 text-center">
                       <Metric label="Всего" value={health.inbox.failed} />
                       <Metric label="Не разобраны" value={health.inbox.failedPendingReview} />
@@ -564,7 +561,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                     </dl>
                     <Link
                       href="/admin/operations/inbox"
-                      className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                      className="mt-4 flex h-10 items-center justify-center gap-2 rounded-lg border border-white/15 text-sm font-semibold text-zinc-300 hover:border-blue-500/40 hover:text-blue-300"
                     >
                       <Inbox className="h-4 w-4" aria-hidden="true" />
                       Открыть Входящие
@@ -573,17 +570,14 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 </section>
 
                 <section aria-labelledby="ops-system-usage-title">
-                  <h2
-                    id="ops-system-usage-title"
-                    className="text-base font-semibold text-slate-950"
-                  >
+                  <h2 id="ops-system-usage-title" className="text-base font-semibold text-zinc-50">
                     Лимиты и хранение
                   </h2>
                   <div className="mt-3 space-y-3">
                     <div
                       className={cn(
-                        "rounded-xl border bg-white p-4 shadow-sm",
-                        health.media.configured ? "border-emerald-200" : "border-amber-200"
+                        "rounded-xl border bg-[#171717] p-4 shadow-sm",
+                        health.media.configured ? "border-emerald-500/30" : "border-amber-500/30"
                       )}
                       data-ops-media-store-status={health.media.provider}
                     >
@@ -591,15 +585,15 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                         <HardDrive
                           className={cn(
                             "mt-0.5 h-5 w-5 shrink-0",
-                            health.media.configured ? "text-emerald-600" : "text-amber-600"
+                            health.media.configured ? "text-emerald-400" : "text-amber-400"
                           )}
                           aria-hidden="true"
                         />
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-zinc-100">
                             Вложения: {mediaStoreLabel(health.media.provider)}
                           </p>
-                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                          <p className="mt-1 text-xs leading-5 text-zinc-500">
                             {health.media.provider === "vercel_blob"
                               ? "Приватное хранилище готово для Preview и production."
                               : health.media.provider === "local"
@@ -614,7 +608,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                     {health.usage.length ? (
                       health.usage.map((bucket) => <UsageCard key={bucket.id} bucket={bucket} />)
                     ) : (
-                      <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-sm">
+                      <div className="rounded-xl border border-white/10 bg-[#171717] p-4 text-sm text-zinc-500 shadow-sm">
                         Использование ещё не зафиксировано.
                       </div>
                     )}
@@ -638,13 +632,13 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
             }
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 id="ops-system-action-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-system-action-title" className="text-lg font-bold text-zinc-50">
                   {selected.action === "retry" ? "Повторить системную задачу?" : "Закрыть ошибку?"}
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-zinc-500">
                   {selected.action === "retry"
                     ? "Будет использована та же durable job и тот же idempotency key. Новые сущности не создаются."
                     : "Ошибка уйдёт из списка «Требуют внимания». Повторной отправки не будет, запись останется в журнале."}
@@ -655,22 +649,22 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 onClick={() => setSelected(null)}
                 disabled={submitting}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-slate-50 p-3">
-              <p className="text-sm font-semibold text-slate-800">
+            <div className="mt-4 rounded-lg bg-white/[0.03] p-3">
+              <p className="text-sm font-semibold text-zinc-200">
                 {JOB_TYPE_LABELS[selected.job.type] ?? "Внутренняя задача"}
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-zinc-500">
                 Этап: {STAGE_LABELS[selected.job.stage] ?? "Внутренний этап"} ·{" "}
                 {formatDate(selected.job.updatedAt)}
               </p>
               {selected.action === "retry" ? (
-                <p className="mt-2 text-xs leading-5 text-slate-600">
+                <p className="mt-2 text-xs leading-5 text-zinc-400">
                   Счётчик попыток начнётся заново, но автоматический цикл останется ограничен
                   максимум четырьмя попытками.
                 </p>
@@ -680,7 +674,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
             {actionError ? (
               <div
                 role="alert"
-                className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                className="mt-3 flex items-start gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300"
               >
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {actionError}
@@ -692,7 +686,7 @@ export function OpsSystem({ permissions }: { permissions: readonly string[] }) {
                 type="button"
                 onClick={() => setSelected(null)}
                 disabled={submitting}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-300 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -733,17 +727,17 @@ function SummaryCard({
   tone: "blue" | "emerald" | "amber" | "red";
 }) {
   const tones = {
-    blue: "bg-blue-50 text-blue-700",
-    emerald: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-800",
-    red: "bg-red-50 text-red-700",
+    blue: "bg-blue-500/10 text-blue-300",
+    emerald: "bg-emerald-500/10 text-emerald-300",
+    amber: "bg-amber-500/10 text-amber-200",
+    red: "bg-red-500/10 text-red-300",
   };
   return (
-    <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="min-w-0 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium text-slate-500">{label}</p>
-          <p className="mt-2 text-2xl font-bold tabular-nums text-slate-950">{value}</p>
+          <p className="truncate text-xs font-medium text-zinc-500">{label}</p>
+          <p className="mt-2 text-2xl font-bold tabular-nums text-zinc-50">{value}</p>
         </div>
         <span
           className={cn(
@@ -754,18 +748,18 @@ function SummaryCard({
           <Icon className="h-4 w-4" aria-hidden="true" />
         </span>
       </div>
-      <p className="mt-2 truncate text-[11px] text-slate-400">{hint}</p>
+      <p className="mt-2 truncate text-[11px] text-zinc-500">{hint}</p>
     </article>
   );
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="min-w-0 rounded-lg bg-slate-50 px-2 py-3">
-      <dt className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
+    <div className="min-w-0 rounded-lg bg-white/[0.03] px-2 py-3">
+      <dt className="truncate text-[10px] font-medium uppercase tracking-wide text-zinc-500">
         {label}
       </dt>
-      <dd className="mt-1 text-xl font-bold tabular-nums text-slate-950">{value}</dd>
+      <dd className="mt-1 text-xl font-bold tabular-nums text-zinc-50">{value}</dd>
     </div>
   );
 }
@@ -776,18 +770,18 @@ function UsageCard({ bucket }: { bucket: UsageBucket }) {
   const percentage = limit > 0 ? Math.min(100, Math.max(0, (current / limit) * 100)) : 0;
   const Icon = bucket.feature === "telegram_manager" ? Bot : HardDrive;
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-zinc-400">
           <Icon className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold text-slate-800">
+              <h3 className="truncate text-sm font-semibold text-zinc-200">
                 {usageLabel(bucket.feature)}
               </h3>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-zinc-500">
                 {usageValue(bucket)}
                 {limit > 0
                   ? ` из ${
@@ -799,17 +793,17 @@ function UsageCard({ bucket }: { bucket: UsageBucket }) {
               </p>
             </div>
             {bucket.hardStopReached ? (
-              <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-700">
+              <span className="rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-semibold text-red-300">
                 Стоп
               </span>
             ) : bucket.warningReached ? (
-              <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">
+              <span className="rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-200">
                 Внимание
               </span>
             ) : null}
           </div>
           <div
-            className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"
+            className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]"
             role="progressbar"
             aria-label={usageLabel(bucket.feature)}
             aria-valuemin={0}
@@ -825,13 +819,13 @@ function UsageCard({ bucket }: { bucket: UsageBucket }) {
             />
           </div>
           {bucket.feature === "telegram_manager" ? (
-            <p className="mt-2 text-[11px] text-slate-400">
+            <p className="mt-2 text-[11px] text-zinc-500">
               {numeric(bucket.inputTokens).toLocaleString("ru-RU")} входных ·{" "}
               {numeric(bucket.outputTokens).toLocaleString("ru-RU")} выходных токенов ·{" "}
               {bucket.audioSeconds} сек аудио
             </p>
           ) : (
-            <p className="mt-2 flex items-center gap-1 text-[11px] text-slate-400">
+            <p className="mt-2 flex items-center gap-1 text-[11px] text-zinc-500">
               <Database className="h-3 w-3" aria-hidden="true" />
               Счётчик PostgreSQL, без публичных ссылок на файлы
             </p>

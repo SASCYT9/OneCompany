@@ -1,11 +1,4 @@
-import {
-  OpsAttachmentState,
-  OpsJobStage,
-  OpsJobStatus,
-  OpsTaskStatus,
-  type Prisma,
-  type PrismaClient,
-} from "@prisma/client";
+import { OpsAttachmentState, type PrismaClient } from "@prisma/client";
 import { cancelRequestedOpsJobs, reclaimExpiredOpsJobLeases } from "@/lib/operations/jobs";
 import {
   createConfiguredOpsMediaStore,
@@ -13,82 +6,8 @@ import {
   type OpsPrivateMediaStore,
 } from "@/lib/operations/media";
 import { opsRolesAllowNotification } from "@/lib/operations/notificationAccess";
+import { enqueueOpsMemberReminders } from "@/lib/operations/reminders";
 import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
-
-const ACTIVE_TASK_STATUSES = [
-  OpsTaskStatus.PLANNED,
-  OpsTaskStatus.IN_PROGRESS,
-  OpsTaskStatus.AGENT_RUNNING,
-  OpsTaskStatus.WAITING_HUMAN,
-  OpsTaskStatus.WAITING_EXTERNAL,
-  OpsTaskStatus.NEEDS_APPROVAL,
-  OpsTaskStatus.REVIEW,
-  OpsTaskStatus.BLOCKED,
-] as const;
-
-function localClock(now: Date, timeZone = "Europe/Kyiv") {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(now);
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return {
-    date: `${value.year}-${value.month}-${value.day}`,
-    hour: Number(value.hour),
-  };
-}
-
-function timeZoneOffsetMs(date: Date, timeZone: string) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(date);
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const representedAsUtc = Date.UTC(
-    Number(value.year),
-    Number(value.month) - 1,
-    Number(value.day),
-    Number(value.hour),
-    Number(value.minute),
-    Number(value.second)
-  );
-  return representedAsUtc - date.getTime();
-}
-
-function localDayBounds(date: string, timeZone: string) {
-  const [year, month, day] = date.split("-").map(Number);
-  const localMidnightAsUtc = Date.UTC(year, month - 1, day);
-  const startGuess = new Date(localMidnightAsUtc);
-  const start = new Date(localMidnightAsUtc - timeZoneOffsetMs(startGuess, timeZone));
-  const nextLocalMidnightAsUtc = localMidnightAsUtc + 24 * 60 * 60 * 1000;
-  const endGuess = new Date(nextLocalMidnightAsUtc);
-  const end = new Date(nextLocalMidnightAsUtc - timeZoneOffsetMs(endGuess, timeZone));
-  return { start, end };
-}
-
-function asJson(value: unknown) {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-}
-
-function assignedTo(adminUserId: string): Prisma.OpsTaskWhereInput {
-  return {
-    OR: [
-      { assignees: { some: { adminUserId } } },
-      // Compatibility for tasks created before the participant migration.
-      { assigneeId: adminUserId },
-    ],
-  };
-}
 
 export async function enqueueOpsInternalNotifications(input: { client: PrismaClient; now: Date }) {
   const candidateProfiles = await input.client.opsMemberProfile.findMany({
@@ -113,122 +32,26 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
       },
     },
   });
-  let reminders = 0;
-  let reports = 0;
   const paused = await findPausedOpsTelegramRecipients(input.client, candidateProfiles);
-  const reachableProfiles = candidateProfiles.filter(
-    (profile) => !paused.has(profile.adminUserId)
-  );
-  const reminderProfiles = reachableProfiles.filter((profile) =>
-    opsRolesAllowNotification(profile.adminUser.roles, "telegram_task_reminder")
-  );
-  for (const profile of reminderProfiles) {
-    if (!profile.telegramUserId) continue;
-    const dueTasks = await input.client.opsTask.findMany({
-      where: {
-        archivedAt: null,
-        ...assignedTo(profile.adminUserId),
-        status: { in: [...ACTIVE_TASK_STATUSES] },
-        dueAt: { lte: input.now },
-      },
-      orderBy: { dueAt: "asc" },
-      select: {
-        id: true,
-        externalId: true,
-        title: true,
-        dueAt: true,
+  const totals = { reminders: 0, reports: 0, reviews: 0, pausedRecipients: paused.size };
+  for (const profile of candidateProfiles) {
+    if (!profile.telegramUserId || paused.has(profile.adminUserId)) continue;
+    if (!opsRolesAllowNotification(profile.adminUser.roles, "telegram_internal_report")) continue;
+    const queued = await enqueueOpsMemberReminders({
+      client: input.client,
+      now: input.now,
+      member: {
+        adminUserId: profile.adminUserId,
+        telegramUserId: profile.telegramUserId,
+        timezone: profile.timezone,
+        roles: profile.adminUser.roles,
       },
     });
-    if (!dueTasks.length) continue;
-    const result = await input.client.opsJob.createMany({
-      data: dueTasks.map((task) => ({
-        idempotencyKey: `reminder:due-once:${task.id}:${profile.adminUserId}`,
-        taskId: task.id,
-        type: "telegram_task_reminder",
-        status: OpsJobStatus.QUEUED,
-        stage: OpsJobStage.NOTIFY,
-        payload: asJson({
-          taskId: task.id,
-          recipientAdminUserId: profile.adminUserId,
-          telegramUserId: profile.telegramUserId!.toString(),
-          externalId: task.externalId,
-          title: task.title,
-          dueAt: task.dueAt?.toISOString() ?? null,
-        }),
-      })),
-      skipDuplicates: true,
-    });
-    reminders += result.count;
+    totals.reminders += queued.nudges;
+    totals.reports += queued.digests;
+    totals.reviews += queued.reviews;
   }
-  const reportProfiles = reachableProfiles.filter((profile) =>
-    opsRolesAllowNotification(profile.adminUser.roles, "telegram_internal_report")
-  );
-  for (const profile of reportProfiles) {
-    if (!profile.telegramUserId) continue;
-    const clock = localClock(input.now, profile.timezone);
-    if (clock.hour !== 9) continue;
-    const day = localDayBounds(clock.date, profile.timezone);
-    const counts = await input.client.opsTask.groupBy({
-      by: ["status"],
-      where: {
-        archivedAt: null,
-        ...assignedTo(profile.adminUserId),
-        status: { in: [...ACTIVE_TASK_STATUSES] },
-      },
-      _count: { _all: true },
-    });
-    const overdueCount = await input.client.opsTask.count({
-      where: {
-        archivedAt: null,
-        ...assignedTo(profile.adminUserId),
-        status: { in: [...ACTIVE_TASK_STATUSES] },
-        dueAt: { lt: input.now },
-      },
-    });
-    const activeCount = counts.reduce((sum, row) => sum + row._count._all, 0);
-    if (activeCount === 0) continue;
-    const [todayCount, withoutDueCount] = await Promise.all([
-      input.client.opsTask.count({
-        where: {
-          archivedAt: null,
-          ...assignedTo(profile.adminUserId),
-          status: { in: [...ACTIVE_TASK_STATUSES] },
-          dueAt: { gte: day.start, lt: day.end },
-        },
-      }),
-      input.client.opsTask.count({
-        where: {
-          archivedAt: null,
-          ...assignedTo(profile.adminUserId),
-          status: { in: [...ACTIVE_TASK_STATUSES] },
-          dueAt: null,
-        },
-      }),
-    ]);
-    const result = await input.client.opsJob.createMany({
-      data: [
-        {
-          idempotencyKey: `report:morning:${profile.adminUserId}:${clock.date}`,
-          type: "telegram_internal_report",
-          status: OpsJobStatus.QUEUED,
-          stage: OpsJobStage.NOTIFY,
-          payload: asJson({
-            reportPeriod: "morning",
-            reportDate: clock.date,
-            recipientAdminUserId: profile.adminUserId,
-            telegramUserId: profile.telegramUserId.toString(),
-            overdueCount,
-            todayCount,
-            withoutDueCount,
-            counts: Object.fromEntries(counts.map((row) => [row.status, row._count._all])),
-          }),
-        },
-      ],
-      skipDuplicates: true,
-    });
-    reports += result.count;
-  }
-  return { reminders, reports, pausedRecipients: paused.size };
+  return totals;
 }
 
 async function cleanupExpiredAttachments(input: {

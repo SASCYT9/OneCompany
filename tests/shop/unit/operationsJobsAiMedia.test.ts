@@ -981,11 +981,16 @@ test("Telegram notification permission is rechecked after enqueue and role revoc
       },
     },
     opsTask: {
+      // One task due at 15:00 Kyiv, so the 09:00 digest has something to say.
       async findMany() {
-        return [];
-      },
-      async groupBy() {
-        return [{ status: "IN_PROGRESS", _count: { _all: 1 } }];
+        return [
+          {
+            id: "task-1",
+            externalId: "TSK-1",
+            title: "Проверить заказ",
+            dueAt: new Date("2026-07-20T12:00:00.000Z"),
+          },
+        ];
       },
       async count() {
         return 1;
@@ -1069,7 +1074,7 @@ test("Telegram notification permission is rechecked after enqueue and role revoc
   assert.equal(sends, 0);
 });
 
-test("an overdue task queues only one Telegram reminder per assignee", async () => {
+test("a task due later today gets exactly one gentle nudge two hours before", async () => {
   const [{ enqueueOpsInternalNotifications }] = await notificationJobModules;
   const keys = new Set<string>();
   const createdJobs: Record<string, unknown>[] = [];
@@ -1102,7 +1107,8 @@ test("an overdue task queues only one Telegram reminder per assignee", async () 
             id: "task-1",
             externalId: "TSK-1",
             title: "Проверить заказ",
-            dueAt: new Date("2026-07-22T06:00:00.000Z"),
+            // 15:36 Kyiv: nudge from 13:36.
+            dueAt: new Date("2026-07-22T12:36:00.000Z"),
           },
         ];
       },
@@ -1125,14 +1131,21 @@ test("an overdue task queues only one Telegram reminder per assignee", async () 
     },
   } as unknown as PrismaClient;
 
-  const now = new Date("2026-07-22T07:30:00.000Z");
+  const tooEarly = await enqueueOpsInternalNotifications({
+    client,
+    now: new Date("2026-07-22T10:00:00.000Z"),
+  });
+  assert.equal(tooEarly.reminders, 0, "13:00 Kyiv is before the 13:36 nudge");
+
+  const now = new Date("2026-07-22T10:40:00.000Z");
   const first = await enqueueOpsInternalNotifications({ client, now });
   const second = await enqueueOpsInternalNotifications({ client, now });
 
   assert.equal(first.reminders, 1);
   assert.equal(second.reminders, 0);
   assert.equal(createdJobs.length, 1);
-  assert.equal(createdJobs[0].idempotencyKey, "reminder:due-once:task-1:admin-1");
+  assert.equal(createdJobs[0].idempotencyKey, "reminder:due-today:task-1:admin-1:2026-07-22");
+  assert.equal((createdJobs[0].payload as Record<string, unknown>).reminderKind, "due_today");
 });
 
 test("assignment notifications fan out once to every newly assigned Telegram participant", async () => {

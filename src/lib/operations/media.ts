@@ -616,10 +616,7 @@ export function getOpsMediaConfiguration(
   env: Partial<
     Pick<
       NodeJS.ProcessEnv,
-      | "NODE_ENV"
-      | "OPS_LOCAL_MEDIA_DIR"
-      | "OPS_BLOB_READ_WRITE_TOKEN"
-      | "OPS_BLOB_STORE_ID"
+      "NODE_ENV" | "OPS_LOCAL_MEDIA_DIR" | "OPS_BLOB_READ_WRITE_TOKEN" | "OPS_BLOB_STORE_ID"
     >
   > = process.env
 ): OpsMediaConfiguration {

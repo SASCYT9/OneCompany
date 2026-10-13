@@ -99,33 +99,33 @@ const lanes: Array<{
 ];
 
 const priorityDot: Record<OpsPriority, string> = {
-  LOW: "bg-slate-300",
+  LOW: "bg-white/15",
   NORMAL: "bg-amber-400",
   HIGH: "bg-red-500",
   URGENT: "bg-rose-600",
 };
 
 const memberTones = [
-  "bg-blue-100 text-blue-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-violet-100 text-violet-700",
-  "bg-amber-100 text-amber-700",
-  "bg-cyan-100 text-cyan-700",
-  "bg-rose-100 text-rose-700",
+  "bg-blue-500/15 text-blue-300",
+  "bg-emerald-500/15 text-emerald-300",
+  "bg-violet-500/15 text-violet-300",
+  "bg-amber-500/15 text-amber-300",
+  "bg-cyan-500/15 text-cyan-300",
+  "bg-rose-500/15 text-rose-300",
 ] as const;
 
 const statusTone: Record<OpsTaskStatus, string> = {
-  INBOX: "text-slate-600",
-  PLANNED: "text-blue-700",
-  IN_PROGRESS: "text-blue-700",
-  AGENT_RUNNING: "text-violet-700",
-  WAITING_HUMAN: "text-amber-700",
-  WAITING_EXTERNAL: "text-amber-700",
-  NEEDS_APPROVAL: "text-orange-700",
-  REVIEW: "text-violet-700",
-  BLOCKED: "text-red-700",
-  DONE: "text-emerald-700",
-  CANCELLED: "text-slate-500",
+  INBOX: "text-zinc-400",
+  PLANNED: "text-blue-300",
+  IN_PROGRESS: "text-blue-300",
+  AGENT_RUNNING: "text-violet-300",
+  WAITING_HUMAN: "text-amber-300",
+  WAITING_EXTERNAL: "text-amber-300",
+  NEEDS_APPROVAL: "text-orange-300",
+  REVIEW: "text-violet-300",
+  BLOCKED: "text-red-300",
+  DONE: "text-emerald-300",
+  CANCELLED: "text-zinc-500",
 };
 
 function memberTone(id: string) {
@@ -184,7 +184,7 @@ function AssigneeMark({
             ? "bg-blue-600 text-white"
             : primary
               ? memberTone(primary.id)
-              : "bg-slate-100 text-slate-500"
+              : "bg-white/[0.06] text-zinc-500"
         )}
       >
         {task.isShared ? "ВСЕ" : initials(primary?.name)}
@@ -254,24 +254,24 @@ function TaskListRow({
       type="button"
       onClick={onSelect}
       className={cn(
-        "group grid w-full grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-3 border-b border-l-2 border-b-slate-100 border-l-transparent px-3 py-3 text-left transition last:border-b-0 hover:bg-slate-50 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-blue-500",
-        selected && "border-l-blue-600 bg-blue-50/80"
+        "group grid w-full grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-3 border-b border-l-2 border-b-white/5 border-l-transparent px-3 py-3 text-left transition last:border-b-0 hover:bg-white/[0.03] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-blue-500",
+        selected && "border-l-blue-600 bg-blue-500/10"
       )}
     >
       <span className={cn("h-2.5 w-2.5 rounded-full", priorityDot[task.priority])} />
       <span className="min-w-0">
-        <span className="block text-sm font-semibold leading-5 text-slate-900">
-          {task.number ? <span className="mr-1.5 text-blue-600">#{task.number}</span> : null}
+        <span className="block text-sm font-semibold leading-5 text-zinc-100">
+          {task.number ? <span className="mr-1.5 text-blue-400">#{task.number}</span> : null}
           {task.title}
         </span>
         {task.nextAction ? (
-          <span className="mt-0.5 hidden truncate text-xs text-slate-500 sm:block">
+          <span className="mt-0.5 hidden truncate text-xs text-zinc-500 sm:block">
             {task.nextAction}
           </span>
         ) : null}
-        <span className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+        <span className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
           {showAssignee ? (
-            <span className="flex max-w-36 min-w-0 items-center gap-1.5 border-r border-slate-200 pr-2">
+            <span className="flex max-w-36 min-w-0 items-center gap-1.5 border-r border-white/10 pr-2">
               <AssigneeMark task={task} showName compact />
             </span>
           ) : null}
@@ -281,7 +281,7 @@ function TaskListRow({
           <span
             className={cn(
               "flex shrink-0 items-center gap-1",
-              taskGroup(task) === "Просрочено" && "font-medium text-red-600"
+              taskGroup(task) === "Просрочено" && "font-medium text-red-400"
             )}
           >
             <CalendarDays className="h-3.5 w-3.5" />
@@ -289,7 +289,7 @@ function TaskListRow({
           </span>
         </span>
       </span>
-      <span className="flex items-center gap-1 text-slate-400">
+      <span className="flex items-center gap-1 text-zinc-500">
         {task.sourceType === "TELEGRAM" || task.attachments?.length ? (
           <>
             <Send className="hidden h-4 w-4 text-blue-500 sm:block" />
@@ -300,7 +300,7 @@ function TaskListRow({
             ) : null}
           </>
         ) : null}
-        <ChevronRight className="h-4 w-4 group-hover:text-blue-600" />
+        <ChevronRight className="h-4 w-4 group-hover:text-blue-400" />
       </span>
     </button>
   );
@@ -338,8 +338,8 @@ function TeamRail({
         onClick={() => onSelect(member.id)}
         aria-pressed={selected}
         className={cn(
-          "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-slate-50",
-          selected && "border-l-blue-600 bg-blue-50"
+          "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-white/[0.03]",
+          selected && "border-l-blue-600 bg-blue-500/10"
         )}
       >
         <span
@@ -351,17 +351,17 @@ function TeamRail({
           {initials(member.name)}
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-sm font-medium text-slate-800">
+          <span className="block truncate text-sm font-medium text-zinc-200">
             {mine ? "Мои задачи" : member.name || member.email}
           </span>
-          <span className="mt-1 block h-1 overflow-hidden bg-slate-100">
+          <span className="mt-1 block h-1 overflow-hidden bg-white/[0.06]">
             <span
               className="block h-full bg-blue-600"
               style={{ width: `${Math.max(8, ((member.activeTaskCount ?? 0) / maxCount) * 100)}%` }}
             />
           </span>
         </span>
-        <span className="text-right text-xs font-semibold text-slate-600">
+        <span className="text-right text-xs font-semibold text-zinc-400">
           {member.activeTaskCount ?? 0}
         </span>
       </button>
@@ -369,9 +369,9 @@ function TeamRail({
   };
 
   return (
-    <aside className="hidden border-r border-slate-200 bg-white lg:block">
+    <aside className="hidden border-r border-white/10 bg-[#171717] lg:block">
       <div className="sticky top-0 py-4">
-        <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+        <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">
           Участники
         </h2>
         <button
@@ -379,34 +379,34 @@ function TeamRail({
           onClick={() => onSelect(null)}
           aria-pressed={!selectedMemberId && !assigneeNone}
           className={cn(
-            "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-slate-50",
-            !selectedMemberId && !assigneeNone && "border-l-blue-600 bg-blue-50"
+            "grid w-full grid-cols-[36px_minmax(0,1fr)_30px] items-center gap-2 border-l-2 border-transparent px-3 py-3 text-left transition hover:bg-white/[0.03]",
+            !selectedMemberId && !assigneeNone && "border-l-blue-600 bg-blue-500/10"
           )}
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white">
             <UsersRound className="h-4 w-4" />
           </span>
-          <span className="truncate text-sm font-medium text-slate-800">Все задачи</span>
-          <span className="text-right text-xs font-semibold text-slate-600">{activeTaskCount}</span>
+          <span className="truncate text-sm font-medium text-zinc-200">Все задачи</span>
+          <span className="text-right text-xs font-semibold text-zinc-400">{activeTaskCount}</span>
         </button>
         {current ? memberButton(current, true) : null}
-        <div className="my-1 border-t border-slate-100" />
+        <div className="my-1 border-t border-white/5" />
         {others.map((member) => memberButton(member))}
         <button
           type="button"
           onClick={() => onSelect("none")}
           aria-pressed={assigneeNone}
           className={cn(
-            "mt-1 flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-3 text-left text-sm text-slate-600 hover:bg-slate-50",
-            assigneeNone && "border-l-blue-600 bg-blue-50 text-slate-900"
+            "mt-1 flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-3 text-left text-sm text-zinc-400 hover:bg-white/[0.03]",
+            assigneeNone && "border-l-blue-600 bg-blue-500/10 text-zinc-100"
           )}
         >
-          <UserX className="h-4 w-4 text-slate-400" />
+          <UserX className="h-4 w-4 text-zinc-500" />
           Без исполнителя
         </button>
         {onScopeChange ? (
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <h2 className="px-4 pb-2 text-xs font-bold uppercase tracking-wide text-zinc-500">
               Представления
             </h2>
             {(
@@ -422,8 +422,8 @@ function TeamRail({
                 onClick={() => onScopeChange(value)}
                 aria-pressed={scope === value}
                 className={cn(
-                  "flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-2.5 text-left text-sm text-slate-600 hover:bg-slate-50",
-                  scope === value && "border-l-blue-600 bg-blue-50 font-medium text-blue-700"
+                  "flex w-full items-center gap-3 border-l-2 border-transparent px-4 py-2.5 text-left text-sm text-zinc-400 hover:bg-white/[0.03]",
+                  scope === value && "border-l-blue-600 bg-blue-500/10 font-medium text-blue-300"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -469,7 +469,7 @@ function SortableTaskCard({
         }
       }}
       className={cn(
-        "cursor-pointer rounded-none border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-blue-300 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500",
+        "cursor-pointer rounded-none border border-white/10 bg-[#171717] p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-blue-500/40 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500",
         isDragging && "opacity-40"
       )}
     >
@@ -478,21 +478,21 @@ function SortableTaskCard({
           <span
             className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", priorityDot[task.priority])}
           />
-          <h3 className="min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-900">
-            {task.number ? <span className="mr-1.5 text-blue-600">#{task.number}</span> : null}
+          <h3 className="min-w-0 flex-1 text-sm font-semibold leading-5 text-zinc-100">
+            {task.number ? <span className="mr-1.5 text-blue-400">#{task.number}</span> : null}
             {task.title}
           </h3>
         </div>
         {task.project ? (
-          <p className="mt-2 truncate text-[11px] text-slate-500">{task.project.title}</p>
+          <p className="mt-2 truncate text-[11px] text-zinc-500">{task.project.title}</p>
         ) : null}
         {task.nextAction || task.blockerDescription ? (
-          <p className="mt-2 line-clamp-2 text-xs leading-4 text-slate-500">
+          <p className="mt-2 line-clamp-2 text-xs leading-4 text-zinc-500">
             {task.nextAction || task.blockerDescription}
           </p>
         ) : null}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
+      <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5">
         <AssigneeMark task={task} />
         <div className="flex items-center gap-2">
           {canWrite ? (
@@ -503,7 +503,7 @@ function SortableTaskCard({
                 onQuickComment();
               }}
               aria-label={`Добавить заметку к задаче ${task.title}`}
-              className="rounded-none p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600 focus-visible:outline-2 focus-visible:outline-blue-500"
+              className="rounded-none p-1.5 text-zinc-500 hover:bg-blue-500/10 hover:text-blue-400 focus-visible:outline-2 focus-visible:outline-blue-500"
             >
               <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -511,7 +511,7 @@ function SortableTaskCard({
           <span
             className={cn(
               "text-[11px]",
-              taskGroup(task) === "Просрочено" ? "font-medium text-red-600" : "text-slate-500"
+              taskGroup(task) === "Просрочено" ? "font-medium text-red-400" : "text-zinc-500"
             )}
           >
             {dueText(task.dueAt)}
@@ -521,7 +521,7 @@ function SortableTaskCard({
             onClick={(event) => event.stopPropagation()}
             aria-label={`Переместить задачу ${task.title}. Используйте пробел и стрелки.`}
             disabled={!canWrite || ["AGENT_RUNNING", "DONE", "CANCELLED"].includes(task.status)}
-            className="cursor-grab touch-none rounded-none px-2 py-1 text-xs font-bold text-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 active:cursor-grabbing"
+            className="cursor-grab touch-none rounded-none px-2 py-1 text-xs font-bold text-zinc-500 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-40 active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
@@ -554,14 +554,14 @@ function Lane({
     <section
       ref={setNodeRef}
       className={cn(
-        "flex min-h-[620px] min-w-[190px] flex-col bg-slate-50/70 px-2.5 py-3",
-        isOver && "bg-blue-50"
+        "flex min-h-[620px] min-w-[190px] flex-col bg-white/[0.02] px-2.5 py-3",
+        isOver && "bg-blue-500/10"
       )}
     >
-      <header className="mb-3 flex items-center gap-2 border-b border-slate-200 px-1 pb-3">
+      <header className="mb-3 flex items-center gap-2 border-b border-white/10 px-1 pb-3">
         <span className={cn("h-2.5 w-2.5 rounded-full", lane.tone)} />
-        <h2 className="text-xs font-bold uppercase tracking-wide text-slate-600">{lane.label}</h2>
-        <span className="ml-auto bg-white px-2 py-0.5 text-[11px] text-slate-500">
+        <h2 className="text-xs font-bold uppercase tracking-wide text-zinc-400">{lane.label}</h2>
+        <span className="ml-auto bg-[#171717] px-2 py-0.5 text-[11px] text-zinc-500">
           {tasks.length}
         </span>
       </header>
@@ -579,7 +579,7 @@ function Lane({
         </div>
       </SortableContext>
       {!tasks.length ? (
-        <div className="flex flex-1 items-start justify-center border-t border-dashed border-slate-200 px-3 pt-8 text-center text-xs text-slate-400">
+        <div className="flex flex-1 items-start justify-center border-t border-dashed border-white/10 px-3 pt-8 text-center text-xs text-zinc-500">
           Нет задач
         </div>
       ) : null}
@@ -600,7 +600,7 @@ function TaskCalendar({ tasks, onOpen }: { tasks: OpsTask[]; onOpen: (task: OpsT
   }, []);
 
   return (
-    <div className="grid min-w-[860px] grid-cols-7 overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="grid min-w-[860px] grid-cols-7 overflow-hidden rounded-xl border border-white/10 bg-[#171717]">
       {days.map((day) => {
         const matches = tasks.filter((task) => {
           if (!task.dueAt) return false;
@@ -610,9 +610,9 @@ function TaskCalendar({ tasks, onOpen }: { tasks: OpsTask[]; onOpen: (task: OpsT
         return (
           <section
             key={day.toISOString()}
-            className="min-h-44 border-b border-r border-slate-200 p-2.5"
+            className="min-h-44 border-b border-r border-white/10 p-2.5"
           >
-            <div className="text-xs font-semibold text-slate-500">
+            <div className="text-xs font-semibold text-zinc-500">
               {new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "numeric" }).format(day)}
             </div>
             <div className="mt-2 space-y-1.5">
@@ -621,7 +621,7 @@ function TaskCalendar({ tasks, onOpen }: { tasks: OpsTask[]; onOpen: (task: OpsT
                   key={task.id}
                   type="button"
                   onClick={() => onOpen(task)}
-                  className="block w-full rounded-lg bg-blue-50 px-2 py-1.5 text-left text-[11px] font-medium leading-4 text-blue-900 hover:bg-blue-100"
+                  className="block w-full rounded-lg bg-blue-500/10 px-2 py-1.5 text-left text-[11px] font-medium leading-4 text-blue-100 hover:bg-blue-500/15"
                 >
                   {task.number ? `#${task.number} ` : ""}
                   {task.title}
@@ -639,7 +639,6 @@ export function OpsTaskWorkspace({
   initialTasks,
   demoMode = false,
   initialSelectedId,
-  inboxCount = 0,
   canLinkKnowledge = false,
   initialKnowledge,
   permissions,
@@ -1094,7 +1093,7 @@ export function OpsTaskWorkspace({
   }
 
   return (
-    <OpsSurface inboxCount={inboxCount} permissions={permissions}>
+    <OpsSurface>
       <OpsPageHeader
         title={opsRu.tasks.title}
         description={`${opsRu.tasks.subtitle} · ${new Intl.DateTimeFormat("ru-RU", {
@@ -1117,12 +1116,12 @@ export function OpsTaskWorkspace({
             {matchesAdminPermission(permissions, ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ) ? (
               <Link
                 href="/admin/operations/knowledge"
-                className="hidden h-11 items-center gap-2 rounded-lg border border-blue-600 px-4 text-sm font-semibold text-blue-600 hover:bg-blue-50 sm:flex"
+                className="hidden h-11 items-center gap-2 rounded-lg border border-blue-600 px-4 text-sm font-semibold text-blue-400 hover:bg-blue-500/10 sm:flex"
               >
                 БАЗА
               </Link>
             ) : null}
-            <div className="hidden items-center rounded-lg border border-slate-200 bg-white p-1 lg:flex">
+            <div className="hidden items-center rounded-lg border border-white/10 bg-[#171717] p-1 lg:flex">
               {(
                 [
                   ["list", List, opsRu.tasks.views.list],
@@ -1136,7 +1135,7 @@ export function OpsTaskWorkspace({
                   onClick={() => setView(value)}
                   aria-pressed={view === value}
                   className={cn(
-                    "flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-slate-600",
+                    "flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-zinc-400",
                     view === value && "bg-blue-600 text-white shadow-sm"
                   )}
                 >
@@ -1149,24 +1148,24 @@ export function OpsTaskWorkspace({
         }
       />
 
-      <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+      <div className="border-b border-white/10 bg-[#171717] px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <label className="relative block min-w-0 flex-1 lg:max-w-lg">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Поиск задач…"
-              className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-11 w-full rounded-lg border border-white/15 bg-[#171717] pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </label>
           <label className={cn("relative min-w-0", view === "list" ? "lg:hidden" : "lg:w-64")}>
-            <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <select
               value={assigneeNone ? "none" : (selectedMemberId ?? "")}
               onChange={(event) => selectTeamMember(event.target.value || null)}
               aria-label="Фильтр по участнику"
-              className="h-11 w-full appearance-none border border-slate-300 bg-white pl-10 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-11 w-full appearance-none border border-white/15 bg-[#171717] pl-10 pr-8 text-sm font-medium text-zinc-300 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="">Все участники</option>
               {teamSummary.members.map((member) => (
@@ -1188,7 +1187,7 @@ export function OpsTaskWorkspace({
                   "flex h-10 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm font-medium",
                   scope === button.value
                     ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-slate-200 bg-white text-slate-600"
+                    : "border-white/10 bg-[#171717] text-zinc-400"
                 )}
               >
                 {button.label}
@@ -1196,7 +1195,7 @@ export function OpsTaskWorkspace({
                   <span
                     className={cn(
                       "rounded-full px-1.5 py-0.5 text-xs",
-                      scope === button.value ? "bg-white/20" : "bg-slate-100 text-slate-700"
+                      scope === button.value ? "bg-white/20" : "bg-white/[0.06] text-zinc-300"
                     )}
                   >
                     {button.count}
@@ -1214,7 +1213,7 @@ export function OpsTaskWorkspace({
                 selectTeamMember(null);
                 setMissingNextAction(false);
               }}
-              className="h-10 shrink-0 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-medium text-blue-700"
+              className="h-10 shrink-0 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 text-sm font-medium text-blue-300"
             >
               Сбросить дополнительный фильтр
             </button>
@@ -1225,7 +1224,7 @@ export function OpsTaskWorkspace({
       {transitionError ? (
         <div
           role="alert"
-          className="mx-4 mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700 sm:mx-6 lg:mx-8"
+          className="mx-4 mt-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-300 sm:mx-6 lg:mx-8"
         >
           <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           <span className="flex-1">{transitionError}</span>
@@ -1236,15 +1235,15 @@ export function OpsTaskWorkspace({
       ) : null}
 
       {loading ? (
-        <div className="flex min-h-96 items-center justify-center gap-2 text-sm text-slate-500">
+        <div className="flex min-h-96 items-center justify-center gap-2 text-sm text-zinc-500">
           <Loader2 className="h-5 w-5 animate-spin" />
           {opsRu.common.loading}
         </div>
       ) : loadError ? (
         <div className="flex min-h-96 flex-col items-center justify-center px-6 text-center">
           <CircleAlert className="h-8 w-8 text-red-500" />
-          <h2 className="mt-3 font-semibold text-slate-900">{opsRu.tasks.loadError}</h2>
-          <p className="mt-1 max-w-md text-sm text-slate-500">{loadError}</p>
+          <h2 className="mt-3 font-semibold text-zinc-100">{opsRu.tasks.loadError}</h2>
+          <p className="mt-1 max-w-md text-sm text-zinc-500">{loadError}</p>
           <button
             type="button"
             onClick={() => void loadTasks()}
@@ -1254,7 +1253,7 @@ export function OpsTaskWorkspace({
           </button>
         </div>
       ) : view === "board" ? (
-        <div className="hidden min-h-[650px] grid-cols-[minmax(720px,1fr)_480px] bg-white lg:grid xl:grid-cols-[minmax(760px,1fr)_500px] 2xl:grid-cols-[minmax(820px,1fr)_540px]">
+        <div className="hidden min-h-[650px] grid-cols-[minmax(720px,1fr)_480px] bg-[#171717] lg:grid xl:grid-cols-[minmax(760px,1fr)_500px] 2xl:grid-cols-[minmax(820px,1fr)_540px]">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1262,8 +1261,8 @@ export function OpsTaskWorkspace({
             onDragEnd={handleDragEnd}
             onDragCancel={() => setDraggedId(null)}
           >
-            <div className="min-w-0 overflow-x-auto border-r border-slate-200 bg-slate-50/70">
-              <div className="grid min-w-[720px] grid-cols-4 divide-x divide-slate-200">
+            <div className="min-w-0 overflow-x-auto border-r border-white/10 bg-white/[0.02]">
+              <div className="grid min-w-[720px] grid-cols-4 divide-x divide-white/10">
                 {lanes.map((lane) => (
                   <Lane
                     key={lane.id}
@@ -1281,16 +1280,16 @@ export function OpsTaskWorkspace({
             </div>
             <DragOverlay>
               {dragged ? (
-                <div className="w-[240px] rotate-1 border border-blue-300 bg-white p-3 shadow-2xl">
+                <div className="w-[240px] rotate-1 border border-blue-500/40 bg-[#171717] p-3 shadow-2xl">
                   <div className="text-sm font-semibold">{dragged.title}</div>
-                  <div className="mt-2 text-xs text-slate-500">
+                  <div className="mt-2 text-xs text-zinc-500">
                     {OPS_STATUS_LABELS[dragged.status]}
                   </div>
                 </div>
               ) : null}
             </DragOverlay>
           </DndContext>
-          <aside className="min-w-0 overflow-y-auto bg-white">
+          <aside className="min-w-0 overflow-y-auto bg-[#171717]">
             {selected ? (
               <OpsTaskDetail
                 key={selected.id}
@@ -1315,7 +1314,7 @@ export function OpsTaskWorkspace({
                 }
               />
             ) : (
-              <div className="flex min-h-[620px] items-center justify-center px-8 text-center text-sm text-slate-500">
+              <div className="flex min-h-[620px] items-center justify-center px-8 text-center text-sm text-zinc-500">
                 Выберите задачу на доске, чтобы открыть подробности.
               </div>
             )}
@@ -1326,7 +1325,7 @@ export function OpsTaskWorkspace({
           <TaskCalendar tasks={filtered} onOpen={openTask} />
         </div>
       ) : (
-        <div className="grid min-h-[620px] grid-cols-1 bg-white lg:grid-cols-[210px_minmax(390px,38%)_minmax(0,1fr)] xl:grid-cols-[230px_460px_minmax(0,1fr)] 2xl:grid-cols-[240px_520px_minmax(0,1fr)]">
+        <div className="grid min-h-[620px] grid-cols-1 bg-[#171717] lg:grid-cols-[210px_minmax(390px,38%)_minmax(0,1fr)] xl:grid-cols-[230px_460px_minmax(0,1fr)] 2xl:grid-cols-[240px_520px_minmax(0,1fr)]">
           <TeamRail
             members={teamSummary.members}
             currentAdminId={currentAdminId}
@@ -1337,17 +1336,17 @@ export function OpsTaskWorkspace({
             onSelect={selectTeamMember}
             onScopeChange={setScope}
           />
-          <div className="border-r border-slate-200 bg-white px-3 py-4 sm:px-5">
-            <div className="mb-3 flex items-center justify-between gap-3 border-b border-slate-200 px-2 pb-3">
+          <div className="border-r border-white/10 bg-[#171717] px-3 py-4 sm:px-5">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-3">
               <div className="min-w-0">
-                <h2 className="truncate text-base font-bold text-slate-950">
+                <h2 className="truncate text-base font-bold text-zinc-50">
                   {assigneeNone
                     ? "Задачи без исполнителя"
                     : selectedMember
                       ? `Задачи · ${selectedMember.name || selectedMember.email}`
                       : "Все задачи команды"}
                 </h2>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-zinc-500">
                   {filtered.length} {filtered.length === 1 ? "задача" : "задач"}
                 </p>
               </div>
@@ -1367,15 +1366,15 @@ export function OpsTaskWorkspace({
                 {groups.map((group) => (
                   <section key={group.label}>
                     <header className="mb-1 flex items-center gap-2 px-2 py-1.5">
-                      <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                      <h2 className="text-xs font-bold uppercase tracking-wide text-zinc-500">
                         {group.label}
                       </h2>
                       <span
                         className={cn(
                           "rounded-full px-2 py-0.5 text-[11px]",
                           group.label === "Просрочено"
-                            ? "bg-red-50 text-red-600"
-                            : "bg-slate-100 text-slate-600"
+                            ? "bg-red-500/10 text-red-400"
+                            : "bg-white/[0.06] text-zinc-400"
                         )}
                       >
                         {group.tasks.length}
@@ -1397,15 +1396,15 @@ export function OpsTaskWorkspace({
               </div>
             ) : (
               <div className="flex min-h-80 flex-col items-center justify-center px-6 text-center">
-                <List className="h-8 w-8 text-slate-300" />
-                <p className="mt-3 text-sm font-medium text-slate-700">{opsRu.tasks.empty}</p>
-                <p className="mt-1 text-xs text-slate-400">
+                <List className="h-8 w-8 text-zinc-600" />
+                <p className="mt-3 text-sm font-medium text-zinc-300">{opsRu.tasks.empty}</p>
+                <p className="mt-1 text-xs text-zinc-500">
                   Измените фильтр или создайте новую задачу.
                 </p>
               </div>
             )}
           </div>
-          <div className="hidden min-w-0 bg-white lg:block">
+          <div className="hidden min-w-0 bg-[#171717] lg:block">
             {selected ? (
               <OpsTaskDetail
                 key={selected.id}
@@ -1431,9 +1430,9 @@ export function OpsTaskWorkspace({
               />
             ) : (
               <div className="flex h-full min-h-96 flex-col items-center justify-center text-center">
-                <List className="h-9 w-9 text-slate-300" />
-                <h2 className="mt-3 font-semibold text-slate-800">Выберите задачу</h2>
-                <p className="mt-1 text-sm text-slate-500">Детали откроются здесь.</p>
+                <List className="h-9 w-9 text-zinc-600" />
+                <h2 className="mt-3 font-semibold text-zinc-200">Выберите задачу</h2>
+                <p className="mt-1 text-sm text-zinc-500">Детали откроются здесь.</p>
               </div>
             )}
           </div>
@@ -1452,13 +1451,13 @@ export function OpsTaskWorkspace({
             }
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id="ops-quick-comment-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-quick-comment-title" className="text-lg font-bold text-zinc-50">
                   Быстрая заметка
                 </h2>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                <p className="mt-1 line-clamp-2 text-sm text-zinc-500">
                   {tasks.find((task) => task.id === quickCommentTaskId)?.title}
                 </p>
               </div>
@@ -1467,13 +1466,13 @@ export function OpsTaskWorkspace({
                 onClick={() => setQuickCommentTaskId(null)}
                 disabled={quickCommentSaving}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <label className="mt-5 block">
-              <span className="text-sm font-medium text-slate-700">Что изменилось?</span>
+              <span className="text-sm font-medium text-zinc-300">Что изменилось?</span>
               <textarea
                 autoFocus
                 value={quickCommentText}
@@ -1485,10 +1484,10 @@ export function OpsTaskWorkspace({
                 }}
                 rows={3}
                 placeholder="Например: ОПЛАТИЛ"
-                className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </label>
-            <label className="mt-4 flex cursor-pointer items-start gap-3 border border-blue-200 bg-blue-50 p-3">
+            <label className="mt-4 flex cursor-pointer items-start gap-3 border border-blue-500/25 bg-blue-500/10 p-3">
               <input
                 type="checkbox"
                 checked={newTaskShared}
@@ -1496,16 +1495,16 @@ export function OpsTaskWorkspace({
                 className="mt-1 h-4 w-4 accent-blue-600"
               />
               <span>
-                <span className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <UsersRound className="h-4 w-4 text-blue-600" />
+                <span className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
+                  <UsersRound className="h-4 w-4 text-blue-400" />
                   Общая задача для всей команды
                 </span>
-                <span className="mt-1 block text-xs leading-5 text-slate-600">
+                <span className="mt-1 block text-xs leading-5 text-zinc-400">
                   Все участники доски смогут изменять её, добавлять комментарии и завершить работу.
                 </span>
               </span>
             </label>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-zinc-500">
               Заметка сохранится в комментариях и истории задачи.
             </p>
             <div className="mt-5 flex justify-end gap-2 pb-[env(safe-area-inset-bottom)]">
@@ -1513,7 +1512,7 @@ export function OpsTaskWorkspace({
                 type="button"
                 onClick={() => setQuickCommentTaskId(null)}
                 disabled={quickCommentSaving}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -1545,22 +1544,22 @@ export function OpsTaskWorkspace({
             if (event.target === event.currentTarget) setCreateOpen(false);
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
             <div className="flex items-center justify-between">
-              <h2 id="ops-create-task-title" className="text-lg font-bold text-slate-950">
+              <h2 id="ops-create-task-title" className="text-lg font-bold text-zinc-50">
                 Новая задача
               </h2>
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <label className="mt-5 block">
-              <span className="text-sm font-medium text-slate-700">Название</span>
+              <span className="text-sm font-medium text-zinc-300">Название</span>
               <textarea
                 autoFocus
                 value={newTitle}
@@ -1570,17 +1569,17 @@ export function OpsTaskWorkspace({
                 }}
                 rows={3}
                 placeholder="Что нужно сделать?"
-                className="mt-2 w-full resize-none rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full resize-none rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </label>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-zinc-500">
               Новая задача попадёт во «Входящие». Детали можно добавить после создания.
             </p>
             <div className="mt-5 flex justify-end gap-2 pb-[env(safe-area-inset-bottom)]">
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium"
               >
                 Отмена
               </button>

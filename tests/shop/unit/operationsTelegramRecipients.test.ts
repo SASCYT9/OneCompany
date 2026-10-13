@@ -72,8 +72,7 @@ test("a blocked bot or missing chat is reported as an unavailable recipient", as
           fetchImpl: telegramResponse(status, description),
         }),
         (error: unknown) =>
-          error instanceof OpsNotificationError &&
-          error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE
+          error instanceof OpsNotificationError && error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE
       );
     }
     await assert.rejects(
@@ -257,13 +256,17 @@ test("paused members get no morning report, everyone else still does", async () 
     },
     opsTask: {
       async findMany() {
-        return [];
-      },
-      async groupBy() {
-        return [{ status: "IN_PROGRESS", _count: { _all: 1 } }];
+        return [
+          {
+            id: "task-1",
+            externalId: "TSK-1",
+            title: "Проверить заказ",
+            dueAt: new Date("2026-10-13T12:00:00.000Z"),
+          },
+        ];
       },
       async count() {
-        return 1;
+        return 0;
       },
     },
     opsJob: {

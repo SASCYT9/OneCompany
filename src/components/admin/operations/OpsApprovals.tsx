@@ -58,7 +58,6 @@ function payloadPreview(value: unknown) {
 }
 
 export function OpsApprovals({
-  permissions,
   initialTaskId,
 }: {
   permissions: readonly string[];
@@ -163,7 +162,7 @@ export function OpsApprovals({
   }
 
   return (
-    <OpsSurface permissions={permissions}>
+    <OpsSurface>
       <OpsPageHeader
         title="Согласования"
         description="Решения по неизменяемым запросам. Согласование фиксируется в истории, но само действие не выполняется автоматически."
@@ -172,7 +171,7 @@ export function OpsApprovals({
             type="button"
             onClick={() => setReloadNonce((value) => value + 1)}
             disabled={loading}
-            className="flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:border-blue-300 hover:text-blue-700 disabled:opacity-50"
+            className="flex h-10 items-center gap-2 rounded-lg border border-white/15 bg-[#171717] px-3 text-sm font-medium text-zinc-300 hover:border-blue-500/40 hover:text-blue-300 disabled:opacity-50"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} aria-hidden="true" />
             Обновить
@@ -192,7 +191,7 @@ export function OpsApprovals({
                 "h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition",
                 filter === item
                   ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-slate-300 bg-white text-slate-600 hover:border-blue-300"
+                  : "border-white/15 bg-[#171717] text-zinc-400 hover:border-blue-500/40"
               )}
             >
               {FILTER_LABELS[item]}
@@ -201,7 +200,7 @@ export function OpsApprovals({
         </div>
 
         {initialTaskId ? (
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-sm text-blue-200">
             <span>Показаны согласования выбранной задачи.</span>
             <Link href="/admin/operations/approvals" className="font-semibold underline">
               Показать все
@@ -212,7 +211,7 @@ export function OpsApprovals({
         {loadError ? (
           <div
             role="alert"
-            className="mt-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mt-5 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300"
           >
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <div className="flex-1">
@@ -221,7 +220,7 @@ export function OpsApprovals({
             </div>
           </div>
         ) : loading ? (
-          <div className="mt-8 flex min-h-56 items-center justify-center gap-2 text-sm text-slate-500">
+          <div className="mt-8 flex min-h-56 items-center justify-center gap-2 text-sm text-zinc-500">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             Загрузка согласований…
           </div>
@@ -230,16 +229,16 @@ export function OpsApprovals({
             {visibleApprovals.map((approval) => (
               <article
                 key={approval.id}
-                className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="min-w-0 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                       {approval.task.externalId}
                     </p>
                     <Link
                       href={`/admin/operations/tasks/${approval.task.id}`}
-                      className="mt-1 flex min-w-0 items-center gap-1 text-base font-semibold text-slate-950 hover:text-blue-700"
+                      className="mt-1 flex min-w-0 items-center gap-1 text-base font-semibold text-zinc-50 hover:text-blue-300"
                     >
                       <span className="truncate">{approval.task.title}</span>
                       <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -248,53 +247,53 @@ export function OpsApprovals({
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                      approval.status === "PENDING" && "bg-amber-50 text-amber-800",
-                      approval.status === "APPROVED" && "bg-emerald-50 text-emerald-700",
-                      approval.status === "REJECTED" && "bg-red-50 text-red-700",
+                      approval.status === "PENDING" && "bg-amber-500/10 text-amber-200",
+                      approval.status === "APPROVED" && "bg-emerald-500/10 text-emerald-300",
+                      approval.status === "REJECTED" && "bg-red-500/10 text-red-300",
                       !["PENDING", "APPROVED", "REJECTED"].includes(approval.status) &&
-                        "bg-slate-100 text-slate-600"
+                        "bg-white/[0.06] text-zinc-400"
                     )}
                   >
                     {STATUS_LABELS[approval.status] ?? approval.status}
                   </span>
                 </div>
 
-                <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <div className="mt-4 rounded-lg bg-white/[0.03] p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                     Запрошенное действие
                   </p>
-                  <p className="mt-1 break-words text-sm font-medium text-slate-800">
+                  <p className="mt-1 break-words text-sm font-medium text-zinc-200">
                     {approval.action}
                   </p>
                   <details className="mt-3">
-                    <summary className="cursor-pointer text-xs font-semibold text-blue-700">
+                    <summary className="cursor-pointer text-xs font-semibold text-blue-300">
                       Проверить неизменяемые данные
                     </summary>
                     <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
                       {payloadPreview(approval.payload)}
                     </pre>
-                    <p className="mt-2 break-all text-[10px] text-slate-400">
+                    <p className="mt-2 break-all text-[10px] text-zinc-500">
                       SHA-256: {approval.payloadHash}
                     </p>
                   </details>
                 </div>
 
-                <dl className="mt-4 grid gap-3 text-xs text-slate-500 sm:grid-cols-2">
+                <dl className="mt-4 grid gap-3 text-xs text-zinc-500 sm:grid-cols-2">
                   <div>
-                    <dt className="font-medium text-slate-400">Запросил</dt>
-                    <dd className="mt-1 text-slate-700">
+                    <dt className="font-medium text-zinc-500">Запросил</dt>
+                    <dd className="mt-1 text-zinc-300">
                       {approval.requester.name || approval.requester.email}
                     </dd>
                   </div>
                   <div>
-                    <dt className="font-medium text-slate-400">Решить до</dt>
-                    <dd className="mt-1 text-slate-700">{formatDate(approval.expiresAt)}</dd>
+                    <dt className="font-medium text-zinc-500">Решить до</dt>
+                    <dd className="mt-1 text-zinc-300">{formatDate(approval.expiresAt)}</dd>
                   </div>
                 </dl>
 
                 {approval.decisionNote ? (
-                  <div className="mt-4 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600">
-                    <p className="text-xs font-semibold text-slate-400">Комментарий к решению</p>
+                  <div className="mt-4 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-400">
+                    <p className="text-xs font-semibold text-zinc-500">Комментарий к решению</p>
                     <p className="mt-1 whitespace-pre-wrap">{approval.decisionNote}</p>
                   </div>
                 ) : null}
@@ -304,7 +303,7 @@ export function OpsApprovals({
                     <button
                       type="button"
                       onClick={() => openDecision(approval, "reject")}
-                      className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-200 text-sm font-semibold text-red-700 hover:bg-red-50"
+                      className="flex h-11 items-center justify-center gap-2 rounded-lg border border-red-500/30 text-sm font-semibold text-red-300 hover:bg-red-500/10"
                     >
                       <X className="h-4 w-4" aria-hidden="true" />
                       Отклонить
@@ -323,10 +322,10 @@ export function OpsApprovals({
             ))}
           </div>
         ) : (
-          <div className="mt-8 flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center">
-            <ShieldCheck className="h-10 w-10 text-slate-300" aria-hidden="true" />
-            <h2 className="mt-3 text-base font-semibold text-slate-800">Согласований нет</h2>
-            <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">
+          <div className="mt-8 flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-white/15 bg-[#171717] px-6 text-center">
+            <ShieldCheck className="h-10 w-10 text-zinc-600" aria-hidden="true" />
+            <h2 className="mt-3 text-base font-semibold text-zinc-200">Согласований нет</h2>
+            <p className="mt-1 max-w-sm text-sm leading-6 text-zinc-500">
               Для выбранного фильтра нет запросов, требующих решения.
             </p>
           </div>
@@ -343,13 +342,13 @@ export function OpsApprovals({
             if (event.target === event.currentTarget) closeDecision();
           }}
         >
-          <div className="w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+          <div className="w-full rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 id="ops-approval-decision-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-approval-decision-title" className="text-lg font-bold text-zinc-50">
                   {decision === "approve" ? "Согласовать запрос" : "Отклонить запрос"}
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
                   Решение попадёт в неизменяемую историю. Запрошенное действие не выполнится
                   автоматически.
                 </p>
@@ -359,20 +358,20 @@ export function OpsApprovals({
                 onClick={closeDecision}
                 disabled={saving}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm">
-              <p className="font-semibold text-slate-800">{selected.action}</p>
-              <p className="mt-1 text-xs text-slate-500">{selected.task.title}</p>
+            <div className="mt-4 rounded-lg bg-white/[0.03] p-3 text-sm">
+              <p className="font-semibold text-zinc-200">{selected.action}</p>
+              <p className="mt-1 text-xs text-zinc-500">{selected.task.title}</p>
             </div>
 
             <label className="mt-4 block">
-              <span className="text-sm font-medium text-slate-700">
-                Комментарий к решению <span className="text-red-600">*</span>
+              <span className="text-sm font-medium text-zinc-300">
+                Комментарий к решению <span className="text-red-400">*</span>
               </span>
               <textarea
                 value={note}
@@ -387,9 +386,9 @@ export function OpsApprovals({
                     ? "Почему запрос можно согласовать?"
                     : "Что нужно исправить перед повторным запросом?"
                 }
-                className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
-              <span className="mt-1 block text-right text-[11px] text-slate-400">
+              <span className="mt-1 block text-right text-[11px] text-zinc-500">
                 {note.length}/2000
               </span>
             </label>
@@ -397,7 +396,7 @@ export function OpsApprovals({
             {decisionError ? (
               <div
                 role="alert"
-                className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                className="mt-3 flex items-start gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300"
               >
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {decisionError}
@@ -409,7 +408,7 @@ export function OpsApprovals({
                 type="button"
                 onClick={closeDecision}
                 disabled={saving}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-300 disabled:opacity-50"
               >
                 Отмена
               </button>

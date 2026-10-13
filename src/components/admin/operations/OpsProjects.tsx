@@ -26,10 +26,10 @@ import { opsGet } from "./opsApi";
 import type { OpsPerson, OpsProject } from "./types";
 
 const priorityTone = {
-  LOW: "bg-slate-100 text-slate-600",
-  NORMAL: "bg-blue-50 text-blue-700",
-  HIGH: "bg-amber-50 text-amber-700",
-  URGENT: "bg-red-50 text-red-700",
+  LOW: "bg-white/[0.06] text-zinc-400",
+  NORMAL: "bg-blue-500/10 text-blue-300",
+  HIGH: "bg-amber-500/10 text-amber-300",
+  URGENT: "bg-red-500/10 text-red-300",
 };
 
 const projectStatusLabel: Record<string, string> = {
@@ -130,7 +130,7 @@ export function OpsProjects({
   }
 
   return (
-    <OpsSurface permissions={permissions}>
+    <OpsSurface>
       <OpsPageHeader
         title={opsRu.projects.title}
         description="Большие направления работы, которые объединяют несколько связанных задач."
@@ -149,26 +149,26 @@ export function OpsProjects({
       />
 
       <div className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <label className="relative block w-full max-w-xl">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Поиск по проектам и ответственным…"
-              className="h-11 w-full border border-slate-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="h-11 w-full border border-white/15 bg-[#171717] pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </label>
-          <div className="text-sm text-slate-500">Проектов: {filtered.length}</div>
+          <div className="text-sm text-zinc-500">Проектов: {filtered.length}</div>
         </div>
 
         {loading ? (
-          <div className="flex min-h-96 items-center justify-center gap-2 text-sm text-slate-500">
+          <div className="flex min-h-96 items-center justify-center gap-2 text-sm text-zinc-500">
             <Loader2 className="h-5 w-5 animate-spin" />
             {opsRu.common.loading}
           </div>
         ) : error ? (
-          <div className="mt-6 border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mt-6 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
             {error}
           </div>
         ) : filtered.length ? (
@@ -176,16 +176,16 @@ export function OpsProjects({
             {filtered.map((project) => (
               <article
                 key={project.id}
-                className="flex min-h-72 flex-col border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+                className="flex min-h-72 flex-col border border-white/10 bg-[#171717] p-5 shadow-sm transition hover:border-blue-500/40 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center bg-blue-50 text-blue-600">
+                    <span className="flex h-10 w-10 items-center justify-center bg-blue-500/10 text-blue-400">
                       <FolderKanban className="h-5 w-5" />
                     </span>
                     <div>
-                      <p className="font-mono text-[11px] text-slate-400">{project.externalId}</p>
-                      <p className="mt-0.5 text-xs font-medium text-slate-600">
+                      <p className="font-mono text-[11px] text-zinc-500">{project.externalId}</p>
+                      <p className="mt-0.5 text-xs font-medium text-zinc-400">
                         {projectStatusLabel[project.status] ?? project.status}
                       </p>
                     </div>
@@ -200,21 +200,21 @@ export function OpsProjects({
                   </span>
                 </div>
 
-                <h2 className="mt-4 text-lg font-bold text-slate-950">{project.title}</h2>
-                <p className="mt-2 line-clamp-3 text-sm leading-5 text-slate-500">
+                <h2 className="mt-4 text-lg font-bold text-zinc-50">{project.title}</h2>
+                <p className="mt-2 line-clamp-3 text-sm leading-5 text-zinc-500">
                   {project.description || "Описание проекта пока не добавлено."}
                 </p>
 
-                <div className="mt-4 border-l-2 border-blue-500 bg-slate-50 px-3 py-2.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <div className="mt-4 border-l-2 border-blue-500 bg-white/[0.03] px-3 py-2.5">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">
                     Следующее действие
                   </div>
-                  <div className="mt-1 text-sm text-slate-700">
+                  <div className="mt-1 text-sm text-zinc-300">
                     {project.nextAction || "Не указано"}
                   </div>
                 </div>
 
-                <div className="mt-auto grid grid-cols-2 gap-3 pt-5 text-xs text-slate-500">
+                <div className="mt-auto grid grid-cols-2 gap-3 pt-5 text-xs text-zinc-500">
                   <span className="flex items-center gap-1.5">
                     <ListTodo className="h-4 w-4" />
                     {project._count?.tasks ?? 0} задач
@@ -236,10 +236,10 @@ export function OpsProjects({
                   ) : null}
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4">
+                <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/5 pt-4">
                   <Link
                     href={`/admin/operations/tasks?projectId=${project.id}`}
-                    className="col-span-2 flex h-10 items-center justify-between bg-slate-950 px-3 text-sm font-semibold text-white"
+                    className="col-span-2 flex h-10 items-center justify-between bg-blue-600 px-3 text-sm font-semibold text-white"
                   >
                     Открыть задачи <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -248,7 +248,7 @@ export function OpsProjects({
                       <button
                         type="button"
                         onClick={() => setTaskProject(project)}
-                        className="flex h-10 items-center justify-center gap-2 border border-blue-200 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                        className="flex h-10 items-center justify-center gap-2 border border-blue-500/25 text-sm font-semibold text-blue-300 hover:bg-blue-500/10"
                       >
                         <Plus className="h-4 w-4" />
                         Задача
@@ -257,13 +257,13 @@ export function OpsProjects({
                         <button
                           type="button"
                           onClick={() => setProjectForm(project)}
-                          className="flex h-10 items-center justify-center gap-2 border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                          className="flex h-10 items-center justify-center gap-2 border border-white/15 text-sm font-semibold text-zinc-300 hover:bg-white/[0.03]"
                         >
                           <Settings2 className="h-4 w-4" />
                           Настроить
                         </button>
                       ) : (
-                        <span className="flex h-10 items-center justify-center border border-slate-200 text-xs text-slate-400">
+                        <span className="flex h-10 items-center justify-center border border-white/10 text-xs text-zinc-500">
                           Только владелец
                         </span>
                       )}
@@ -275,9 +275,9 @@ export function OpsProjects({
           </div>
         ) : (
           <div className="flex min-h-96 flex-col items-center justify-center text-center">
-            <FolderKanban className="h-10 w-10 text-slate-300" />
-            <p className="mt-3 text-base font-semibold text-slate-800">Проектов пока нет</p>
-            <p className="mt-1 max-w-md text-sm text-slate-500">
+            <FolderKanban className="h-10 w-10 text-zinc-600" />
+            <p className="mt-3 text-base font-semibold text-zinc-200">Проектов пока нет</p>
+            <p className="mt-1 max-w-md text-sm text-zinc-500">
               Создайте проект, если работа состоит из нескольких связанных задач.
             </p>
             {canWrite ? (

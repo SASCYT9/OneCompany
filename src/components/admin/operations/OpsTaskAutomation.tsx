@@ -74,15 +74,15 @@ function safeResultPreview(value: unknown) {
 
 function RunStatusIcon({ status }: { status: string }) {
   if (status === "SUCCEEDED") {
-    return <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />;
+    return <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-hidden="true" />;
   }
   if (status === "FAILED") {
-    return <TriangleAlert className="h-4 w-4 text-red-600" aria-hidden="true" />;
+    return <TriangleAlert className="h-4 w-4 text-red-400" aria-hidden="true" />;
   }
   if (status === "RUNNING") {
-    return <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-hidden="true" />;
+    return <Loader2 className="h-4 w-4 animate-spin text-blue-400" aria-hidden="true" />;
   }
-  return <Clock3 className="h-4 w-4 text-slate-500" aria-hidden="true" />;
+  return <Clock3 className="h-4 w-4 text-zinc-500" aria-hidden="true" />;
 }
 
 function ApprovalList({
@@ -96,16 +96,16 @@ function ApprovalList({
 }) {
   if (!approvals.length) return null;
   return (
-    <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <ShieldCheck className="h-5 w-5 text-violet-600" aria-hidden="true" />
+          <ShieldCheck className="h-5 w-5 text-violet-400" aria-hidden="true" />
           Согласования
         </h3>
         {canDecideApprovals && approvals.some((item) => item.status === "PENDING") ? (
           <Link
             href={`/admin/operations/approvals?taskId=${encodeURIComponent(taskId)}`}
-            className="flex h-9 items-center rounded-lg border border-violet-200 px-3 text-xs font-semibold text-violet-700 hover:bg-violet-50"
+            className="flex h-9 items-center rounded-lg border border-violet-500/30 px-3 text-xs font-semibold text-violet-300 hover:bg-violet-500/10"
           >
             Рассмотреть
           </Link>
@@ -113,29 +113,29 @@ function ApprovalList({
       </div>
       <ol className="mt-3 space-y-2">
         {approvals.map((approval) => (
-          <li key={approval.id} className="rounded-lg border border-slate-200 px-3 py-2.5">
+          <li key={approval.id} className="rounded-lg border border-white/10 px-3 py-2.5">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="break-words text-sm font-medium text-slate-800">{approval.action}</p>
+                <p className="break-words text-sm font-medium text-zinc-200">{approval.action}</p>
                 {approval.decisionNote ? (
-                  <p className="mt-1 text-xs leading-5 text-slate-500">{approval.decisionNote}</p>
+                  <p className="mt-1 text-xs leading-5 text-zinc-500">{approval.decisionNote}</p>
                 ) : null}
               </div>
               <span
                 className={cn(
                   "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                  approval.status === "APPROVED" && "bg-emerald-50 text-emerald-700",
-                  approval.status === "REJECTED" && "bg-red-50 text-red-700",
-                  approval.status === "PENDING" && "bg-amber-50 text-amber-800",
+                  approval.status === "APPROVED" && "bg-emerald-500/10 text-emerald-300",
+                  approval.status === "REJECTED" && "bg-red-500/10 text-red-300",
+                  approval.status === "PENDING" && "bg-amber-500/10 text-amber-200",
                   !["APPROVED", "REJECTED", "PENDING"].includes(approval.status) &&
-                    "bg-slate-100 text-slate-600"
+                    "bg-white/[0.06] text-zinc-400"
                 )}
               >
                 {APPROVAL_STATUS_LABELS[approval.status] ?? approval.status}
               </span>
             </div>
             {approval.expiresAt ? (
-              <p className="mt-2 text-[11px] text-slate-400">
+              <p className="mt-2 text-[11px] text-zinc-500">
                 Срок решения: {formatDate(approval.expiresAt)}
               </p>
             ) : null}
@@ -275,14 +275,14 @@ export function OpsTaskAutomation({
   return (
     <>
       {runs.length || taskCanStart ? (
-        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="mt-5 rounded-xl border border-white/10 bg-[#171717] p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <Bot className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                <Bot className="h-5 w-5 text-blue-400" aria-hidden="true" />
                 Помощник
               </h3>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
                 Только внутренние черновики и проверки. Покупки, оплаты, checkout и внешние
                 сообщения недоступны.
               </p>
@@ -307,16 +307,16 @@ export function OpsTaskAutomation({
               {runs.map((run) => {
                 const result = safeResultPreview(run.result);
                 return (
-                  <li key={run.id} className="rounded-lg border border-slate-200 p-3">
+                  <li key={run.id} className="rounded-lg border border-white/10 p-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="flex min-w-0 items-start gap-2">
                         <RunStatusIcon status={run.status} />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-800">
+                          <p className="text-sm font-medium text-zinc-200">
                             {AUTOMATION_LABELS[run.automationType as AutomationType] ??
                               run.automationType}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-500">
+                          <p className="mt-0.5 text-xs text-zinc-500">
                             {RUN_STATUS_LABELS[run.status] ?? run.status}
                             {run.stage ? ` · ${run.stage}` : ""}
                             {run.createdAt ? ` · ${formatDate(run.createdAt)}` : ""}
@@ -325,13 +325,13 @@ export function OpsTaskAutomation({
                       </div>
                     </div>
                     {run.errorMessage ? (
-                      <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">
+                      <p className="mt-2 rounded-lg bg-red-500/10 px-3 py-2 text-xs leading-5 text-red-300">
                         {run.errorMessage}
                       </p>
                     ) : null}
                     {result ? (
                       <details className="mt-2">
-                        <summary className="cursor-pointer text-xs font-semibold text-blue-700">
+                        <summary className="cursor-pointer text-xs font-semibold text-blue-300">
                           Результат
                         </summary>
                         <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
@@ -344,7 +344,7 @@ export function OpsTaskAutomation({
               })}
             </ol>
           ) : (
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-4 text-sm text-zinc-500">
               Помощник ещё не запускался для этой задачи.
             </p>
           )}
@@ -367,13 +367,13 @@ export function OpsTaskAutomation({
             if (event.target === event.currentTarget && !pending) resetDialog();
           }}
         >
-          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-xl sm:rounded-2xl">
+          <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-[#171717] p-5 shadow-2xl sm:max-w-xl sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 id="ops-automation-dialog-title" className="text-lg font-bold text-slate-950">
+                <h2 id="ops-automation-dialog-title" className="text-lg font-bold text-zinc-50">
                   Запустить помощника
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
                   Выберите одну безопасную операцию. Результат останется внутренним черновиком.
                 </p>
               </div>
@@ -382,14 +382,14 @@ export function OpsTaskAutomation({
                 onClick={resetDialog}
                 disabled={pending}
                 aria-label="Закрыть"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg p-2 text-zinc-500 hover:bg-white/[0.06] disabled:opacity-50"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
             <fieldset className="mt-5">
-              <legend className="text-sm font-semibold text-slate-800">Что сделать</legend>
+              <legend className="text-sm font-semibold text-zinc-200">Что сделать</legend>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 {(Object.keys(AUTOMATION_LABELS) as AutomationType[]).map((type) => {
                   const Icon = AUTOMATION_ICONS[type];
@@ -399,8 +399,8 @@ export function OpsTaskAutomation({
                       className={cn(
                         "cursor-pointer rounded-xl border p-3 text-left transition",
                         automationType === type
-                          ? "border-blue-500 bg-blue-50 text-blue-900"
-                          : "border-slate-200 hover:border-blue-300"
+                          ? "border-blue-500 bg-blue-500/10 text-blue-100"
+                          : "border-white/10 hover:border-blue-500/40"
                       )}
                     >
                       <input
@@ -427,27 +427,23 @@ export function OpsTaskAutomation({
             <div className="mt-5">
               {automationType === "research_draft" ? (
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">
-                    Вопрос для исследования
-                  </span>
+                  <span className="text-sm font-medium text-zinc-300">Вопрос для исследования</span>
                   <textarea
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     rows={4}
                     maxLength={2_000}
                     placeholder="Например: проверить совместимость детали по открытым источникам"
-                    className="mt-2 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="mt-2 w-full resize-y rounded-lg border border-white/15 p-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                 </label>
               ) : automationType === "document_summary" ? (
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-700">
-                    Документ из этой задачи
-                  </span>
+                  <span className="text-sm font-medium text-zinc-300">Документ из этой задачи</span>
                   <select
                     value={attachmentId}
                     onChange={(event) => setAttachmentId(event.target.value)}
-                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500"
+                    className="mt-2 h-11 w-full rounded-lg border border-white/15 bg-[#171717] px-3 text-sm outline-none focus:border-blue-500"
                   >
                     <option value="">Выберите PDF или текстовый файл</option>
                     {eligibleDocuments.map((attachment) => (
@@ -457,7 +453,7 @@ export function OpsTaskAutomation({
                     ))}
                   </select>
                   {!eligibleDocuments.length ? (
-                    <span className="mt-2 block text-xs text-amber-700">
+                    <span className="mt-2 block text-xs text-amber-300">
                       В задаче нет готового PDF или текстового файла.
                     </span>
                   ) : null}
@@ -465,23 +461,23 @@ export function OpsTaskAutomation({
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="text-sm font-medium text-slate-700">SKU</span>
+                    <span className="text-sm font-medium text-zinc-300">SKU</span>
                     <input
                       value={sku}
                       onChange={(event) => setSku(event.target.value)}
                       maxLength={200}
                       placeholder="Например, MX-123"
-                      className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+                      className="mt-2 h-11 w-full rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500"
                     />
                   </label>
                   <label className="block">
-                    <span className="text-sm font-medium text-slate-700">Внутренний ID товара</span>
+                    <span className="text-sm font-medium text-zinc-300">Внутренний ID товара</span>
                     <input
                       value={productId}
                       onChange={(event) => setProductId(event.target.value)}
                       maxLength={100}
                       placeholder="Необязательно, если указан SKU"
-                      className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-blue-500"
+                      className="mt-2 h-11 w-full rounded-lg border border-white/15 px-3 text-sm outline-none focus:border-blue-500"
                     />
                   </label>
                 </div>
@@ -491,7 +487,7 @@ export function OpsTaskAutomation({
             {error ? (
               <div
                 role="alert"
-                className="mt-4 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                className="mt-4 flex items-start gap-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300"
               >
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {error}
@@ -503,7 +499,7 @@ export function OpsTaskAutomation({
                 type="button"
                 onClick={resetDialog}
                 disabled={pending}
-                className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 disabled:opacity-50"
+                className="h-10 rounded-lg border border-white/15 px-4 text-sm font-medium text-zinc-300 disabled:opacity-50"
               >
                 Отмена
               </button>

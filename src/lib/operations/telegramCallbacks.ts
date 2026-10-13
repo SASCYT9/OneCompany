@@ -16,6 +16,8 @@ import {
 } from "@/lib/admin/adminPermissions";
 import { opsAttachmentRetentionAt } from "@/lib/operations/media";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
+import { opsSnoozeDueAt, type OpsSnoozeKind } from "@/lib/operations/reminders";
+import { enqueueOpsTaskAssignmentNotification } from "@/lib/operations/taskNotifications";
 import { assertTaskTransition } from "@/lib/operations/tasks";
 
 export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
@@ -28,6 +30,11 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "done",
   "cancel_creation",
   "undo_task_update",
+  "snooze_tomorrow",
+  "snooze_week",
+  "cancel_task",
+  "take",
+  "assign_to",
 ] as const;
 
 export type OpsTelegramCallbackAction = (typeof OPS_TELEGRAM_CALLBACK_ACTIONS)[number];
@@ -36,7 +43,11 @@ type OpsTelegramCallbackState = {
   action: OpsTelegramCallbackAction;
   resourceId: string;
   actorAdminUserId: string;
+  /** Extra argument, e.g. the member chosen by «👤 Кому?». */
+  value?: string;
 };
+
+const CALLBACK_ID_PATTERN = /^[a-zA-Z0-9_-]{8,40}$/;
 
 function signature(value: string, secret: string) {
   return crypto.createHmac("sha256", secret).update(value).digest("base64url").slice(0, 10);
@@ -64,19 +75,22 @@ function parseOpaqueCallbackData(data: string | null, secret: string) {
 }
 
 export async function createOpsTelegramCallbackState(input: {
-  client: PrismaClient;
+  client: PrismaClient | Prisma.TransactionClient;
   action: OpsTelegramCallbackAction;
   resourceId: string;
   actorAdminUserId: string;
+  value?: string;
   ttlMs?: number;
   secret?: string | null;
 }) {
   const secret = String(input.secret ?? process.env.OPS_TELEGRAM_CALLBACK_SECRET ?? "").trim();
-  if (!secret || !/^[a-zA-Z0-9_-]{8,40}$/.test(input.resourceId)) return null;
+  if (!secret || !CALLBACK_ID_PATTERN.test(input.resourceId)) return null;
+  if (input.value !== undefined && !CALLBACK_ID_PATTERN.test(input.value)) return null;
   const state: OpsTelegramCallbackState = {
     action: input.action,
     resourceId: input.resourceId,
     actorAdminUserId: input.actorAdminUserId,
+    ...(input.value !== undefined ? { value: input.value } : {}),
   };
   const key = crypto.randomBytes(9).toString("base64url");
   const callbackData = createOpaqueCallbackData(key, secret);
@@ -101,19 +115,21 @@ export async function createOpsTelegramCallbackState(input: {
   return callbackData;
 }
 
-function parseCallbackState(value: unknown): OpsTelegramCallbackState | null {
-  const input = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+function parseCallbackState(stored: unknown): OpsTelegramCallbackState | null {
+  const input = (stored && typeof stored === "object" ? stored : {}) as Record<string, unknown>;
   const action = String(input.action ?? "") as OpsTelegramCallbackAction;
   const resourceId = String(input.resourceId ?? "");
   const actorAdminUserId = String(input.actorAdminUserId ?? "");
+  const value = input.value === undefined ? undefined : String(input.value);
   if (
     !OPS_TELEGRAM_CALLBACK_ACTIONS.includes(action) ||
-    !/^[a-zA-Z0-9_-]{8,40}$/.test(resourceId) ||
-    !/^[a-zA-Z0-9_-]{8,40}$/.test(actorAdminUserId)
+    !CALLBACK_ID_PATTERN.test(resourceId) ||
+    !CALLBACK_ID_PATTERN.test(actorAdminUserId) ||
+    (value !== undefined && !CALLBACK_ID_PATTERN.test(value))
   ) {
     return null;
   }
-  return { action, resourceId, actorAdminUserId };
+  return { action, resourceId, actorAdminUserId, ...(value !== undefined ? { value } : {}) };
 }
 
 async function claimCallbackState(input: {
@@ -800,6 +816,300 @@ async function rejectTaskAssignment(input: {
   });
 }
 
+async function snoozeTask(input: {
+  client: PrismaClient;
+  actor: TelegramActor;
+  taskId: string;
+  kind: OpsSnoozeKind;
+}) {
+  const profile = await input.client.opsMemberProfile.findUnique({
+    where: { adminUserId: input.actor.id },
+    select: { timezone: true },
+  });
+  const dueAt = opsSnoozeDueAt(input.kind, new Date(), profile?.timezone ?? "Europe/Kyiv");
+  return input.client.$transaction(async (tx) => {
+    const task = await tx.opsTask.findUnique({
+      where: { id: input.taskId },
+      select: {
+        id: true,
+        number: true,
+        status: true,
+        version: true,
+        dueAt: true,
+        assigneeId: true,
+        assignees: { select: { adminUserId: true } },
+        createdById: true,
+        isShared: true,
+      },
+    });
+    if (!task) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+    canWriteTask(input.actor, task);
+    if (task.status === OpsTaskStatus.DONE || task.status === OpsTaskStatus.CANCELLED) {
+      return {
+        message: `#${task.number} уже закрыта, срок не меняю.`,
+        link: adminLink(`/admin/operations/tasks/${task.id}`),
+      };
+    }
+    const changed = await tx.opsTask.updateMany({
+      where: { id: task.id, version: task.version },
+      data: { dueAt, version: { increment: 1 } },
+    });
+    if (changed.count !== 1) throw new Error("TASK_VERSION_CONFLICT");
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: task.id,
+        type: OpsTaskEventType.UPDATED,
+        actorId: input.actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: task.id,
+        payload: {
+          changes: ["dueAt"],
+          dueAtFrom: task.dueAt?.toISOString() ?? null,
+          dueAtTo: dueAt.toISOString(),
+          reason: `telegram_snooze_${input.kind}`,
+        },
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: auditData(input.actor, "telegram.task.snooze", "ops.task", task.id, {
+        kind: input.kind,
+        dueAtFrom: task.dueAt?.toISOString() ?? null,
+        dueAtTo: dueAt.toISOString(),
+      }),
+    });
+    const label = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: profile?.timezone ?? "Europe/Kyiv",
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(dueAt);
+    return {
+      message: `#${task.number}: новый срок — ${label}.`,
+      link: adminLink(`/admin/operations/tasks/${task.id}`),
+    };
+  });
+}
+
+async function cancelTask(input: { client: PrismaClient; actor: TelegramActor; taskId: string }) {
+  return input.client.$transaction(async (tx) => {
+    const task = await tx.opsTask.findUnique({
+      where: { id: input.taskId },
+      select: {
+        id: true,
+        number: true,
+        status: true,
+        version: true,
+        assigneeId: true,
+        assignees: { select: { adminUserId: true } },
+        createdById: true,
+        isShared: true,
+      },
+    });
+    if (!task) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+    canWriteTask(input.actor, task);
+    if (task.status === OpsTaskStatus.DONE || task.status === OpsTaskStatus.CANCELLED) {
+      return {
+        message: `#${task.number} уже закрыта.`,
+        link: adminLink(`/admin/operations/tasks/${task.id}`),
+      };
+    }
+    assertTaskTransition(task.status, OpsTaskStatus.CANCELLED, { reopen: false, comment: null });
+    const changed = await tx.opsTask.updateMany({
+      where: { id: task.id, version: task.version, status: task.status },
+      data: {
+        status: OpsTaskStatus.CANCELLED,
+        completedAt: new Date(),
+        version: { increment: 1 },
+      },
+    });
+    if (changed.count !== 1) throw new Error("TASK_VERSION_CONFLICT");
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: task.id,
+        type: OpsTaskEventType.STATUS_CHANGED,
+        actorId: input.actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: task.id,
+        idempotencyKey: `telegram:cancel:${task.id}`,
+        payload: {
+          fromStatus: task.status,
+          toStatus: OpsTaskStatus.CANCELLED,
+          reason: "telegram_not_needed",
+        },
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: auditData(input.actor, "telegram.task.cancel", "ops.task", task.id, {
+        fromStatus: task.status,
+        toStatus: OpsTaskStatus.CANCELLED,
+      }),
+    });
+    return {
+      message: `#${task.number} закрыта как неактуальная. Вернуть можно в админке.`,
+      link: adminLink(`/admin/operations/tasks/${task.id}`),
+    };
+  });
+}
+
+async function takeTask(input: { client: PrismaClient; actor: TelegramActor; taskId: string }) {
+  requirePermission(input.actor, ADMIN_PERMISSIONS.OPS_TASKS_WRITE);
+  return input.client.$transaction(async (tx) => {
+    const task = await tx.opsTask.findUnique({
+      where: { id: input.taskId },
+      select: {
+        id: true,
+        number: true,
+        status: true,
+        version: true,
+        assigneeId: true,
+        assignees: { select: { adminUserId: true } },
+        isShared: true,
+      },
+    });
+    if (!task) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+    const assigned = task.assigneeId !== null || task.assignees.length > 0 || task.isShared;
+    if (assigned) {
+      const mine =
+        task.assigneeId === input.actor.id ||
+        task.assignees.some((assignment) => assignment.adminUserId === input.actor.id);
+      return {
+        message: mine ? `#${task.number} уже ваша.` : `#${task.number} уже взял кто-то другой.`,
+        link: adminLink(`/admin/operations/tasks/${task.id}`),
+      };
+    }
+    const changed = await tx.opsTask.updateMany({
+      where: {
+        id: task.id,
+        version: task.version,
+        assigneeId: null,
+        isShared: false,
+        assignees: { none: {} },
+      },
+      data: { assigneeId: input.actor.id, version: { increment: 1 } },
+    });
+    if (changed.count !== 1) throw new Error("TASK_VERSION_CONFLICT");
+    await tx.opsTaskAssignee.create({
+      data: { taskId: task.id, adminUserId: input.actor.id, assignedById: input.actor.id },
+    });
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: task.id,
+        type: OpsTaskEventType.ASSIGNED,
+        actorId: input.actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: task.id,
+        payload: {
+          assigneeIdFrom: null,
+          assigneeIdTo: input.actor.id,
+          assigneeIdsTo: [input.actor.id],
+          reason: "telegram_take",
+        },
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: auditData(input.actor, "telegram.task.take", "ops.task", task.id, {
+        assigneeIdTo: input.actor.id,
+      }),
+    });
+    return {
+      message: `#${task.number} теперь ваша. Напомню в день срока.`,
+      link: adminLink(`/admin/operations/tasks/${task.id}`),
+    };
+  });
+}
+
+async function assignTaskTo(input: {
+  client: PrismaClient;
+  actor: TelegramActor;
+  taskId: string;
+  assigneeId: string | undefined;
+}) {
+  requirePermission(input.actor, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN);
+  if (!input.assigneeId) throw new Error("TELEGRAM_CALLBACK_INVALID");
+  const assignee = await input.client.adminUser.findFirst({
+    where: { id: input.assigneeId, isActive: true },
+    select: { id: true, name: true, email: true },
+  });
+  if (!assignee) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+  return input.client.$transaction(async (tx) => {
+    const task = await tx.opsTask.findUnique({
+      where: { id: input.taskId },
+      select: {
+        id: true,
+        number: true,
+        externalId: true,
+        title: true,
+        dueAt: true,
+        version: true,
+        assigneeId: true,
+        assignees: { select: { adminUserId: true } },
+        isShared: true,
+      },
+    });
+    if (!task) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+    if (task.assigneeId !== null || task.assignees.length > 0 || task.isShared) {
+      return {
+        message: `#${task.number} уже назначена — поменять можно в админке.`,
+        link: adminLink(`/admin/operations/tasks/${task.id}`),
+      };
+    }
+    const changed = await tx.opsTask.updateMany({
+      where: {
+        id: task.id,
+        version: task.version,
+        assigneeId: null,
+        isShared: false,
+        assignees: { none: {} },
+      },
+      data: { assigneeId: assignee.id, version: { increment: 1 } },
+    });
+    if (changed.count !== 1) throw new Error("TASK_VERSION_CONFLICT");
+    await tx.opsTaskAssignee.create({
+      data: { taskId: task.id, adminUserId: assignee.id, assignedById: input.actor.id },
+    });
+    await tx.opsTaskEvent.create({
+      data: {
+        taskId: task.id,
+        type: OpsTaskEventType.ASSIGNED,
+        actorId: input.actor.id,
+        sourceType: OpsTaskSourceType.TELEGRAM,
+        sourceId: task.id,
+        payload: {
+          assigneeIdFrom: null,
+          assigneeIdTo: assignee.id,
+          assigneeIdsTo: [assignee.id],
+          reason: "telegram_assign",
+        },
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: auditData(input.actor, "telegram.task.assign", "ops.task", task.id, {
+        assigneeIdTo: assignee.id,
+      }),
+    });
+    await enqueueOpsTaskAssignmentNotification({
+      client: tx,
+      task: {
+        id: task.id,
+        externalId: task.externalId,
+        title: task.title,
+        assigneeId: assignee.id,
+        assigneeIds: [assignee.id],
+        dueAt: task.dueAt,
+        version: task.version + 1,
+      },
+      assignedBy: { id: input.actor.id, name: input.actor.name, email: input.actor.email },
+    });
+    const name = assignee.name?.trim() || assignee.email;
+    return {
+      message: `#${task.number} поручена: ${name}. Уведомление уйдёт в Telegram.`,
+      link: adminLink(`/admin/operations/tasks/${task.id}`),
+    };
+  });
+}
+
 export async function executeOpsTelegramCallback(input: {
   client: PrismaClient;
   actorAdminUserId: string;
@@ -842,6 +1152,35 @@ export async function executeOpsTelegramCallback(input: {
         client: input.client,
         actor,
         taskId: claimed.state.resourceId,
+      });
+    } else if (
+      claimed.state.action === "snooze_tomorrow" ||
+      claimed.state.action === "snooze_week"
+    ) {
+      result = await snoozeTask({
+        client: input.client,
+        actor,
+        taskId: claimed.state.resourceId,
+        kind: claimed.state.action === "snooze_tomorrow" ? "tomorrow" : "week",
+      });
+    } else if (claimed.state.action === "cancel_task") {
+      result = await cancelTask({
+        client: input.client,
+        actor,
+        taskId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "take") {
+      result = await takeTask({
+        client: input.client,
+        actor,
+        taskId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "assign_to") {
+      result = await assignTaskTo({
+        client: input.client,
+        actor,
+        taskId: claimed.state.resourceId,
+        assigneeId: claimed.state.value,
       });
     } else {
       requirePermission(actor, ADMIN_PERMISSIONS.OPS_TASKS_READ);

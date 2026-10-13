@@ -1,5 +1,6 @@
 import { OpsJobStage, OpsJobStatus, type Prisma, type PrismaClient } from "@prisma/client";
 
+import { nextOpsNotifyTime } from "@/lib/operations/reminders";
 import { findPausedOpsTelegramRecipients } from "@/lib/operations/telegramRecipients";
 
 type OpsNotificationClient = Prisma.TransactionClient | PrismaClient;
@@ -45,6 +46,7 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
     select: {
       adminUserId: true,
       telegramUserId: true,
+      timezone: true,
       updatedAt: true,
     },
   });
@@ -68,6 +70,8 @@ export async function enqueueOpsTaskAssignmentNotification(input: {
               type: "telegram_task_assigned",
               status: OpsJobStatus.QUEUED,
               stage: OpsJobStage.NOTIFY,
+              // Quiet hours: an assignment at 23:00 arrives at 09:00.
+              availableAt: nextOpsNotifyTime(new Date(), profile.timezone ?? "Europe/Kyiv"),
               payload: asJson({
                 taskId: input.task.id,
                 recipientAdminUserId: profile.adminUserId,
