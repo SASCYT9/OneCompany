@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Pencil, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
+
 import { useToast } from "@/components/admin/AdminToast";
-import { AdminTableShell } from "@/components/admin/AdminPrimitives";
-import {
-  B2bBrandSelect,
-  findB2bBrandOption,
-  useB2bBrandOptions,
-} from "@/components/admin/b2b/B2bBrandSelect";
+import { findB2bBrandOption, useB2bBrandOptions } from "@/components/admin/b2b/B2bBrandSelect";
+import { AddRow, CrmPicker, formatPct, PctCell } from "@/components/admin/b2b/B2bPricingUi";
+import { crmIconButton, crmInput, crmPrimaryButton } from "@/components/admin/crm/CrmUi";
+import { normalizeShopBrandKey } from "@/lib/shopB2bBrandDiscounts";
+import { cn } from "@/lib/utils";
 
 type Discount = {
   id: string;
@@ -19,38 +19,57 @@ type Discount = {
   updatedAt: string;
 };
 
+type Rule = { brand: string; discountPct: number };
+
+const NO_GROUP_DISCOUNTS: ReadonlyArray<Rule> = [];
+
 type Props = {
   customerId: string;
   globalDiscountPct: number | null;
-  /** Rendered inside the customer's «Ціни» section: no own frame or heading. */
-  embedded?: boolean;
+  /** The partner's tariff group, shown next to the exceptions that override it. */
+  groupName?: string | null;
+  groupDiscounts?: ReadonlyArray<Rule>;
 };
 
-export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct, embedded }: Props) {
+/** The partner's own brand discounts — they beat the tariff group and the rule for everyone. */
+export function CustomerBrandDiscountsPanel({
+  customerId,
+  globalDiscountPct,
+  groupName,
+  groupDiscounts = NO_GROUP_DISCOUNTS,
+}: Props) {
   const toast = useToast();
   const { brands, loading: brandsLoading } = useB2bBrandOptions();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [systemDiscounts, setSystemDiscounts] = useState<Rule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  const [newBrand, setNewBrand] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [newBrand, setNewBrand] = useState<string | null>(null);
   const [newPct, setNewPct] = useState("");
   const [newNotes, setNewNotes] = useState("");
-  /** Brand whose rule is loaded into the form for editing. */
-  const [editing, setEditing] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`);
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError((data as { error?: string }).error || "Не вдалося завантажити знижки");
+      const [own, system] = await Promise.all([
+        fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`, { cache: "no-store" }),
+        fetch("/api/admin/shop/b2b/brand-discounts", { cache: "no-store" }),
+      ]);
+      const ownData = (await own.json().catch(() => ({}))) as {
+        discounts?: Discount[];
+        error?: string;
+      };
+      if (!own.ok) {
+        setError(ownData.error || "Не вдалося завантажити знижки");
         return;
       }
-      setDiscounts((data as { discounts: Discount[] }).discounts ?? []);
+      setDiscounts(ownData.discounts ?? []);
+      if (system.ok) {
+        const systemData = (await system.json().catch(() => ({}))) as { discounts?: Rule[] };
+        setSystemDiscounts(systemData.discounts ?? []);
+      }
     } finally {
       setLoading(false);
     }
@@ -60,252 +79,251 @@ export function CustomerBrandDiscountsPanel({ customerId, globalDiscountPct, emb
     void load();
   }, [load]);
 
-  function resetForm() {
-    setNewBrand("");
-    setNewPct("");
-    setNewNotes("");
-    setEditing(null);
-  }
+  const groupByKey = useMemo(
+    () => new Map(groupDiscounts.map((row) => [normalizeShopBrandKey(row.brand), row.discountPct])),
+    [groupDiscounts]
+  );
+  const systemByKey = useMemo(
+    () =>
+      new Map(systemDiscounts.map((row) => [normalizeShopBrandKey(row.brand), row.discountPct])),
+    [systemDiscounts]
+  );
+  const taken = new Set(discounts.map((row) => normalizeShopBrandKey(row.brand)));
+  /** What the partner would get on this brand without the exception. */
+  const baseFor = (brand: string) => {
+    const key = normalizeShopBrandKey(brand);
+    return groupByKey.get(key) ?? systemByKey.get(key) ?? null;
+  };
 
-  function startEdit(discount: Discount) {
-    setNewBrand(findB2bBrandOption(brands, discount.brand)?.brand ?? discount.brand);
-    setNewPct(String(discount.discountPct));
-    setNewNotes(discount.notes ?? "");
-    setEditing(discount.brand);
-    setError("");
-  }
-
-  async function save() {
-    if (!newBrand.trim()) {
-      setError("Оберіть бренд");
-      return;
-    }
-    const pct = Number(newPct.trim().replace(",", "."));
-    if (newPct.trim() === "" || !Number.isFinite(pct) || pct < 0 || pct > 100) {
-      setError("Знижка має бути від 0 до 100%");
-      return;
-    }
-    setSaving(true);
-    setError("");
+  async function save(brand: string, pct: number | null, notes: string | null) {
     try {
-      const response = await fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand: newBrand.trim(),
-          discountPct: pct,
-          notes: newNotes.trim() || null,
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const msg = (data as { error?: string }).error || "Не вдалося зберегти";
-        setError(msg);
-        toast.error(msg);
-        return;
-      }
-      toast.success(`Знижку на ${newBrand} збережено`);
-      resetForm();
-      await load();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function remove(brand: string) {
-    if (!window.confirm(`Прибрати знижку на ${brand}?`)) return;
-    setSaving(true);
-    try {
-      const response = await fetch(
-        `/api/admin/shop/customers/${customerId}/brand-discounts?brand=${encodeURIComponent(brand)}`,
-        { method: "DELETE" }
+      const response =
+        pct == null
+          ? await fetch(
+              `/api/admin/shop/customers/${customerId}/brand-discounts?brand=${encodeURIComponent(brand)}`,
+              { method: "DELETE" }
+            )
+          : await fetch(`/api/admin/shop/customers/${customerId}/brand-discounts`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ brand, discountPct: pct, notes }),
+            });
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) throw new Error(data.error || "Не вдалося зберегти");
+      toast.success(
+        pct == null ? `Виняток на ${brand} прибрано` : `Виняток: ${brand} −${formatPct(pct)}`
       );
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        toast.error((data as { error?: string }).error || "Не вдалося видалити");
-        return;
-      }
-      toast.success(`Знижку на ${brand} прибрано`);
-      if (editing === brand) resetForm();
       await load();
-    } finally {
-      setSaving(false);
+      return true;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Не вдалося зберегти");
+      return false;
     }
   }
 
-  const existingBrands = discounts.map((d) => d.brand);
+  async function addException(event?: React.FormEvent) {
+    event?.preventDefault();
+    if (!newBrand) return;
+    const value = Number(newPct.trim().replace(",", "."));
+    if (newPct.trim() === "" || !Number.isFinite(value) || value < 0 || value > 100) {
+      toast.error("Знижка має бути від 0 до 100%");
+      return;
+    }
+    setSaving(true);
+    const ok = await save(newBrand, value, newNotes.trim() || null);
+    setSaving(false);
+    if (ok) {
+      setNewBrand(null);
+      setNewPct("");
+      setNewNotes("");
+    }
+  }
+
+  const baseLabel = groupName ? `Група «${groupName}»` : "Для всіх";
 
   return (
-    <section className={embedded ? "" : "border border-white/10 bg-[#171717] p-6"}>
-      <div className="mb-4">
-        <h3
-          className={
-            embedded
-              ? "text-[13px] font-semibold text-zinc-100"
-              : "text-xl font-semibold text-zinc-100"
-          }
-        >
-          Знижки на окремі бренди
+    <section className="border border-[#24262B] bg-[#0E0F11]">
+      <header className="px-4 pb-2 pt-3.5">
+        <h3 className="text-[13px] font-semibold text-zinc-100">
+          Винятки для цього партнера{" "}
+          {discounts.length ? (
+            <span className="crm-mono text-[12px] font-normal text-zinc-500">
+              {discounts.length}
+            </span>
+          ) : null}
         </h3>
-        <p className="mt-1 text-[13px] leading-5 text-zinc-500">
-          На товари цих брендів партнер отримує вказану знижку — вона важливіша за всі інші. Для
-          решти брендів діє{" "}
+        <p className="mt-1 text-zinc-500">
+          Своя знижка на бренд — важливіша за тарифну групу і за{" "}
           <Link
-            href="/admin/shop/customers/b2b-pricing"
-            className="text-blue-300 hover:text-blue-200"
+            href="/admin/shop/customers/b2b-pricing?tab=matrix"
+            className="text-[#9CC0FF] hover:text-white"
           >
-            знижка бренду для всіх партнерів
+            знижки брендів для всіх
           </Link>
           {globalDiscountPct != null
-            ? `, а якщо її немає — знижка на інші бренди (${globalDiscountPct}%)`
-            : ""}
-          .
+            ? `. Бренди без жодної знижки отримують «інші бренди» −${formatPct(globalDiscountPct)}.`
+            : "."}
         </p>
-      </div>
+      </header>
 
-      {/* Add / edit form */}
-      <div className="mb-5 border border-white/10 bg-black/25 p-4">
-        <div className="grid gap-3 sm:grid-cols-[1.5fr_0.8fr_2fr_auto]">
-          <label className="block">
-            <span className="mb-1 block text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-              Бренд
-            </span>
-            <B2bBrandSelect
-              value={newBrand}
-              onChange={setNewBrand}
-              brands={brands}
-              loading={brandsLoading}
-              exclude={editing ? existingBrands.filter((b) => b !== editing) : existingBrands}
-              disabled={Boolean(editing)}
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-              Знижка %
-            </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.5"
-              min="0"
-              max="100"
-              value={newPct}
-              onChange={(e) => setNewPct(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void save();
-              }}
-              placeholder="15"
-              className="h-9 w-full rounded-none border border-white/10 bg-black/40 px-3 text-sm text-white"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[10px] uppercase tracking-[0.18em] text-zinc-500">
-              Нотатка
-            </span>
-            <input
-              value={newNotes}
-              onChange={(e) => setNewNotes(e.target.value)}
-              placeholder="особливі умови (необов’язково)"
-              className="h-9 w-full rounded-none border border-white/10 bg-black/40 px-3 text-sm text-white"
-            />
-          </label>
-          <div className="flex items-end gap-2">
-            <button
-              type="button"
-              onClick={() => void save()}
-              disabled={saving || !newBrand.trim() || !newPct}
-              className="inline-flex h-9 items-center gap-2 rounded-none bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-50"
-            >
-              {editing ? null : <Plus className="h-4 w-4" />}
-              {editing ? "Зберегти" : "Додати"}
-            </button>
-            {editing ? (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="inline-flex h-9 items-center px-3 text-sm text-zinc-400 hover:text-white"
-              >
-                Скасувати
-              </button>
-            ) : null}
-          </div>
-        </div>
-        {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
-      </div>
+      {error ? (
+        <p className="mx-4 mb-3 border-l-2 border-[#F19B9B] bg-[#1F0E0E] px-3 py-2 text-[#F19B9B]">
+          {error}
+        </p>
+      ) : null}
 
-      {/* Existing list */}
-      {loading ? (
-        <div className="border border-white/10 bg-black/25 px-4 py-8 text-sm text-zinc-500">
-          Завантаження…
-        </div>
-      ) : discounts.length === 0 ? (
-        <div className="border border-dashed border-white/10 px-4 py-6 text-sm text-zinc-500">
-          Своїх знижок на бренди ще немає — діють знижки брендів для всіх партнерів.
-        </div>
-      ) : (
-        <AdminTableShell>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+      <div className="border-t border-[#1F2125]">
+        {loading ? (
+          <p className="px-4 py-5 text-zinc-500">Завантаження…</p>
+        ) : (
+          <table className="w-full table-fixed border-collapse text-left">
+            {discounts.length ? (
               <thead>
-                <tr className="border-b border-white/10 bg-white/3 text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                  <th className="px-4 py-3 font-medium">Бренд</th>
-                  <th className="px-4 py-3 text-right font-medium">Знижка</th>
-                  <th className="px-4 py-3 font-medium">Нотатка</th>
-                  <th className="px-4 py-3 font-medium">Оновлено</th>
-                  <th className="px-4 py-3 font-medium" />
+                <tr className="h-8 border-b border-[#1F2125] text-[12px] text-zinc-500">
+                  <th className="px-4 font-normal">Бренд</th>
+                  <th className="w-[130px] px-3 text-right font-normal">{baseLabel}</th>
+                  <th className="w-[130px] px-1 text-right font-normal">Виняток</th>
+                  <th className="w-10" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/6">
-                {discounts.map((d) => {
-                  const unknownBrand = !brandsLoading && !findB2bBrandOption(brands, d.brand);
-                  return (
-                    <tr key={d.id} className="transition hover:bg-white/2">
-                      <td className="px-4 py-3 font-medium text-zinc-100">
-                        {d.brand}
-                        {unknownBrand ? (
-                          <span className="mt-0.5 flex items-center gap-1 text-xs font-normal text-amber-300">
-                            <AlertTriangle className="h-3 w-3" /> Немає товарів цього бренду —
-                            знижка не діє
-                          </span>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold tabular-nums text-emerald-300">
-                        −{d.discountPct.toFixed(2)}%
-                      </td>
-                      <td className="px-4 py-3 text-zinc-400">{d.notes || "—"}</td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">
-                        {new Date(d.updatedAt).toLocaleString("uk-UA")}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(d)}
-                            disabled={saving}
-                            className="inline-flex items-center gap-1 text-xs text-zinc-300 transition hover:text-white disabled:opacity-50"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Змінити
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void remove(d.brand)}
-                            disabled={saving}
-                            className="inline-flex items-center gap-1 text-xs text-red-300/80 transition hover:text-red-200 disabled:opacity-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Прибрати
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </AdminTableShell>
-      )}
+            ) : null}
+            <tbody>
+              {discounts.map((discount) => {
+                const base = baseFor(discount.brand);
+                const unknownBrand = !brandsLoading && !findB2bBrandOption(brands, discount.brand);
+                return (
+                  <tr
+                    key={discount.id}
+                    className="group h-10 border-b border-[#17181B] last:border-b-0 hover:bg-[#111113]"
+                  >
+                    <td className="truncate px-4">
+                      <span className="text-zinc-100">{discount.brand}</span>
+                      {unknownBrand ? (
+                        <span className="ml-2 inline-flex items-center gap-1 text-[12px] text-[#F5C46B]">
+                          <AlertTriangle className="h-3 w-3" /> немає товарів — не діє
+                        </span>
+                      ) : discount.notes ? (
+                        <span className="ml-2 text-[12px] text-zinc-500" title={discount.notes}>
+                          {discount.notes}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="crm-mono px-3 text-right text-[12px] text-zinc-500">
+                      {base != null ? (base === 0 ? "0%" : `−${formatPct(base)}`) : "—"}
+                    </td>
+                    <td className="px-1">
+                      <PctCell
+                        value={discount.discountPct}
+                        label={`Виняток на ${discount.brand}`}
+                        onSave={(next) => save(discount.brand, next, discount.notes)}
+                      />
+                    </td>
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        aria-label={`Прибрати виняток на ${discount.brand}`}
+                        title="Прибрати виняток"
+                        onClick={() => void save(discount.brand, null, null)}
+                        className="p-1 text-zinc-600 opacity-0 transition hover:text-[#F19B9B] group-hover:opacity-100 focus:opacity-100"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {!discounts.length && !newBrand ? (
+                <tr>
+                  <td className="px-4 py-4 text-zinc-500">
+                    Винятків немає —{" "}
+                    {groupName
+                      ? `діють знижки групи «${groupName}» і брендів для всіх.`
+                      : "діють знижки брендів для всіх партнерів."}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        )}
+
+        {newBrand ? (
+          <form
+            onSubmit={addException}
+            className="flex flex-wrap items-center gap-2 border-t border-[#1F2125] px-4 py-2.5"
+          >
+            <span className="min-w-[120px] flex-1 truncate text-zinc-100">
+              {newBrand}
+              {baseFor(newBrand) != null ? (
+                <span className="ml-2 text-[12px] text-zinc-500">
+                  зараз −{formatPct(baseFor(newBrand)!)}
+                </span>
+              ) : null}
+            </span>
+            <div className="relative w-24">
+              <input
+                autoFocus
+                inputMode="decimal"
+                value={newPct}
+                onChange={(event) => setNewPct(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") setNewBrand(null);
+                }}
+                placeholder="15"
+                aria-label={`Виняток на ${newBrand}, %`}
+                className={cn(crmInput, "crm-mono pr-6 text-right")}
+              />
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-zinc-500">
+                %
+              </span>
+            </div>
+            <input
+              value={newNotes}
+              onChange={(event) => setNewNotes(event.target.value)}
+              placeholder="Нотатка (необов’язково)"
+              aria-label="Нотатка до винятку"
+              className={cn(crmInput, "w-auto min-w-[160px] flex-1")}
+            />
+            <button type="submit" disabled={saving || !newPct.trim()} className={crmPrimaryButton}>
+              Додати
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewBrand(null)}
+              aria-label="Скасувати"
+              className={crmIconButton}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </form>
+        ) : (
+          <AddRow label="Додати виняток на бренд" open={adding} onOpen={() => setAdding(true)}>
+            <CrmPicker
+              autoFocus
+              label="Бренд для винятку"
+              placeholder="Почніть вводити бренд…"
+              loading={brandsLoading}
+              options={brands.map((option) => {
+                const has = taken.has(normalizeShopBrandKey(option.brand));
+                const base = baseFor(option.brand);
+                return {
+                  value: option.brand,
+                  label: option.brand,
+                  disabled: has,
+                  meta: has
+                    ? "вже є виняток"
+                    : `${option.productCount} тов.${base != null ? ` · зараз −${formatPct(base)}` : ""}`,
+                };
+              })}
+              onSelect={(value) => {
+                setNewBrand(value);
+                setNewPct("");
+                setNewNotes("");
+                setAdding(false);
+              }}
+            />
+          </AddRow>
+        )}
+      </div>
     </section>
   );
 }

@@ -695,6 +695,15 @@ export default function AdminCreateOrderPage() {
               </div>
               {pricingTerms?.group === "B2B_APPROVED" ? (
                 <div className="mt-1 text-xs text-emerald-400">
+                  {pricingTerms.tariffGroup
+                    ? `Група «${pricingTerms.tariffGroup.name}»${
+                        pricingTerms.groupBrandDiscounts.length
+                          ? `: ${pricingTerms.groupBrandDiscounts
+                              .map((rule) => `${rule.brand} −${rule.discountPct}%`)
+                              .join(", ")}`
+                          : ""
+                      }. `
+                    : ""}
                   {pricingTerms.customerBrandDiscounts.length
                     ? `Свої знижки: ${pricingTerms.customerBrandDiscounts
                         .map((rule) => `${rule.brand} −${rule.discountPct}%`)

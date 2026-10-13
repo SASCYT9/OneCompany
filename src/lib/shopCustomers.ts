@@ -51,6 +51,7 @@ export const shopCustomerAdminListSelect = {
     select: { createdAt: true },
   },
   account: { select: { lastLoginAt: true } },
+  tariffGroup: { select: { id: true, name: true } },
   brandDiscounts: {
     orderBy: { brand: "asc" },
     select: { brand: true, discountPct: true },
@@ -699,6 +700,7 @@ export function serializeShopCustomerAdminListItem(record: ShopCustomerAdminList
     lastOrderAt: record.orders[0]?.createdAt.toISOString() ?? null,
     canSignIn: Boolean(record.account),
     lastLoginAt: record.account?.lastLoginAt?.toISOString() ?? null,
+    tariffGroup: record.tariffGroup,
     brandDiscounts: record.brandDiscounts.map((rule) => ({
       brand: rule.brand,
       discountPct: Number(rule.discountPct),

@@ -1,26 +1,27 @@
-import { CustomerGroup, Prisma, PrismaClient } from '@prisma/client';
+import { CustomerGroup, Prisma, PrismaClient } from "@prisma/client";
 import {
   buildCustomerDisplayName,
   getDefaultShippingAddress,
   serializeShopCustomerAdminListItem,
   shopCustomerAdminListSelect,
-} from '@/lib/shopCustomers';
+} from "@/lib/shopCustomers";
 
 export const shopCustomerAdminDetailInclude = {
   account: true,
   passwordSetupToken: true,
+  tariffGroup: { select: { id: true, name: true } },
   addresses: {
-    orderBy: [{ isDefaultShipping: 'desc' }, { createdAt: 'asc' }],
+    orderBy: [{ isDefaultShipping: "desc" }, { createdAt: "asc" }],
   },
   orders: {
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: 30,
     include: {
       items: true,
     },
   },
   carts: {
-    orderBy: { updatedAt: 'desc' },
+    orderBy: { updatedAt: "desc" },
     include: {
       items: true,
     },
@@ -44,12 +45,12 @@ export type ShopCustomerAdminAuditRecord = Prisma.AdminAuditLogGetPayload<{
 }>;
 
 function nullableString(value: unknown) {
-  const normalized = String(value ?? '').trim();
+  const normalized = String(value ?? "").trim();
   return normalized || null;
 }
 
 function nullablePercent(value: unknown) {
-  if (value == null || value === '') return null;
+  if (value == null || value === "") return null;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
   if (parsed < 0) return 0;
@@ -57,13 +58,13 @@ function nullablePercent(value: unknown) {
 }
 
 export function normalizeCustomerGroup(value: unknown): CustomerGroup {
-  switch (String(value ?? '').trim()) {
-    case 'B2B_PENDING':
-      return 'B2B_PENDING';
-    case 'B2B_APPROVED':
-      return 'B2B_APPROVED';
+  switch (String(value ?? "").trim()) {
+    case "B2B_PENDING":
+      return "B2B_PENDING";
+    case "B2B_APPROVED":
+      return "B2B_APPROVED";
     default:
-      return 'B2C';
+      return "B2C";
   }
 }
 
@@ -83,10 +84,12 @@ export function serializeShopCustomerAdminDetail(
     companyName: record.companyName,
     vatNumber: record.vatNumber,
     group: record.group,
-    b2bDiscountPercent: record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
-    discountTier: (record as any).discountTier || 'none',
-    region: (record as any).region || 'Unknown',
-    currencyPref: (record as any).currencyPref || 'USD',
+    b2bDiscountPercent:
+      record.b2bDiscountPercent != null ? Number(record.b2bDiscountPercent) : null,
+    tariffGroup: record.tariffGroup,
+    discountTier: (record as any).discountTier || "none",
+    region: (record as any).region || "Unknown",
+    currencyPref: (record as any).currencyPref || "USD",
     balance: (record as any).balance ? parseFloat((record as any).balance.toString()) : 0,
     role: (record as any).role,
     isActive: record.isActive,
@@ -174,29 +177,35 @@ export async function listShopCustomersAdmin(
     status?: string | null;
   } = {}
 ) {
-  const q = String(input.q ?? '').trim();
-  const group = String(input.group ?? '').trim();
-  const status = String(input.status ?? '').trim().toLowerCase();
+  const q = String(input.q ?? "").trim();
+  const group = String(input.group ?? "").trim();
+  const status = String(input.status ?? "")
+    .trim()
+    .toLowerCase();
 
   const records = await prisma.shopCustomer.findMany({
     where: {
-      ...(group && ['B2C', 'B2B_PENDING', 'B2B_APPROVED'].includes(group)
+      ...(group && ["B2C", "B2B_PENDING", "B2B_APPROVED"].includes(group)
         ? { group: group as CustomerGroup }
         : {}),
-      ...(status === 'active' ? { isActive: true } : status === 'inactive' ? { isActive: false } : {}),
+      ...(status === "active"
+        ? { isActive: true }
+        : status === "inactive"
+          ? { isActive: false }
+          : {}),
       ...(q
         ? {
             OR: [
-              { email: { contains: q, mode: 'insensitive' } },
-              { firstName: { contains: q, mode: 'insensitive' } },
-              { lastName: { contains: q, mode: 'insensitive' } },
-              { companyName: { contains: q, mode: 'insensitive' } },
-              { phone: { contains: q, mode: 'insensitive' } },
+              { email: { contains: q, mode: "insensitive" } },
+              { firstName: { contains: q, mode: "insensitive" } },
+              { lastName: { contains: q, mode: "insensitive" } },
+              { companyName: { contains: q, mode: "insensitive" } },
+              { phone: { contains: q, mode: "insensitive" } },
             ],
           }
         : {}),
     },
-    orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     select: shopCustomerAdminListSelect,
   });
 
@@ -215,13 +224,10 @@ export async function getShopCustomerAdminDetail(prisma: PrismaClient, customerI
 
   const auditLogs = await prisma.adminAuditLog.findMany({
     where: {
-      scope: 'shop',
-      OR: [
-        { entityType: 'shop.customer', entityId: customerId },
-        { actorEmail: record.email },
-      ],
+      scope: "shop",
+      OR: [{ entityType: "shop.customer", entityId: customerId }, { actorEmail: record.email }],
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: 30,
     select: {
       id: true,
@@ -237,11 +243,11 @@ export async function getShopCustomerAdminDetail(prisma: PrismaClient, customerI
 }
 
 export function normalizeShopCustomerAdminPayload(input: unknown) {
-  const source = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>;
+  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
 
   return {
-    firstName: String(source.firstName ?? '').trim(),
-    lastName: String(source.lastName ?? '').trim(),
+    firstName: String(source.firstName ?? "").trim(),
+    lastName: String(source.lastName ?? "").trim(),
     phone: nullableString(source.phone),
     companyName: nullableString(source.companyName),
     vatNumber: nullableString(source.vatNumber),
@@ -249,9 +255,14 @@ export function normalizeShopCustomerAdminPayload(input: unknown) {
     b2bDiscountPercent: nullablePercent(source.b2bDiscountPercent),
     discountTier: nullableString(source.discountTier),
     region: nullableString(source.region),
-    currencyPref: String(source.currencyPref || 'EUR').toUpperCase(),
-    balance: typeof source.balance === 'number' ? source.balance : (nullableString(source.balance) !== null ? Number(source.balance) : 0),
-    preferredLocale: String(source.preferredLocale ?? '').trim() === 'ua' ? 'ua' : 'en',
+    currencyPref: String(source.currencyPref || "EUR").toUpperCase(),
+    balance:
+      typeof source.balance === "number"
+        ? source.balance
+        : nullableString(source.balance) !== null
+          ? Number(source.balance)
+          : 0,
+    preferredLocale: String(source.preferredLocale ?? "").trim() === "ua" ? "ua" : "en",
     isActive: source.isActive !== false,
     group: normalizeCustomerGroup(source.group),
   };

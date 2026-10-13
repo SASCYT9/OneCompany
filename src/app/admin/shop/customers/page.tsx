@@ -40,6 +40,7 @@ type CustomerListItem = {
   lastOrderAt: string | null;
   canSignIn: boolean;
   lastLoginAt: string | null;
+  tariffGroup: { id: string; name: string } | null;
   brandDiscounts: Array<{ brand: string; discountPct: number }>;
   createdAt: string;
   updatedAt: string;
@@ -701,15 +702,24 @@ function CustomersScreen() {
                             </div>
                           </td>
                           <td className="overflow-hidden px-3">
-                            {customer.brandDiscounts.length ? (
+                            {customer.tariffGroup || customer.brandDiscounts.length ? (
                               <div className="flex gap-1 overflow-hidden">
-                                {customer.brandDiscounts.slice(0, 2).map((rule) => (
-                                  <CrmChip key={rule.brand} tone="green">
-                                    {rule.brand} −{rule.discountPct}%
+                                {customer.tariffGroup ? (
+                                  <CrmChip tone="blue">{customer.tariffGroup.name}</CrmChip>
+                                ) : null}
+                                {customer.brandDiscounts
+                                  .slice(0, customer.tariffGroup ? 1 : 2)
+                                  .map((rule) => (
+                                    <CrmChip key={rule.brand} tone="green">
+                                      {rule.brand} −{rule.discountPct}%
+                                    </CrmChip>
+                                  ))}
+                                {customer.brandDiscounts.length > (customer.tariffGroup ? 1 : 2) ? (
+                                  <CrmChip>
+                                    +
+                                    {customer.brandDiscounts.length -
+                                      (customer.tariffGroup ? 1 : 2)}
                                   </CrmChip>
-                                ))}
-                                {customer.brandDiscounts.length > 2 ? (
-                                  <CrmChip>+{customer.brandDiscounts.length - 2}</CrmChip>
                                 ) : null}
                               </div>
                             ) : (
@@ -838,6 +848,11 @@ function CustomersScreen() {
 
             <div className="border-b border-[#1F2125] px-5 py-3">
               <div className="mb-2 text-zinc-500">Знижки на бренди</div>
+              {peek.tariffGroup ? (
+                <div className="mb-2">
+                  Тарифна група: <CrmChip tone="blue">{peek.tariffGroup.name}</CrmChip>
+                </div>
+              ) : null}
               {peek.brandDiscounts.length ? (
                 <div className="flex flex-wrap gap-1.5">
                   {peek.brandDiscounts.map((rule) => (
@@ -848,9 +863,11 @@ function CustomersScreen() {
                 </div>
               ) : (
                 <span className="text-zinc-500">
-                  {peek.group === "B2B_APPROVED"
-                    ? "Своїх немає — діють знижки брендів для всіх"
-                    : "Бачить роздрібні ціни"}
+                  {peek.group !== "B2B_APPROVED"
+                    ? "Бачить роздрібні ціни"
+                    : peek.tariffGroup
+                      ? "Винятків немає — діють знижки групи"
+                      : "Своїх немає — діють знижки брендів для всіх"}
                 </span>
               )}
             </div>

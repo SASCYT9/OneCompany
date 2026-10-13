@@ -3,11 +3,12 @@
  * Storefront pricing, the admin price check and admin-created orders all call
  * it, so a partner, a manager and an invoice always agree.
  *
- * Priority (highest → lowest), B2B-approved partners only for tiers 1–3:
+ * Priority (highest → lowest), B2B-approved partners only for tiers 1–4:
  *   1. ShopCustomerBrandDiscount        — this partner, this brand
- *   2. ShopBrandB2bDiscount             — this brand, every partner
- *   3. ShopCustomer.b2bDiscountPercent  — this partner, every other brand
- *   4. ShopSettings.defaultB2bDiscountPercent
+ *   2. ShopB2bTariffGroupBrandDiscount  — the partner's tariff group, this brand
+ *   3. ShopBrandB2bDiscount             — this brand, every partner
+ *   4. ShopCustomer.b2bDiscountPercent  — this partner, every other brand
+ *   5. ShopSettings.defaultB2bDiscountPercent
  *
  * A brand rule of 0 % is a real rule ("no discount on this brand") and stops
  * the fall-through. Brands match case-insensitively on the storefront brand
@@ -16,6 +17,7 @@
 
 export type ShopB2bDiscountSource =
   | "customer-brand"
+  | "group-brand"
   | "system-brand"
   | "customer-global"
   | "default"
@@ -30,6 +32,7 @@ export type ShopB2bDiscountInput = {
   customerGroup: string | null | undefined;
   brand?: string | null;
   customerBrandDiscountMap?: ReadonlyMap<string, number>;
+  groupBrandDiscountMap?: ReadonlyMap<string, number>;
   systemBrandDiscountMap?: ReadonlyMap<string, number>;
   customerB2BDiscountPercent?: number | null;
   defaultB2BDiscountPercent?: number | null;
@@ -69,6 +72,10 @@ export function resolveShopB2bDiscount(input: ShopB2bDiscountInput): ShopB2bDisc
       if (customerBrand != null) {
         return { percent: clampShopDiscountPercent(customerBrand), source: "customer-brand" };
       }
+      const groupBrand = input.groupBrandDiscountMap?.get(key);
+      if (groupBrand != null) {
+        return { percent: clampShopDiscountPercent(groupBrand), source: "group-brand" };
+      }
       const systemBrand = input.systemBrandDiscountMap?.get(key);
       if (systemBrand != null) {
         return { percent: clampShopDiscountPercent(systemBrand), source: "system-brand" };
@@ -85,12 +92,25 @@ export function resolveShopB2bDiscount(input: ShopB2bDiscountInput): ShopB2bDisc
   return fallback > 0 ? { percent: fallback, source: "default" } : { percent: 0, source: "none" };
 }
 
+/**
+ * Tiers 1 and 2 sit next to each other, so the storefront can carry them as one
+ * map: the group's rules with the partner's own rules written over them.
+ */
+export function mergeShopPartnerBrandDiscountMaps(
+  groupBrandDiscountMap: ReadonlyMap<string, number>,
+  customerBrandDiscountMap: ReadonlyMap<string, number>
+): Map<string, number> {
+  return new Map([...groupBrandDiscountMap, ...customerBrandDiscountMap]);
+}
+
 /** A partner's terms as plain JSON (admin API → order and proforma screens). */
 export type ShopB2bPricingTerms = {
   group: string;
   b2bDiscountPercent: number | null;
   defaultB2bDiscountPercent: number | null;
+  tariffGroup: { id: string; name: string } | null;
   systemBrandDiscounts: ReadonlyArray<{ brand: string; discountPct: number }>;
+  groupBrandDiscounts: ReadonlyArray<{ brand: string; discountPct: number }>;
   customerBrandDiscounts: ReadonlyArray<{ brand: string; discountPct: number }>;
 };
 
@@ -98,11 +118,13 @@ export function createShopB2bTermsResolver(terms: ShopB2bPricingTerms | null | u
   if (!terms) return () => ({ percent: 0, source: "none" }) as ShopB2bDiscountResolution;
   const systemBrandDiscountMap = buildShopBrandDiscountMap(terms.systemBrandDiscounts);
   const customerBrandDiscountMap = buildShopBrandDiscountMap(terms.customerBrandDiscounts);
+  const groupBrandDiscountMap = buildShopBrandDiscountMap(terms.groupBrandDiscounts ?? []);
   return (brand: string | null | undefined) =>
     resolveShopB2bDiscount({
       customerGroup: terms.group,
       brand,
       customerBrandDiscountMap,
+      groupBrandDiscountMap,
       systemBrandDiscountMap,
       customerB2BDiscountPercent: terms.b2bDiscountPercent,
       // Admin orders price for one known partner; the public default only
@@ -114,6 +136,7 @@ export function createShopB2bTermsResolver(terms: ShopB2bPricingTerms | null | u
 
 export const SHOP_B2B_DISCOUNT_SOURCE_LABELS: Readonly<Record<ShopB2bDiscountSource, string>> = {
   "customer-brand": "Знижка партнера на бренд",
+  "group-brand": "Знижка тарифної групи",
   "system-brand": "Знижка бренду для всіх партнерів",
   "customer-global": "Знижка партнера на інші бренди",
   default: "Загальна B2B-знижка",
