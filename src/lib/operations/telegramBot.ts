@@ -7,6 +7,7 @@ import {
   SUPERADMIN_ROLE_KEY,
 } from "@/lib/admin/adminPermissions";
 import { opsAdminLink, opsMiniAppUrl } from "@/lib/operations/adminLinks";
+import { extractOpsKnowledgeQuestion } from "@/lib/operations/knowledgeQuestion";
 import { loadOpsMyDay, type OpsMyDay, type OpsMyDayTask } from "@/lib/operations/myDay";
 import type {
   OpsTelegramInlineButton,
@@ -27,6 +28,7 @@ import {
   type OpsTaskQuickAction,
 } from "@/lib/operations/telegramCallbacks";
 import { matchOpsAssigneeCandidate } from "@/lib/operations/telegramJobs";
+import { answerOpsUsaPriceQuestion } from "@/lib/operations/usaPricing";
 
 /** Persistent keyboard under the chat — the bot's main menu. */
 export const OPS_BOT_MENU = {
@@ -330,6 +332,7 @@ export function buildOpsBotWelcome(input: { name: string; miniAppUrl: string | n
     "✍️ Напишите или надиктуйте задачу — оформлю её и спрошу, кому поручить.",
     "↩️ Ответьте на моё сообщение о задаче: «готово», «перенеси на пятницу», «передай Игорю», «повторять каждую неделю».",
     "❓ Вопрос к базе знаний начните с «?» — например «? доставка из Великобритании».",
+    "🇺🇸 Цена из США: «? США 1000 + 50 доставка, 10 кг» — посчитаю по нашей формуле.",
     input.miniAppUrl ? "📱 «Мой день» — все ваши задачи с кнопками, прямо в Telegram." : null,
     "",
     "Сам пишу только с 9:00 до 21:00: утром — что горит, за 2 часа до срока, в пятницу — разбор зависших.",
@@ -688,17 +691,23 @@ export async function handleOpsTelegramBotUpdate(input: {
     return null;
   }
   const command = parseOpsBotCommand(update.text);
-  const target = command ? null : await resolveQuickTarget(input.client, update);
+  // «? США 1000 + 50, 10 кг» is plain arithmetic: answer at once, no AI.
+  const question = command ? null : extractOpsKnowledgeQuestion(update.text);
+  const usaAnswer = question ? answerOpsUsaPriceQuestion(question) : null;
+  const target = command || usaAnswer ? null : await resolveQuickTarget(input.client, update);
   const member =
-    command || target ? await resolveOpsBotMember(input.client, update.telegramUserId) : null;
+    command || target || usaAnswer
+      ? await resolveOpsBotMember(input.client, update.telegramUserId)
+      : null;
   const quick = target ? parseOpsQuickCommand(target.commandText, now, member?.timezone) : null;
-  if (!command && !quick) return null;
+  if (!command && !quick && !usaAnswer) return null;
   // Unlinked people are ignored without revealing who is on the team.
   if (!member) return { body: { ok: true } };
   if (!(await consumeRateLimit(input.client, update, now))) return { body: { ok: true } };
   if (!(await recordHandledUpdate(input.client, update))) return { body: { ok: true } };
 
   const miniAppUrl = opsMiniAppUrl();
+  if (usaAnswer) return { body: replyBody(update, usaAnswer, undefined, true) };
   if (command) {
     if (command === "start" || command === "help") {
       return {
@@ -731,6 +740,7 @@ export async function handleOpsTelegramBotUpdate(input: {
             "❓ Задайте вопрос, начав с «?». Например:",
             "«? доставка из Великобритании»",
             "«? скидки Brabus»",
+            "«? США 1000 + 50 доставка, 10 кг» — цена по формуле США",
             "Отвечу по базе знаний и дам ссылку на статью.",
           ].join("\n")
         ),
