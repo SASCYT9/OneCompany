@@ -305,6 +305,10 @@ test("an overloaded model hands a knowledge answer to the fast one and is refund
     isTransientOpsAiError(new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}')),
     true
   );
+  assert.equal(
+    isTransientOpsAiError(new Error('{"error":{"code":504,"status":"DEADLINE_EXCEEDED"}}')),
+    true
+  );
   assert.equal(isTransientOpsAiError(new Error("AI returned invalid structured output")), false);
   const ledger: bigint[] = [];
   let calls = 0;
