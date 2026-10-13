@@ -224,3 +224,31 @@ test("US suppliers filed under another group switch too; CT Carbon and Maxton ge
   assert.equal(applyBotObservedFormulaSection(withBot, "CT Carbon"), withBot);
   assert.equal(applyBotObservedFormulaSection(ct, "Unknown"), ct);
 });
+
+test("knowledge search ranks title matches first instead of an arbitrary slice", async () => {
+  const { findOpsKnowledgeForQuestion } = await import(
+    "../../../src/lib/operations/knowledgeAnswers"
+  );
+  const rows = [
+    { id: "kb_onecompany1", title: "Что такое One Company" },
+    { id: "kb_medyka00001", title: "Доставка из Великобритании через Medyka" },
+    { id: "kb_routes00001", title: "Маршруты и ориентиры логистики" },
+  ];
+  const client = {
+    opsKnowledgeArticle: {
+      async findMany({ where }: { where: Record<string, unknown> }) {
+        if ("id" in where) {
+          const ids = (where.id as { in: string[] }).in;
+          return rows
+            .filter((row) => ids.includes(row.id))
+            .map((row) => ({ ...row, contentMarkdown: `# ${row.title}` }));
+        }
+        if ("AND" in where) return [rows[1], rows[2]];
+        return rows;
+      },
+    },
+  } as unknown as PrismaClient;
+  const found = await findOpsKnowledgeForQuestion(client, "доставка из Великобритании");
+  assert.equal(found[0].title, "Доставка из Великобритании через Medyka");
+  assert.equal(found[0].content, "# Доставка из Великобритании через Medyka");
+});
