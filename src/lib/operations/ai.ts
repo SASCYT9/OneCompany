@@ -648,8 +648,11 @@ ${JSON.stringify(input.articles)}
 QUESTION:
 ${JSON.stringify(input.question)}`,
       config: {
-        httpOptions: { timeout: 60_000 },
-        maxOutputTokens: 1_200,
+        httpOptions: { timeout: 45_000 },
+        // Thinking tokens count against the limit: keep thinking short and
+        // leave room for the answer itself.
+        maxOutputTokens: 4_000,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -777,7 +780,7 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
     input.articles.reduce((sum, article) => sum + article.title.length + article.content.length, 0);
   const reservation = estimateOpsAiReservation({
     expectedTextInputTokens: Math.ceil(textLength / 3),
-    expectedOutputTokens: 1_200,
+    expectedOutputTokens: 4_000,
   });
   return callWithSingleFallback({
     call: (model) => answer({ model, question: input.question, articles: input.articles }),

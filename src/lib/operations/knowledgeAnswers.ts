@@ -69,35 +69,69 @@ export async function findOpsKnowledgeForQuestion(
 ) {
   const terms = opsKnowledgeQuestionTerms(question);
   if (!terms.length) return [];
-  const candidates = await client.opsKnowledgeArticle.findMany({
-    where: {
-      status: OpsKnowledgeStatus.PUBLISHED,
-      archivedAt: null,
-      OR: terms.flatMap((term) => [
-        { title: { contains: term, mode: "insensitive" as const } },
-        { searchText: { contains: term, mode: "insensitive" as const } },
-      ]),
-    },
-    take: 40,
-    select: { id: true, title: true, searchText: true, contentMarkdown: true, brandKey: true },
+  const base = { status: OpsKnowledgeStatus.PUBLISHED, archivedAt: null };
+  const contains = (term: string) => ({ contains: term, mode: "insensitive" as const });
+  // Ranking happens here, not in an arbitrary «first 40 matches» slice:
+  // title hits weigh most, then articles that mention every term.
+  const [byTitle, byAllTerms] = await Promise.all([
+    client.opsKnowledgeArticle.findMany({
+      where: { ...base, OR: terms.map((term) => ({ title: contains(term) })) },
+      take: 60,
+      select: { id: true, title: true },
+    }),
+    terms.length > 1
+      ? client.opsKnowledgeArticle.findMany({
+          where: { ...base, AND: terms.map((term) => ({ searchText: contains(term) })) },
+          take: 30,
+          select: { id: true, title: true },
+        })
+      : Promise.resolve([] as Array<{ id: string; title: string }>),
+  ]);
+  const byAnyTerm =
+    byTitle.length + byAllTerms.length < limit
+      ? await client.opsKnowledgeArticle.findMany({
+          where: { ...base, OR: terms.map((term) => ({ searchText: contains(term) })) },
+          orderBy: { updatedAt: "desc" },
+          take: 40,
+          select: { id: true, title: true },
+        })
+      : [];
+  const scores = new Map<string, { title: string; score: number }>();
+  const add = (rows: Array<{ id: string; title: string }>, bonus: number) => {
+    for (const row of rows) {
+      const title = row.title.toLocaleLowerCase("ru-RU");
+      const titleHits = terms.filter((term) => title.includes(term)).length;
+      const entry = scores.get(row.id) ?? { title: row.title, score: titleHits * 3 };
+      entry.score += bonus;
+      scores.set(row.id, entry);
+    }
+  };
+  add(byTitle, 0);
+  add(byAllTerms, 2);
+  add(byAnyTerm, 1);
+  const topIds = Array.from(scores.entries())
+    .filter(([, entry]) => entry.score > 0)
+    .sort((left, right) => right[1].score - left[1].score)
+    .slice(0, limit)
+    .map(([id]) => id);
+  if (!topIds.length) return [];
+  const articles = await client.opsKnowledgeArticle.findMany({
+    where: { id: { in: topIds } },
+    select: { id: true, title: true, contentMarkdown: true },
   });
-  const scored = candidates
-    .map((article) => {
-      const title = article.title.toLocaleLowerCase("ru-RU");
-      const body = article.searchText.toLocaleLowerCase("ru-RU");
-      const score = terms.reduce(
-        (sum, term) => sum + (title.includes(term) ? 3 : 0) + (body.includes(term) ? 1 : 0),
-        0
-      );
-      return { article, score };
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score);
-  return scored.slice(0, limit).map(({ article }) => ({
-    id: article.id,
-    title: article.title,
-    content: article.contentMarkdown.slice(0, ARTICLE_CONTENT_LIMIT),
-  }));
+  const byId = new Map(articles.map((article) => [article.id, article]));
+  return topIds.flatMap((id) => {
+    const article = byId.get(id);
+    return article
+      ? [
+          {
+            id: article.id,
+            title: article.title,
+            content: article.contentMarkdown.slice(0, ARTICLE_CONTENT_LIMIT),
+          },
+        ]
+      : [];
+  });
 }
 
 function articleButtons(articles: Array<{ id: string; title: string }>) {
@@ -123,6 +157,7 @@ export async function answerOpsKnowledgeQuestion(input: {
   replyMarkup?: OpsTelegramReplyMarkup;
   aiUsed: boolean;
   model?: string;
+  aiError?: string;
 }> {
   const articles: OpsKnowledgeAnswerSource[] = await findOpsKnowledgeForQuestion(
     input.client,
@@ -169,8 +204,11 @@ export async function answerOpsKnowledgeQuestion(input: {
       aiUsed: true,
       model: response.model,
     };
-  } catch {
+  } catch (error) {
+    const aiError = error instanceof Error ? error.message.slice(0, 300) : "AI_FAILED";
+    console.error("[operations.knowledge.answer] AI answer failed", aiError);
     return {
+      aiError,
       text: [
         "📚 Вот что есть в базе по вашему вопросу:",
         ...articles.slice(0, 3).map((article) => `• ${article.title}`),
