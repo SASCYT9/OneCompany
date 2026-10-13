@@ -253,10 +253,13 @@ test("knowledge search ranks title matches first instead of an arbitrary slice",
   assert.equal(found[0].content, "# Доставка из Великобритании через Medyka");
 });
 
-test("an overloaded Gemini model is retried once and its reservation is refunded", async () => {
-  const { answerOpsKnowledgeQuestionWithAi, isTransientOpsAiError } = await import(
-    "../../../src/lib/operations/ai"
-  );
+test("an overloaded model hands a knowledge answer to the fast one and is refunded", async () => {
+  const {
+    answerOpsKnowledgeQuestionWithAi,
+    isTransientOpsAiError,
+    OPS_AI_FALLBACK_MODEL,
+    OPS_AI_PRIMARY_MODEL,
+  } = await import("../../../src/lib/operations/ai");
   assert.equal(
     isTransientOpsAiError(new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}')),
     true
@@ -264,6 +267,7 @@ test("an overloaded Gemini model is retried once and its reservation is refunded
   assert.equal(isTransientOpsAiError(new Error("AI returned invalid structured output")), false);
   const ledger: bigint[] = [];
   let calls = 0;
+  const attempts: Array<{ model: string; timeoutMs?: number }> = [];
   const result = await answerOpsKnowledgeQuestionWithAi({
     question: "доставка из Великобритании",
     articles: [{ id: "kb_medyka0001", title: "Medyka", content: "7–10 дней" }],
@@ -282,8 +286,9 @@ test("an overloaded Gemini model is retried once and its reservation is refunded
       async transcribe() {
         throw new Error("unused");
       },
-      async answer() {
+      async answer(input) {
         calls += 1;
+        attempts.push({ model: input.model, timeoutMs: input.timeoutMs });
         if (calls === 1) {
           throw new Error('{"error":{"code":503,"message":"high demand","status":"UNAVAILABLE"}}');
         }
@@ -294,7 +299,15 @@ test("an overloaded Gemini model is retried once and its reservation is refunded
       },
     },
   });
-  assert.equal(calls, 2, "same model retried once");
+  assert.equal(calls, 2, "no second wait on the overloaded model");
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.model),
+    [OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL]
+  );
+  assert.ok(
+    attempts.every((attempt) => (attempt.timeoutMs ?? Infinity) <= 25_000),
+    "a person is waiting: every attempt is short"
+  );
   assert.equal(result.value.answer, "7–10 дней");
   const [reserved, refund] = ledger;
   assert.equal(refund, -reserved, "the failed attempt's reservation is given back");

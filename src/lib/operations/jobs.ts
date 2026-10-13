@@ -4,6 +4,7 @@ import { OpsJobStage, OpsJobStatus, type OpsJob, type PrismaClient } from "@pris
 export const OPS_JOB_LEASE_MS = 120_000;
 export const OPS_JOB_HEARTBEAT_MS = 20_000;
 export const OPS_JOB_STAGE_TIMEOUT_MS = 90_000;
+export const OPS_JOB_DRAIN_MAX_BUDGET_MS = 180_000;
 export const OPS_JOB_MAX_ATTEMPTS = 4;
 export const OPS_JOB_BACKOFF_MS = [15_000, 60_000, 300_000, 900_000] as const;
 
@@ -436,7 +437,13 @@ export async function drainOpsJobs(input: {
   const startedAt = Date.now();
   const workerId = input.workerId ?? `ops-${crypto.randomUUID()}`;
   const maxJobs = Math.max(1, Math.min(25, input.maxJobs ?? 8));
-  const timeBudgetMs = Math.max(1_000, Math.min(55_000, input.timeBudgetMs ?? 45_000));
+  // The budget only stops leasing new work; a leased stage may still run up to
+  // OPS_JOB_STAGE_TIMEOUT_MS, so budget + stage timeout must fit in the
+  // caller's maxDuration (300 s for the webhook and the cron).
+  const timeBudgetMs = Math.max(
+    1_000,
+    Math.min(OPS_JOB_DRAIN_MAX_BUDGET_MS, input.timeBudgetMs ?? 45_000)
+  );
   const outcomes: string[] = [];
   for (let index = 0; index < maxJobs; index += 1) {
     if (Date.now() - startedAt >= timeBudgetMs) break;
