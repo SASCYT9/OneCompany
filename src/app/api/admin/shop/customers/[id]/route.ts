@@ -16,6 +16,7 @@ import {
   normalizeShopCustomerAdminPayload,
 } from "@/lib/shopAdminCustomers";
 import { prisma } from "@/lib/prisma";
+import { isUsableShopCustomerEmail, normalizeShopCustomerEmail } from "@/lib/shopCustomerEmail";
 import ShopPasswordResetEmail from "@/emails/ShopPasswordResetEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
@@ -66,6 +67,7 @@ export async function PATCH(request: NextRequest, context: Params) {
         firstName: true,
         lastName: true,
         preferredLocale: true,
+        account: { select: { id: true } },
       },
     });
 
@@ -214,9 +216,39 @@ export async function PATCH(request: NextRequest, context: Params) {
     }
 
     const payload = normalizeShopCustomerAdminPayload(body);
+
+    // The email is the login. A manager may set it only while the customer has
+    // no password yet (e.g. replacing a CRM placeholder); afterwards only the
+    // customer changes it, from their own cabinet.
+    const nextEmail =
+      body.email === undefined ? existing.email : normalizeShopCustomerEmail(body.email);
+    const emailChanged = nextEmail !== existing.email;
+    if (emailChanged) {
+      if (existing.account) {
+        return NextResponse.json(
+          { error: "У клієнта вже є пароль — email змінює сам клієнт у кабінеті" },
+          { status: 400 }
+        );
+      }
+      if (!isUsableShopCustomerEmail(nextEmail)) {
+        return NextResponse.json({ error: "Вкажіть справжній email клієнта" }, { status: 400 });
+      }
+      const taken = await prisma.shopCustomer.findUnique({
+        where: { email: nextEmail },
+        select: { id: true },
+      });
+      if (taken && taken.id !== id) {
+        return NextResponse.json(
+          { error: "Цей email уже має інший клієнт", existingCustomerId: taken.id },
+          { status: 409 }
+        );
+      }
+    }
+
     const updated = await prisma.shopCustomer.update({
       where: { id },
       data: {
+        ...(emailChanged ? { email: nextEmail } : {}),
         firstName: payload.firstName || existing.firstName,
         lastName: payload.lastName || existing.lastName,
         phone: payload.phone,
@@ -244,6 +276,7 @@ export async function PATCH(request: NextRequest, context: Params) {
       entityId: id,
       metadata: {
         email: updated.email,
+        ...(emailChanged ? { previousEmail: existing.email } : {}),
         group: updated.group,
         b2bDiscountPercent:
           updated.b2bDiscountPercent != null ? Number(updated.b2bDiscountPercent) : null,

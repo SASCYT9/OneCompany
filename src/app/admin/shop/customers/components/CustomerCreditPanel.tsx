@@ -163,7 +163,7 @@ export function CustomerCreditPanel({
   return (
     <AdminInspectorCard
       title="Баланс кредиту"
-      description="Реєстр магазинного кредиту, зручний для B2B. Нараховані кредити можна застосовувати до наступних замовлень."
+      description="Кредит, який клієнт може використати в наступних замовленнях."
     >
       {/* Balance summary */}
       {loading ? (
@@ -180,19 +180,17 @@ export function CustomerCreditPanel({
             >
               <div className="flex items-center gap-2">
                 <Coins className="h-3.5 w-3.5 text-emerald-300" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
-                  {cur}
-                </span>
+                <span className="text-[12px] text-emerald-200">{cur}</span>
               </div>
-              <span className="text-base font-bold text-emerald-200 tabular-nums">
+              <span className="text-[15px] font-semibold text-emerald-200 tabular-nums">
                 {formatMoney(bal, cur)}
               </span>
             </div>
           ))}
         </div>
       ) : (
-        <div className="rounded-none border border-dashed border-white/8 bg-black/20 p-3 text-center text-xs text-zinc-500">
-          Немає активних кредитів.
+        <div className="border border-dashed border-white/10 px-3 py-3 text-[13px] text-zinc-500">
+          Активних кредитів немає.
         </div>
       )}
 
@@ -202,13 +200,13 @@ export function CustomerCreditPanel({
           <button
             type="button"
             onClick={() => setShowIssueForm(true)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-none border border-blue-500/25 bg-blue-500/6 px-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-300 transition hover:bg-blue-500/12"
+            className="inline-flex w-full items-center justify-center gap-2 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-4 w-4" />
             Нарахувати кредит
           </button>
         ) : (
-          <div className="space-y-3 rounded-none border border-blue-500/20 bg-blue-500/3 p-3">
+          <div className="space-y-3 border border-white/10 bg-black/25 p-3">
             <div className="grid gap-2 md:grid-cols-2">
               <AdminInputField
                 label="Сума"
@@ -263,7 +261,7 @@ export function CustomerCreditPanel({
                 type="button"
                 onClick={() => void handleIssue()}
                 disabled={issuing || !amount}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-none bg-blue-600 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-blue-500 disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 bg-blue-600 px-3 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
               >
                 {issuing ? (
                   <Loader2 className="h-3 w-3 motion-safe:animate-spin" />
@@ -275,7 +273,7 @@ export function CustomerCreditPanel({
               <button
                 type="button"
                 onClick={() => setShowIssueForm(false)}
-                className="rounded-none border border-white/10 bg-white/3 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/6"
+                className="border border-white/15 px-3 py-2 text-[13px] text-zinc-300 transition hover:bg-white/5"
               >
                 Скасувати
               </button>
@@ -287,9 +285,7 @@ export function CustomerCreditPanel({
       {/* Recent credits list */}
       {data && data.credits.length > 0 ? (
         <div className="mt-4 space-y-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-            Останні кредити
-          </div>
+          <div className="text-[12px] text-zinc-500">Останні кредити</div>
           {data.credits.slice(0, 6).map((c) => (
             <div key={c.id} className="rounded-none border border-white/5 bg-[#171717] p-2.5">
               <div className="flex items-start justify-between gap-2">

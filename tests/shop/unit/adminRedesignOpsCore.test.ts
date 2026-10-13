@@ -22,7 +22,7 @@ test("shared admin primitives expose ops detail building blocks", () => {
 });
 
 test("orders and customers workbench pages use shared ops primitives", () => {
-  const pageExpectations = [
+  const pageExpectations: Array<{ path: string; markers: string[]; primitives?: string }> = [
     {
       path: "src/app/admin/shop/orders/page.tsx",
       // 2026-10: tabs by stage + one status dialog replaced the metric cards and workbench.
@@ -42,19 +42,23 @@ test("orders and customers workbench pages use shared ops primitives", () => {
       markers: ["AdminEditorShell", "AdminEditorSection", "AdminActionBar"],
     },
     {
-      // 2026-10: group tabs + a B2B request queue replaced the metric cards and filter bar.
+      // 2026-10-13: CRM look (Attio/Twenty-style) — dense table, side peek, create drawer.
       path: "src/app/admin/shop/customers/page.tsx",
-      markers: ["AdminPageHeader", "AdminTableShell", "CustomerTypeBadge"],
+      primitives: "crm/CrmUi",
+      markers: ["CrmSurface", "CrmTabs", "customerTypeChip", "NewCustomerDrawer"],
     },
     {
+      // Record page: click-to-edit attributes beside an activity/orders/discounts tab set.
       path: "src/app/admin/shop/customers/[id]/page.tsx",
-      markers: ["AdminSplitDetailShell", "AdminInspectorCard", "AdminActivityTimeline"],
+      primitives: "crm/CrmUi",
+      markers: ["CrmSurface", "CrmTabs", "CustomerBrandDiscountsPanel", "AdminNotes"],
     },
   ];
 
   for (const expectation of pageExpectations) {
     const source = readRepoFile(expectation.path);
-    assert.match(source, /from ['"]@\/components\/admin\/AdminPrimitives['"]/);
+    const primitives = expectation.primitives ?? "AdminPrimitives";
+    assert.match(source, new RegExp(`from ['"]@/components/admin/${primitives}['"]`));
     for (const marker of expectation.markers) {
       assert.match(source, new RegExp(`\\b${marker}\\b`));
     }

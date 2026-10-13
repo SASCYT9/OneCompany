@@ -90,6 +90,22 @@
   }
 }
 
+/* CRM screens (customers): a compact UI face for dense data; Unbounded stays
+   for page titles only. Fonts come from src/components/admin/crm/crmFonts.ts. */
+.crm-surface {
+  font-family: var(--font-crm), ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  color: #ececee;
+}
+.crm-surface .crm-mono {
+  font-family: var(--font-crm-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.crm-surface .crm-title {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.01em;
+}
+
 /* Admin design system: square geometry everywhere — no pills, no rounded cards
    or inputs. Spinners keep their circle because a spinning square reads as a glitch. */
 .admin-context,
