@@ -8,6 +8,12 @@ export const OPS_AI_PRIMARY_MODEL =
 /** Stronger model: fallback for parsing, first choice for knowledge answers. */
 export const OPS_AI_FALLBACK_MODEL =
   process.env.OPS_GEMINI_FALLBACK_MODEL?.trim() || "gemini-3.8-flash";
+/**
+ * Third model for knowledge answers: Google overloads (503) often hit the
+ * newest models together, an older one usually still has capacity.
+ */
+export const OPS_AI_RESERVE_MODEL =
+  process.env.OPS_GEMINI_RESERVE_MODEL?.trim() || "gemini-3.5-flash";
 export const OPS_AI_FEATURE = "telegram_manager";
 export const OPS_AI_WARNING_MICROS = BigInt(1_500_000);
 export const OPS_AI_HARD_STOP_MICROS = BigInt(2_000_000);
@@ -701,8 +707,9 @@ async function callWithSingleFallback<T>(input: {
 }) {
   const failures: string[] = [];
   for (const model of input.models ?? [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]) {
+    // Every model above the cheap primary is reserved at the stronger rate.
     const reservation =
-      model === OPS_AI_FALLBACK_MODEL ? input.reservation * BigInt(7) : input.reservation;
+      model === OPS_AI_PRIMARY_MODEL ? input.reservation : input.reservation * BigInt(7);
     for (let attempt = 0; attempt < 2; attempt += 1) {
       await input.budget.reserve(reservation);
       try {
@@ -802,13 +809,16 @@ export async function transcribeOpsMediaWithAi(input: {
 }
 
 const KNOWLEDGE_STRONG_MODEL_TIMEOUT_MS = 15_000;
-const KNOWLEDGE_FAST_MODEL_TIMEOUT_MS = 25_000;
+const KNOWLEDGE_FAST_MODEL_TIMEOUT_MS = 20_000;
+const KNOWLEDGE_OVERLOAD_PAUSE_MS = 3_000;
 
 export async function answerOpsKnowledgeQuestionWithAi(input: {
   question: string;
   articles: OpsKnowledgeAnswerSource[];
   budget: OpsAiBudget;
   provider?: OpsAiProvider;
+  /** Test hook: pause before the last try when every model was overloaded. */
+  overloadPauseMs?: number;
 }) {
   const answer = input.provider?.answer
     ? input.provider.answer.bind(input.provider)
@@ -820,26 +830,45 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
     expectedTextInputTokens: Math.ceil(textLength / 3),
     expectedOutputTokens: 4_000,
   });
-  return callWithSingleFallback({
-    call: (model) =>
-      answer({
-        model,
-        question: input.question,
-        articles: input.articles,
-        // A person is waiting: the strong model gets a short window, the
-        // fast one a little more, ~40 s worst case in total.
-        timeoutMs:
-          model === OPS_AI_FALLBACK_MODEL
-            ? KNOWLEDGE_STRONG_MODEL_TIMEOUT_MS
-            : KNOWLEDGE_FAST_MODEL_TIMEOUT_MS,
-      }),
-    normalize: normalizeOpsKnowledgeAnswer,
-    budget: input.budget,
-    audioSeconds: 0,
-    reservation,
-    includesAudio: false,
+  const run = (models: readonly string[]) =>
+    callWithSingleFallback({
+      call: (model) =>
+        answer({
+          model,
+          question: input.question,
+          articles: input.articles,
+          // A person is waiting: the strong model gets a short window, the
+          // others a little more. Overload errors (503) come back instantly.
+          timeoutMs:
+            model === OPS_AI_FALLBACK_MODEL
+              ? KNOWLEDGE_STRONG_MODEL_TIMEOUT_MS
+              : KNOWLEDGE_FAST_MODEL_TIMEOUT_MS,
+        }),
+      normalize: normalizeOpsKnowledgeAnswer,
+      budget: input.budget,
+      audioSeconds: 0,
+      reservation,
+      includesAudio: false,
+      retryTransient: false,
+      models,
+    });
+  try {
     // Answers are read by people: the smarter model goes first.
-    models: Array.from(new Set([OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL])),
-    retryTransient: false,
-  });
+    return await run(
+      Array.from(new Set([OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL, OPS_AI_RESERVE_MODEL]))
+    );
+  } catch (error) {
+    if (!isTransientOpsAiError(error)) throw error;
+    // Every model was overloaded: a short pause usually clears the spike.
+    await new Promise((resolve) =>
+      setTimeout(resolve, input.overloadPauseMs ?? KNOWLEDGE_OVERLOAD_PAUSE_MS)
+    );
+    try {
+      return await run([OPS_AI_PRIMARY_MODEL]);
+    } catch (retryError) {
+      const first = error instanceof Error ? error.message : String(error);
+      const second = retryError instanceof Error ? retryError.message : String(retryError);
+      throw new OpsAiError("AI_PROVIDER_FAILED", `${first} | after pause: ${second}`);
+    }
+  }
 }

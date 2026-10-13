@@ -253,6 +253,47 @@ test("knowledge search ranks title matches first instead of an arbitrary slice",
   assert.equal(found[0].content, "# Доставка из Великобритании через Medyka");
 });
 
+test("all models overloaded: one more try on the fast model after a pause", async () => {
+  const {
+    answerOpsKnowledgeQuestionWithAi,
+    OPS_AI_FALLBACK_MODEL,
+    OPS_AI_PRIMARY_MODEL,
+    OPS_AI_RESERVE_MODEL,
+  } = await import("../../../src/lib/operations/ai");
+  const models: string[] = [];
+  const overloaded = '{"error":{"code":503,"message":"high demand","status":"UNAVAILABLE"}}';
+  const result = await answerOpsKnowledgeQuestionWithAi({
+    question: "доставка из Великобритании",
+    articles: [{ id: "kb_medyka0001", title: "Medyka", content: "7–10 дней" }],
+    overloadPauseMs: 1,
+    budget: { async reserve() {}, async record() {} },
+    provider: {
+      async extract() {
+        throw new Error("unused");
+      },
+      async transcribe() {
+        throw new Error("unused");
+      },
+      async answer(input) {
+        models.push(input.model);
+        if (models.length <= 3) throw new Error(overloaded);
+        return {
+          value: { found: true, answer: "7–10 дней", source_ids: ["kb_medyka0001"] },
+          usage: { inputTokens: 100, outputTokens: 10 },
+        };
+      },
+    },
+  });
+  assert.deepEqual(models, [
+    OPS_AI_FALLBACK_MODEL,
+    OPS_AI_PRIMARY_MODEL,
+    OPS_AI_RESERVE_MODEL,
+    OPS_AI_PRIMARY_MODEL,
+  ]);
+  assert.equal(result.model, OPS_AI_PRIMARY_MODEL);
+  assert.equal(result.value.answer, "7–10 дней");
+});
+
 test("an overloaded model hands a knowledge answer to the fast one and is refunded", async () => {
   const {
     answerOpsKnowledgeQuestionWithAi,
@@ -305,7 +346,7 @@ test("an overloaded model hands a knowledge answer to the fast one and is refund
     [OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL]
   );
   assert.ok(
-    attempts.every((attempt) => (attempt.timeoutMs ?? Infinity) <= 25_000),
+    attempts.every((attempt) => (attempt.timeoutMs ?? Infinity) <= 20_000),
     "a person is waiting: every attempt is short"
   );
   assert.equal(result.value.answer, "7–10 дней");
