@@ -3,6 +3,7 @@ import { OpsKnowledgeStatus, type PrismaClient } from "@prisma/client";
 import {
   answerOpsKnowledgeQuestionWithAi,
   createPrismaOpsAiBudget,
+  isTransientOpsAiError,
   type OpsAiProvider,
   type OpsKnowledgeAnswerSource,
 } from "@/lib/operations/ai";
@@ -152,12 +153,16 @@ export async function answerOpsKnowledgeQuestion(input: {
   client: PrismaClient;
   question: string;
   provider?: OpsAiProvider;
+  /** Test hook, passed to the AI call. */
+  overloadPauseMs?: number;
 }): Promise<{
   text: string;
   replyMarkup?: OpsTelegramReplyMarkup;
   aiUsed: boolean;
   model?: string;
   aiError?: string;
+  /** Every model answered «overloaded»: worth a second try a bit later. */
+  aiOverloaded?: boolean;
 }> {
   const articles: OpsKnowledgeAnswerSource[] = await findOpsKnowledgeForQuestion(
     input.client,
@@ -178,6 +183,7 @@ export async function answerOpsKnowledgeQuestion(input: {
       articles,
       budget: createPrismaOpsAiBudget(input.client),
       provider: input.provider,
+      overloadPauseMs: input.overloadPauseMs,
     });
     const used = articles.filter((article) => response.value.sourceIds.includes(article.id));
     const sources = used.length ? used : articles.slice(0, 2);
@@ -209,6 +215,7 @@ export async function answerOpsKnowledgeQuestion(input: {
     console.error("[operations.knowledge.answer] AI answer failed", aiError);
     return {
       aiError,
+      aiOverloaded: isTransientOpsAiError(error),
       text: [
         "📚 Вот что есть в базе по вашему вопросу:",
         ...articles.slice(0, 3).map((article) => `• ${article.title}`),

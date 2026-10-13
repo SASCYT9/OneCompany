@@ -426,6 +426,47 @@ export async function runLeasedOpsJob(input: {
   }
 }
 
+/**
+ * After a webhook, waits for jobs of the given types that fall due before the
+ * deadline and runs them, so a short delayed retry (a «?» answer once Gemini
+ * is free again) does not wait for the 15-minute cron.
+ */
+export async function drainSoonDueOpsJobs(input: {
+  client: PrismaClient;
+  execute: OpsJobStageExecutor;
+  types: string[];
+  deadlineAt: number;
+  sleep?: (ms: number) => Promise<void>;
+}) {
+  const sleep =
+    input.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  let runs = 0;
+  while (runs < 6 && Date.now() < input.deadlineAt) {
+    const next = await input.client.opsJob.findFirst({
+      where: {
+        status: OpsJobStatus.QUEUED,
+        type: { in: input.types },
+        cancelRequestedAt: null,
+        availableAt: { lte: new Date(input.deadlineAt) },
+      },
+      orderBy: { availableAt: "asc" },
+      select: { availableAt: true },
+    });
+    if (!next) break;
+    const waitMs = next.availableAt.getTime() - Date.now();
+    if (waitMs > 0) await sleep(waitMs);
+    await drainOpsJobs({
+      client: input.client,
+      execute: input.execute,
+      types: input.types,
+      maxJobs: 2,
+      timeBudgetMs: 1_000,
+    });
+    runs += 1;
+  }
+  return { runs };
+}
+
 export async function drainOpsJobs(input: {
   client: PrismaClient;
   execute: OpsJobStageExecutor;

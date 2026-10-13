@@ -1,6 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { opsMiniAppUrl } from "@/lib/operations/adminLinks";
-import { drainOpsJobs } from "@/lib/operations/jobs";
+import { drainOpsJobs, drainSoonDueOpsJobs } from "@/lib/operations/jobs";
+import { OPS_KNOWLEDGE_FOLLOW_UP_JOB } from "@/lib/operations/knowledgeFollowUp";
 import { setOpsTelegramChatMenuButton } from "@/lib/operations/notifications";
 import { createOpsJobStageExecutor } from "@/lib/operations/telegramJobs";
 import {
@@ -31,6 +32,9 @@ export const maxDuration = 300;
 // Long enough that a slow AI stage does not strand the reply (NOTIFY) until
 // the next cron run; budget + one stage timeout stays under maxDuration.
 const OPS_WEBHOOK_DRAIN_BUDGET_MS = 150_000;
+// Waiting for a knowledge follow-up; a stage started at the end still has its
+// 90 s stage timeout inside maxDuration.
+const OPS_WEBHOOK_FOLLOW_UP_WINDOW_MS = 150_000;
 
 function telegramManagerEnabled() {
   return /^(1|true)$/i.test(String(process.env.OPS_TELEGRAM_MANAGER_ENABLED ?? ""));
@@ -183,15 +187,29 @@ export async function POST(request: NextRequest) {
     }
     if (result.outcome === "accepted" && operationsJobsEnabled()) {
       after(async () => {
+        const startedAt = Date.now();
+        const execute = createOpsJobStageExecutor({ client: prisma });
         try {
           await drainOpsJobs({
             client: prisma,
-            execute: createOpsJobStageExecutor({ client: prisma }),
+            execute,
             maxJobs: 8,
             timeBudgetMs: OPS_WEBHOOK_DRAIN_BUDGET_MS,
           });
         } catch (error) {
           console.error("[operations.telegram.after] durable job kick failed", error);
+        }
+        try {
+          // A «?» answer that hit an overloaded Gemini is retried in ~40 s:
+          // stay around for it instead of leaving it to the cron.
+          await drainSoonDueOpsJobs({
+            client: prisma,
+            execute,
+            types: [OPS_KNOWLEDGE_FOLLOW_UP_JOB],
+            deadlineAt: startedAt + OPS_WEBHOOK_FOLLOW_UP_WINDOW_MS,
+          });
+        } catch (error) {
+          console.error("[operations.telegram.after] knowledge follow-up failed", error);
         }
       });
     }
