@@ -1,5 +1,6 @@
 import type { CustomerGroup, PrismaClient } from "@prisma/client";
 import type { ShopSettingsRuntime } from "@/lib/shopAdminSettings";
+import { buildShopBrandDiscountMap } from "@/lib/shopB2bBrandDiscounts";
 import {
   buildShopViewerPricingContext,
   type ShopViewerPricingContext,
@@ -18,11 +19,9 @@ export async function loadShopBrandDiscountMaps(
       select: { brand: true, discountPct: true },
     }),
   ]);
-  const toMap = (rows: Array<{ brand: string; discountPct: unknown }>) =>
-    new Map(rows.map((row) => [row.brand.trim().toLowerCase(), Number(row.discountPct)]));
   return {
-    systemBrandDiscountMap: toMap(system),
-    customerBrandDiscountMap: toMap(customer),
+    systemBrandDiscountMap: buildShopBrandDiscountMap(system),
+    customerBrandDiscountMap: buildShopBrandDiscountMap(customer),
   };
 }
 

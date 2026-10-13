@@ -12,14 +12,29 @@ import {
 
 type BrandDiscountPayload = {
   customerId: string;
+  group?: CustomerGroup | null;
+  b2bDiscountPercent?: number | null;
+  /** True while an admin browses as this customer ("log in as customer"). */
+  impersonating?: boolean;
   system: Array<{ brand: string; discountPct: number }>;
   customer: Array<{ brand: string; discountPct: number }>;
 };
 
+const IMPERSONATION_MARKER_COOKIE = "oc-shop-impersonation-active";
+const IMPERSONATION_REQUEST_KEY = "impersonation";
+
 const brandDiscountRequests = new Map<string, Promise<BrandDiscountPayload | null>>();
 
-function loadBrandDiscounts(customerId: string) {
-  const cached = brandDiscountRequests.get(customerId);
+function hasImpersonationMarker() {
+  return document.cookie
+    .split(";")
+    .some((entry) => entry.trim() === `${IMPERSONATION_MARKER_COOKIE}=1`);
+}
+
+/** `customerId` is null while impersonating: the server decides who it is. */
+function loadBrandDiscounts(customerId: string | null) {
+  const requestKey = customerId ?? IMPERSONATION_REQUEST_KEY;
+  const cached = brandDiscountRequests.get(requestKey);
   if (cached) return cached;
   const request = fetch("/api/shop/pricing-context", {
     method: "GET",
@@ -29,15 +44,16 @@ function loadBrandDiscounts(customerId: string) {
     .then(async (response) => {
       if (!response.ok) return null;
       const payload = (await response.json()) as BrandDiscountPayload;
+      if (customerId == null) return payload.impersonating ? payload : null;
       return payload.customerId === customerId ? payload : null;
     })
     .catch(() => null)
     .finally(() => {
       // Deduplicate components mounting together, but never retain customer
       // pricing across a later navigation after an admin change.
-      brandDiscountRequests.delete(customerId);
+      brandDiscountRequests.delete(requestKey);
     });
-  brandDiscountRequests.set(customerId, request);
+  brandDiscountRequests.set(requestKey, request);
   return request;
 }
 
@@ -81,19 +97,25 @@ export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopVi
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const customerId = session?.user?.customerId;
-    if (status !== "authenticated" || session?.user?.group !== "B2B_APPROVED" || !customerId) {
+    // The impersonation overlay is server-side only: NextAuth here still holds
+    // the admin's own (usually anonymous) browser session.
+    const impersonating = hasImpersonationMarker();
+    const approvedSession =
+      status === "authenticated" && session?.user?.group === "B2B_APPROVED" && customerId;
+    if (!impersonating && !approvedSession) {
       setBrandDiscounts(null);
       return;
     }
     let active = true;
-    void loadBrandDiscounts(customerId).then((payload) => {
+    void loadBrandDiscounts(impersonating ? null : (customerId ?? null)).then((payload) => {
       if (active) setBrandDiscounts(payload);
     });
     return () => {
       active = false;
     };
-  }, [session?.user?.customerId, session?.user?.group, status]);
+  }, [mounted, session?.user?.customerId, session?.user?.group, status]);
 
   return useMemo<ShopViewerPricingContext>(() => {
     const priceCountry = mounted
@@ -105,6 +127,17 @@ export function useShopViewerContext(initial?: ShopViewerPricingContext): ShopVi
       ...baseline,
       priceCountry,
     };
+
+    if (mounted && brandDiscounts?.impersonating) {
+      return {
+        ...regionalBaseline,
+        customerGroup: brandDiscounts.group ?? null,
+        customerB2BDiscountPercent: brandDiscounts.b2bDiscountPercent ?? null,
+        isAuthenticated: true,
+        systemBrandDiscountMap: toDiscountMap(brandDiscounts.system),
+        customerBrandDiscountMap: toDiscountMap(brandDiscounts.customer),
+      };
+    }
 
     if (!mounted || status !== "authenticated" || !session?.user) {
       return regionalBaseline;

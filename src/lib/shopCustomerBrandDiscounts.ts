@@ -7,11 +7,11 @@
  * Prisma will return a P2021 ("table does not exist") error.
  *
  * Pricing reads these overrides first (loadShopBrandDiscountMaps →
- * resolveEffectiveDiscountPercent): customer-brand → system brand →
+ * resolveShopB2bDiscount): customer-brand → system brand →
  * customer % → shop default.
  */
 
-import { Prisma, type PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from "@prisma/client";
 
 export type CustomerBrandDiscountInput = {
   brand: string;
@@ -20,41 +20,48 @@ export type CustomerBrandDiscountInput = {
 };
 
 function sanitize(input: CustomerBrandDiscountInput) {
-  const brand = String(input.brand ?? '').trim();
+  const brand = String(input.brand ?? "").trim();
   const pct = Number(input.discountPct);
-  if (!brand) throw new Error('BRAND_REQUIRED');
+  if (!brand) throw new Error("BRAND_REQUIRED");
   if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
-    throw new Error('DISCOUNT_OUT_OF_RANGE');
+    throw new Error("DISCOUNT_OUT_OF_RANGE");
   }
   return {
     brand,
     discountPct: new Prisma.Decimal(pct.toFixed(2)),
-    notes: typeof input.notes === 'string' && input.notes.trim() ? input.notes.trim() : null,
+    notes: typeof input.notes === "string" && input.notes.trim() ? input.notes.trim() : null,
   };
 }
 
 export async function listCustomerBrandDiscounts(prisma: PrismaClient, customerId: string) {
   return prisma.shopCustomerBrandDiscount.findMany({
     where: { customerId },
-    orderBy: { brand: 'asc' },
+    orderBy: { brand: "asc" },
   });
 }
 
 export async function upsertCustomerBrandDiscount(
   prisma: PrismaClient,
   customerId: string,
-  input: CustomerBrandDiscountInput,
+  input: CustomerBrandDiscountInput
 ) {
   const data = sanitize(input);
-  return prisma.shopCustomerBrandDiscount.upsert({
-    where: { customerId_brand: { customerId, brand: data.brand } },
-    create: {
+  // Brands match case-insensitively in pricing, so "AKRAPOVIC" and
+  // "Akrapovic" are one rule: update a differently-cased row in place.
+  const existing = await prisma.shopCustomerBrandDiscount.findFirst({
+    where: { customerId, brand: { equals: data.brand, mode: "insensitive" } },
+    select: { id: true },
+  });
+  if (existing) {
+    return prisma.shopCustomerBrandDiscount.update({
+      where: { id: existing.id },
+      data: { brand: data.brand, discountPct: data.discountPct, notes: data.notes },
+    });
+  }
+  return prisma.shopCustomerBrandDiscount.create({
+    data: {
       customerId,
       brand: data.brand,
-      discountPct: data.discountPct,
-      notes: data.notes,
-    },
-    update: {
       discountPct: data.discountPct,
       notes: data.notes,
     },
@@ -64,36 +71,9 @@ export async function upsertCustomerBrandDiscount(
 export async function deleteCustomerBrandDiscount(
   prisma: PrismaClient,
   customerId: string,
-  brand: string,
+  brand: string
 ) {
   await prisma.shopCustomerBrandDiscount.deleteMany({
-    where: { customerId, brand },
+    where: { customerId, brand: { equals: brand.trim(), mode: "insensitive" } },
   });
-}
-
-/**
- * Resolves the effective discount % for a given customer + brand.
- * Returns the per-brand override when present; otherwise falls back to the
- * customer's global `b2bDiscountPercent`. Returns null when neither is set.
- *
- * Currently NOT yet wired into `resolveShopPriceBands` — pricing keeps using
- * the global discount until follow-up integration in #51.
- */
-export async function getEffectiveCustomerDiscount(
-  prisma: PrismaClient,
-  customerId: string,
-  brand: string | null | undefined,
-): Promise<number | null> {
-  if (brand) {
-    const override = await prisma.shopCustomerBrandDiscount.findUnique({
-      where: { customerId_brand: { customerId, brand } },
-      select: { discountPct: true },
-    });
-    if (override) return Number(override.discountPct);
-  }
-  const customer = await prisma.shopCustomer.findUnique({
-    where: { id: customerId },
-    select: { b2bDiscountPercent: true },
-  });
-  return customer?.b2bDiscountPercent != null ? Number(customer.b2bDiscountPercent) : null;
 }

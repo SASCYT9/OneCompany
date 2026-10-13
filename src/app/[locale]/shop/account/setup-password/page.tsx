@@ -53,20 +53,29 @@ export default function ShopAccountSetupPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
-      const data = await response.json().catch(() => ({}));
+      const data = (await response.json().catch(() => ({}))) as { error?: string; email?: string };
       if (!response.ok) {
-        setError((data as { error?: string }).error || "Failed to set password");
+        setError(
+          response.status === 400 && /invalid or expired/i.test(data.error ?? "")
+            ? isUa
+              ? "Посилання недійсне або вже використане (діє 3 дні й лише один раз). Попросіть менеджера надіслати нове або скористайтеся «Забули пароль?»."
+              : "This link is invalid or already used (valid for 3 days, once). Ask your manager for a new one or use “Forgot password?”."
+            : isUa
+              ? "Не вдалося зберегти пароль. Спробуйте ще раз."
+              : "Could not save the password. Please try again."
+        );
         return;
       }
 
+      // Tell the customer which address is their login before sending them to sign in.
       setSuccess(
         isUa
-          ? "Пароль успішно встановлено. Тепер увійдіть у свій акаунт."
-          : "Password set successfully. You can now sign in to your account."
+          ? `Пароль встановлено. Ваш логін для входу — ${data.email ?? "ваш email"}.`
+          : `Password set. Sign in with ${data.email ?? "your email"}.`
       );
       setTimeout(() => {
         router.push(`/${locale}/shop/account`);
-      }, 1200);
+      }, 4000);
     } finally {
       setLoading(false);
     }

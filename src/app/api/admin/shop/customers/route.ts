@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { assertAdminRequest } from "@/lib/adminAuth";
-import { ADMIN_PERMISSIONS } from "@/lib/adminRbac";
+import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import { listShopCustomersAdmin } from "@/lib/shopAdminCustomers";
 import { hashShopCustomerPassword } from "@/lib/shopCustomers";
+import { isUsableShopCustomerEmail, normalizeShopCustomerEmail } from "@/lib/shopCustomerEmail";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -31,56 +32,62 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * POST /api/admin/shop/customers — a manager creates a customer by hand.
+ * No password is set here: the customer sets one through a setup link from
+ * the customer card. Brand discounts are configured on the card afterwards.
+ */
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
+    const session = await assertAdminRequest(cookieStore, ADMIN_PERMISSIONS.SHOP_CUSTOMERS_WRITE);
 
-    const data = await request.json();
-    const {
-      email,
-      firstName,
-      lastName,
-      phone,
-      companyName,
-      group,
-      isActive,
-      preferredLocale,
-      b2bDiscountPercent,
-      password,
-    } = data;
+    const data = ((await request.json().catch(() => ({}))) ?? {}) as Record<string, unknown>;
+    const email = normalizeShopCustomerEmail(data.email);
+    const firstName = String(data.firstName ?? "").trim();
+    const lastName = String(data.lastName ?? "").trim();
+    const text = (value: unknown) => {
+      const trimmed = String(value ?? "").trim();
+      return trimmed ? trimmed : null;
+    };
 
-    if (!email || !firstName || !lastName) {
+    if (!firstName) {
+      return NextResponse.json({ error: "Вкажіть ім’я клієнта" }, { status: 400 });
+    }
+    if (!isUsableShopCustomerEmail(email)) {
       return NextResponse.json(
-        { error: "Email, First Name, and Last Name are required" },
+        { error: "Вкажіть справжній email — це логін клієнта" },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
     const existing = await prisma.shopCustomer.findUnique({
-      where: { email: normalizedEmail },
+      where: { email },
+      select: { id: true },
     });
     if (existing) {
       return NextResponse.json(
-        { error: "Customer with this email already exists" },
-        { status: 400 }
+        { error: "Клієнт з таким email уже є", existingCustomerId: existing.id },
+        { status: 409 }
       );
     }
 
-    const normalizedPassword = password ? String(password).trim() : "";
+    const group =
+      data.group === "B2B_APPROVED" || data.group === "B2B_PENDING" ? data.group : "B2C";
+    const normalizedPassword = data.password ? String(data.password).trim() : "";
 
     const customer = await prisma.shopCustomer.create({
       data: {
-        email: normalizedEmail,
-        firstName: String(firstName).trim(),
-        lastName: String(lastName).trim(),
-        phone: phone ? String(phone).trim() : null,
-        companyName: companyName ? String(companyName).trim() : null,
-        group: group || "B2C",
-        isActive: isActive !== false,
-        preferredLocale: preferredLocale || "en",
-        b2bDiscountPercent: b2bDiscountPercent ? parseFloat(b2bDiscountPercent) : null,
+        email,
+        firstName,
+        lastName,
+        phone: text(data.phone),
+        companyName: text(data.companyName),
+        vatNumber: text(data.vatNumber),
+        notes: text(data.notes),
+        group,
+        isActive: data.isActive !== false,
+        preferredLocale: data.preferredLocale === "en" ? "en" : "ua",
         ...(normalizedPassword
           ? {
               account: {
@@ -91,30 +98,25 @@ export async function POST(request: NextRequest) {
             }
           : {}),
       },
-      include: { account: true },
+      select: { id: true, email: true, firstName: true, lastName: true, group: true },
     });
 
-    return NextResponse.json({
-      success: true,
-      customerId: customer.id,
-      customer: {
-        id: customer.id,
-        email: customer.email,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        group: customer.group,
-      },
+    await writeAdminAuditLog(prisma, session, {
+      scope: "shop",
+      action: "customer.create",
+      entityType: "shop.customer",
+      entityId: customer.id,
+      metadata: { email: customer.email, group: customer.group },
     });
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED")
+
+    return NextResponse.json({ success: true, customerId: customer.id, customer });
+  } catch (error) {
+    if ((error as Error).message === "UNAUTHORIZED")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (error.message === "FORBIDDEN")
+    if ((error as Error).message === "FORBIDDEN")
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     console.error("Admin customer create", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create customer" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Не вдалося створити клієнта" }, { status: 500 });
   }
 }
 

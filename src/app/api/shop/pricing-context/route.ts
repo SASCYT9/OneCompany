@@ -15,9 +15,19 @@ export async function GET() {
     );
   }
 
+  // The viewer's own pricing identity. An admin "log in as customer" overlay
+  // is invisible to the client-side NextAuth session, so the storefront hook
+  // takes group and discount from here while impersonating.
+  const viewer = {
+    customerId: session.customerId,
+    group: session.group,
+    b2bDiscountPercent: session.b2bDiscountPercent,
+    impersonating: Boolean(session.impersonator),
+  };
+
   if (session.group !== "B2B_APPROVED") {
     return NextResponse.json(
-      { customerId: session.customerId, system: [], customer: [] },
+      { ...viewer, system: [], customer: [] },
       { headers: { "Cache-Control": "private, no-store" } }
     );
   }
@@ -30,7 +40,7 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      customerId: session.customerId,
+      ...viewer,
       system: serialize(maps?.systemBrandDiscountMap),
       customer: serialize(maps?.customerBrandDiscountMap),
     },

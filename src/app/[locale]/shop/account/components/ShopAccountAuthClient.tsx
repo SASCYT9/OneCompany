@@ -63,6 +63,9 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
         : "Invalid email or password"
     : "";
   const [error, setError] = useState(initialError);
+  // The email already belongs to a customer (e.g. a manager created the
+  // partner): proving the mailbox via "forgot password" is the safe way in.
+  const [emailTaken, setEmailTaken] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -94,7 +97,11 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
             : "This account has been disabled. Please contact support."
         );
       }
-      throw new Error(isUa ? "Невірний email або пароль" : "Invalid email or password");
+      throw new Error(
+        isUa
+          ? "Невірний email або пароль. Ще не задавали пароль (акаунт створив менеджер)? Натисніть «Забули пароль?»."
+          : "Invalid email or password. Never set a password (your manager created the account)? Use “Forgot password?”."
+      );
     }
 
     await fetch("/api/shop/cart");
@@ -122,9 +129,23 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
       }),
     });
     const registerData = await registerResponse.json().catch(() => ({}));
+    if (registerResponse.status === 409) {
+      setEmailTaken(true);
+      throw new Error(
+        isUa
+          ? "Цей email уже є в нашій базі — можливо, акаунт для вас створив менеджер. Натисніть «Забули пароль?»: ми надішлемо на пошту посилання, щоб задати пароль."
+          : "This email is already on file — your manager may have created the account. Use “Forgot password?” and we will email you a link to set a password."
+      );
+    }
     if (!registerResponse.ok) {
       throw new Error(
-        registerData.error || (isUa ? "Не вдалося створити акаунт" : "Failed to create account")
+        registerResponse.status === 400 && /8 characters/.test(String(registerData.error ?? ""))
+          ? isUa
+            ? "Пароль має містити щонайменше 8 символів"
+            : "Password must be at least 8 characters"
+          : isUa
+            ? "Не вдалося створити акаунт. Перевірте поля й спробуйте ще раз."
+            : "Failed to create account. Check the fields and try again."
       );
     }
 
@@ -147,6 +168,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
+    setEmailTaken(false);
 
     try {
       if (mode === "login") {
@@ -230,7 +252,7 @@ export default function ShopAccountAuthClient({ locale, mode }: Props) {
             </button>
           </form>
 
-          {mode === "login" ? (
+          {mode === "login" || emailTaken ? (
             <div className="mt-4 text-right">
               <Link
                 href={`/${locale}/shop/account/forgot-password`}

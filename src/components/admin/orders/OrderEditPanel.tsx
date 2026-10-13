@@ -19,6 +19,7 @@ export type EditableOrder = {
   email: string;
   phone: string | null;
   customerGroupSnapshot?: string;
+  customerId?: string | null;
   shippingAddress: Record<string, unknown>;
   amountLock?: { code: string; text: string } | null;
   items: Array<{
@@ -57,7 +58,9 @@ type CatalogHit = {
   image: string | null;
   published: boolean;
   price: number | null;
+  /** The partner's price (own wholesale price or brand discount), when B2B. */
   b2bPrice: number | null;
+  discountPercent?: number;
 };
 
 function addressValue(address: Record<string, unknown>, key: OrderAddressKey) {
@@ -127,7 +130,8 @@ export function OrderEditPanel({
 
   const confirm = useConfirm();
   const locked = order.amountLock ?? null;
-  const isB2b = String(order.customerGroupSnapshot ?? "").startsWith("B2B");
+  // Pending applications never got partner prices on the site either.
+  const isB2b = order.customerGroupSnapshot === "B2B_APPROVED";
 
   useEffect(() => {
     if (locked) return;
@@ -140,10 +144,11 @@ export function OrderEditPanel({
     const timer = window.setTimeout(async () => {
       setSearching(true);
       try {
-        const response = await fetch(
-          `/api/admin/shop/orders/catalog-search?q=${encodeURIComponent(q)}&currency=${encodeURIComponent(order.currency)}`,
-          { signal: controller.signal }
-        );
+        const params = new URLSearchParams({ q, currency: order.currency });
+        if (isB2b && order.customerId) params.set("customerId", order.customerId);
+        const response = await fetch(`/api/admin/shop/orders/catalog-search?${params.toString()}`, {
+          signal: controller.signal,
+        });
         const data = await response.json().catch(() => ({}));
         setHits(Array.isArray(data.items) ? data.items : []);
       } catch {
@@ -156,7 +161,7 @@ export function OrderEditPanel({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [query, order.currency, locked]);
+  }, [query, order.currency, order.customerId, isB2b, locked]);
 
   const rowErrors = useMemo(
     () =>
@@ -165,9 +170,7 @@ export function OrderEditPanel({
         .some((row) => {
           const quantity = num(row.quantity);
           const price = num(row.price);
-          return (
-            !Number.isInteger(quantity) || quantity < 1 || quantity > 999 || !(price >= 0)
-          );
+          return !Number.isInteger(quantity) || quantity < 1 || quantity > 999 || !(price >= 0);
         }),
     [rows]
   );
@@ -181,7 +184,9 @@ export function OrderEditPanel({
         const price = num(row.price);
         if (!Number.isFinite(quantity) || !Number.isFinite(price)) return sum;
         const unchanged =
-          row.original && row.original.quantity === quantity && round2(row.original.price) === round2(price);
+          row.original &&
+          row.original.quantity === quantity &&
+          round2(row.original.price) === round2(price);
         return sum + (unchanged ? row.original!.total : price * quantity);
       }, 0)
   );
@@ -297,9 +302,7 @@ export function OrderEditPanel({
         body: JSON.stringify({
           expectedUpdatedAt: order.updatedAt,
           note,
-          ...(contactChanged
-            ? { contact: { customerName: name, email, phone } }
-            : {}),
+          ...(contactChanged ? { contact: { customerName: name, email, phone } } : {}),
           ...(addressChanged ? { shippingAddress: address } : {}),
           ...(itemsChanged ? { items: itemChanges } : {}),
         }),
@@ -337,7 +340,9 @@ export function OrderEditPanel({
                 <span className="text-zinc-500 line-through">
                   {formatOrderMoney(order.total, order.currency)}
                 </span>{" "}
-                <strong className="text-white">{formatOrderMoney(nextTotal, order.currency)}</strong>
+                <strong className="text-white">
+                  {formatOrderMoney(nextTotal, order.currency)}
+                </strong>
               </>
             ) : dirty ? (
               "Є незбережені зміни"
@@ -368,7 +373,10 @@ export function OrderEditPanel({
     >
       <div className="@container space-y-7 px-5 py-5">
         {error ? (
-          <div role="alert" className="border-l-2 border-red-400 bg-red-500/[0.08] px-3 py-2 text-[13px] leading-5 text-red-100">
+          <div
+            role="alert"
+            className="border-l-2 border-red-400 bg-red-500/[0.08] px-3 py-2 text-[13px] leading-5 text-red-100"
+          >
             {error}
           </div>
         ) : null}
@@ -376,7 +384,11 @@ export function OrderEditPanel({
         <Section title="Покупець">
           <div className="grid gap-3 @xl:grid-cols-3">
             <Field label="Ім’я та прізвище">
-              <input value={name} onChange={(event) => setName(event.target.value)} className={inputClass} />
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className={inputClass}
+              />
             </Field>
             <Field label="Телефон">
               <input
@@ -397,13 +409,18 @@ export function OrderEditPanel({
           </div>
         </Section>
 
-        <Section title="Адреса доставки" hint="Вартість доставки при зміні адреси не перераховується.">
+        <Section
+          title="Адреса доставки"
+          hint="Вартість доставки при зміні адреси не перераховується."
+        >
           <div className="grid gap-3 @xl:grid-cols-3">
             {ORDER_ADDRESS_FIELDS.map(({ key, label }) => (
               <Field key={key} label={label} wide={key === "line1"}>
                 <input
                   value={address[key]}
-                  onChange={(event) => setAddress((current) => ({ ...current, [key]: event.target.value }))}
+                  onChange={(event) =>
+                    setAddress((current) => ({ ...current, [key]: event.target.value }))
+                  }
                   className={inputClass}
                 />
               </Field>
@@ -422,7 +439,8 @@ export function OrderEditPanel({
             {rows.map((row) => {
               const quantity = num(row.quantity);
               const price = num(row.price);
-              const lineTotal = Number.isFinite(quantity) && Number.isFinite(price) ? quantity * price : 0;
+              const lineTotal =
+                Number.isFinite(quantity) && Number.isFinite(price) ? quantity * price : 0;
               return (
                 <div
                   key={row.key}
@@ -439,7 +457,12 @@ export function OrderEditPanel({
                     ) : null}
                   </div>
                   <div className="min-w-0">
-                    <div className={cn("text-[14px] leading-5 text-zinc-100", row.removed && "line-through")}>
+                    <div
+                      className={cn(
+                        "text-[14px] leading-5 text-zinc-100",
+                        row.removed && "line-through"
+                      )}
+                    >
                       {row.title}
                     </div>
                     <div className="mt-0.5 text-[12px] text-zinc-500">
@@ -448,7 +471,9 @@ export function OrderEditPanel({
                     </div>
                   </div>
                   <label className="col-start-2 @xl:col-start-auto">
-                    <span className="mb-1 block text-[11px] text-zinc-500 @xl:sr-only">Кількість</span>
+                    <span className="mb-1 block text-[11px] text-zinc-500 @xl:sr-only">
+                      Кількість
+                    </span>
                     <input
                       value={row.quantity}
                       onChange={(event) => updateRow(row.key, { quantity: event.target.value })}
@@ -459,7 +484,9 @@ export function OrderEditPanel({
                     />
                   </label>
                   <label className="col-start-2 @xl:col-start-auto">
-                    <span className="mb-1 block text-[11px] text-zinc-500 @xl:sr-only">Ціна за шт., {order.currency}</span>
+                    <span className="mb-1 block text-[11px] text-zinc-500 @xl:sr-only">
+                      Ціна за шт., {order.currency}
+                    </span>
                     <input
                       value={row.price}
                       onChange={(event) => updateRow(row.key, { price: event.target.value })}
@@ -490,7 +517,9 @@ export function OrderEditPanel({
                           onClick={() =>
                             row.id
                               ? updateRow(row.key, { removed: true })
-                              : setRows((current) => current.filter((entry) => entry.key !== row.key))
+                              : setRows((current) =>
+                                  current.filter((entry) => entry.key !== row.key)
+                                )
                           }
                           className="p-2 text-zinc-500 hover:bg-red-500/10 hover:text-red-300"
                           aria-label="Прибрати позицію"
@@ -511,13 +540,15 @@ export function OrderEditPanel({
               <div className="flex justify-between gap-3">
                 <dt className="text-zinc-400">Товари</dt>
                 <dd className="text-zinc-200">
-                  {formatOrderMoney(itemsBefore, order.currency)} → {formatOrderMoney(itemsAfter, order.currency)}
+                  {formatOrderMoney(itemsBefore, order.currency)} →{" "}
+                  {formatOrderMoney(itemsAfter, order.currency)}
                 </dd>
               </div>
               <div className="flex justify-between gap-3 font-semibold">
                 <dt className="text-zinc-300">Разом до сплати</dt>
                 <dd className="text-white">
-                  {formatOrderMoney(order.total, order.currency)} → {formatOrderMoney(nextTotal, order.currency)}
+                  {formatOrderMoney(order.total, order.currency)} →{" "}
+                  {formatOrderMoney(nextTotal, order.currency)}
                 </dd>
               </div>
             </dl>
@@ -550,19 +581,34 @@ export function OrderEditPanel({
                             <span className="h-9 w-9 shrink-0 overflow-hidden bg-white/5">
                               {hit.image ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={hit.image} alt="" className="h-full w-full object-cover" />
+                                <img
+                                  src={hit.image}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
                               ) : null}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[13px] text-zinc-100">{hit.title}</span>
+                              <span className="block truncate text-[13px] text-zinc-100">
+                                {hit.title}
+                              </span>
                               <span className="block text-[11px] text-zinc-500">
-                                {[hit.brand, hit.sku ? `SKU ${hit.sku}` : null, hit.published ? null : "не опубліковано"]
+                                {[
+                                  hit.brand,
+                                  hit.sku ? `SKU ${hit.sku}` : null,
+                                  isB2b && hit.discountPercent
+                                    ? `знижка партнера −${hit.discountPercent}%`
+                                    : null,
+                                  hit.published ? null : "не опубліковано",
+                                ]
                                   .filter(Boolean)
                                   .join(" · ")}
                               </span>
                             </span>
                             <span className="shrink-0 text-right text-[13px] text-zinc-200">
-                              {price != null ? formatOrderMoney(price, order.currency) : "ціну вкажете"}
+                              {price != null
+                                ? formatOrderMoney(price, order.currency)
+                                : "ціну вкажете"}
                               <span className="flex items-center justify-end gap-1 text-[11px] text-blue-300">
                                 <Plus className="h-3 w-3" /> додати
                               </span>
@@ -573,7 +619,9 @@ export function OrderEditPanel({
                     })}
                   </ul>
                 ) : query.trim().length >= 2 && !searching ? (
-                  <p className="mt-1 text-[12px] text-zinc-500">Нічого не знайдено. Додайте як довільну позицію нижче.</p>
+                  <p className="mt-1 text-[12px] text-zinc-500">
+                    Нічого не знайдено. Додайте як довільну позицію нижче.
+                  </p>
                 ) : null}
               </div>
               <div className="grid gap-2 @xl:grid-cols-[minmax(0,1fr)_150px_auto]">
@@ -601,13 +649,16 @@ export function OrderEditPanel({
               </div>
               {isB2b ? (
                 <p className="text-[12px] text-zinc-500">
-                  Клієнт B2B: для товарів з оптовою ціною підставляється вона, інакше — роздрібна. Ціну можна змінити.
+                  Клієнт B2B: підставляється ціна партнера — оптова ціна товару або роздрібна мінус
+                  його знижка на бренд. Ціну можна змінити.
                 </p>
               ) : null}
             </div>
           ) : null}
           {itemsChanged && rowErrors ? (
-            <p className="mt-2 text-[12px] text-red-300">Перевірте кількість (ціле число від 1) і ціну (число від 0).</p>
+            <p className="mt-2 text-[12px] text-red-300">
+              Перевірте кількість (ціле число від 1) і ціну (число від 0).
+            </p>
           ) : null}
         </Section>
 
@@ -625,11 +676,21 @@ export function OrderEditPanel({
   );
 }
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400">{title}</h3>
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
+          {title}
+        </h3>
         {hint ? <span className="text-[12px] text-zinc-500">{hint}</span> : null}
       </div>
       {children}
@@ -637,7 +698,15 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
-function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
+function Field({
+  label,
+  wide,
+  children,
+}: {
+  label: string;
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <label className={cn("block", wide && "@xl:col-span-2")}>
       <span className="mb-1.5 block text-[12px] text-zinc-400">{label}</span>

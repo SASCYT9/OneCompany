@@ -6,18 +6,31 @@ export type DraftPrices = Partial<
   >
 >;
 
-/** Null variant prices inherit from the product, never from a sibling variant. */
+/**
+ * Null variant prices inherit from the product, never from a sibling variant.
+ * An approved partner pays the product's own wholesale price, else the regular
+ * price minus their brand discount (`partnerDiscountPercent`).
+ */
 export function draftCatalogPrice(
   product: DraftPrices,
   variant: DraftPrices | null,
   currency: DraftCurrency,
-  approvedB2b: boolean
+  approvedB2b: boolean,
+  partnerDiscountPercent = 0
 ) {
   const key = { EUR: "priceEur", USD: "priceUsd", UAH: "priceUah" }[currency] as
-    "priceEur" | "priceUsd" | "priceUah";
+    | "priceEur"
+    | "priceUsd"
+    | "priceUah";
   const b2bKey = `${key}B2b` as "priceEurB2b" | "priceUsdB2b" | "priceUahB2b";
   const regular = variant?.[key] ?? product[key] ?? null;
-  const price = approvedB2b ? (variant?.[b2bKey] ?? product[b2bKey] ?? regular) : regular;
+  const explicitB2b = approvedB2b ? (variant?.[b2bKey] ?? product[b2bKey] ?? null) : null;
+  const discount = Math.min(Math.max(Number(partnerDiscountPercent) || 0, 0), 100);
+  const price =
+    explicitB2b ??
+    (approvedB2b && regular != null && discount > 0
+      ? draftMoney(regular * (1 - discount / 100))
+      : regular);
   return typeof price === "number" && Number.isFinite(price) && price >= 0 ? price : null;
 }
 

@@ -179,6 +179,12 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         icon: "customers",
       },
       {
+        href: "/admin/shop/customers/b2b-pricing",
+        label: "B2B-знижки",
+        description: "Знижки партнерам на бренди та перевірка ціни партнера.",
+        icon: "pricing",
+      },
+      {
         href: "/admin/shop/customers/segments",
         label: "Сегменти",
         description: "Збережені правила для фільтрації та таргетингу.",
@@ -370,6 +376,7 @@ const ADMIN_NAV_PERMISSION_BY_HREF: Readonly<Record<string, readonly string[]>> 
   "/admin/shop/orders": [ADMIN_PERMISSIONS.SHOP_ORDERS_READ],
   "/admin/shop/drafts": [ADMIN_PERMISSIONS.SHOP_ORDERS_READ],
   "/admin/shop/customers": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
+  "/admin/shop/customers/b2b-pricing": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
   "/admin/shop/customers/segments": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
   "/admin/crm": [ADMIN_PERMISSIONS.SHOP_CUSTOMERS_READ],
   "/admin/shop": [ADMIN_PERMISSIONS.SHOP_PRODUCTS_READ],

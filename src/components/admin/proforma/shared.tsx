@@ -25,6 +25,8 @@ export type Product = DraftPrices & {
   titleEn: string;
   sku: string | null;
   brand: string | null;
+  vendor?: string | null;
+  tags?: string[];
   stock: string;
   imageUrl?: string | null;
   imageSources?: string[];

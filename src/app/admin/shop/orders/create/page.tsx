@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
@@ -13,6 +13,7 @@ import {
   Edit3,
 } from "lucide-react";
 import { calcItemPrice, lbsToKg, SHIPPING_ZONES, type ShippingZone } from "@/lib/shippingCalc";
+import { createShopB2bTermsResolver, type ShopB2bPricingTerms } from "@/lib/shopB2bBrandDiscounts";
 import {
   AdminActionBar,
   AdminEditorSection,
@@ -72,6 +73,17 @@ function compactText(value: unknown, fallback = "—") {
   return text || fallback;
 }
 
+/** Unit price and line total always follow base cost, markup, discount and quantity. */
+function repriceItem(item: OrderItem): OrderItem {
+  const price = calcItemPrice({
+    baseCostUsd: item.baseCostUsd,
+    markupPct: item.markupPct,
+    discountPct: item.discountPct,
+    quantity: item.quantity,
+  });
+  return { ...item, unitPrice: price.unitPrice, lineTotal: price.lineTotal };
+}
+
 function newItem(): OrderItem {
   return {
     key: crypto.randomUUID(),
@@ -108,6 +120,12 @@ export default function AdminCreateOrderPage() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerOption | null>(null);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  // The partner's brand discounts, so each line gets what the storefront gives.
+  const [pricingTerms, setPricingTerms] = useState<ShopB2bPricingTerms | null>(null);
+  const discountFor = useMemo(() => {
+    const resolve = createShopB2bTermsResolver(pricingTerms);
+    return (brand: string) => resolve(brand).percent;
+  }, [pricingTerms]);
 
   // Items
   const [items, setItems] = useState<OrderItem[]>([newItem()]);
@@ -217,16 +235,35 @@ export default function AdminCreateOrderPage() {
     setBaseFee(profile.baseFee);
   }, [zone, zoneConfigs]);
 
-  // ─── When customer changes, apply discount + auto-zone ─────
+  // ─── When customer changes, load their terms + auto-zone ───
+
+  useEffect(() => {
+    setPricingTerms(null);
+    if (!selectedCustomer) return;
+    let active = true;
+    fetch(`/api/admin/shop/customers/${selectedCustomer.id}/pricing-terms`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { terms?: ShopB2bPricingTerms } | null) => {
+        if (active) setPricingTerms(data?.terms ?? null);
+      })
+      .catch(() => {
+        if (active) setPricingTerms(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedCustomer]);
+
+  // Every line follows the partner's discount for its brand.
+  useEffect(() => {
+    if (!pricingTerms) return;
+    setItems((prev) =>
+      prev.map((item) => repriceItem({ ...item, discountPct: discountFor(item.brand) }))
+    );
+  }, [pricingTerms, discountFor]);
 
   useEffect(() => {
     if (!selectedCustomer) return;
-    setItems((prev) =>
-      prev.map((item) => ({
-        ...item,
-        discountPct: selectedCustomer.b2bDiscountPercent ?? 0,
-      }))
-    );
     // Auto-detect zone from customer region
     const region = (selectedCustomer.region || "").toUpperCase();
     if (region === "KZ" || region.includes("КАЗАХСТАН") || region.includes("KAZAKH")) setZone("KZ");
@@ -251,16 +288,7 @@ export default function AdminCreateOrderPage() {
       if ("weightLbs" in patch && patch.weightLbs != null) {
         item.weightKg = lbsToKg(patch.weightLbs);
       }
-      // Recalculate price
-      const priceParams = calcItemPrice({
-        baseCostUsd: item.baseCostUsd,
-        markupPct: item.markupPct,
-        discountPct: item.discountPct,
-        quantity: item.quantity,
-      });
-      item.unitPrice = priceParams.unitPrice;
-      item.lineTotal = priceParams.lineTotal;
-      next[index] = item;
+      next[index] = repriceItem(item);
       return next;
     });
   }
@@ -271,7 +299,7 @@ export default function AdminCreateOrderPage() {
 
   function addBlankItem() {
     const item = newItem();
-    item.discountPct = selectedCustomer?.b2bDiscountPercent ?? 0;
+    item.discountPct = discountFor("");
     setItems((prev) => [...prev, item]);
   }
 
@@ -352,6 +380,7 @@ export default function AdminCreateOrderPage() {
   function addCatalogItem(result: any, targetIdx: number) {
     // The search API returns flattened fields at top level + raw attributes backup
     const a = result.attributes || {};
+    const brand = result.brand || a.brand_short_description || a.brand || "";
     const weightKg = Number(result.weight || a.weight || 0) || 0;
     const patch: Partial<OrderItem> = {
       title: result.product_name || a.product_name || a.item_name || "",
@@ -363,12 +392,12 @@ export default function AdminCreateOrderPage() {
         result.part_number ||
         a.part_number ||
         "",
-      brand: result.brand || a.brand_short_description || a.brand || "",
+      brand,
       baseCostUsd: result.dealer_price || result.jobber_price || a.dealer_price || 0,
       weightKg,
       weightLbs: Math.round(weightKg * 2.20462 * 100) / 100,
       thumbnail: result.primary_image || a.primary_image || "",
-      discountPct: selectedCustomer?.b2bDiscountPercent ?? 0,
+      discountPct: discountFor(brand),
       // Catalog items already carry a retail price in baseCostUsd; lock the
       // markup to 0% so they sell at exactly that retail price.
       markupPct: 0,
@@ -664,9 +693,24 @@ export default function AdminCreateOrderPage() {
               <div className="mt-1 text-xs text-white/45">
                 {selectedCustomer.email} · {selectedCustomer.group}
               </div>
-              {selectedCustomer.b2bDiscountPercent ? (
+              {pricingTerms?.group === "B2B_APPROVED" ? (
                 <div className="mt-1 text-xs text-emerald-400">
-                  Знижка: {selectedCustomer.b2bDiscountPercent}%
+                  {pricingTerms.customerBrandDiscounts.length
+                    ? `Свої знижки: ${pricingTerms.customerBrandDiscounts
+                        .map((rule) => `${rule.brand} −${rule.discountPct}%`)
+                        .join(", ")}. `
+                    : ""}
+                  {pricingTerms.systemBrandDiscounts.length
+                    ? `Для всіх партнерів: ${pricingTerms.systemBrandDiscounts
+                        .map((rule) => `${rule.brand} −${rule.discountPct}%`)
+                        .join(", ")}. `
+                    : ""}
+                  {pricingTerms.b2bDiscountPercent
+                    ? `Інші бренди: −${pricingTerms.b2bDiscountPercent}%.`
+                    : ""}
+                  <span className="block text-white/40">
+                    Знижка в рядку підставляється за брендом товару.
+                  </span>
                 </div>
               ) : null}
             </div>
@@ -870,7 +914,7 @@ export default function AdminCreateOrderPage() {
                     <Field
                       label="Бренд"
                       value={item.brand}
-                      onChange={(v) => updateItem(idx, { brand: v })}
+                      onChange={(v) => updateItem(idx, { brand: v, discountPct: discountFor(v) })}
                     />
                   </div>
                 </div>
@@ -1143,9 +1187,7 @@ function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void 
 
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
-          <span
-            className="shrink-0 rounded-[3px] border border-green-500/30 bg-green-500/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase text-green-300"
-          >
+          <span className="shrink-0 rounded-[3px] border border-green-500/30 bg-green-500/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase text-green-300">
             LOCAL
           </span>
           <span className="truncate text-sm font-medium text-zinc-100">{name}</span>
@@ -1153,9 +1195,7 @@ function SearchItemResult({ item, onSelect }: { item: any; onSelect: () => void 
         <div className="mt-1 grid min-w-0 grid-cols-[minmax(92px,140px)_minmax(80px,1fr)_minmax(60px,90px)] gap-2 text-[11px] text-zinc-500">
           <span className="truncate font-mono text-zinc-400">{partNumber}</span>
           <span className="truncate">{brand}</span>
-          <span className="truncate text-right">
-            {weight ? `${weight} kg` : "no weight"}
-          </span>
+          <span className="truncate text-right">{weight ? `${weight} kg` : "no weight"}</span>
         </div>
       </div>
 

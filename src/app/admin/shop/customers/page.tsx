@@ -1,15 +1,28 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Check, Download, RefreshCcw, Search, UserPlus, X } from "lucide-react";
+import { ArrowUpRight, Check, Download, Plus, RefreshCcw, Search, X } from "lucide-react";
 
-import { AdminPage, AdminPageHeader, AdminTableShell } from "@/components/admin/AdminPrimitives";
 import { useConfirm } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/admin/AdminToast";
-import { daysSince } from "@/components/admin/orders/orderFormat";
-import { CustomerTypeBadge } from "@/components/admin/customers/CustomerTypeBadge";
+import {
+  CrmAvatar,
+  CrmChip,
+  CrmSurface,
+  CrmTabs,
+  crmAgo,
+  crmButton,
+  crmIconButton,
+  crmPrimaryButton,
+  crmStatusTone,
+  customerTypeChip,
+} from "@/components/admin/crm/CrmUi";
+import { NewCustomerDrawer } from "@/components/admin/customers/NewCustomerDrawer";
+import { formatOrderMoney } from "@/components/admin/orders/orderFormat";
+import { orderStatusLabel, orderStatusTone } from "@/lib/admin/orderWorkflow";
+import { isPlaceholderShopCustomerEmail } from "@/lib/shopCustomerEmail";
 import { cn } from "@/lib/utils";
 
 type CustomerGroup = "B2C" | "B2B_PENDING" | "B2B_APPROVED";
@@ -25,9 +38,26 @@ type CustomerListItem = {
   isActive: boolean;
   archivedAt: string | null;
   lastOrderAt: string | null;
+  canSignIn: boolean;
+  lastLoginAt: string | null;
+  brandDiscounts: Array<{ brand: string; discountPct: number }>;
   createdAt: string;
   updatedAt: string;
   counts: { orders: number; carts: number; addresses: number };
+};
+
+type PeekDetail = {
+  preferredLocale: string;
+  vatNumber: string | null;
+  orders: Array<{
+    id: string;
+    orderNumber: string;
+    status: string;
+    isDraft: boolean;
+    currency: string;
+    total: number;
+    createdAt: string;
+  }>;
 };
 
 const TABS = [
@@ -36,6 +66,7 @@ const TABS = [
   { key: "pending", label: "Заявки B2B" },
   { key: "retail", label: "Роздріб" },
   { key: "buyers", label: "Купували" },
+  { key: "noEmail", label: "Без email" },
   { key: "inactive", label: "Вимкнені" },
 ] as const;
 
@@ -45,16 +76,17 @@ const SORTS = [
   { key: "new", label: "Спочатку нові" },
   { key: "lastOrder", label: "Останнє замовлення" },
   { key: "orders", label: "Більше замовлень" },
-  { key: "name", label: "За ім’ям" },
+  { key: "name", label: "За назвою" },
 ] as const;
 
 type SortKey = (typeof SORTS)[number]["key"];
 
-const quietButton =
-  "inline-flex items-center justify-center gap-2 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50";
-
 function isDisabled(customer: CustomerListItem) {
   return Boolean(customer.archivedAt) || !customer.isActive;
+}
+
+function displayName(customer: CustomerListItem) {
+  return customer.companyName || customer.fullName || customer.email;
 }
 
 function matchesTab(customer: CustomerListItem, tab: TabKey) {
@@ -69,6 +101,8 @@ function matchesTab(customer: CustomerListItem, tab: TabKey) {
       return customer.group === "B2C";
     case "buyers":
       return customer.counts.orders > 0;
+    case "noEmail":
+      return isPlaceholderShopCustomerEmail(customer.email);
     default:
       return true;
   }
@@ -89,6 +123,7 @@ function CustomersScreen() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = (TABS.find((entry) => entry.key === searchParams.get("tab"))?.key ?? "all") as TabKey;
+  const drawerOpen = searchParams.get("new") === "1";
 
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +133,10 @@ function CustomersScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [peekId, setPeekId] = useState<string | null>(null);
+  const [peekDetail, setPeekDetail] = useState<PeekDetail | null>(null);
+  const [peekLoading, setPeekLoading] = useState(false);
+  const peekCache = useRef(new Map<string, PeekDetail>());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,6 +150,7 @@ function CustomersScreen() {
       }
       setCustomers(Array.isArray(data) ? (data as CustomerListItem[]) : []);
       setSelectedIds([]);
+      peekCache.current.clear();
     } catch {
       setError("Немає зв’язку із сервером. Натисніть «Оновити».");
     } finally {
@@ -122,19 +162,37 @@ function CustomersScreen() {
     void load();
   }, [load]);
 
-  function setTab(next: TabKey) {
+  function replaceParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams.toString());
-    if (next === "all") params.delete("tab");
-    else params.set("tab", next);
+    mutate(params);
     const search = params.toString();
     router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  }
+
+  function setTab(next: TabKey) {
+    replaceParams((params) => (next === "all" ? params.delete("tab") : params.set("tab", next)));
     setSelectedIds([]);
   }
+
+  const setDrawer = useCallback(
+    (open: boolean) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (open) params.set("new", "1");
+      else params.delete("new");
+      const search = params.toString();
+      router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+  const closeDrawer = useCallback(() => setDrawer(false), [setDrawer]);
 
   const counts = useMemo(
     () =>
       Object.fromEntries(
-        TABS.map((entry) => [entry.key, customers.filter((customer) => matchesTab(customer, entry.key)).length])
+        TABS.map((entry) => [
+          entry.key,
+          customers.filter((customer) => matchesTab(customer, entry.key)).length,
+        ])
       ) as Record<TabKey, number>,
     [customers]
   );
@@ -163,24 +221,66 @@ function CustomersScreen() {
         case "orders":
           return right.counts.orders - left.counts.orders;
         case "name":
-          return (left.companyName || left.fullName).localeCompare(right.companyName || right.fullName, "uk");
+          return displayName(left).localeCompare(displayName(right), "uk");
         default:
           return time(right.createdAt) - time(left.createdAt);
       }
     });
   }, [customers, query, sort, tab]);
 
+  const peek = customers.find((customer) => customer.id === peekId) ?? null;
+
+  useEffect(() => {
+    if (!peekId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPeekId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [peekId]);
+
+  useEffect(() => {
+    if (!peek) {
+      setPeekDetail(null);
+      return;
+    }
+    const cached = peekCache.current.get(peek.id);
+    if (cached) {
+      setPeekDetail(cached);
+      return;
+    }
+    let active = true;
+    setPeekDetail(null);
+    setPeekLoading(true);
+    const timer = window.setTimeout(() => {
+      fetch(`/api/admin/shop/customers/${peek.id}`, { cache: "no-store" })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data: PeekDetail | null) => {
+          if (!data) return;
+          peekCache.current.set(peek.id, data);
+          if (active) setPeekDetail(data);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (active) setPeekLoading(false);
+        });
+    }, 120);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [peek]);
+
   async function runSingle(customer: CustomerListItem, action: "approve_b2b" | "revert_b2c") {
     const ok = await confirm(
       action === "approve_b2b"
         ? {
-            title: `Затвердити ${customer.companyName || customer.fullName} як B2B-партнера?`,
-            description:
-              "Після входу на сайт клієнт бачитиме оптові ціни: знижку бренду або загальну B2B-знижку з налаштувань. Персональну знижку можна задати в картці клієнта.",
+            title: `Затвердити ${displayName(customer)} як B2B-партнера?`,
+            description: "Знижки на бренди задаються на картці партнера.",
             confirmLabel: "Затвердити B2B",
           }
         : {
-            title: `Відхилити заявку ${customer.companyName || customer.fullName}?`,
+            title: `Відхилити заявку ${displayName(customer)}?`,
             description: "Клієнт лишиться роздрібним покупцем і бачитиме звичайні ціни.",
             confirmLabel: "Відхилити — лишити роздріб",
             tone: "warning",
@@ -199,7 +299,9 @@ function CustomersScreen() {
         toast.error("Не вдалося", (data as { error?: string }).error || "Спробуйте ще раз");
         return;
       }
-      toast.success(action === "approve_b2b" ? "Клієнта затверджено як B2B-партнера" : "Заявку відхилено");
+      toast.success(
+        action === "approve_b2b" ? "Клієнта затверджено як B2B-партнера" : "Заявку відхилено"
+      );
       await load();
     } finally {
       setBusy(false);
@@ -236,7 +338,10 @@ function CustomersScreen() {
         toast.error("Не вдалося", (data as { error?: string }).error || "Спробуйте ще раз");
         return;
       }
-      const { updated = 0, skipped = [] as string[] } = data as { updated: number; skipped: string[] };
+      const { updated = 0, skipped = [] as string[] } = data as {
+        updated: number;
+        skipped: string[];
+      };
       toast.success(
         `Оновлено клієнтів: ${updated}`,
         skipped.length ? `${skipped.length} уже були в потрібному стані` : undefined
@@ -253,7 +358,13 @@ function CustomersScreen() {
       const filtersJson = JSON.stringify({
         search: query,
         group:
-          tab === "b2b" ? "B2B_APPROVED" : tab === "pending" ? "B2B_PENDING" : tab === "retail" ? "B2C" : "ALL",
+          tab === "b2b"
+            ? "B2B_APPROVED"
+            : tab === "pending"
+              ? "B2B_PENDING"
+              : tab === "retail"
+                ? "B2C"
+                : "ALL",
         status: tab === "inactive" ? "INACTIVE" : "",
       });
       const filtersB64 = btoa(unescape(encodeURIComponent(filtersJson)));
@@ -283,124 +394,30 @@ function CustomersScreen() {
     }
   }
 
-  const allSelected = visible.length > 0 && visible.every((customer) => selectedIds.includes(customer.id));
+  const allSelected =
+    visible.length > 0 && visible.every((customer) => selectedIds.includes(customer.id));
+
+  function toggleSelected(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id]
+    );
+  }
 
   return (
-    <AdminPage wide className="space-y-4">
-      <AdminPageHeader
-        eyebrow="Клієнти"
-        title="Клієнти"
-        description={
-          customers.length
-            ? `${counts.all} акаунтів на сайті · ${counts.b2b} B2B-партнерів · ${counts.buyers} уже купували`
-            : "Акаунти покупців і B2B-партнерів"
-        }
-        actions={
-          <Link
-            href="/admin/shop/customers/new"
-            className="inline-flex items-center gap-2 bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-500"
-          >
-            <UserPlus className="h-4 w-4" /> Новий клієнт
-          </Link>
-        }
-      />
-
-      {pending.length && tab !== "inactive" ? (
-        <section
-          aria-labelledby="pending-heading"
-          className="border border-amber-400/30 bg-amber-400/[0.05]"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-amber-400/20 px-4 py-3">
-            <h2 id="pending-heading" className="text-[14px] font-semibold text-amber-100">
-              Заявки на оптові ціни · {pending.length}
-            </h2>
-            <span className="text-[12px] text-amber-100/70">
-              Перевірте компанію й контакти, потім затвердіть або відхиліть
-            </span>
-          </div>
-          <ul className="divide-y divide-amber-400/10">
-            {pending.map((customer) => (
-              <li
-                key={customer.id}
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
-              >
-                <Link href={`/admin/shop/customers/${customer.id}`} className="min-w-[200px] flex-1">
-                  <span className="block text-[14px] font-medium text-white hover:text-blue-200">
-                    {customer.companyName || customer.fullName}
-                  </span>
-                  <span className="block text-[12px] text-zinc-400">
-                    {[customer.companyName ? customer.fullName : null, customer.email, customer.phone]
-                      .filter(Boolean)
-                      .join(" · ")}{" "}
-                    · заявка {daysSince(customer.createdAt) === 0 ? "сьогодні" : `${daysSince(customer.createdAt)} дн. тому`}
-                  </span>
-                </Link>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void runSingle(customer, "approve_b2b")}
-                    className="inline-flex items-center gap-1.5 bg-emerald-600 px-3 py-1.5 text-[13px] font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
-                  >
-                    <Check className="h-4 w-4" /> Затвердити
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void runSingle(customer, "revert_b2c")}
-                    className="border border-white/20 px-3 py-1.5 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:opacity-50"
-                  >
-                    Відхилити
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <nav
-        aria-label="Групи клієнтів"
-        className="no-scrollbar -mx-1 flex gap-px overflow-x-auto border-b border-white/10 px-1"
-      >
-        {TABS.map((entry) => {
-          const active = entry.key === tab;
-          return (
-            <button
-              key={entry.key}
-              type="button"
-              aria-current={active ? "page" : undefined}
-              onClick={() => setTab(entry.key)}
-              className={cn(
-                "relative shrink-0 px-3.5 py-2.5 text-[13px] transition",
-                active ? "text-white" : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100"
-              )}
-            >
-              {entry.label}
-              {customers.length ? (
-                <span
-                  className={cn(
-                    "ml-2 px-1.5 py-0.5 text-[11px] tabular-nums",
-                    active ? "bg-blue-500/25 text-blue-100" : "bg-white/[0.06] text-zinc-400"
-                  )}
-                >
-                  {counts[entry.key]}
-                </span>
-              ) : null}
-              {active ? <span className="absolute inset-x-0 bottom-[-1px] h-[2px] bg-blue-400" /> : null}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="flex min-w-[240px] flex-1 items-center gap-2 border border-white/15 bg-black/30 px-3 py-2 focus-within:border-blue-400/60">
-          <Search className="h-4 w-4 text-zinc-500" />
+    <CrmSurface className="flex min-h-full flex-col bg-[#0A0A0B]">
+      <header className="flex flex-wrap items-center gap-3 border-b border-[#1F2125] px-4 py-3 sm:px-5">
+        <h1 className="crm-title text-[20px] font-semibold text-white">Клієнти</h1>
+        <span className="crm-mono text-[12px] text-zinc-500">
+          {customers.length ? `${counts.all} · ${counts.b2b} партнерів` : ""}
+        </span>
+        <label className="order-last flex h-8 min-w-[220px] flex-1 items-center gap-2 border border-[#24262B] bg-[#111113] px-2.5 focus-within:border-[#3B82F6] sm:order-none sm:max-w-[420px]">
+          <Search className="h-3.5 w-3.5 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Ім’я, компанія, телефон або email"
-            className="w-full bg-transparent text-[14px] text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            aria-label="Пошук клієнтів"
+            className="w-full bg-transparent text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:outline-none"
           />
           {query ? (
             <button
@@ -409,16 +426,51 @@ function CustomersScreen() {
               aria-label="Очистити пошук"
               className="text-zinc-500 hover:text-white"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           ) : null}
         </label>
-        <label className="flex items-center gap-2 text-[13px] text-zinc-400">
-          <span className="sr-only">Сортування</span>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void load()}
+            aria-label="Оновити"
+            title="Оновити"
+            className={crmIconButton}
+          >
+            <RefreshCcw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleExport()}
+            disabled={exporting}
+            className={crmButton}
+          >
+            <Download className="h-3.5 w-3.5" /> {exporting ? "Експорт…" : "CSV"}
+          </button>
+          <button type="button" onClick={() => setDrawer(true)} className={crmPrimaryButton}>
+            <Plus className="h-3.5 w-3.5" /> Новий клієнт
+          </button>
+        </div>
+      </header>
+
+      <div className="flex flex-wrap items-end justify-between gap-x-4 border-b border-[#1F2125] px-2 sm:px-3">
+        <CrmTabs
+          label="Групи клієнтів"
+          tabs={TABS.map((entry) => ({
+            key: entry.key,
+            label: entry.label,
+            count: customers.length ? counts[entry.key] : null,
+          }))}
+          active={tab}
+          onChange={setTab}
+        />
+        <label className="flex items-center gap-2 py-1.5 text-zinc-500">
+          <span className="hidden sm:inline">Сортування</span>
           <select
             value={sort}
             onChange={(event) => setSort(event.target.value as SortKey)}
-            className="border border-white/15 bg-black/30 px-3 py-2 text-[13px] text-zinc-100 focus:outline-none"
+            className="h-7 border border-[#24262B] bg-[#0A0A0B] px-2 text-[12px] text-zinc-200 focus:outline-none"
           >
             {SORTS.map((option) => (
               <option key={option.key} value={option.key}>
@@ -427,41 +479,95 @@ function CustomersScreen() {
             ))}
           </select>
         </label>
-        <button type="button" onClick={() => void load()} className={quietButton}>
-          <RefreshCcw className={cn("h-4 w-4", loading && "animate-spin")} /> Оновити
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleExport()}
-          disabled={exporting}
-          className={quietButton}
-        >
-          <Download className="h-4 w-4" /> {exporting ? "Експорт…" : "CSV"}
-        </button>
       </div>
 
+      {pending.length && tab !== "inactive" && tab !== "pending" ? (
+        <section
+          aria-label="Заявки на оптові ціни"
+          className="border-b border-[#3A2E14] bg-[#17130A]"
+        >
+          {pending.map((customer) => (
+            <div
+              key={customer.id}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:px-5"
+            >
+              <CrmChip tone="amber">Заявка B2B</CrmChip>
+              <Link
+                href={`/admin/shop/customers/${customer.id}`}
+                className="min-w-[180px] flex-1 text-[#F5DDA6] hover:text-white"
+              >
+                <span className="font-medium">{displayName(customer)}</span>
+                <span className="text-[#C9A869]">
+                  {" · "}
+                  {[customer.companyName ? customer.fullName : null, customer.phone]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  {" · "}подана {crmAgo(customer.createdAt)}
+                </span>
+              </Link>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void runSingle(customer, "approve_b2b")}
+                className={crmPrimaryButton}
+              >
+                <Check className="h-3.5 w-3.5" /> Затвердити
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void runSingle(customer, "revert_b2c")}
+                className={crmButton}
+              >
+                Відхилити
+              </button>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
       {selectedIds.length ? (
-        <div className="sticky top-14 z-30 flex flex-wrap items-center gap-2 border border-blue-500/30 bg-[#0f1620] px-4 py-2.5">
-          <span className="mr-2 text-[13px] text-blue-100">Вибрано: {selectedIds.length}</span>
-          <button type="button" disabled={busy} onClick={() => void runBulk("approve_b2b")} className="bg-emerald-600 px-3 py-1.5 text-[13px] text-white hover:bg-emerald-500 disabled:opacity-50">
+        <div className="sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-[#203A66] bg-[#0F1620] px-4 py-2 sm:px-5">
+          <span className="mr-2 text-[#9CC0FF]">Вибрано: {selectedIds.length}</span>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void runBulk("approve_b2b")}
+            className={crmButton}
+          >
             Затвердити B2B
           </button>
-          <button type="button" disabled={busy} onClick={() => void runBulk("revert_b2c")} className="border border-white/20 px-3 py-1.5 text-[13px] text-zinc-200 hover:bg-white/5 disabled:opacity-50">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void runBulk("revert_b2c")}
+            className={crmButton}
+          >
             У роздріб
           </button>
           {tab === "inactive" ? (
-            <button type="button" disabled={busy} onClick={() => void runBulk("activate")} className="border border-white/20 px-3 py-1.5 text-[13px] text-zinc-200 hover:bg-white/5 disabled:opacity-50">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void runBulk("activate")}
+              className={crmButton}
+            >
               Увімкнути
             </button>
           ) : (
-            <button type="button" disabled={busy} onClick={() => void runBulk("deactivate")} className="border border-red-500/40 px-3 py-1.5 text-[13px] text-red-200 hover:bg-red-500/10 disabled:opacity-50">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void runBulk("deactivate")}
+              className={cn(crmButton, "border-[#5B2323] text-[#F19B9B]")}
+            >
               Вимкнути
             </button>
           )}
           <button
             type="button"
             onClick={() => setSelectedIds([])}
-            className="ml-auto px-2 py-1.5 text-[13px] text-zinc-400 hover:text-white"
+            className="ml-auto px-2 text-zinc-400 hover:text-white"
           >
             Зняти вибір
           </button>
@@ -469,162 +575,351 @@ function CustomersScreen() {
       ) : null}
 
       {error ? (
-        <div role="alert" className="border-l-2 border-red-400 bg-red-500/[0.08] px-4 py-3 text-[13px] text-red-100">
+        <div
+          role="alert"
+          className="border-b border-[#5B2323] bg-[#1F0E0E] px-5 py-2.5 text-[#F19B9B]"
+        >
           {error}
         </div>
       ) : null}
 
-      {loading && !customers.length ? (
-        <div className="border border-white/10 bg-[#151515] px-5 py-10 text-center text-[13px] text-zinc-500">
-          Завантажуємо клієнтів…
-        </div>
-      ) : visible.length === 0 ? (
-        <div className="border border-white/10 bg-[#151515] px-5 py-12 text-center text-[13px] text-zinc-500">
-          {query ? "Нікого не знайдено. Перевірте написання або пошукайте у вкладці «Усі»." : "У цій групі поки немає клієнтів."}
-        </div>
-      ) : (
-        <>
-          <AdminTableShell className={cn("hidden lg:block", loading && "opacity-60")}>
-            <table className="w-full table-fixed text-left text-[13px]">
-              <colgroup>
-                <col className="w-10" />
-                <col />
-                <col className="w-[24%]" />
-                <col className="w-[170px]" />
-                <col className="w-[150px]" />
-                <col className="w-[110px]" />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-white/10 text-[11px] uppercase tracking-[0.1em] text-zinc-500">
-                  <th className="px-3 py-2.5">
-                    <input
-                      type="checkbox"
-                      aria-label="Вибрати всіх у списку"
-                      checked={allSelected}
-                      onChange={() =>
-                        setSelectedIds(allSelected ? [] : visible.map((customer) => customer.id))
-                      }
-                      className="accent-blue-600"
-                    />
-                  </th>
-                  <th className="px-3 py-2.5 font-medium">Клієнт</th>
-                  <th className="px-3 py-2.5 font-medium">Контакти</th>
-                  <th className="px-3 py-2.5 font-medium">Тип</th>
-                  <th className="px-3 py-2.5 font-medium">Замовлення</th>
-                  <th className="px-3 py-2.5 font-medium">З нами з</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.06]">
-                {visible.map((customer) => {
-                  const lastOrderDays = customer.lastOrderAt ? daysSince(customer.lastOrderAt) : null;
-                  return (
-                    <tr
-                      key={customer.id}
-                      onClick={(event) => {
-                        if ((event.target as HTMLElement).closest("a,button,input,label")) return;
-                        router.push(`/admin/shop/customers/${customer.id}`);
-                      }}
-                      className={cn(
-                        "cursor-pointer align-top transition hover:bg-white/[0.03]",
-                        selectedIds.includes(customer.id) && "bg-blue-500/[0.06]",
-                        isDisabled(customer) && "opacity-60"
-                      )}
-                    >
-                      <td className="px-3 py-3">
+      <div className="flex min-h-0 flex-1 flex-wrap items-stretch">
+        <div
+          className={cn(
+            "min-w-0 flex-[999_1_640px]",
+            loading && customers.length > 0 && "opacity-60"
+          )}
+        >
+          {loading && !customers.length ? (
+            <div className="px-5 py-12 text-center text-zinc-500">Завантажуємо клієнтів…</div>
+          ) : visible.length === 0 ? (
+            <div className="px-5 py-12 text-center text-zinc-500">
+              {query
+                ? "Нікого не знайдено. Перевірте написання або пошукайте у вкладці «Усі»."
+                : "У цій групі поки немає клієнтів."}
+            </div>
+          ) : (
+            <>
+              <div className="hidden overflow-x-auto lg:block">
+                <table className="w-full min-w-[900px] table-fixed border-collapse text-left">
+                  <colgroup>
+                    <col className="w-9" />
+                    <col />
+                    <col className="w-[108px]" />
+                    <col className="w-[210px]" />
+                    <col className="w-[200px]" />
+                    <col className="w-[120px]" />
+                    <col className="w-[130px]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="h-[34px] whitespace-nowrap border-b border-[#1F2125] text-zinc-500">
+                      <th className="w-9 pl-5 font-normal">
                         <input
                           type="checkbox"
-                          aria-label={`Вибрати ${customer.fullName}`}
-                          checked={selectedIds.includes(customer.id)}
+                          aria-label="Вибрати всіх у списку"
+                          checked={allSelected}
                           onChange={() =>
-                            setSelectedIds((current) =>
-                              current.includes(customer.id)
-                                ? current.filter((id) => id !== customer.id)
-                                : [...current, customer.id]
+                            setSelectedIds(
+                              allSelected ? [] : visible.map((customer) => customer.id)
                             )
                           }
-                          className="accent-blue-600"
+                          className="accent-[#2563EB]"
                         />
-                      </td>
-                      <td className="px-3 py-3">
-                        <Link
-                          href={`/admin/shop/customers/${customer.id}`}
-                          className="block truncate font-medium text-zinc-100 hover:text-blue-300"
-                        >
-                          {customer.companyName || customer.fullName || customer.email}
-                        </Link>
-                        {customer.companyName ? (
-                          <div className="truncate text-[12px] text-zinc-400">{customer.fullName}</div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="truncate text-zinc-200">{customer.phone || "—"}</div>
-                        <div className="truncate text-[12px] text-zinc-500">{customer.email}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <CustomerTypeBadge group={customer.group} discount={customer.b2bDiscountPercent} />
-                        {isDisabled(customer) ? (
-                          <div className="mt-1 text-[11px] text-red-300">Вимкнений</div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className={customer.counts.orders ? "text-zinc-100" : "text-zinc-500"}>
-                          {customer.counts.orders ? `${customer.counts.orders} замовл.` : "Ще не купував"}
-                        </div>
-                        {lastOrderDays !== null ? (
-                          <div className="text-[12px] text-zinc-500">
-                            останнє {lastOrderDays === 0 ? "сьогодні" : `${lastOrderDays} дн. тому`}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-3 text-[12px] text-zinc-400">
-                        {new Date(customer.createdAt).toLocaleDateString("uk-UA", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}
-                      </td>
+                      </th>
+                      <th className="px-3 font-normal">Клієнт</th>
+                      <th className="px-3 font-normal">Тип</th>
+                      <th className="px-3 font-normal">Контакти</th>
+                      <th className="px-3 font-normal">Знижки на бренди</th>
+                      <th className="px-3 font-normal">Замовлення</th>
+                      <th className="pl-3 pr-5 font-normal">Вхід на сайт</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </AdminTableShell>
+                  </thead>
+                  <tbody>
+                    {visible.map((customer) => {
+                      const active = peek?.id === customer.id;
+                      const missingEmail = isPlaceholderShopCustomerEmail(customer.email);
+                      return (
+                        <tr
+                          key={customer.id}
+                          onClick={(event) => {
+                            if ((event.target as HTMLElement).closest("a,button,input,label"))
+                              return;
+                            setPeekId((current) => (current === customer.id ? null : customer.id));
+                          }}
+                          onDoubleClick={() => router.push(`/admin/shop/customers/${customer.id}`)}
+                          className={cn(
+                            "h-12 cursor-pointer border-b border-[#17181B] transition",
+                            active
+                              ? "bg-[#121A2B] shadow-[inset_2px_0_0_#3B82F6]"
+                              : "hover:bg-[#141518]",
+                            selectedIds.includes(customer.id) && !active && "bg-[#0F1620]",
+                            isDisabled(customer) && "opacity-55"
+                          )}
+                        >
+                          <td className="pl-5">
+                            <input
+                              type="checkbox"
+                              aria-label={`Вибрати ${displayName(customer)}`}
+                              checked={selectedIds.includes(customer.id)}
+                              onChange={() => toggleSelected(customer.id)}
+                              className="accent-[#2563EB]"
+                            />
+                          </td>
+                          <td className="px-3">
+                            <div className="flex items-center gap-2.5">
+                              <CrmAvatar
+                                name={displayName(customer)}
+                                partner={customer.group !== "B2C"}
+                              />
+                              <div className="min-w-0">
+                                <Link
+                                  href={`/admin/shop/customers/${customer.id}`}
+                                  className="block truncate font-medium text-zinc-100 hover:text-[#9CC0FF]"
+                                >
+                                  {displayName(customer)}
+                                </Link>
+                                {customer.companyName &&
+                                customer.fullName !== customer.companyName ? (
+                                  <div className="truncate text-[12px] text-zinc-500">
+                                    {customer.fullName}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3">{customerTypeChip(customer.group)}</td>
+                          <td className="px-3">
+                            <div className="crm-mono truncate text-[12px] text-zinc-200">
+                              {customer.phone || <span className="text-zinc-600">—</span>}
+                            </div>
+                            <div className="truncate text-[12px]">
+                              {missingEmail ? (
+                                <span className="text-[#F5C46B]">Немає email</span>
+                              ) : (
+                                <span className="text-zinc-500">{customer.email}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="overflow-hidden px-3">
+                            {customer.brandDiscounts.length ? (
+                              <div className="flex gap-1 overflow-hidden">
+                                {customer.brandDiscounts.slice(0, 2).map((rule) => (
+                                  <CrmChip key={rule.brand} tone="green">
+                                    {rule.brand} −{rule.discountPct}%
+                                  </CrmChip>
+                                ))}
+                                {customer.brandDiscounts.length > 2 ? (
+                                  <CrmChip>+{customer.brandDiscounts.length - 2}</CrmChip>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <span className="text-zinc-600">—</span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-3">
+                            {customer.counts.orders ? (
+                              <>
+                                <div className="crm-mono text-[12px] text-zinc-100">
+                                  {customer.counts.orders}
+                                </div>
+                                <div className="text-[12px] text-zinc-500">
+                                  {crmAgo(customer.lastOrderAt) ?? "—"}
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-zinc-600">Ще не було</span>
+                            )}
+                          </td>
+                          <td className="pl-3 pr-5">
+                            {isDisabled(customer) ? (
+                              <CrmChip tone="red">Вимкнений</CrmChip>
+                            ) : customer.canSignIn ? (
+                              <CrmChip tone="green">Є пароль</CrmChip>
+                            ) : (
+                              <CrmChip tone="amber">Немає пароля</CrmChip>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className={cn("grid gap-2 sm:grid-cols-2 lg:hidden", loading && "opacity-60")}>
-            {visible.map((customer) => (
-              <Link
-                key={customer.id}
-                href={`/admin/shop/customers/${customer.id}`}
-                className="block border border-white/10 bg-[#151515] px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-[14px] font-medium text-zinc-100">
-                      {customer.companyName || customer.fullName}
-                    </div>
-                    <div className="truncate text-[12px] text-zinc-500">
-                      {customer.phone || customer.email}
-                    </div>
-                  </div>
-                  <CustomerTypeBadge group={customer.group} discount={customer.b2bDiscountPercent} />
+              <ul className="divide-y divide-[#17181B] lg:hidden">
+                {visible.map((customer) => (
+                  <li key={customer.id}>
+                    <Link
+                      href={`/admin/shop/customers/${customer.id}`}
+                      className="flex items-center gap-3 px-4 py-3"
+                    >
+                      <CrmAvatar
+                        name={displayName(customer)}
+                        partner={customer.group !== "B2C"}
+                        size={32}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium text-zinc-100">
+                          {displayName(customer)}
+                        </span>
+                        <span className="block truncate text-[12px] text-zinc-500">
+                          {customer.phone ||
+                            (isPlaceholderShopCustomerEmail(customer.email)
+                              ? "Немає email"
+                              : customer.email)}
+                          {customer.counts.orders ? ` · ${customer.counts.orders} замовл.` : ""}
+                        </span>
+                      </span>
+                      {customerTypeChip(customer.group)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        {peek ? (
+          <aside
+            aria-label="Швидкий перегляд клієнта"
+            className="fixed bottom-0 right-0 top-14 z-40 hidden w-[400px] flex-col overflow-y-auto border-l border-[#2A2C31] bg-[#0E0F11] shadow-[-24px_0_48px_rgba(0,0,0,0.5)] lg:flex"
+          >
+            <div className="flex items-center gap-3 border-b border-[#1F2125] px-5 py-4">
+              <CrmAvatar name={displayName(peek)} partner={peek.group !== "B2C"} size={40} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-semibold text-white">
+                  {displayName(peek)}
                 </div>
-                <div className="mt-2 flex justify-between gap-2 text-[12px] text-zinc-400">
-                  <span>
-                    {customer.counts.orders ? `${customer.counts.orders} замовл.` : "Ще не купував"}
-                    {customer.lastOrderAt ? ` · останнє ${daysSince(customer.lastOrderAt)} дн. тому` : ""}
-                  </span>
-                  {isDisabled(customer) ? <span className="text-red-300">Вимкнений</span> : null}
+                <div className="truncate text-[12px] text-zinc-500">
+                  {peek.companyName && peek.fullName !== peek.companyName
+                    ? peek.fullName
+                    : "Клієнт"}
                 </div>
+              </div>
+              <Link href={`/admin/shop/customers/${peek.id}`} className={crmButton}>
+                Відкрити <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
-            ))}
-          </div>
-        </>
-      )}
+              <button
+                type="button"
+                onClick={() => setPeekId(null)}
+                aria-label="Закрити перегляд"
+                className={crmIconButton}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
 
-      <p className="text-[12px] text-zinc-500">
-        Тут лише покупці з акаунтом на сайті. Замовлення без реєстрації шукайте в розділі
-        «Замовлення» за телефоном чи email.
+            <div className="flex flex-wrap gap-1.5 border-b border-[#1F2125] px-5 py-3">
+              {customerTypeChip(peek.group)}
+              {peek.canSignIn ? (
+                <CrmChip tone="green">Є пароль</CrmChip>
+              ) : (
+                <CrmChip tone="amber">Немає пароля</CrmChip>
+              )}
+              {isDisabled(peek) ? <CrmChip tone="red">Вимкнений</CrmChip> : null}
+            </div>
+
+            <dl className="grid grid-cols-[110px_minmax(0,1fr)] border-b border-[#1F2125] px-5 py-2">
+              <dt className="py-1.5 text-zinc-500">Телефон</dt>
+              <dd className="crm-mono py-1.5 text-[12px]">{peek.phone || "—"}</dd>
+              <dt className="py-1.5 text-zinc-500">Email</dt>
+              <dd className="truncate py-1.5">
+                {isPlaceholderShopCustomerEmail(peek.email) ? (
+                  <span className="text-[#F5C46B]">Немає email</span>
+                ) : (
+                  peek.email
+                )}
+              </dd>
+              <dt className="py-1.5 text-zinc-500">Останній вхід</dt>
+              <dd className="py-1.5">{crmAgo(peek.lastLoginAt) ?? "Не входив"}</dd>
+              <dt className="py-1.5 text-zinc-500">З нами з</dt>
+              <dd className="py-1.5">{new Date(peek.createdAt).toLocaleDateString("uk-UA")}</dd>
+            </dl>
+
+            <div className="border-b border-[#1F2125] px-5 py-3">
+              <div className="mb-2 text-zinc-500">Знижки на бренди</div>
+              {peek.brandDiscounts.length ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {peek.brandDiscounts.map((rule) => (
+                    <CrmChip key={rule.brand} tone="green">
+                      {rule.brand} −{rule.discountPct}%
+                    </CrmChip>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-zinc-500">
+                  {peek.group === "B2B_APPROVED"
+                    ? "Своїх немає — діють знижки брендів для всіх"
+                    : "Бачить роздрібні ціни"}
+                </span>
+              )}
+            </div>
+
+            <div className="flex-1 px-5 py-3">
+              <div className="mb-2 flex items-baseline justify-between text-zinc-500">
+                <span>Замовлення</span>
+                <span className="crm-mono text-[11px]">{peek.counts.orders}</span>
+              </div>
+              {peekLoading && !peekDetail ? (
+                <p className="text-zinc-600">Завантажуємо…</p>
+              ) : peekDetail?.orders.length ? (
+                <ul className="divide-y divide-[#17181B] border-y border-[#17181B]">
+                  {peekDetail.orders.slice(0, 5).map((order) => (
+                    <li key={order.id}>
+                      <Link
+                        href={
+                          order.isDraft
+                            ? `/admin/shop/drafts/${order.id}`
+                            : `/admin/shop/orders/${order.id}`
+                        }
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 py-2 hover:bg-white/[0.02]"
+                      >
+                        <span className="crm-mono truncate text-[12px] text-[#9CC0FF]">
+                          {order.orderNumber}
+                        </span>
+                        <span className="crm-mono text-right text-[12px]">
+                          {formatOrderMoney(order.total, order.currency)}
+                        </span>
+                        <span className="text-[12px] text-zinc-500">{crmAgo(order.createdAt)}</span>
+                        <span className="text-right">
+                          {order.isDraft ? (
+                            <CrmChip>Чернетка</CrmChip>
+                          ) : (
+                            <CrmChip tone={crmStatusTone(orderStatusTone(order.status))}>
+                              {orderStatusLabel(order.status)}
+                            </CrmChip>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-zinc-600">Через акаунт замовлень ще не було.</p>
+              )}
+              <div className="mt-4 grid grid-cols-2 gap-1.5">
+                <Link
+                  href={`/admin/shop/orders/create?customerId=${peek.id}`}
+                  className={crmButton}
+                >
+                  Нове замовлення
+                </Link>
+                <Link href={`/admin/shop/customers/${peek.id}?tab=discounts`} className={crmButton}>
+                  Знижки
+                </Link>
+              </div>
+            </div>
+          </aside>
+        ) : null}
+      </div>
+
+      <p className="border-t border-[#1F2125] px-5 py-3 text-[12px] text-zinc-500">
+        Клік по рядку — швидкий перегляд збоку (Esc закриває), подвійний клік або назва — картка.
+        Тут лише покупці з акаунтом на сайті; замовлення без реєстрації шукайте в «Замовленнях» за
+        телефоном чи email.
       </p>
-    </AdminPage>
+
+      <NewCustomerDrawer open={drawerOpen} onClose={closeDrawer} customers={customers} />
+    </CrmSurface>
   );
 }
