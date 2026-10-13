@@ -252,3 +252,50 @@ test("knowledge search ranks title matches first instead of an arbitrary slice",
   assert.equal(found[0].title, "Доставка из Великобритании через Medyka");
   assert.equal(found[0].content, "# Доставка из Великобритании через Medyka");
 });
+
+test("an overloaded Gemini model is retried once and its reservation is refunded", async () => {
+  const { answerOpsKnowledgeQuestionWithAi, isTransientOpsAiError } = await import(
+    "../../../src/lib/operations/ai"
+  );
+  assert.equal(
+    isTransientOpsAiError(new Error('{"error":{"code":503,"status":"UNAVAILABLE"}}')),
+    true
+  );
+  assert.equal(isTransientOpsAiError(new Error("AI returned invalid structured output")), false);
+  const ledger: bigint[] = [];
+  let calls = 0;
+  const result = await answerOpsKnowledgeQuestionWithAi({
+    question: "доставка из Великобритании",
+    articles: [{ id: "kb_medyka0001", title: "Medyka", content: "7–10 дней" }],
+    budget: {
+      async reserve(amount) {
+        ledger.push(amount);
+      },
+      async record(input) {
+        ledger.push(input.costMicros - input.reservedCostMicros);
+      },
+    },
+    provider: {
+      async extract() {
+        throw new Error("unused");
+      },
+      async transcribe() {
+        throw new Error("unused");
+      },
+      async answer() {
+        calls += 1;
+        if (calls === 1) {
+          throw new Error('{"error":{"code":503,"message":"high demand","status":"UNAVAILABLE"}}');
+        }
+        return {
+          value: { found: true, answer: "7–10 дней", source_ids: ["kb_medyka0001"] },
+          usage: { inputTokens: 100, outputTokens: 10 },
+        };
+      },
+    },
+  });
+  assert.equal(calls, 2, "same model retried once");
+  assert.equal(result.value.answer, "7–10 дней");
+  const [reserved, refund] = ledger;
+  assert.equal(refund, -reserved, "the failed attempt's reservation is given back");
+});
