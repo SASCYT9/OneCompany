@@ -285,8 +285,8 @@ test("all models overloaded: one more try on the fast model after a pause", asyn
     },
   });
   assert.deepEqual(models, [
-    OPS_AI_FALLBACK_MODEL,
     OPS_AI_PRIMARY_MODEL,
+    OPS_AI_FALLBACK_MODEL,
     OPS_AI_RESERVE_MODEL,
     OPS_AI_PRIMARY_MODEL,
   ]);
@@ -294,7 +294,7 @@ test("all models overloaded: one more try on the fast model after a pause", asyn
   assert.equal(result.value.answer, "7–10 дней");
 });
 
-test("an overloaded model hands a knowledge answer to the fast one and is refunded", async () => {
+test("the fast model answers first; when overloaded, 3.8 Flash takes over and it is refunded", async () => {
   const {
     answerOpsKnowledgeQuestionWithAi,
     isTransientOpsAiError,
@@ -347,7 +347,7 @@ test("an overloaded model hands a knowledge answer to the fast one and is refund
   assert.equal(calls, 2, "no second wait on the overloaded model");
   assert.deepEqual(
     attempts.map((attempt) => attempt.model),
-    [OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL]
+    [OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL]
   );
   assert.ok(
     attempts.every((attempt) => (attempt.timeoutMs ?? Infinity) <= 20_000),
