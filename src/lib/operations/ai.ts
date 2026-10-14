@@ -5,7 +5,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 
 export const OPS_AI_PRIMARY_MODEL =
   process.env.OPS_GEMINI_PRIMARY_MODEL?.trim() || "gemini-3.5-flash-lite";
-/** Stronger model: fallback for parsing, first choice for knowledge answers. */
+/** Stronger model: fallback for parsing and for knowledge answers. */
 export const OPS_AI_FALLBACK_MODEL =
   process.env.OPS_GEMINI_FALLBACK_MODEL?.trim() || "gemini-3.8-flash";
 /**
@@ -855,9 +855,10 @@ export async function answerOpsKnowledgeQuestionWithAi(input: {
       models,
     });
   try {
-    // Answers are read by people: the smarter model goes first.
+    // A person is waiting: the fast model answers in ~1 s, 3.8 Flash often
+    // needs more than its 15 s window (owner chose speed on 14.10.2026).
     return await run(
-      Array.from(new Set([OPS_AI_FALLBACK_MODEL, OPS_AI_PRIMARY_MODEL, OPS_AI_RESERVE_MODEL]))
+      Array.from(new Set([OPS_AI_PRIMARY_MODEL, OPS_AI_FALLBACK_MODEL, OPS_AI_RESERVE_MODEL]))
     );
   } catch (error) {
     if (!isTransientOpsAiError(error)) throw error;
