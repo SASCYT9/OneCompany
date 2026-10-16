@@ -12,6 +12,7 @@ import {
 import { ADMIN_PATH_HEADER } from "@/lib/admin/adminPathHeader";
 import { ADMIN_SESSION_COOKIE } from "@/lib/adminAuth";
 import { shouldAllowAdminApiRequest, shouldAllowAdminPageRequest } from "@/lib/adminProxyAuth";
+import { resolveMetaAdLocaleRedirect } from "@/lib/metaAdLocaleRedirect";
 import {
   evaluateShopCatalogCanary,
   parseShopCatalogCanaryConfig,
@@ -102,6 +103,26 @@ export default async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = normalizedPathname;
     return NextResponse.redirect(url, 308);
+  }
+
+  const metaAdRedirectPath = resolveMetaAdLocaleRedirect({
+    pathname: currentPath,
+    country,
+    userAgent: req.headers.get("user-agent"),
+    referer: req.headers.get("referer"),
+    hasFbclid: req.nextUrl.searchParams.has("fbclid"),
+    isDocumentRequest:
+      req.method === "GET" &&
+      !req.headers.has("rsc") &&
+      !req.headers.has("next-router-prefetch") &&
+      !req.nextUrl.searchParams.has("_rsc"),
+  });
+  if (metaAdRedirectPath) {
+    const url = req.nextUrl.clone();
+    url.pathname = metaAdRedirectPath;
+    const response = NextResponse.redirect(url, 307);
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   }
 
   const catalogCanaryResponse = routeCatalogCanary(req, currentPath);

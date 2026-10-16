@@ -10,6 +10,8 @@ test("proxy preserves storefront routing while adding the admin path header", ()
   assert.match(proxySource, /resolveLegacyBrandRedirectPath/);
   assert.match(proxySource, /hasLocalePrefix/);
   assert.match(proxySource, /x-vercel-ip-country/);
+  assert.match(proxySource, /resolveMetaAdLocaleRedirect/);
+  assert.match(proxySource, /NextResponse\.redirect\(url, 307\)/);
   assert.match(proxySource, /shouldAllowAdminApiRequest/);
   assert.match(proxySource, /shouldAllowAdminPageRequest/);
   assert.match(proxySource, /ADMIN_PATH_HEADER/);
