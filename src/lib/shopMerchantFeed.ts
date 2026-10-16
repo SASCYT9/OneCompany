@@ -52,22 +52,24 @@ function slugHash(slug: string): string {
 }
 
 /**
- * g:id for each product, aligned with the input order. The sanitized SKU is
- * kept when it fits Google's 50-character limit and no other product in the
- * feed shares it. Otherwise (RaceChip SKUs repeat across car models and run
- * past 50 characters) the SKU is cut to fit next to a hash of the product's
- * slug, which is unique per product page, so no item collapses into another.
+ * g:id for one product, derived from that product alone so it never changes
+ * when other products enter or leave the feed (Merchant Center ties an item's
+ * history to its ID). With a SKU, the ID is the SKU prefix plus a hash of the
+ * slug, which is unique per product page: RaceChip SKUs repeat across car
+ * models and run past 50 characters, so the bare SKU cannot identify a page.
+ * Without a SKU, the slug itself (hashed when it is too long).
  */
+export function buildMerchantFeedId(product: Pick<ShopProduct, "sku" | "slug">): string {
+  const sku = sanitizeMerchantId(product.sku?.trim() ?? "");
+  const slug = sanitizeMerchantId(product.slug);
+  if (!sku && slug.length <= MERCHANT_ID_MAX_LENGTH) return slug;
+  const suffix = `-${slugHash(product.slug)}`;
+  return `${(sku || slug).slice(0, MERCHANT_ID_MAX_LENGTH - suffix.length)}${suffix}`;
+}
+
+/** g:id for each product, aligned with the input order (see buildMerchantFeedId). */
 export function buildMerchantFeedIds(products: Array<Pick<ShopProduct, "sku" | "slug">>): string[] {
-  const bases = products.map((product) => sanitizeMerchantId(product.sku || product.slug));
-  const counts = new Map<string, number>();
-  for (const base of bases) counts.set(base, (counts.get(base) ?? 0) + 1);
-  return products.map((product, index) => {
-    const base = bases[index];
-    if (base && base.length <= MERCHANT_ID_MAX_LENGTH && counts.get(base) === 1) return base;
-    const suffix = `-${slugHash(product.slug)}`;
-    return `${base.slice(0, MERCHANT_ID_MAX_LENGTH - suffix.length)}${suffix}`;
-  });
+  return products.map(buildMerchantFeedId);
 }
 
 /**
@@ -88,7 +90,7 @@ export function buildMerchantFeedItemXml(
   options: { id?: string; now?: Date } = {}
 ): string {
   if (product.tags?.includes("internal-test")) return "";
-  const id = options.id ?? buildMerchantFeedIds([product])[0];
+  const id = options.id ?? buildMerchantFeedId(product);
   const { title, description } = localize(product, locale);
   const link = `${siteConfig.url}${buildShopStorefrontProductPathForProduct(locale, product)}`;
   const imageUrl = product.image.startsWith("http")

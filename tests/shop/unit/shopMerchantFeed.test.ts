@@ -100,16 +100,19 @@ test("g:id is unique per product and within Google's 50-character limit", () => 
   ];
   const ids = buildMerchantFeedIds(products);
 
-  // A unique SKU that fits stays the ID, so existing Merchant history is kept.
-  assert.equal(ids[0], "1-950020-1002-30");
-  assert.equal(ids[4], "product-without-sku");
-  // Shared and over-long SKUs get a slug hash, keep their SKU prefix and fit 50.
+  // Every ID keeps its SKU prefix, adds a slug hash, is unique and fits 50 characters.
   assert.equal(new Set(ids).size, ids.length);
   for (const id of ids) assert.equal(id.length <= 50, true, id);
+  assert.match(ids[0], /^1-950020-1002-30-[0-9a-z]+$/);
   assert.equal(ids[1].startsWith("RC-GTS5-VW-1-4-TSI"), true);
   assert.equal(ids[3].startsWith("RC-GTS5-CITROEN"), true);
-  // Stable across runs: the same slug always yields the same ID.
+  // Without a SKU, the slug is the ID.
+  assert.equal(ids[4], "product-without-sku");
+  // Stable: the same product always gets the same ID, whatever else is in the feed,
+  // so publishing or removing a product with the same SKU never renames another item.
   assert.deepEqual(buildMerchantFeedIds(products), ids);
+  assert.deepEqual(buildMerchantFeedIds([products[2], products[0]]), [ids[2], ids[0]]);
+  assert.deepEqual(buildMerchantFeedIds([products[0]]), [ids[0]]);
 
   const item = buildMerchantFeedItemXml(makeProduct(), "ua", "UAH", rates, { id: ids[1] });
   assert.match(item, new RegExp(`<g:id>${ids[1]}</g:id>`));
