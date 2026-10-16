@@ -51,31 +51,17 @@ export default function CookieBanner({ locale = "ua" }: CookieBannerProps) {
       return;
     }
 
-    // Check if user has already made a choice
-    const consent = localStorage.getItem("cookie-consent");
-    if (!consent) {
-      // Small delay before showing banner for better UX
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-        setTimeout(() => setIsAnimating(true), 50);
-      }, 1500);
-      return () => clearTimeout(timer);
-    } else {
-      // Restore previous consent for GA4 Consent Mode v2
-      try {
-        const parsed = JSON.parse(consent);
-        if (parsed.analytics && typeof window.gtag === "function") {
-          window.gtag("consent", "update", {
-            analytics_storage: "granted",
-            ad_storage: parsed.marketing ? "granted" : "denied",
-            ad_user_data: parsed.marketing ? "granted" : "denied",
-            ad_personalization: parsed.marketing ? "granted" : "denied",
-          });
-        }
-      } catch {
-        // Invalid consent data, ignore
-      }
-    }
+    // A saved choice is restored for GA4 Consent Mode v2 by the inline
+    // bootstrap in GoogleAnalytics.tsx on every route; here we only decide
+    // whether to ask.
+    if (localStorage.getItem("cookie-consent")) return;
+
+    // Small delay before showing banner for better UX
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+      setTimeout(() => setIsAnimating(true), 50);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, [isShopRoute]);
 
   const handleAccept = (type: "all" | "necessary") => {
