@@ -69,12 +69,14 @@ const CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "frame-ancestors 'self'",
   // Next/React + current analytics snippets rely on inline scripts/styles.
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms https://www.google-analytics.com",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://scripts.clarity.ms https://www.google-analytics.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
   "media-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://d1sfhav1wboke3.azureedge.net",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://www.clarity.ms https://a.clarity.ms https://c.clarity.ms https://r.clarity.ms https://bank.gov.ua",
+  // GA4 with Google Signals posts to *.analytics.google.com and stats.g.doubleclick.net;
+  // Clarity uploads to a rotating *.clarity.ms host (q.clarity.ms in 2026-10).
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://analytics.google.com https://stats.g.doubleclick.net https://www.google.com https://www.googletagmanager.com https://*.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://bank.gov.ua",
   "frame-src 'self' https://www.googletagmanager.com https://player.vimeo.com https://maps.google.com https://www.youtube.com https://www.youtube-nocookie.com",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -418,6 +420,14 @@ const nextConfig: NextConfig = {
         // Keep its query variants out of the index at the source URL too, so
         // the policy survives rewrites and direct crawler requests.
         source: "/:locale(ua|en)/shop/catalog",
+        has: [{ type: "query" as const, key }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+      })),
+      ...["product", "variant"].map((key) => ({
+        // Every product page links to its own /contact?product=… inquiry URL
+        // (~27k crawlable copies of the contact page). Keep them out of the
+        // index; the plain /contact page stays indexable.
+        source: "/:locale(ua|en)/contact",
         has: [{ type: "query" as const, key }],
         headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
       })),

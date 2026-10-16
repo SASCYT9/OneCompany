@@ -45,6 +45,27 @@ function clean(value: string | null | undefined): string {
 }
 
 /**
+ * Stored SEO strings that came out of an import template broken: empty
+ * brackets ("для Porsche ()"), "та ін.." glued to a sentence end, unbalanced
+ * brackets ("для BMW 5 (G30 та ін..") or a leaked "undefined"/"null". Such a
+ * string is worse than the generated one, so the builders ignore it.
+ */
+export function isBrokenStoredSeoText(value: string): boolean {
+  if (/\(\s*\)|\[\s*\]/.test(value)) return true;
+  if (/та ін\.\./.test(value)) return true;
+  if (/\b(?:undefined|null)\b/.test(value)) return true;
+  const opening = (value.match(/\(/g) ?? []).length;
+  const closing = (value.match(/\)/g) ?? []).length;
+  return opening !== closing;
+}
+
+/** An admin-curated SEO string, unless it is empty or broken. */
+function usableExplicit(value: string | null | undefined): string {
+  const explicit = clean(value);
+  return explicit && !isBrokenStoredSeoText(explicit) ? explicit : "";
+}
+
+/**
  * Title without redundant parts. An admin-curated `seoTitle` always wins.
  * Otherwise: `<name> <SKU> | <brand>`, dropping the SKU, then the brand, when
  * the result would not fit the title limit or the part is already in the name.
@@ -56,7 +77,7 @@ export function buildProductSeoTitle(input: {
   brand?: string | null;
   maxLength?: number;
 }): string {
-  const explicit = clean(input.explicitTitle);
+  const explicit = usableExplicit(input.explicitTitle);
   if (explicit) return explicit;
 
   const maxLength = input.maxLength ?? SEO_TITLE_MAX_LENGTH;
@@ -92,7 +113,7 @@ export function buildProductSeoDescription(input: {
   brand?: string | null;
   category?: string | null;
 }): string {
-  const explicit = clean(input.explicitDescription);
+  const explicit = usableExplicit(input.explicitDescription);
   if (explicit) return explicit;
 
   const isUa = input.locale === "ua";

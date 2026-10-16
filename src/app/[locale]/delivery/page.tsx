@@ -107,6 +107,11 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                 ? "Після відправлення замовлення ви отримаєте трек-номер (ТТН) для відстеження посилки."
                 : "After your order is shipped, you will receive a tracking number (TTN) to track your package."}
             </p>
+            <p className="mt-4">
+              {l === "ua"
+                ? "Строк поставки товарів під замовлення — у середньому 21 день. Для виробів, які виготовляються індивідуально, строк довший — його уточнює менеджер. Іноді можливі затримки з боку виробника."
+                : "Items supplied to order take about 21 days on average. Items made individually take longer — your manager will confirm the timing. Occasional delays on the manufacturer's side are possible."}
+            </p>
           </section>
 
           <section id="war-risks">

@@ -101,7 +101,8 @@ function formatMoney(value: number, currencyHint: string) {
 export default function AdminFeedExportsPage() {
   const [origin, setOrigin] = useState("");
   const [locale, setLocale] = useState<ProductFeedLocale>("ua");
-  const [currency, setCurrency] = useState<ProductFeedCurrency>("EUR");
+  // Ukraine is the Merchant Center target country, so the copied URL defaults to UAH.
+  const [currency, setCurrency] = useState<ProductFeedCurrency>("UAH");
   const [stockFormat, setStockFormat] = useState<StockFeedFormat>("json");
   const [brand, setBrand] = useState("");
   const [skuPrefix, setSkuPrefix] = useState("");

@@ -29,7 +29,7 @@ test("robots blocks model-training crawlers and keeps search and answer agents",
   assert.equal([general?.allow].flat().includes("/"), true);
 });
 
-test("robots lets the renderer fetch only the catalog read endpoints under /api", () => {
+test("robots lets crawlers fetch only the catalog read endpoints and the Merchant feed under /api", () => {
   const { rules } = robots();
   const list = Array.isArray(rules) ? rules : [rules];
   const general = list.find((rule) => rule.userAgent === "*");
@@ -37,7 +37,9 @@ test("robots lets the renderer fetch only the catalog read endpoints under /api"
   const disallow = [general?.disallow].flat();
 
   assert.equal(allow.includes("/api/shop/stock/search"), true);
+  assert.equal(allow.includes("/api/shop/stock/fitment"), true);
   assert.equal(allow.includes("/api/shop/recommendations"), true);
+  assert.equal(allow.includes("/api/shop/feed/products"), true);
   // Everything else under /api, plus admin and quote, stays blocked.
   for (const prefix of ["/api", "/api/*", "/admin", "/quote"])
     assert.equal(disallow.includes(prefix), true, prefix);

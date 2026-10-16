@@ -1,5 +1,5 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
-import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
+import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import {
   localizeShopProductTitle,
@@ -366,9 +366,11 @@ export function ShopProductStructuredData({
     product.stock,
     product.storefrontDisplay
   );
-  const availabilityDate = googleProductAvailability(
+  // Same estimate as the Merchant feed, so page and feed never disagree.
+  const availabilityDate = googleMerchantAvailability(
     resolvedStock,
-    product.availabilityDate
+    product.availabilityDate,
+    product.leadTime
   ).availabilityDate;
   const offers = currencyOrder
     .map((c) => {
