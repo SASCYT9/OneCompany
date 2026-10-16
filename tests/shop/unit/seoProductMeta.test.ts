@@ -6,8 +6,51 @@ import {
   buildProductSeoTitle,
   buildRacechipSeoMeta,
   includesNormalized,
+  isBrokenStoredSeoText,
   parseRacechipSlugSpecs,
 } from "../../../src/lib/seoProductMeta";
+
+test("broken stored SEO strings are ignored and the builder takes over", () => {
+  // Live 2026-10-16: Eventuri /ua/shop/3-0-turbo-v6-black-carbon-intake-system.
+  const eventuri =
+    "Впускна система Porsche для Porsche () в наявності (під замовлення). Доставка по Києву та Україні.";
+  // Live 2026-10-16: KW /ua/shop/352200bw and /ua/shop/102100by.
+  const kwUnbalanced = "Койловер для BMW 5 (G30 та ін.. Висота + жорсткість. KW [352200BW].";
+  const kwEtc =
+    "Койловер підвіски V1 inox для AUDI Q5 (FY) FYB та ін.. Регулювання висоти посадки.";
+  for (const broken of [eventuri, kwUnbalanced, kwEtc, "undefined | KW", "Remus null"]) {
+    assert.equal(isBrokenStoredSeoText(broken), true, broken);
+  }
+  for (const fine of [
+    "Койловер підвіски V1 inox — AUDI A6 (4G) 4G2, 4GC, C7 (1.8 TFSI…3.0 TFSI quattro)",
+    "Akrapovič Slip-On Line (Titanium) для BMW M3 G80",
+    "Nullsystem adapter",
+  ]) {
+    assert.equal(isBrokenStoredSeoText(fine), false, fine);
+  }
+
+  const description = buildProductSeoDescription({
+    locale: "ua",
+    explicitDescription: eventuri,
+    description: "Карбоновий впуск Eventuri для Porsche Cayenne 3.0 V6 Turbo (2018+).",
+    title: "Система впуску повітря (карбон) для PORSCHE Cayenne 3.0L V6 Turbo 2018+",
+    sku: "EVE-9Y-CF-INT",
+    brand: "Eventuri",
+  });
+  assert.equal(description.includes("()"), false);
+  assert.match(description, /Eventuri для Porsche Cayenne/);
+
+  const title = buildProductSeoTitle({
+    explicitTitle: "Впускна система Porsche для Porsche ()",
+    title: "Система впуску повітря (карбон) для PORSCHE Cayenne",
+    sku: "EVE-9Y-CF-INT",
+    brand: "Eventuri",
+  });
+  assert.equal(
+    title,
+    "Система впуску повітря (карбон) для PORSCHE Cayenne EVE-9Y-CF-INT | Eventuri"
+  );
+});
 
 test("explicit SEO title and description always win", () => {
   assert.equal(

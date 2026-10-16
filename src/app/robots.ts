@@ -22,12 +22,23 @@ const AI_TRAINING_CRAWLERS = [
 
 /**
  * Public, read-only JSON endpoints the storefront calls on page load to fill
- * catalog grids and recommendation blocks. Googlebot's renderer needs them to
- * see those blocks. They stay out of the index: `/api/*` responses carry
- * `X-Robots-Tag: noindex` (see next.config.ts), and `Allow` only lifts the
+ * catalog grids, the vehicle picker and recommendation blocks. Googlebot's
+ * renderer needs them to see those blocks (without fitment the rendered catalog
+ * shows "Марки недоступні"). They stay out of the index: `/api/*` responses
+ * carry `X-Robots-Tag: noindex` (see next.config.ts), and `Allow` only lifts the
  * fetch block because the longer path wins over `Disallow: /api`.
  */
-const RENDER_CRITICAL_API_PATHS = ["/api/shop/stock/search", "/api/shop/recommendations"] as const;
+const RENDER_CRITICAL_API_PATHS = [
+  "/api/shop/stock/search",
+  "/api/shop/stock/fitment",
+  "/api/shop/recommendations",
+] as const;
+
+/**
+ * Google Merchant Center fetches the product feed as Googlebot and rejects a
+ * URL that robots.txt blocks. Same `/api/*` noindex header as above.
+ */
+const MERCHANT_FEED_PATHS = ["/api/shop/feed/products"] as const;
 
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = absoluteUrl("/sitemap.xml");
@@ -38,7 +49,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", ...RENDER_CRITICAL_API_PATHS],
+        allow: ["/", ...RENDER_CRITICAL_API_PATHS, ...MERCHANT_FEED_PATHS],
         disallow: disallowRules,
       },
       {

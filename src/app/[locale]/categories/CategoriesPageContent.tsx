@@ -4,6 +4,21 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { CATEGORY_META } from "@/lib/categoryMeta";
 
+/**
+ * Brakes and interior have no category page of their own (their
+ * /auto/categories URLs render the not-found view), so their tiles lead to the
+ * closest existing page instead.
+ */
+const CATEGORY_TILE_FALLBACK_PATHS: Partial<Record<string, string>> = {
+  brakes: "shop/girodisc/catalog",
+  interior: "auto",
+};
+
+function categoryTileHref(locale: string, slug: string): string {
+  const fallback = CATEGORY_TILE_FALLBACK_PATHS[slug];
+  return fallback ? `/${locale}/${fallback}` : `/${locale}/auto/categories/${slug}`;
+}
+
 export default function CategoriesPageContent() {
   const locale = useLocale();
 
@@ -33,7 +48,7 @@ export default function CategoriesPageContent() {
           {CATEGORY_META.map((cat) => (
             <Link
               key={cat.slug}
-              href={cat.slug}
+              href={categoryTileHref(locale, cat.slug)}
               className="group relative p-8 bg-card hover:bg-foreground/5 transition-all duration-500 backdrop-blur-3xl rounded-3xl border border-foreground/10 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.5)] hover:scale-[1.02]"
             >
               <div className="mb-4 text-[10px] tracking-[0.3em] uppercase text-foreground/60 dark:text-foreground/40">

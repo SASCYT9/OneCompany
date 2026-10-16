@@ -4,7 +4,7 @@ import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopTex
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
-import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
+import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 
 export type MerchantFeedCurrency = "EUR" | "USD" | "UAH";
@@ -34,6 +34,42 @@ function formatPrice(amount: number, currency: string): string {
   return `${Number(amount).toFixed(2)} ${currency}`;
 }
 
+/** Google's length limit for g:id. */
+const MERCHANT_ID_MAX_LENGTH = 50;
+
+function sanitizeMerchantId(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+/** FNV-1a 32-bit hash of the slug in base36: short, stable, dependency-free. */
+function slugHash(slug: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < slug.length; index += 1) {
+    hash ^= slug.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+/**
+ * g:id for each product, aligned with the input order. The sanitized SKU is
+ * kept when it fits Google's 50-character limit and no other product in the
+ * feed shares it. Otherwise (RaceChip SKUs repeat across car models and run
+ * past 50 characters) the SKU is cut to fit next to a hash of the product's
+ * slug, which is unique per product page, so no item collapses into another.
+ */
+export function buildMerchantFeedIds(products: Array<Pick<ShopProduct, "sku" | "slug">>): string[] {
+  const bases = products.map((product) => sanitizeMerchantId(product.sku || product.slug));
+  const counts = new Map<string, number>();
+  for (const base of bases) counts.set(base, (counts.get(base) ?? 0) + 1);
+  return products.map((product, index) => {
+    const base = bases[index];
+    if (base && base.length <= MERCHANT_ID_MAX_LENGTH && counts.get(base) === 1) return base;
+    const suffix = `-${slugHash(product.slug)}`;
+    return `${base.slice(0, MERCHANT_ID_MAX_LENGTH - suffix.length)}${suffix}`;
+  });
+}
+
 /**
  * One `<item>` of the Google Merchant Center feed, or "" when the product
  * cannot be listed (internal test product, no resolvable price).
@@ -47,11 +83,12 @@ export function buildMerchantFeedItemXml(
   product: ShopProduct,
   locale: "ua" | "en",
   currency: MerchantFeedCurrency,
-  rates: Record<MerchantFeedCurrency, number>
+  rates: Record<MerchantFeedCurrency, number>,
+  /** `id` from buildMerchantFeedIds over the whole feed; `now` for tests. */
+  options: { id?: string; now?: Date } = {}
 ): string {
   if (product.tags?.includes("internal-test")) return "";
-  const id =
-    (product.sku || product.slug).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50) || product.slug;
+  const id = options.id ?? buildMerchantFeedIds([product])[0];
   const { title, description } = localize(product, locale);
   const link = `${siteConfig.url}${buildShopStorefrontProductPathForProduct(locale, product)}`;
   const imageUrl = product.image.startsWith("http")
@@ -84,9 +121,11 @@ export function buildMerchantFeedItemXml(
     product.stock,
     product.storefrontDisplay
   );
-  const { availability, availabilityDate } = googleProductAvailability(
+  const { availability, availabilityDate } = googleMerchantAvailability(
     stock,
-    product.availabilityDate
+    product.availabilityDate,
+    product.leadTime,
+    options.now
   );
 
   const mpn = product.sku?.trim();

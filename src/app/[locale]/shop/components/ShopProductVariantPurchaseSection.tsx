@@ -571,6 +571,8 @@ export function ShopProductVariantPurchaseSection({
         {!requiresUrbanBodyKitQuote(product) && (
           <Link
             href={buildProductInquiryHref(locale, product.slug, currentVariant?.id)}
+            // Per-product inquiry URLs are copies of /contact, not pages to crawl.
+            rel="nofollow"
             className={
               isDo88Product
                 ? styles.secondaryAction

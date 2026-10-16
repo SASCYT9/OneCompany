@@ -1,9 +1,11 @@
 /**
  * GET /api/shop/feed/products
  * Google Merchant Center product feed (RSS 2.0 + g: namespace).
- * Query: locale=ua|en (default: en), currency=EUR|USD|UAH (default: EUR).
+ * Query: locale=ua|en (default: ua), currency=UAH|EUR|USD (default: UAH for ua, EUR for en).
  *
- * In Merchant Center: Products → Feeds → Add feed → Scheduled fetch → enter this URL.
+ * In Merchant Center (target country Ukraine): Products → Feeds → Add feed →
+ * Scheduled fetch → https://onecompany.global/api/shop/feed/products?locale=ua&currency=UAH
+ * robots.txt allows this path for Googlebot (src/app/robots.ts).
  */
 
 import { NextRequest } from "next/server";
@@ -12,12 +14,14 @@ import { getShopProductsServer } from "@/lib/shopCatalogServer";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { getOrCreateShopSettings, getShopSettingsRuntime } from "@/lib/shopAdminSettings";
 import { siteConfig } from "@/lib/seo";
-import { buildMerchantFeedItemXml, escapeXml } from "@/lib/shopMerchantFeed";
+import { buildMerchantFeedIds, buildMerchantFeedItemXml, escapeXml } from "@/lib/shopMerchantFeed";
 
 export async function GET(request: NextRequest) {
   const locale =
-    (request.nextUrl.searchParams.get("locale") || "en").toLowerCase() === "ua" ? "ua" : "en";
-  const currencyParam = (request.nextUrl.searchParams.get("currency") || "EUR").toUpperCase();
+    (request.nextUrl.searchParams.get("locale") || "ua").toLowerCase() === "en" ? "en" : "ua";
+  const currencyParam = (
+    request.nextUrl.searchParams.get("currency") || (locale === "ua" ? "UAH" : "EUR")
+  ).toUpperCase();
   const currency: "EUR" | "USD" | "UAH" =
     currencyParam === "UAH" ? "UAH" : currencyParam === "USD" ? "USD" : "EUR";
 
@@ -35,21 +39,34 @@ export async function GET(request: NextRequest) {
     return new Response("Failed to generate feed", { status: 500 });
   }
 
-  const itemsXml = products
-    .filter(
-      (p) =>
-        p.image &&
-        ((p.price?.eur ?? 0) > 0 ||
-          (p.price?.usd ?? 0) > 0 ||
-          (p.price?.uah ?? 0) > 0 ||
-          (p.variants?.some(
-            (v) => (v.price?.eur ?? 0) > 0 || (v.price?.usd ?? 0) > 0 || (v.price?.uah ?? 0) > 0
-          ) ??
-            false))
-    )
-    .map((p) => buildMerchantFeedItemXml(p, locale, currency, rates))
-    .filter(Boolean)
-    .join("\n");
+  const listable = products.filter(
+    (p) =>
+      p.image &&
+      ((p.price?.eur ?? 0) > 0 ||
+        (p.price?.usd ?? 0) > 0 ||
+        (p.price?.uah ?? 0) > 0 ||
+        (p.variants?.some(
+          (v) => (v.price?.eur ?? 0) > 0 || (v.price?.usd ?? 0) > 0 || (v.price?.uah ?? 0) > 0
+        ) ??
+          false))
+  );
+  // Merchant Center keeps only one item per g:id, so a repeated ID silently
+  // drops products. IDs are unique by construction; the guard only logs.
+  const ids = buildMerchantFeedIds(listable);
+  const seenIds = new Set<string>();
+  const items: string[] = [];
+  listable.forEach((product, index) => {
+    const id = ids[index];
+    if (seenIds.has(id)) {
+      console.warn("Shop feed: duplicate g:id skipped", { id, slug: product.slug });
+      return;
+    }
+    const itemXml = buildMerchantFeedItemXml(product, locale, currency, rates, { id });
+    if (!itemXml) return;
+    seenIds.add(id);
+    items.push(itemXml);
+  });
+  const itemsXml = items.join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
