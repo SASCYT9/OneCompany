@@ -241,8 +241,11 @@ const nextConfig: NextConfig = {
   // suite included the check needed ~3.4 GB and ran Vercel's 8 GB build
   // machine out of memory (2026-10-17). Tests stay type-checked by
   // `npm run typecheck` and the CI Typecheck job (full tsconfig.json).
+  // scripts/build-site.mjs runs that check before `next build` and sets
+  // ONECOMPANY_TYPECHECKED, so the build does not repeat it next to webpack.
   typescript: {
     tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json",
+    ignoreBuildErrors: process.env.ONECOMPANY_TYPECHECKED === "1",
   },
   // This Windows checkout shares node_modules with a sibling checkout.
   // Turbopack needs a root containing both for the database-free local preview.

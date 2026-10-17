@@ -28,6 +28,7 @@ function run(entrypoint, args) {
 }
 
 const tsxCli = path.resolve("node_modules", "tsx", "dist", "cli.mjs");
+const tscCli = path.resolve("node_modules", "typescript", "lib", "tsc.js");
 const nextCli = path.resolve("node_modules", "next", "dist", "bin", "next");
 
 // Git-triggered Vercel builds do not run the manual predeploy wrapper. Validate
@@ -35,4 +36,9 @@ const nextCli = path.resolve("node_modules", "next", "dist", "bin", "next");
 run(tsxCli, ["scripts/check-catalog-v2-release-activation.ts", "--production-build"]);
 run(tsxCli, ["scripts/prebuild-shop-snapshot.ts"]);
 run(tsxCli, ["scripts/generate-shop-filter-indexes.ts"]);
+// Type-check on its own, before `next build`. Inside the build the check ran
+// while webpack still held its memory, and the 8 GB Vercel machine went out
+// of memory (2026-10-17, twice). The build then skips its own check.
+run(tscCli, ["--noEmit", "-p", "tsconfig.build.json"]);
+environment.ONECOMPANY_TYPECHECKED = "1";
 run(nextCli, ["build", "--webpack"]);
