@@ -271,6 +271,16 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     assert.equal(order.paymentMethod, "MONOBANK");
   });
 
+  await t.test("a surname sent separately by an API caller stays in the order name", async () => {
+    const f = await fixture();
+    const response = await f.post({
+      ...f.body,
+      contact: { ...f.body.contact, name: "Buyer", lastName: "Doe" },
+    });
+    assert.equal(response.status, 200);
+    assert.equal((f.orders[0] as StoredOrder & { customerName: string }).customerName, "Buyer Doe");
+  });
+
   await t.test("every contact and delivery field is required before an order exists", async () => {
     const f = await fixture();
     const response = await f.post({

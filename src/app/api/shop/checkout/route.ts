@@ -37,7 +37,7 @@ import {
   INTERNATIONAL_DELIVERY_CONSENT_VERSION,
 } from "@/lib/shopInternationalCheckout";
 import { resolveShopCountry } from "@/lib/shopCountries";
-import { missingShopCheckoutFields } from "@/lib/shopCheckoutAddress";
+import { missingShopCheckoutFields, shopCheckoutCustomerName } from "@/lib/shopCheckoutAddress";
 import { isShopCountryRegion, shopCountryHasRegions } from "@/lib/shopCountryRegions.server";
 import { isShopCurrencyAllowedForCountry } from "@/lib/shopCountryCurrency";
 
@@ -187,7 +187,11 @@ export async function POST(req: NextRequest) {
   }
 
   const email = typeof body.contact?.email === "string" ? body.contact.email.trim() : "";
-  const name = typeof body.contact?.name === "string" ? body.contact.name.trim() : "";
+  const name = shopCheckoutCustomerName({
+    name: typeof body.contact?.name === "string" ? body.contact.name : "",
+    firstName: typeof body.contact?.firstName === "string" ? body.contact.firstName : "",
+    lastName: typeof body.contact?.lastName === "string" ? body.contact.lastName : "",
+  });
   if (!email || !name) {
     return NextResponse.json({ error: "Email and name are required" }, { status: 400 });
   }

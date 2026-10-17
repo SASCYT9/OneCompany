@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { missingShopCheckoutFields, shopCountryUsesPostcode } from "../../../src/lib/shopCheckoutAddress";
+import {
+  missingShopCheckoutFields,
+  shopCheckoutCustomerName,
+  shopCountryUsesPostcode,
+} from "../../../src/lib/shopCheckoutAddress";
 import { resolveShopCountry } from "../../../src/lib/shopCountries";
 import {
   getShopCountryRegions,
@@ -59,4 +63,15 @@ test("checkout demands every field except where the country has none", () => {
   );
   assert.equal(shopCountryUsesPostcode("UA"), true);
   assert.equal(shopCountryUsesPostcode("AE"), false);
+});
+
+test("the stored customer name never drops the validated surname", () => {
+  assert.equal(shopCheckoutCustomerName({ name: "Buyer", lastName: "Doe" }), "Buyer Doe");
+  assert.equal(shopCheckoutCustomerName({ name: "Oleksandr  Pryklad", lastName: "Pryklad" }), "Oleksandr Pryklad");
+  assert.equal(shopCheckoutCustomerName({ name: "Buyer", firstName: "John", lastName: "Doe" }), "John Doe");
+  // Only a whole-word match counts as "already there".
+  assert.equal(shopCheckoutCustomerName({ name: "Ivanna", lastName: "Ivan" }), "Ivanna Ivan");
+  assert.equal(shopCheckoutCustomerName({ name: "Buyer" }), "Buyer");
+  // A surname alone is not a name.
+  assert.equal(shopCheckoutCustomerName({ lastName: "Doe" }), "");
 });

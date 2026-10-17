@@ -17,6 +17,28 @@ export function shopCountryUsesPostcode(countryCode: string | null | undefined) 
   return !COUNTRIES_WITHOUT_POSTCODE.has(String(countryCode ?? "").toUpperCase());
 }
 
+/**
+ * The name stored on the order. The surname is validated on its own, so it must never
+ * be lost: first + last name when both are sent, otherwise the full name with the
+ * surname appended unless the name already contains it as a whole word.
+ */
+export function shopCheckoutCustomerName(input: {
+  name?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}) {
+  const clean = (value?: string | null) => String(value ?? "").trim().replace(/\s+/g, " ");
+  const name = clean(input.name);
+  const firstName = clean(input.firstName);
+  const lastName = clean(input.lastName);
+  if (!name && !firstName) return "";
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (!lastName) return name || firstName;
+  return ` ${name.toLocaleLowerCase()} `.includes(` ${lastName.toLocaleLowerCase()} `)
+    ? name
+    : `${name} ${lastName}`;
+}
+
 export type ShopCheckoutAddressField = "lastName" | "phone" | "line2" | "region" | "postcode";
 
 /** Fields the buyer left empty, beyond the always-checked email/name/line1/city/country. */
