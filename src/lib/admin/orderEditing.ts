@@ -50,17 +50,19 @@ export function orderAmountLock(order: AmountLockFacts): OrderAmountLock | null 
       code: "PAID",
       text: "Клієнт уже платив за це замовлення, тому суму змінити не можна. Для змін оформіть повернення або нове замовлення.",
     };
+  // A mono order is locked by its live invoice, not by its method: once the manager
+  // cancels the link («Змінити замовлення»), the buyer cannot pay and it is editable.
   if (
     order.monobankPayment ||
     order.stripeCheckoutSessionId ||
     order.paymentStatus === "PENDING" ||
-    ["MONOBANK", "WHITEPAY_FIAT", "WHITEPAY_CRYPTO", "WHITEBIT", "STRIPE"].includes(
-      order.paymentMethod
-    )
+    ["WHITEPAY_FIAT", "WHITEPAY_CRYPTO", "WHITEBIT", "STRIPE"].includes(order.paymentMethod)
   )
     return {
       code: "PAYMENT_LINK",
-      text: "Клієнту вже видано посилання на оплату на поточну суму. Щоб змінити товари, скасуйте це замовлення й створіть нове.",
+      text: order.monobankPayment
+        ? "Клієнту вже видано посилання mono на поточну суму. Щоб змінити товари, ціни чи валюту, натисніть «Змінити замовлення»: посилання буде скасовано, і ви видасте нове."
+        : "Клієнту вже видано посилання на оплату на поточну суму. Щоб змінити товари, скасуйте це замовлення й створіть нове.",
     };
   return null;
 }

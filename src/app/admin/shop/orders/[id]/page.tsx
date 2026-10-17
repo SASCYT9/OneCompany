@@ -248,6 +248,7 @@ export default function AdminOrderDetailPage() {
   const [monoNotice, setMonoNotice] = useState("");
   const [monoError, setMonoError] = useState("");
   const [monoEmailSending, setMonoEmailSending] = useState(false);
+  const [orderChanging, setOrderChanging] = useState(false);
   // Kept across retries until a send succeeds, so a retry cannot email the link twice.
   const monoEmailAttemptKey = useRef<string | null>(null);
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
@@ -452,6 +453,71 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  // «Змінити замовлення»: the bank invalidates the open mono link, then items, prices and
+  // (abroad) the currency can change before a new link is issued.
+  async function handleChangeOrder() {
+    if (!id || !order || orderChanging) return;
+    const ok = await confirm({
+      title: "Змінити замовлення?",
+      description:
+        "Поточне посилання mono буде скасовано в банку — клієнт більше не зможе ним оплатити. Після змін видасте нове посилання.",
+      confirmLabel: "Скасувати посилання й змінити",
+    });
+    if (!ok) return;
+    setOrderChanging(true);
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/monobank/cancel`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errors: Record<string, string> = {
+          MONOBANK_PAYMENT_IN_PROGRESS:
+            "Клієнт уже оплачує або оплатив це посилання — змінювати не можна. Перевірте оплату.",
+          MONOBANK_ORDER_NOT_PAYABLE: "Замовлення вже оплачене — суму змінити не можна.",
+          ORDER_NOT_CHANGEABLE: "Це замовлення вже не можна змінити (статус або спосіб оплати).",
+          MONOBANK_PAYMENT_PENDING:
+            "Посилання mono саме створюється. Зачекайте хвилину й спробуйте ще раз.",
+          MONOBANK_CONCURRENT_UPDATE: "Замовлення щойно змінилося. Оновіть сторінку й спробуйте ще раз.",
+          MONOBANK_REQUEST_UNCERTAIN:
+            "Mono зараз не відповідає. Посилання не змінено — спробуйте за хвилину.",
+          MONOBANK_NOT_CONFIGURED: "Підключення mono не налаштоване для цього середовища сайту.",
+        };
+        toast.error(
+          "Не вдалося змінити замовлення",
+          errors[data.error] ||
+            (String(data.error).startsWith("MONOBANK_HTTP_")
+              ? "Mono не дозволив скасувати посилання — можливо, оплата вже пройшла. Перевірте оплату."
+              : "Посилання не скасовано. Спробуйте ще раз.")
+        );
+        return;
+      }
+      toast.success(
+        "Посилання скасовано",
+        data.international
+          ? "Змініть товари за потреби, оберіть валюту, погодьте суму — і видайте нове посилання."
+          : "Змініть товари й ціни — і видайте нове посилання."
+      );
+      await load();
+      if (data.international) {
+        setTimeout(
+          () =>
+            document
+              .getElementById("international-delivery")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+          150
+        );
+      } else {
+        setEditKey((current) => current + 1);
+        setEditOpen(true);
+      }
+    } catch {
+      toast.error("Немає зв'язку із сервером", "Посилання не змінено. Спробуйте ще раз.");
+    } finally {
+      setOrderChanging(false);
+    }
+  }
+
   async function handleEmailMonobankLink() {
     if (!id || !order || monoEmailSending) return;
     const ok = await confirm({
@@ -640,6 +706,13 @@ export default function AdminOrderDetailPage() {
     !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total);
 
   const outstanding = Math.max(0, order.total - order.amountPaid);
+  // Same rule as the server: an unpaid mono order still waiting for payment can be reopened.
+  const canChangeOrder =
+    order.paymentMethod === "MONOBANK" &&
+    !order.isDraft &&
+    order.amountPaid <= 0 &&
+    !["PAID", "PARTIALLY_PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus) &&
+    ["PENDING_REVIEW", "PENDING_PAYMENT"].includes(order.status);
   const monoBlockReason = order.monobankBlockReason;
   const paymentDirty =
     paymentStatus !== order.paymentStatus ||
@@ -873,7 +946,18 @@ export default function AdminOrderDetailPage() {
               <SectionHeading
                 title={`Товари · ${itemCount} шт.`}
                 aside={
-                  order.amountLock ? (
+                  order.amountLock?.code === "PAYMENT_LINK" && canChangeOrder ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleChangeOrder()}
+                      disabled={orderChanging}
+                      className={quietButton}
+                      title="Скасувати посилання mono й змінити товари, ціни чи валюту"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />{" "}
+                      {orderChanging ? "Скасовуємо посилання…" : "Змінити замовлення"}
+                    </button>
+                  ) : order.amountLock ? (
                     <span
                       className="inline-flex items-center gap-1.5 text-[12px] text-zinc-500"
                       title={order.amountLock.text}

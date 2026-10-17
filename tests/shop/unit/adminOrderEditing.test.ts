@@ -25,6 +25,9 @@ test("items and prices stay editable only while no money or payment link exists"
   assert.equal(orderAmountLock({ ...open, amountPaid: 10 })?.code, "PAID");
   assert.equal(orderAmountLock({ ...open, paymentStatus: "PARTIALLY_PAID" })?.code, "PAID");
   assert.equal(orderAmountLock({ ...open, monobankPayment: { id: "p" } })?.code, "PAYMENT_LINK");
+  // After «Змінити замовлення» the mono order has no live invoice and is editable again.
+  assert.equal(orderAmountLock({ ...open, paymentMethod: "MONOBANK", paymentStatus: "UNPAID" }), null);
+  assert.match(String(orderAmountLock({ ...open, monobankPayment: { id: "p" } })?.text), /Змінити замовлення/);
   assert.equal(orderAmountLock({ ...open, paymentStatus: "PENDING" })?.code, "PAYMENT_LINK");
   assert.equal(orderAmountLock({ ...open, paymentMethod: "WHITEBIT" })?.code, "PAYMENT_LINK");
   assert.equal(orderAmountLock({ ...open, stripeCheckoutSessionId: "cs_1" })?.code, "PAYMENT_LINK");
