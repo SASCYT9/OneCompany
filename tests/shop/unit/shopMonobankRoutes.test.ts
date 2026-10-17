@@ -149,7 +149,7 @@ test("admin emails the open mono link in the buyer's language and records it", a
   });
   process.env.RESEND_API_KEY = "re_synthetic";
   process.env.EMAIL_FROM = "info@example.invalid";
-  const sent: Array<{ to: string[]; subject: string }> = [];
+  const sent: Array<{ to: string[]; subject: string; idempotencyKey?: string }> = [];
   const events: Array<{ note: string }> = [];
   let sendError: { name: string; message: string } | null = null;
   let historyDown = false;
@@ -180,17 +180,21 @@ test("admin emails the open mono link in the buyer's language and records it", a
     resend: {
       Resend: class {
         emails = {
-          send: async (message: { to: string[]; subject: string }) => {
-            sent.push(message);
+          send: async (
+            message: { to: string[]; subject: string },
+            options?: { idempotencyKey?: string }
+          ) => {
+            sent.push({ ...message, idempotencyKey: options?.idempotencyKey });
             return sendError ? { data: null, error: sendError } : { data: { id: "e1" }, error: null };
           },
         };
       },
     },
   });
-  const call = () =>
+  const call = (attemptKey?: string) =>
     post(new NextRequest("https://preview.example.com/api/admin/shop/orders/o1/monobank/email", {
       method: "POST",
+      ...(attemptKey ? { body: JSON.stringify({ attemptKey }) } : {}),
     }), { params: Promise.resolve({ id: "o1" }) });
   const base = {
     id: "o1",
@@ -205,7 +209,7 @@ test("admin emails the open mono link in the buyer's language and records it", a
     currency: "UAH",
     total: 1782.16,
     shippingAddress: { country: "Ukraine" },
-    monobankPayment: { pageUrl: "https://pay.monobank.ua/test", expiresAt: null },
+    monobankPayment: { invoiceId: "inv-1", pageUrl: "https://pay.monobank.ua/test", expiresAt: null },
   };
 
   order = { ...base, monobankPayment: null };
@@ -245,4 +249,15 @@ test("admin emails the open mono link in the buyer's language and records it", a
   sendError = { name: "validation_error", message: "API key is invalid" };
   assert.equal((await call()).status, 502);
   assert.equal(events.length, 2);
+  assert.equal(sent.at(-1)!.idempotencyKey, undefined);
+
+  // A retry of the same attempt reuses its key, so Resend drops the duplicate when the
+  // first response was lost; a malformed key is ignored rather than forwarded.
+  sendError = null;
+  await call("attempt-0001");
+  await call("attempt-0001");
+  assert.equal(sent.at(-2)!.idempotencyKey, "mono-link-email/o1/inv-1/attempt-0001");
+  assert.equal(sent.at(-1)!.idempotencyKey, sent.at(-2)!.idempotencyKey);
+  await call("bad key/../x");
+  assert.equal(sent.at(-1)!.idempotencyKey, undefined);
 });

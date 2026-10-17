@@ -22,7 +22,7 @@ function failure(code: string, status: number) {
   return NextResponse.json({ error: code }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   let session: Awaited<ReturnType<typeof assertAdminRequest>>;
   try {
     session = await assertAdminRequest(await cookies(), ADMIN_PERMISSIONS.SHOP_ORDERS_WRITE);
@@ -31,6 +31,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return failure(code === "FORBIDDEN" ? code : "UNAUTHORIZED", code === "FORBIDDEN" ? 403 : 401);
   }
   const { id } = await params;
+  // The admin page keeps one key per send until it succeeds, so a retry after a lost
+  // provider response is deduplicated by Resend instead of reaching the buyer twice.
+  const body = (await request.json().catch(() => null)) as { attemptKey?: unknown } | null;
+  const attemptKey =
+    typeof body?.attemptKey === "string" && /^[A-Za-z0-9-]{8,64}$/.test(body.attemptKey)
+      ? body.attemptKey
+      : null;
   const order = await prisma.shopOrder.findUnique({
     where: { id },
     include: { monobankPayment: true },
@@ -74,15 +81,23 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       validUntilText,
     })
   );
-  const { error: sendError } = await resend.emails.send({
-    from: `One Company <${process.env.EMAIL_FROM}>`,
-    to: [order.email],
-    subject:
-      locale === "ua"
-        ? `Оплата замовлення ${order.orderNumber}`
-        : `Payment for order ${order.orderNumber}`,
-    html,
-  });
+  const { error: sendError } = await resend.emails.send(
+    {
+      from: `One Company <${process.env.EMAIL_FROM}>`,
+      to: [order.email],
+      subject:
+        locale === "ua"
+          ? `Оплата замовлення ${order.orderNumber}`
+          : `Payment for order ${order.orderNumber}`,
+      html,
+    },
+    attemptKey
+      ? {
+          // Scoped to the link: a regenerated invoice is a new email, not a retry.
+          idempotencyKey: `mono-link-email/${id}/${order.monobankPayment?.invoiceId ?? "link"}/${attemptKey}`,
+        }
+      : undefined
+  );
   if (sendError) {
     console.error("[Admin mono payment email] send failed", {
       orderId: id,

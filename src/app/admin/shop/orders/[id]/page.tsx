@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -248,6 +248,8 @@ export default function AdminOrderDetailPage() {
   const [monoNotice, setMonoNotice] = useState("");
   const [monoError, setMonoError] = useState("");
   const [monoEmailSending, setMonoEmailSending] = useState(false);
+  // Kept across retries until a send succeeds, so a retry cannot email the link twice.
+  const monoEmailAttemptKey = useRef<string | null>(null);
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
   const [shipmentDrafts, setShipmentDrafts] = useState<Record<string, ShipmentDraft>>({});
   const [shipmentSavingId, setShipmentSavingId] = useState<string | null>(null);
@@ -460,9 +462,12 @@ export default function AdminOrderDetailPage() {
     if (!ok) return;
     setMonoEmailSending(true);
     setMonoError("");
+    monoEmailAttemptKey.current ??= crypto.randomUUID();
     try {
       const response = await fetch(`/api/admin/shop/orders/${id}/monobank/email`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attemptKey: monoEmailAttemptKey.current }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -477,6 +482,7 @@ export default function AdminOrderDetailPage() {
         setMonoError(errors[data.error] || "Не вдалося надіслати лист. Спробуйте ще раз.");
         return;
       }
+      monoEmailAttemptKey.current = null;
       toast.success(
         data.recorded === false
           ? `Посилання надіслано на ${data.email ?? order.email} (запис в історію не збережено)`
