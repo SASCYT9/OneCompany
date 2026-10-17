@@ -311,6 +311,11 @@ export function parseMonobankStatus(data: unknown): MonobankInvoiceStatus {
   };
 }
 
+/** Invalidates an invoice that has not been paid (the bank answers 4xx once it has). */
+export async function removeMonobankInvoice(invoiceId: string) {
+  await monobankRequest("/api/merchant/invoice/remove", { invoiceId });
+}
+
 export async function getMonobankInvoiceStatus(invoiceId: string) {
   return parseMonobankStatus(
     await monobankRequest(`/api/merchant/invoice/status?invoiceId=${encodeURIComponent(invoiceId)}`)
