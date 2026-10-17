@@ -17,10 +17,11 @@ export function shopCountryUsesPostcode(countryCode: string | null | undefined) 
   return !COUNTRIES_WITHOUT_POSTCODE.has(String(countryCode ?? "").toUpperCase());
 }
 
-export type ShopCheckoutAddressField = "phone" | "line2" | "region" | "postcode";
+export type ShopCheckoutAddressField = "lastName" | "phone" | "line2" | "region" | "postcode";
 
 /** Fields the buyer left empty, beyond the always-checked email/name/line1/city/country. */
 export function missingShopCheckoutFields(input: {
+  lastName?: string | null;
   phone?: string | null;
   line2?: string | null;
   region?: string | null;
@@ -30,6 +31,7 @@ export function missingShopCheckoutFields(input: {
 }): ShopCheckoutAddressField[] {
   const blank = (value?: string | null) => !String(value ?? "").trim();
   const missing: ShopCheckoutAddressField[] = [];
+  if (blank(input.lastName)) missing.push("lastName");
   if (blank(input.phone)) missing.push("phone");
   if (blank(input.line2)) missing.push("line2");
   if (input.countryHasRegions && blank(input.region)) missing.push("region");

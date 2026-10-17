@@ -38,7 +38,8 @@ import {
 } from "@/lib/shopInternationalCheckout";
 import { resolveShopCountry } from "@/lib/shopCountries";
 import { missingShopCheckoutFields } from "@/lib/shopCheckoutAddress";
-import { shopCountryHasRegions } from "@/lib/shopCountryRegions.server";
+import { isShopCountryRegion, shopCountryHasRegions } from "@/lib/shopCountryRegions.server";
+import { isShopCurrencyAllowedForCountry } from "@/lib/shopCountryCurrency";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 
@@ -56,7 +57,7 @@ function normalizePaymentMethod(value: unknown): PaymentMethod {
 
 type CheckoutBody = {
   items?: Array<{ slug: string; quantity: number; variantId?: string | null }>;
-  contact?: { email?: string; name?: string; phone?: string };
+  contact?: { email?: string; name?: string; firstName?: string; lastName?: string; phone?: string };
   shipping?: {
     line1?: string;
     line2?: string;
@@ -202,13 +203,17 @@ export async function POST(req: NextRequest) {
     );
   }
   const countryCode = resolveShopCountry(country)?.code ?? null;
+  const region = typeof shipping.region === "string" ? shipping.region : "";
+  const countryHasRegions = shopCountryHasRegions(countryCode);
   const missingFields = missingShopCheckoutFields({
+    lastName: typeof body.contact?.lastName === "string" ? body.contact.lastName : "",
     phone: typeof body.contact?.phone === "string" ? body.contact.phone : "",
     line2: typeof shipping.line2 === "string" ? shipping.line2 : "",
-    region: typeof shipping.region === "string" ? shipping.region : "",
+    // A region from another country (or typed by hand) is as good as none.
+    region: countryHasRegions && !isShopCountryRegion(countryCode, region) ? "" : region,
     postcode: typeof shipping.postcode === "string" ? shipping.postcode : "",
     countryCode,
-    countryHasRegions: shopCountryHasRegions(countryCode),
+    countryHasRegions,
   });
   if (missingFields.length) {
     return NextResponse.json(
@@ -218,6 +223,22 @@ export async function POST(req: NextRequest) {
             ? "Заповніть усі поля контактів і доставки."
             : "Please fill in every contact and delivery field.",
         missingFields,
+      },
+      { status: 400 }
+    );
+  }
+  const requestedCurrency = CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+    ? ((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+    : "EUR";
+  // Delivery in Ukraine is settled in hryvnia; the client restriction alone is bypassable.
+  if (!isShopCurrencyAllowedForCountry(country, requestedCurrency)) {
+    return NextResponse.json(
+      {
+        error:
+          body.locale === "ua"
+            ? "Для доставки по Україні оплата лише в гривнях."
+            : "Orders delivered in Ukraine are paid in hryvnia only.",
+        code: "UAH_ONLY_FOR_UKRAINE",
       },
       { status: 400 }
     );
@@ -235,9 +256,7 @@ export async function POST(req: NextRequest) {
         postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
         country,
       },
-      currency: CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
-        ? (body.currency ?? "EUR")
-        : "EUR",
+      currency: requestedCurrency,
       customerGroup: session?.group ?? null,
       customerId: session?.customerId ?? null,
       customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,

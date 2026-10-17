@@ -24,3 +24,11 @@ export function getShopCountryRegions(
 export function shopCountryHasRegions(countryCode: string | null | undefined) {
   return (REGIONS[String(countryCode ?? "").toUpperCase()]?.length ?? 0) > 0;
 }
+
+/** Whether `region` is one of the country's listed names, in either language. */
+export function isShopCountryRegion(countryCode: string | null | undefined, region: string) {
+  const wanted = region.trim().toLowerCase();
+  return (REGIONS[String(countryCode ?? "").toUpperCase()] ?? []).some(
+    (entry) => entry.en.toLowerCase() === wanted || entry.uk?.toLowerCase() === wanted
+  );
+}

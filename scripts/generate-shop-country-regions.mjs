@@ -56,13 +56,17 @@ async function readSource(fromDir, relativePath) {
 }
 
 function decodeXml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&apos;", "'")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .trim();
+  return (
+    value
+      .replaceAll("&amp;", "&")
+      .replaceAll("&apos;", "'")
+      .replaceAll("&quot;", '"')
+      .replaceAll("&lt;", "<")
+      .replaceAll("&gt;", ">")
+      // CLDR footnote marks ("Île-de-France²", "Aerodrom †") never belong on a parcel.
+      .replace(/[\s²³¹⁰-⁹†‡*]+$/u, "")
+      .trim()
+  );
 }
 
 function isoCode(cldrType) {

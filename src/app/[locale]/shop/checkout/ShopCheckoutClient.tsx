@@ -257,6 +257,8 @@ export default function ShopCheckoutClient({
       return {
         ...current,
         country: nextCountry,
+        // A region and postcode belong to their country (header switch included).
+        ...(current.country === nextCountry ? {} : { region: "", postcode: "" }),
         currency: nextCurrency,
         paymentMethod:
           current.paymentMethod === "MONOBANK" && nextCurrency !== "UAH"
@@ -734,7 +736,9 @@ export default function ShopCheckoutClient({
                     onChange={(country) => {
                       // A region belongs to its country; another country needs a new one.
                       setForm((current) =>
-                        current.country === country ? current : { ...current, country, region: "" }
+                        current.country === country
+                          ? current
+                          : { ...current, country, region: "", postcode: "" }
                       );
                       setSelectedShopCountry(country);
                     }}
@@ -811,7 +815,12 @@ export default function ShopCheckoutClient({
                         name="region"
                         autoComplete="address-level1"
                         required
-                        value={form.region}
+                        // A saved region that is not on the list must be chosen again.
+                        value={
+                          regionOptions.some((region) => region.name === form.region)
+                            ? form.region
+                            : ""
+                        }
                         onChange={(event) =>
                           setForm((current) => ({ ...current, region: event.target.value }))
                         }
@@ -819,10 +828,6 @@ export default function ShopCheckoutClient({
                         <option value="" disabled>
                           {isUa ? "Оберіть" : "Select"}
                         </option>
-                        {form.region && !regionOptions.some((r) => r.name === form.region) ? (
-                          // A saved address may name its region in its own words.
-                          <option value={form.region}>{form.region}</option>
-                        ) : null}
                         {regionOptions.map((region) => (
                           <option key={region.code} value={region.name}>
                             {region.name}

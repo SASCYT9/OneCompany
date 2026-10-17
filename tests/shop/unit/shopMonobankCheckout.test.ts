@@ -18,7 +18,7 @@ type StoredOrder = {
 type PaymentCreate = { checkoutKeyHash: string; requestHash: string; amount: number };
 type CheckoutFixtureBody = {
   items: Array<{ slug: string; quantity: number }>;
-  contact: { name: string; email: string; phone?: string };
+  contact: { name: string; email: string; lastName?: string; phone?: string };
   shipping: {
     line1: string;
     line2?: string;
@@ -152,7 +152,7 @@ async function fixture() {
   );
   const body: CheckoutFixtureBody = {
     items: [{ slug: "test", quantity: 2 }],
-    contact: { name: "Buyer", email: "qa@example.invalid", phone: "+380670000001" },
+    contact: { name: "Buyer Pryklad", email: "qa@example.invalid", lastName: "Pryklad", phone: "+380670000001" },
     shipping: {
       line1: "Test",
       line2: "Flat 1",
@@ -235,6 +235,7 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       ...f.body,
       contact: {
         name: "Oleksandr Pryklad",
+        lastName: "Pryklad",
         email: "buyer@example.invalid",
         phone: "+380670000000",
       },
@@ -279,7 +280,19 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     });
     assert.equal(response.status, 400);
     const result = await response.json();
-    assert.deepEqual(result.missingFields, ["phone", "line2", "region", "postcode"]);
+    assert.deepEqual(result.missingFields, ["lastName", "phone", "line2", "region", "postcode"]);
+    // A region that is not one of the country's own counts as missing.
+    const foreignRegion = await f.post({
+      ...f.body,
+      shipping: { ...f.body.shipping, region: "Bavaria" },
+    });
+    assert.deepEqual((await foreignRegion.json()).missingFields, ["region"]);
+    // Delivery in Ukraine cannot be billed in euro or dollars, whatever the client sends.
+    for (const currency of ["EUR", "USD"]) {
+      const foreignCurrency = await f.post({ ...f.body, currency, paymentMethod: "FOP" });
+      assert.equal(foreignCurrency.status, 400);
+      assert.equal((await foreignCurrency.json()).code, "UAH_ONLY_FOR_UKRAINE");
+    }
     assert.equal(f.orders.length, 0);
     assert.deepEqual(f.counts(), { notifications: 0, cartClears: 0 });
     // Hong Kong has no postcodes, so the field is not demanded there.
@@ -322,7 +335,7 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     f.quote.requiresQuote = true;
     const body = {
       ...f.body, currency: "USD", paymentMethod: "MANAGER_QUOTE",
-      shipping: { ...f.body.shipping, country: "United States" },
+      shipping: { ...f.body.shipping, country: "United States", region: "California", postcode: "90001" },
       internationalDeliveryConsent: true,
     };
     const response = await f.post(body);
