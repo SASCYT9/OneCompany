@@ -1,23 +1,25 @@
 /**
- * Unsubscribe from reminder emails.
- * - GET  ?t=… — the link in the email: unsubscribes and shows a short confirmation page.
- * - POST ?t=… — RFC 8058 one-click (List-Unsubscribe-Post) from the mail client.
+ * Unsubscribe from optional emails (cart reminders, review requests). Order emails keep coming.
+ * - GET  ?t=… (cart reminder) or ?o=<order>&t=<view token> — the link in the email:
+ *   unsubscribes and shows a short confirmation page.
+ * - POST, same query — RFC 8058 one-click (List-Unsubscribe-Post) from the mail client.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { unsubscribeCartReminders } from "@/lib/shopCartReminder";
+import { unsubscribeOrderEmails } from "@/lib/shopReviewRequest";
 
 const copy = {
   ua: {
     title: "Ви відписалися",
-    done: "Готово: нагадувань про кошик на цю адресу більше не буде.",
-    missing: "Посилання застаріло або вже недійсне — нагадувань на нього не буде.",
+    done: "Готово: нагадувань і прохань про відгук на цю адресу більше не буде. Листи про ваші замовлення приходитимуть, як і раніше.",
+    missing: "Посилання застаріло або вже недійсне.",
     back: "Повернутися в магазин",
   },
   en: {
     title: "You are unsubscribed",
-    done: "Done: this address will not get cart reminders any more.",
-    missing: "This link has expired or is no longer valid — no reminders will follow.",
+    done: "Done: no more reminders or review requests to this address. Emails about your orders will keep coming.",
+    missing: "This link has expired or is no longer valid.",
     back: "Back to the shop",
   },
 } as const;
@@ -42,14 +44,19 @@ function page(locale: "ua" | "en", ok: boolean, origin: string) {
   });
 }
 
+function unsubscribe(request: NextRequest) {
+  const params = request.nextUrl.searchParams;
+  const token = params.get("t")?.trim() ?? "";
+  const order = params.get("o")?.trim();
+  return order ? unsubscribeOrderEmails(prisma, order, token) : unsubscribeCartReminders(prisma, token);
+}
+
 export async function GET(request: NextRequest) {
-  const token = request.nextUrl.searchParams.get("t")?.trim() ?? "";
-  const result = await unsubscribeCartReminders(prisma, token);
+  const result = await unsubscribe(request);
   return page(result?.locale === "en" ? "en" : "ua", Boolean(result), request.nextUrl.origin);
 }
 
 export async function POST(request: NextRequest) {
-  const token = request.nextUrl.searchParams.get("t")?.trim() ?? "";
-  const result = await unsubscribeCartReminders(prisma, token);
+  const result = await unsubscribe(request);
   return NextResponse.json({ ok: Boolean(result) }, { headers: { "Cache-Control": "no-store" } });
 }

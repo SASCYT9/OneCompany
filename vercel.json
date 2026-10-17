@@ -61,7 +61,7 @@
       "schedule": "41 3 * * *"
     },
     {
-      "path": "/api/cron/abandoned-carts",
+      "path": "/api/cron/customer-emails",
       "schedule": "*/30 * * * *"
     }
   ]

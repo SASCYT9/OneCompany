@@ -45,6 +45,9 @@ export function isCartReminderSendWindow(now: Date) {
   return hour >= SEND_FROM_HOUR && hour < SEND_UNTIL_HOUR;
 }
 
+/** The same daytime window for every optional customer email (reminders, review requests). */
+export const isCustomerEmailSendWindow = isCartReminderSendWindow;
+
 export function newCartReminderToken() {
   return randomBytes(24).toString("base64url");
 }
