@@ -110,8 +110,22 @@ const StockAiAssistant = dynamic(
   }
 );
 
-// One AI stays hidden from the catalog until its rework is finished.
-const ONE_AI_ENABLED = false as boolean;
+const OneAiAssistant = dynamic(
+  () => import("@/components/shop/OneAiAssistant").then((module) => module.OneAiAssistant),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden="true"
+        className="h-10 w-[102px] rounded-[8px] border border-foreground/10 bg-foreground/[0.035]"
+      />
+    ),
+  }
+);
+
+// One AI stays hidden until the owner switches it on (NEXT_PUBLIC_ONE_AI_ENABLED=1
+// for the button, SHOP_AI_AGENT_ENABLED=1 for its API).
+const ONE_AI_ENABLED = process.env.NEXT_PUBLIC_ONE_AI_ENABLED === "1";
 // Text search runs when the customer presses Enter or "Search"; typing alone
 // neither searches nor opens the live suggestion list.
 const LIVE_SEARCH_SUGGESTIONS = false as boolean;
@@ -1179,6 +1193,15 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   const locale = typeof params?.locale === "string" ? params.locale : "ua";
   const isUa = locale === "ua";
   const shouldReduceMotion = useReducedMotion();
+  // Development-only side-by-side check of the previous assistant (?oneai=legacy).
+  // Read once on load: the catalog rewrites its URL and drops unknown params.
+  const [showLegacyOneAi, setShowLegacyOneAi] = useState(false);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (new URLSearchParams(window.location.search).get("oneai") === "legacy") {
+      setShowLegacyOneAi(true);
+    }
+  }, []);
 
   const { data: session, status: sessionStatus } = useSession();
   const user = session?.user as { group?: string } | undefined;
@@ -4811,7 +4834,21 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           <List className="h-4 w-4" />
                         </button>
                       </div>
-                      {ONE_AI_ENABLED ? (
+                      {ONE_AI_ENABLED && !showLegacyOneAi ? (
+                        <OneAiAssistant
+                          locale={displayLocale}
+                          currency={currency}
+                          scope={vehicleMode}
+                          country={country ?? undefined}
+                          category={localCategory}
+                          make={make}
+                          model={model}
+                          chassis={chassis}
+                          year={requestedYear}
+                          engine={engineFilter}
+                        />
+                      ) : null}
+                      {showLegacyOneAi ? (
                         <StockAiAssistant
                           key={`stock-ai-${vehicleMode}-${make}-${model}-${chassis}-${requestedYear ?? ""}-${engineFilter}-${opfGpfFilter ?? ""}-${productKindFilter ?? ""}-${localCategory}`}
                           locale={displayLocale}
