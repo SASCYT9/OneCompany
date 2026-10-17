@@ -110,6 +110,12 @@ const StockAiAssistant = dynamic(
   }
 );
 
+// One AI stays hidden from the catalog until its rework is finished.
+const ONE_AI_ENABLED = false as boolean;
+// Text search runs when the customer presses Enter or "Search"; typing alone
+// neither searches nor opens the live suggestion list.
+const LIVE_SEARCH_SUGGESTIONS = false as boolean;
+
 import type {
   StockItem,
   StockSuggestion,
@@ -1275,6 +1281,14 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
+  // What the field shows; `query` (what the results are for) follows it on Enter.
+  const [queryDraft, setQueryDraft] = useState(query);
+  const [queryDraftSource, setQueryDraftSource] = useState(query);
+  if (queryDraftSource !== query) {
+    // Filters, chips and resets that change the applied query refill the field.
+    setQueryDraftSource(query);
+    setQueryDraft(query);
+  }
   const [suggestions, setSuggestions] = useState<StockSuggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
@@ -1713,8 +1727,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   }, []);
 
   useEffect(() => {
-    const normalizedQuery = query.trim();
-    if (!searchFocused || normalizedQuery.length < 2) return;
+    const normalizedQuery = queryDraft.trim();
+    if (!LIVE_SEARCH_SUGGESTIONS || !searchFocused || normalizedQuery.length < 2) return;
 
     const requestKey = `${locale}:${vehicleMode}:${normalizedQuery}`;
     if (resolvedSuggestionRequestKeyRef.current === requestKey) return;
@@ -1760,12 +1774,12 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       setSuggestions(immediateSuggestions);
       if (searchFocusedRef.current) setSuggestionsOpen(true);
     }
-  }, [items, localBrands, locale, makes, query, searchFocused, vehicleMode]);
+  }, [items, localBrands, locale, makes, queryDraft, searchFocused, vehicleMode]);
 
   useEffect(() => {
     suggestionRequestRef.current?.abort();
-    const normalizedQuery = query.trim();
-    if (!searchFocused || normalizedQuery.length < 2) {
+    const normalizedQuery = queryDraft.trim();
+    if (!LIVE_SEARCH_SUGGESTIONS || !searchFocused || normalizedQuery.length < 2) {
       resolvedSuggestionRequestKeyRef.current = "";
       suggestionRequestRef.current = null;
       setSuggestions([]);
@@ -1831,7 +1845,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [locale, query, searchFocused, vehicleMode]);
+  }, [locale, queryDraft, searchFocused, vehicleMode]);
 
   useEffect(() => {
     if (!makePickerOpen) return;
@@ -2511,6 +2525,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setStockFilter("all");
     setSortOrder("default");
     setQuery("");
+    // Text typed but never submitted is part of the search too.
+    setQueryDraft("");
     setMinPriceFilter("");
     setMaxPriceFilter("");
     setBrandFilterQuery("");
@@ -2686,6 +2702,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     if (suggestion.type === "brand") {
       setSelectedBrands([suggestion.label]);
       setQuery("");
+      setQueryDraft("");
       return;
     }
 
@@ -2698,9 +2715,44 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setOpfGpfFilter(null);
     setSelectedBrands([]);
     setQuery("");
+    setQueryDraft("");
   };
 
-  const handleSuggestionKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  // Applies a new search text right away instead of after the typing debounce.
+  const applySearchQuery = (nextQuery: string) => {
+    const normalized = nextQuery.trim();
+    setQueryDraft(normalized);
+    if (normalized === query.trim()) {
+      handleSearch();
+      return;
+    }
+    scopeSearchImmediateRef.current = true;
+    setQuery(normalized);
+  };
+
+  const submitSearch = () => {
+    closeSuggestions();
+    // Hides the phone keyboard so the refreshed results are visible.
+    searchInputRef.current?.blur();
+    applySearchQuery(queryDraft);
+  };
+
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      // Enter that confirms an IME composition is not a search.
+      if (event.nativeEvent.isComposing) return;
+      event.preventDefault();
+      if (suggestionsOpen && activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
+        handleSuggestionSelection(suggestions[activeSuggestionIndex]);
+        return;
+      }
+      submitSearch();
+      return;
+    }
+    if (event.key === "Escape") {
+      closeSuggestions();
+      return;
+    }
     if (!suggestionsOpen || suggestions.length === 0) {
       if (event.key === "ArrowDown" && suggestions.length > 0) setSuggestionsOpen(true);
       return;
@@ -2711,11 +2763,6 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveSuggestionIndex((current) => (current <= 0 ? suggestions.length : current) - 1);
-    } else if (event.key === "Enter" && activeSuggestionIndex >= 0) {
-      event.preventDefault();
-      handleSuggestionSelection(suggestions[activeSuggestionIndex]);
-    } else if (event.key === "Escape") {
-      closeSuggestions();
     }
   };
 
@@ -3285,7 +3332,30 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   };
 
   const renderFilterPanel = (mobile = false) => (
-    <form onSubmit={handleSearch} className="flex h-full flex-col">
+    <form
+      onSubmit={handleSearch}
+      onKeyDown={
+        mobile
+          ? (event) => {
+              // The panel has several fields and no submit button, so the browser
+              // ignores Enter; on a phone it shows the results like "Show N" does.
+              if (
+                event.key !== "Enter" ||
+                event.nativeEvent.isComposing ||
+                !(event.target instanceof HTMLInputElement) ||
+                event.target.type === "checkbox" ||
+                event.target.type === "radio"
+              ) {
+                return;
+              }
+              event.preventDefault();
+              handleSearch();
+              setMobileFiltersOpen(false);
+            }
+          : undefined
+      }
+      className="flex h-full flex-col"
+    >
       <div
         className={`flex shrink-0 items-center justify-between gap-3 border-b border-foreground/10 px-5 py-4 ${
           mobile ? "sticky top-0 z-20 bg-background/98 backdrop-blur-2xl" : ""
@@ -4009,15 +4079,18 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
             ref={searchInputRef}
             type="text"
             inputMode="search"
+            enterKeyHint="search"
             autoComplete="off"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            value={queryDraft}
+            onChange={(event) => setQueryDraft(event.target.value)}
             onFocus={() => {
               searchFocusedRef.current = true;
               setSearchFocused(true);
-              if (query.trim().length >= 2) setSuggestionsOpen(true);
+              if (LIVE_SEARCH_SUGGESTIONS && queryDraft.trim().length >= 2) {
+                setSuggestionsOpen(true);
+              }
             }}
-            onKeyDown={handleSuggestionKeyDown}
+            onKeyDown={handleSearchKeyDown}
             placeholder={
               selectedVehicleLabel
                 ? isUa
@@ -4038,10 +4111,17 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           {suggestionsLoading ? (
             <Loader2 className="h-4 w-4 shrink-0 animate-spin text-foreground/40" />
           ) : null}
-          {query ? (
+          {queryDraft ? (
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={() => {
+                if (query.trim()) {
+                  applySearchQuery("");
+                } else {
+                  setQueryDraft("");
+                }
+                searchInputRef.current?.focus({ preventScroll: true });
+              }}
               className="ml-2 text-foreground/45 transition hover:text-foreground"
               aria-label={isUa ? "Очистити пошук" : "Clear search"}
             >
@@ -4058,10 +4138,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         </label>
         <button
           type="button"
-          onClick={() => {
-            closeSuggestions();
-            handleSearch();
-          }}
+          onClick={submitSearch}
+          aria-label={isUa ? "Знайти" : "Search"}
           className="m-1.5 flex shrink-0 items-center gap-2 rounded-[3px] bg-primary px-4 text-[12px] font-medium text-primary-foreground transition hover:brightness-110 dark:bg-white dark:text-black sm:px-8"
         >
           <Search className="h-4 w-4 sm:hidden" />
@@ -4070,7 +4148,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       </div>
 
       <AnimatePresence>
-        {suggestionsOpen && query.trim().length >= 2 ? (
+        {suggestionsOpen && queryDraft.trim().length >= 2 ? (
           <motion.div
             id="stock-search-suggestions"
             role="listbox"
@@ -4733,22 +4811,24 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           <List className="h-4 w-4" />
                         </button>
                       </div>
-                      <StockAiAssistant
-                        key={`stock-ai-${vehicleMode}-${make}-${model}-${chassis}-${requestedYear ?? ""}-${engineFilter}-${opfGpfFilter ?? ""}-${productKindFilter ?? ""}-${localCategory}`}
-                        locale={displayLocale}
-                        currency={currency}
-                        scope={vehicleMode}
-                        country={country ?? undefined}
-                        query={query}
-                        category={localCategory}
-                        make={make}
-                        model={model}
-                        chassis={chassis}
-                        year={requestedYear}
-                        engine={engineFilter}
-                        opfGpf={opfGpfFilter}
-                        productKind={productKindFilter ?? undefined}
-                      />
+                      {ONE_AI_ENABLED ? (
+                        <StockAiAssistant
+                          key={`stock-ai-${vehicleMode}-${make}-${model}-${chassis}-${requestedYear ?? ""}-${engineFilter}-${opfGpfFilter ?? ""}-${productKindFilter ?? ""}-${localCategory}`}
+                          locale={displayLocale}
+                          currency={currency}
+                          scope={vehicleMode}
+                          country={country ?? undefined}
+                          query={query}
+                          category={localCategory}
+                          make={make}
+                          model={model}
+                          chassis={chassis}
+                          year={requestedYear}
+                          engine={engineFilter}
+                          opfGpf={opfGpfFilter}
+                          productKind={productKindFilter ?? undefined}
+                        />
+                      ) : null}
                     </div>
                   </div>
 
@@ -4769,7 +4849,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       {query.trim() ? (
                         <button
                           type="button"
-                          onClick={() => setQuery("")}
+                          onClick={() => applySearchQuery("")}
                           className="inline-flex min-h-8 items-center gap-2 rounded-[4px] border border-foreground/15 bg-foreground/[0.04] px-3 text-[11px] text-foreground/75 transition hover:border-foreground/35 hover:text-foreground"
                         >
                           {isUa ? `Пошук: ${query.trim()}` : `Search: ${query.trim()}`}

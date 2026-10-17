@@ -392,6 +392,35 @@ test("KW cards reuse bounded pricing media without a separate gallery query", as
   ]);
 });
 
+test("cards show the product's part number, not the compact search key", async () => {
+  const { queryPremiumCatalogProjection } = await modulePromise;
+  const mock = await import("./fixtures/premium-projection-mocks.mjs");
+  mock.reset();
+  mock.state.items = [
+    {
+      productId: "fi-1",
+      slug: "fi-1",
+      title: "Fi EXHAUST Lamborghini Aventador SV",
+      brandLabel: "Fi EXHAUST",
+      brandKey: "fi exhaust",
+      normalizedSku: "lm700stcbvtip700stb",
+    },
+    {
+      productId: "fi-2",
+      slug: "fi-2",
+      title: "Fi EXHAUST without a priced record",
+      brandLabel: "Fi EXHAUST",
+      brandKey: "fi exhaust",
+      normalizedSku: "lm740cbv",
+    },
+  ];
+  mock.state.prices = [{ productId: "fi-1", sku: "LM-700ST-CBV + TIP-700ST-B" }];
+  const response = await queryPremiumCatalogProjection(params({ brand: "Fi EXHAUST" }));
+  const body = await response.json();
+  assert.equal(body.data[0].partNumber, "LM-700ST-CBV + TIP-700ST-B");
+  assert.equal(body.data[1].partNumber, "lm740cbv");
+});
+
 test("native reader admits broader labels in SQL and flags non-exact cards", async () => {
   const { queryPremiumCatalogProjection } = await modulePromise;
   const mock = await import("./fixtures/premium-projection-mocks.mjs");

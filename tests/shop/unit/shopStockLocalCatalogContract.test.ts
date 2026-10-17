@@ -77,6 +77,31 @@ test("fitment selector options are shared across requests and invalidated with t
   assert.match(adminReset, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);
 });
 
+test("catalog text search waits for Enter and keeps One AI hidden", () => {
+  assert.match(stockPage, /const LIVE_SEARCH_SUGGESTIONS = false as boolean;/);
+  assert.match(stockPage, /const ONE_AI_ENABLED = false as boolean;/);
+  assert.match(stockPage, /\{ONE_AI_ENABLED \? \(\s*<StockAiAssistant/);
+  // Typing only edits the draft; the applied query changes on Enter / "Search".
+  assert.match(stockPage, /value=\{queryDraft\}/);
+  assert.match(stockPage, /onChange=\{\(event\) => setQueryDraft\(event\.target\.value\)\}/);
+  assert.doesNotMatch(stockPage, /onChange=\{\(event\) => setQuery\(/);
+  const keyHandler = stockPage.indexOf("const handleSearchKeyDown");
+  const enterBranch = stockPage.indexOf('if (event.key === "Enter")', keyHandler);
+  const submit = stockPage.indexOf("submitSearch();", enterBranch);
+  assert.ok(keyHandler >= 0 && enterBranch > keyHandler && submit > enterBranch);
+  assert.match(stockPage, /onClick=\{submitSearch\}/);
+  // The phone filter panel has no submit button, so Enter is handled explicitly.
+  const panel = stockPage.indexOf("const renderFilterPanel = (mobile = false) =>");
+  const panelEnter = stockPage.indexOf("event.preventDefault();", panel);
+  const panelClose = stockPage.indexOf("setMobileFiltersOpen(false);", panelEnter);
+  assert.ok(panel >= 0 && panelEnter > panel && panelClose > panelEnter);
+  assert.ok(panelClose - panel < 1200, "Enter must close the phone panel inside renderFilterPanel");
+  // "Reset all" also clears text that was typed but never submitted.
+  const reset = stockPage.indexOf("function handleResetFilters()");
+  const resetEnd = stockPage.indexOf("\n  }\n", reset);
+  assert.ok(reset >= 0 && stockPage.slice(reset, resetEnd).includes('setQueryDraft("")'));
+});
+
 test("initial search remains immediate across React Strict Mode effect replay", () => {
   const effect = stockPage.indexOf("// Auto-search for filters and queries");
   const timer = stockPage.indexOf("autoSearchTimerRef.current = setTimeout", effect);
