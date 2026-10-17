@@ -298,7 +298,8 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
           toStatus: status,
           actorType: "system",
           actorName: "plata by mono",
-          note: `mono: ${event.status}; payment: ${update.paymentStatus}; amount: ${update.amountPaid} UAH`,
+          // The invoice is billed in the order currency (validated against payment.ccy above).
+          note: `mono: ${event.status}; payment: ${update.paymentStatus}; amount: ${update.amountPaid} ${order.currency}`,
         },
       });
     }

@@ -14,6 +14,7 @@ import {
   resolveMonobankStatusUpdate,
   verifyMonobankSignature,
 } from "../../../src/lib/shopMonobank";
+import { applyMonobankStatus } from "../../../src/lib/shopMonobankPayments";
 
 const order = {
   orderNumber: "OC-TEST-1",
@@ -242,6 +243,28 @@ test("invoices are issued in the order's UAH, EUR or USD and keep that ISO code 
   // A hryvnia payment row can never settle a euro order (or the reverse).
   assert.throws(() => resolveMonobankStatusUpdate(payment, euroStored, event));
   assert.throws(() => resolveMonobankStatusUpdate(euroPayment, storedOrder, { ...event, ccy: 978 }));
+});
+
+test("a settled euro invoice is logged in the order history in euros", async () => {
+  const notes: string[] = [];
+  const euroOrder = { ...storedOrder, id: "order-eur", currency: "EUR", status: "PENDING_PAYMENT", amountPaid: 0 };
+  const tx = {
+    shopMonobankPayment: {
+      findFirst: async () => ({ ...payment, ccy: 978, orderId: euroOrder.id, order: euroOrder }),
+      updateMany: async () => ({ count: 1 }),
+    },
+    shopMonobankPaymentHistory: { count: async () => 0 },
+    shopOrder: { updateMany: async () => ({ count: 1 }) },
+    shopOrderStatusEvent: {
+      create: async ({ data }: { data: { note: string } }) => {
+        notes.push(data.note);
+        return data;
+      },
+    },
+  };
+  const prisma = { $transaction: async (run: (client: typeof tx) => unknown) => run(tx) };
+  assert.equal(await applyMonobankStatus(prisma as never, { ...event, ccy: 978 }), true);
+  assert.deepEqual(notes, ["mono: success; payment: PAID; amount: 253.45 EUR"]);
 });
 
 test("only exact successful debit settlement marks the order paid", () => {
