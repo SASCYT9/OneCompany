@@ -446,10 +446,12 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
         locale,
       }),
       brand: displayBrand,
+      // normalizedSku is the compact search key ("lm700stcbv"); cards show the
+      // part number exactly as the product record spells it.
       partNumber:
         displayBrand.toLowerCase() === "wheelforce" && requestedWheelSku
           ? requestedWheelSku
-          : (item.normalizedSku ?? ""),
+          : cardPrice?.sku?.trim() || (item.normalizedSku ?? ""),
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       imageSources,
