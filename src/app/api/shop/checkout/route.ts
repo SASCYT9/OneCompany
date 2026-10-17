@@ -207,6 +207,17 @@ export async function POST(req: NextRequest) {
     );
   }
   const countryCode = resolveShopCountry(country)?.code ?? null;
+  // The country decides which fields are required, so it must be one we know (the
+  // picker's "Other" included); an unknown name would silently skip the region.
+  if (!countryCode) {
+    return NextResponse.json(
+      {
+        error: body.locale === "ua" ? "Оберіть країну зі списку." : "Please choose a country from the list.",
+        code: "UNKNOWN_COUNTRY",
+      },
+      { status: 400 }
+    );
+  }
   const region = typeof shipping.region === "string" ? shipping.region : "";
   const countryHasRegions = shopCountryHasRegions(countryCode);
   const missingFields = missingShopCheckoutFields({

@@ -303,6 +303,19 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       assert.equal(foreignCurrency.status, 400);
       assert.equal((await foreignCurrency.json()).code, "UAH_ONLY_FOR_UKRAINE");
     }
+    // An unknown country cannot skip the region by not being on any list, even as a
+    // consented manager-quote request that passes the international checks.
+    f.quote.currency = "EUR";
+    f.quote.requiresQuote = true;
+    const unknownCountry = await f.post({
+      ...f.body,
+      currency: "EUR",
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: { ...f.body.shipping, country: "Germanyx", region: "" },
+    });
+    assert.equal(unknownCountry.status, 400);
+    assert.equal((await unknownCountry.json()).code, "UNKNOWN_COUNTRY");
     assert.equal(f.orders.length, 0);
     assert.deepEqual(f.counts(), { notifications: 0, cartClears: 0 });
     // Hong Kong has no postcodes, so the field is not demanded there.
