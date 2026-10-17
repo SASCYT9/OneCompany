@@ -237,6 +237,13 @@ const fileBackedMediaTracingExcludes: Record<string, string[]> = {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
+  // The production build type-checks application code only: with the test
+  // suite included the check needed ~3.4 GB and ran Vercel's 8 GB build
+  // machine out of memory (2026-10-17). Tests stay type-checked by
+  // `npm run typecheck` and the CI Typecheck job (full tsconfig.json).
+  typescript: {
+    tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json",
+  },
   // This Windows checkout shares node_modules with a sibling checkout.
   // Turbopack needs a root containing both for the database-free local preview.
   turbopack:
