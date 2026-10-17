@@ -81,7 +81,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       validUntilText,
     })
   );
-  const { error: sendError } = await resend.emails.send(
+  const { data: sent, error: sendError } = await resend.emails.send(
     {
       from: `One Company <${process.env.EMAIL_FROM}>`,
       to: [order.email],
@@ -108,15 +108,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   // The email is gone at this point: a failed log write must not read as a failed
   // send, or the manager would retry and the buyer would get it twice.
+  const emailId = typeof sent?.id === "string" && sent.id ? sent.id : null;
   let recorded = true;
   try {
     await prisma.$transaction(async (tx) => {
+      // A retried attempt gets Resend's original response (same email id) and sends
+      // nothing new, so the history must not show a second send either.
+      if (
+        emailId &&
+        (await tx.shopOrderStatusEvent.findFirst({
+          where: { orderId: id, note: { contains: emailId } },
+          select: { id: true },
+        }))
+      )
+        return;
       await writeAdminAuditLog(tx, session, {
         scope: "shop",
         action: "order.monobank.payment_link_emailed",
         entityType: "shop.order",
         entityId: id,
-        metadata: { email: order.email },
+        metadata: { email: order.email, emailId },
       });
       await tx.shopOrderStatusEvent.create({
         data: {
@@ -125,7 +136,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           toStatus: order.status,
           actorType: "admin",
           actorName: session.name,
-          note: `Посилання на оплату mono надіслано на ${order.email}.`,
+          note: `Посилання на оплату mono надіслано на ${order.email}${emailId ? ` (лист ${emailId})` : ""}.`,
         },
       });
     });

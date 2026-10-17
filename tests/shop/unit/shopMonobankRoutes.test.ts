@@ -157,6 +157,8 @@ test("admin emails the open mono link in the buyer's language and records it", a
   const db: Record<string, unknown> = {
     shopOrder: { findUnique: async () => order },
     shopOrderStatusEvent: {
+      findFirst: async ({ where }: { where: { note: { contains: string } } }) =>
+        events.find((event) => event.note.includes(where.note.contains)) ?? null,
       create: async ({ data }: { data: { note: string } }) => {
         if (historyDown) throw new Error("database unavailable");
         events.push(data);
@@ -185,7 +187,9 @@ test("admin emails the open mono link in the buyer's language and records it", a
             options?: { idempotencyKey?: string }
           ) => {
             sent.push({ ...message, idempotencyKey: options?.idempotencyKey });
-            return sendError ? { data: null, error: sendError } : { data: { id: "e1" }, error: null };
+            // Like Resend: a repeated idempotency key replays the original email id.
+            const id = options?.idempotencyKey ? `email-${options.idempotencyKey}` : `email-${sent.length}`;
+            return sendError ? { data: null, error: sendError } : { data: { id }, error: null };
           },
         };
       },
@@ -260,6 +264,8 @@ test("admin emails the open mono link in the buyer's language and records it", a
   await call("attempt-0001");
   assert.equal(sent.at(-2)!.idempotencyKey, "mono-link-email/o1/inv-1/attempt-0001");
   assert.equal(sent.at(-1)!.idempotencyKey, sent.at(-2)!.idempotencyKey);
+  // The replayed send is recorded once: the history shows one email, not two.
+  assert.equal(events.filter((event) => event.note.includes("attempt-0001")).length, 1);
   await call("bad key/../x");
   assert.equal(sent.at(-1)!.idempotencyKey, undefined);
 });
