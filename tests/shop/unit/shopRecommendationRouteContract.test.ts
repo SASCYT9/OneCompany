@@ -3,17 +3,26 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 test("V2 recommendations resolve a bounded projection candidate set", () => {
-  const route = readFileSync("src/app/api/shop/recommendations/route.ts", "utf8");
-  const bounded = route.indexOf("getShopRecommendationProductsForFitmentServer");
-  const legacy = route.indexOf("getShopRecommendationProductsServer");
+  const loader = readFileSync("src/lib/crossShopRecommendations.server.ts", "utf8");
+  const bounded = loader.indexOf("getShopRecommendationProductsForFitmentServer(");
+  const legacy = loader.indexOf("getShopRecommendationProductsServer()");
 
   assert.notEqual(bounded, -1, "bounded V2 recommendation loader is present");
   assert.notEqual(legacy, -1, "reader-off compatibility loader remains available");
-  assert.match(route, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
-  assert.match(route, /isShopCatalogReaderRequestEnabled\(/);
+  assert.match(loader, /isShopCatalogReaderRequestEnabled\(reader, canaryHeader\)/);
   assert.ok(
     bounded < legacy,
     "the V2 branch must be selected before the legacy full-catalog compatibility path"
+  );
+
+  // The API passes the canary header; the product page block only runs the
+  // bounded reader and otherwise leaves the cards to the API on scroll.
+  const route = readFileSync("src/app/api/shop/recommendations/route.ts", "utf8");
+  assert.match(route, /SHOP_CATALOG_CANARY_REQUEST_HEADER/);
+  assert.match(route, /loadCrossShopRecommendations\(/);
+  assert.match(
+    loader,
+    /export async function loadCrossShopRecommendationsSafely[\s\S]*?if \(!isShopCatalogReaderRequestEnabled\(reader, null\)\) return null;/
   );
 });
 

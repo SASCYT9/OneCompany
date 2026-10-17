@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { resolveLocale } from "@/lib/seo";
 
 type Props = {
@@ -13,5 +13,5 @@ type Props = {
 export default async function IlmbergerProductsRedirect({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  redirect(`/${resolvedLocale}/shop/ilmberger/collections`);
+  permanentRedirect(`/${resolvedLocale}/shop/ilmberger/collections`);
 }

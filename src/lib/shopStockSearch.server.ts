@@ -969,7 +969,12 @@ async function resolveStrictCatalogMatches(
   }
 }
 
-export async function searchShopStock(request: { url: string }) {
+/**
+ * `anonymous` searches with guest pricing and never reads the request
+ * cookies, so the result can be cached for every visitor (the catalog page's
+ * server-rendered first page).
+ */
+export async function searchShopStock(request: { url: string }, options?: { anonymous?: boolean }) {
   const startedAt = performance.now();
   const timings: string[] = [];
   let stageStartedAt = startedAt;
@@ -1119,7 +1124,7 @@ export async function searchShopStock(request: { url: string }) {
         // Public catalog settings are tag-cached and invalidated by the admin
         // settings routes. This removes one live DB read from every search.
         getPublicShopSettingsRuntime(),
-        getCurrentShopCustomerSession(),
+        options?.anonymous ? null : getCurrentShopCustomerSession(),
         !queryVehiclePlan.canonical && !isLocalStorefrontMode() && resolvedVehicleMake
           ? resolveLegacyVehicleProductTiers({
               ...queryVehiclePlan.constraints,

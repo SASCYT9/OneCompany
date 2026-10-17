@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { resolveLocale } from "@/lib/seo";
 
@@ -23,5 +23,5 @@ export default async function LegacyBrandCatalogRedirect({ params }: Props) {
   const brand = decodeBrandSegment(rawBrand);
   if (!brand) notFound();
 
-  redirect(`/${resolveLocale(locale)}/shop/catalog?brand=${encodeURIComponent(brand)}`);
+  permanentRedirect(`/${resolveLocale(locale)}/shop/catalog?brand=${encodeURIComponent(brand)}`);
 }

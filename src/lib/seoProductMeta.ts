@@ -10,7 +10,17 @@
  * SKU belongs in the title and description when the name does not carry it.
  */
 
+import type { ShopProduct } from "@/lib/shopCatalog";
+import { buildVehiclePhrase, pickCategoryUa } from "@/lib/genericShopEditorialCopy";
+
+/** Page metadata cuts longer titles mid-word with "…"; product titles stay within it. */
 export const SEO_TITLE_MAX_LENGTH = 95;
+const MIN_SHORT_NAME_LENGTH = 24;
+/** Separators a long name may be cut at, from the strongest to the weakest. */
+const NAME_BREAKS = [" — ", " – ", " | ", " (", ", ", " / ", " - "];
+/** Short brand labels for titles ("KW Suspensions" products say "KW"). */
+const BRAND_TITLE_LABELS: Record<string, string> = { "kw suspensions": "KW" };
+const CYRILLIC = /[а-яіїєґ]/i;
 
 type Locale = "ua" | "en";
 
@@ -65,10 +75,116 @@ function usableExplicit(value: string | null | undefined): string {
   return explicit && !isBrokenStoredSeoText(explicit) ? explicit : "";
 }
 
+function bracketsBalanced(value: string): boolean {
+  return (value.match(/\(/g) ?? []).length === (value.match(/\)/g) ?? []).length;
+}
+
 /**
- * Title without redundant parts. An admin-curated `seoTitle` always wins.
- * Otherwise: `<name> <SKU> | <brand>`, dropping the SKU, then the brand, when
- * the result would not fit the title limit or the part is already in the name.
+ * Every start of `name` that ends at a phrase boundary, leaves no bracket
+ * open and is long enough to mean something, longest first.
+ */
+function phraseBoundaryCuts(name: string): string[] {
+  const cuts = new Set<string>();
+  for (const separator of NAME_BREAKS) {
+    for (
+      let index = name.lastIndexOf(separator);
+      index > 0;
+      index = name.lastIndexOf(separator, index - 1)
+    ) {
+      const cut = name.slice(0, index).trim();
+      if (cut.length >= MIN_SHORT_NAME_LENGTH && bracketsBalanced(cut)) cuts.add(cut);
+    }
+  }
+  return [...cuts].sort((a, b) => b.length - a.length);
+}
+
+const BRACKETED = /\s*\(([^()]*)\)/g;
+const CODE_LIST = /^[^\s,]+(?:,\s*[^\s,]+)+$/;
+
+/**
+ * The name without bracketed asides of three or more words ("(включаючи
+ * пружини та верхні опори)", "(1.5 ST EcoBoost)"); codes such as "(G87)" or
+ * "(16, 5C1, 5C2)" stay.
+ */
+function withoutAsides(name: string): string {
+  return clean(
+    name.replace(BRACKETED, (match, inner: string) => {
+      const content = inner.trim();
+      const words = content.split(/\s+/).length;
+      return words >= 3 && !CODE_LIST.test(content) ? "" : match;
+    })
+  );
+}
+
+/** Where the vehicle starts: after the first "для"/"for", else after the first dash; -1 when unknown. */
+function vehiclePhraseStart(name: string): number {
+  const lower = name.toLowerCase();
+  for (const markers of [
+    [" для ", " for "],
+    [" — ", " – "],
+  ]) {
+    const found = markers
+      .map((marker) => ({ index: lower.indexOf(marker), marker }))
+      .filter(({ index }) => index > 0)
+      .sort((a, b) => a.index - b.index)[0];
+    if (found) return found.index + found.marker.length;
+  }
+  return -1;
+}
+
+/**
+ * Phrase-boundary cuts of `name` that keep what the product is and the start
+ * of the vehicle. A name without a "для"/"for"/dash may carry its vehicle
+ * anywhere ("Накладка (матовий) Ducati Streetfighter V4"), so it is only cut
+ * when it is over `maxLength` itself.
+ */
+function vehicleKeepingCuts(name: string, maxLength: number): string[] {
+  const start = vehiclePhraseStart(name);
+  if (start < 0 && name.length <= maxLength) return [];
+  return phraseBoundaryCuts(name).filter((cut) => start < 0 || cut.length >= start + 2);
+}
+
+/**
+ * Supplier part numbers belong in a title; internal codes (Shopify variant
+ * ids of Burger, Urban's URB-… codes) and kit lists ("A + B*2") do not.
+ */
+function isTitleSku(sku: string): boolean {
+  return (
+    sku.length <= 20 &&
+    !/\s\+\s|\*/.test(sku) &&
+    !/^BURGER-V-\d+$/i.test(sku) &&
+    !/^URB-[A-Z]+-\d+-V\d+$/i.test(sku)
+  );
+}
+
+/** Importers appended the site name to stored titles; product titles do not carry it. */
+const SITE_NAME_SUFFIX = /\s*[|–—-]\s*one\s*company(?:\s+(?:global|shop))?\s*$/i;
+const SITE_NAME_TOKENS = ["onecompanyglobal", "onecompanyshop", "onecompany"];
+
+/**
+ * True when a stored title is only the product name plus its brand, SKU or
+ * the site name: what importers wrote, not an admin-curated title.
+ */
+function isNameWithLabels(stored: string, name: string, labels: string[]): boolean {
+  const normalizedName = normalizeToken(name);
+  let rest = normalizeToken(stored);
+  if (!normalizedName || !rest.includes(normalizedName)) return false;
+  rest = rest.replace(normalizedName, "");
+  for (const label of [...labels.map(normalizeToken), ...SITE_NAME_TOKENS]) {
+    if (label) rest = rest.replace(label, "");
+  }
+  return rest === "";
+}
+
+/**
+ * Title without redundant parts. An admin-curated `seoTitle` wins, except an
+ * untranslated (Latin-only) one on a Ukrainian page and one that is only the
+ * product name with its brand, SKU or the site name (importers write those);
+ * a curated title too long to show is shortened like a name, without
+ * additions.
+ * Otherwise: `<name> <SKU> | <brand>` within the hard limit, nothing dropped
+ * when it fits; else without long bracketed asides, then cut at a phrase
+ * boundary that keeps the vehicle; only then the SKU, then the brand, go.
  */
 export function buildProductSeoTitle(input: {
   explicitTitle?: string | null;
@@ -76,25 +192,124 @@ export function buildProductSeoTitle(input: {
   sku?: string | null;
   brand?: string | null;
   maxLength?: number;
+  locale?: Locale;
 }): string {
-  const explicit = usableExplicit(input.explicitTitle);
-  if (explicit) return explicit;
-
   const maxLength = input.maxLength ?? SEO_TITLE_MAX_LENGTH;
   const name = clean(input.title);
-  const sku = clean(input.sku);
+  const rawSku = clean(input.sku);
+  const sku = isTitleSku(rawSku) ? rawSku : "";
   const brand = clean(input.brand);
+  const brandLabel = BRAND_TITLE_LABELS[brand.toLowerCase()] ?? brand;
 
-  const needsSku = Boolean(sku) && !includesNormalized(name, sku);
-  const needsBrand = Boolean(brand) && !includesNormalized(name, brand);
+  // The SKU and the brand are added only when `base` lacks them; a cut name
+  // may have lost the SKU its full form ended with.
+  const withSku = (base: string) =>
+    !sku || includesNormalized(base, sku) ? base : `${base} ${sku}`;
+  const withBrand = (base: string) =>
+    !brandLabel || includesNormalized(base, brandLabel) || includesNormalized(base, brand)
+      ? base
+      : `${base} | ${brandLabel}`;
+  const compose = (base: string) => withBrand(withSku(base));
+  const fits = (limit: number) => (title: string) => title.length <= limit;
 
-  const candidates: string[] = [];
-  if (needsSku && needsBrand) candidates.push(`${name} ${sku} | ${brand}`);
-  if (needsSku) candidates.push(`${name} ${sku}`);
-  if (needsBrand) candidates.push(`${name} | ${brand}`);
-  candidates.push(name);
+  const explicit = usableExplicit(input.explicitTitle).replace(SITE_NAME_SUFFIX, "");
+  const curated =
+    Boolean(explicit) &&
+    !isNameWithLabels(explicit, name, [rawSku, brand, brandLabel]) &&
+    (input.locale !== "ua" || CYRILLIC.test(explicit));
+  if (curated) {
+    if (explicit.length <= maxLength) return explicit;
+    const shorter = withoutAsides(explicit);
+    return [shorter, ...vehicleKeepingCuts(shorter, maxLength)].find(fits(maxLength)) ?? explicit;
+  }
 
-  return candidates.find((candidate) => candidate.length <= maxLength) ?? name;
+  // In order, the first that fits: the whole name with the SKU (titles of
+  // same-name products differ by it) and the brand, then without long
+  // asides, then cut at a phrase boundary that keeps the vehicle; only then
+  // the SKU, then the brand, are dropped.
+  const shorter = withoutAsides(name);
+  const bases = shorter === name ? [name] : [name, shorter];
+  const cuts = vehicleKeepingCuts(shorter, maxLength);
+  const bare = (base: string) => base;
+  for (const shape of [compose, withSku, withBrand, bare]) {
+    const title = [...bases, ...cuts].map(shape).find(fits(maxLength));
+    if (title) return title;
+  }
+  return name;
+}
+
+/** Vehicle named after "for" in an English supplier title, without tip sizes or codes. */
+function seoVehiclePhrase(titleEn: string): string {
+  const phrase = buildVehiclePhrase(titleEn)
+    .split(" | ")[0]
+    .replace(/\s+\d+\s?x\s?\d+(?:[.,]\d+)?\s?mm\b.*$/i, "")
+    .replace(/\s+\d+(?:[.,]\d+)?\s?mm\b.*$/i, "")
+    .replace(/\s*\(\s*[\d\s]+\)\s*$/, "");
+  return clean(phrase);
+}
+
+/**
+ * Name for the Ukrainian `<title>` of a product whose name was never
+ * translated (Remus and other supplier imports): the product type in
+ * Ukrainian, the brand and the vehicle, or the original name after a dash.
+ * A name that already has Ukrainian words is returned unchanged.
+ */
+export function buildUaSeoProductName(input: {
+  title: string;
+  titleEn?: string | null;
+  brand?: string | null;
+  categoryUa?: string | null;
+  categoryEn?: string | null;
+  productType?: string | null;
+}): string {
+  const title = clean(input.title);
+  if (!title || CYRILLIC.test(title)) return title;
+  const titleEn = clean(input.titleEn) || title;
+  const category = clean(
+    pickCategoryUa({
+      titleEn,
+      categoryUa: input.categoryUa,
+      categoryEn: input.categoryEn,
+      productType: input.productType,
+    })
+  );
+  // "Компонент" is the editorial copy's catch-all and a category path
+  // ("Для автомобілів > Ford") names no product type.
+  if (!CYRILLIC.test(category) || category === "Компонент" || /[>/|]/.test(category)) {
+    return title;
+  }
+  const brand = clean(input.brand);
+  const lead = brand && !includesNormalized(category, brand) ? `${category} ${brand}` : category;
+  const vehicle = seoVehiclePhrase(titleEn);
+  return vehicle ? `${lead} для ${vehicle}` : `${lead} — ${title}`;
+}
+
+/** The product `<title>` for a locale, shared by every product route. */
+export function buildLocalizedProductSeoTitle(
+  locale: Locale,
+  product: Pick<ShopProduct, "seoTitle" | "sku" | "brand" | "category" | "productType" | "title">,
+  localizedTitle: string,
+  maxLength?: number
+): string {
+  const title =
+    locale === "ua"
+      ? buildUaSeoProductName({
+          title: localizedTitle,
+          titleEn: product.title?.en,
+          brand: product.brand,
+          categoryUa: product.category?.ua,
+          categoryEn: product.category?.en,
+          productType: product.productType,
+        })
+      : localizedTitle;
+  return buildProductSeoTitle({
+    explicitTitle: product.seoTitle?.[locale],
+    title,
+    sku: product.sku,
+    brand: product.brand,
+    maxLength,
+    locale,
+  });
 }
 
 const THIN_DESCRIPTION_LENGTH = 70;

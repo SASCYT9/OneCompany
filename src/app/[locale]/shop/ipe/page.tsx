@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getIpeProductsServer } from "@/lib/shopCatalogServer";
 import { buildIpeHeroVehicleTree } from "@/lib/ipeHeroCatalog";
@@ -17,16 +18,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/ipe", {
-    title:
-      resolvedLocale === "ua"
-        ? "iPE Exhaust — Титанові Вихлопні Системи | One Company"
-        : "iPE Exhaust — Titanium Exhaust Systems | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Преміальні титанові вихлопні системи Innotech Performance Exhaust (iPE) з фірмовим F1-звучанням і valvetronic-керуванням."
-        : "Premium titanium Innotech Performance Exhaust (iPE) systems with signature F1-pitch sound and valvetronic control.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/ipe", BRAND_HOME_HEAD.ipe[resolvedLocale]);
 }
 
 export default async function ShopIpePage({ params }: Props) {

@@ -11,18 +11,26 @@ const CrossShopFitment = dynamic(() => import("@/app/[locale]/shop/components/Cr
 export function DeferredCrossShopFitment({
   slug,
   locale,
+  initialResult,
 }: {
   slug: string;
   locale: SupportedLocale;
+  /**
+   * Cards computed on the server for this product. When present they are part
+   * of the server HTML (crawlable links) and no request is made on scroll.
+   */
+  initialResult?: { fitment: Fitment; groups: CrossShopCardGroup[] } | null;
 }) {
   const anchor = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<{
     slug: string;
     fitment: Fitment;
     groups: CrossShopCardGroup[];
-  } | null>(null);
+  } | null>(initialResult?.groups.length ? { ...initialResult, slug } : null);
+  const hasServerResult = Boolean(initialResult?.groups.length);
 
   useEffect(() => {
+    if (hasServerResult) return;
     const controller = new AbortController();
     let active = true;
     let requested = false;
@@ -62,13 +70,20 @@ export function DeferredCrossShopFitment({
       observer?.disconnect();
       controller.abort();
     };
-  }, [slug]);
+  }, [slug, hasServerResult]);
+
+  const shown =
+    result?.slug === slug
+      ? result
+      : initialResult?.groups.length
+        ? { ...initialResult, slug }
+        : null;
 
   return (
     <div ref={anchor} className="min-h-px">
-      {result?.slug === slug ? (
+      {shown ? (
         <div className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-          <CrossShopFitment locale={locale} fitment={result.fitment} groups={result.groups} />
+          <CrossShopFitment locale={locale} fitment={shown.fitment} groups={shown.groups} />
         </div>
       ) : null}
     </div>

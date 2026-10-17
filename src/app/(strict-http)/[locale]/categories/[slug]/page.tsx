@@ -5,7 +5,7 @@ import { categoryData } from "@/lib/categoryData";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
 
 // ISR: cache rendered HTML for 1 hour. Public content, no per-user data on server.
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600;
 
 interface Props {
@@ -18,7 +18,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
-  
+
   const category = categoryData.find((cat) => cat.slug === slug);
   if (!category) return {};
 

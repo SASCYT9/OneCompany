@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { absoluteUrl, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { urbanCollectionHead } from "@/lib/seoHubHeadCopy";
 import { getUrbanProductsServer } from "@/lib/shopCatalogServer";
 import {
   getProductsForUrbanCollection,
@@ -44,14 +45,11 @@ export async function generateMetadata({
   const resolvedLocale = resolveLocale(locale);
   const card = URBAN_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
   if (!card) notFound();
-  const title = card ? `${card.title} | Urban | One Company` : "Urban | One Company";
-  return buildPageMetadata(resolvedLocale, `shop/urban/collections/${handle}`, {
-    title: resolvedLocale === "ua" ? `${card?.title ?? handle} | Urban | One Company` : title,
-    description:
-      resolvedLocale === "ua"
-        ? `Програма Urban для ${card?.title ?? handle}. Фірмові обвіси, карбон і виразні деталі екстерʼєру.`
-        : `Urban programme for ${card?.title ?? handle}. Signature body kits, carbon details, and bold exterior styling.`,
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    `shop/urban/collections/${handle}`,
+    urbanCollectionHead(resolvedLocale, card)
+  );
 }
 
 export default async function UrbanCollectionHandlePage({ params }: Props) {
@@ -65,9 +63,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     getUrbanProductsServer(),
     getPublicShopSettingsRuntime(),
   ]);
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord, null, false, null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
   const matchedProducts = getProductsForUrbanCollection(products, handle, card.title, card.brand);
   const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);
 
@@ -131,7 +127,15 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
           collectionImages={[]}
           products={collectionProducts}
           viewerContext={viewerContext}
-          settings={{ productsPerPage: 16, columnsDesktop: 3, columnsMobile: 1, enableFiltering: false, enableSorting: false, paddingTop: 48, paddingBottom: 64 }}
+          settings={{
+            productsPerPage: 16,
+            columnsDesktop: 3,
+            columnsMobile: 1,
+            enableFiltering: false,
+            enableSorting: false,
+            paddingTop: 48,
+            paddingBottom: 64,
+          }}
         />
       </div>
     );

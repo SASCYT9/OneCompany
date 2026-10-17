@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getGirodiscProductsServer } from "@/lib/shopCatalogServer";
 import { buildGirodiscHeroVehicleTree } from "@/lib/girodiscHeroCatalog";
@@ -17,16 +18,11 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const isUa = resolvedLocale === "ua";
-
-  return buildPageMetadata(resolvedLocale, "shop/girodisc", {
-    title: isUa
-      ? "GiroDisc Гальмівні Диски | Офіційний Дилер | OneCompany"
-      : "GiroDisc Rotors | Official Dealer | OneCompany",
-    description: isUa
-      ? "Ексклюзивні 2-складові гальмівні диски GiroDisc, гоночні колодки та титанові щитки. Замовляйте з доставкою. OneCompany - офіційний дилер."
-      : "Exclusive 2-piece high-performance brake rotors by GiroDisc, racing pads, and titanium heat shields. Buy with worldwide shipping. OneCompany - official dealer.",
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    "shop/girodisc",
+    BRAND_HOME_HEAD.girodisc[resolvedLocale]
+  );
 }
 
 export default async function GiroDiscSkinPage({ params }: Props) {

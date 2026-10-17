@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 type Props = {
@@ -18,5 +18,5 @@ export default async function OhlinsCollectionHandleRedirect({ params }: Props) 
   const query = OHLINS_COLLECTION_QUERY_BY_HANDLE[handle] ?? null;
   const basePath = `/${locale}/shop/ohlins/catalog`;
 
-  redirect(query ? `${basePath}?${query}` : basePath);
+  permanentRedirect(query ? `${basePath}?${query}` : basePath);
 }

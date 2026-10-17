@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 // Cache-bust 2026-05-14T22: Vercel ISR cache held empty/errored renders for many brand routes — likely DB pool exhaustion during a build/revalidate window. Touching to rebuild.
 type Props = {
@@ -24,5 +24,5 @@ export default async function IpeCollectionHandleRedirect({ params }: Props) {
   }
 
   const query = new URLSearchParams({ brand }).toString();
-  redirect(`${basePath}?${query}`);
+  permanentRedirect(`${basePath}?${query}`);
 }

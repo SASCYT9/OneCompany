@@ -144,3 +144,23 @@ test("text fields are XML-escaped", () => {
   const xml = buildMerchantFeedItemXml(makeProduct(), "en", "EUR", rates);
   assert.match(xml, /<description>Description &amp; details<\/description>/);
 });
+
+test("feed titles match the product page title, in Ukrainian for the ua feed", () => {
+  // Live 2026-10-17: Remus names are English in the database, so the ua feed
+  // sent English titles to a Ukrainian Merchant Center feed.
+  const product = makeProduct({
+    title: {
+      ua: "Sport Exhaust for VW Golf 7 Faclift AU Silencer (956017 1500) | 2x 100mm Titanium Black Tips",
+      en: "Sport Exhaust for VW Golf 7 Faclift AU Silencer (956017 1500) | 2x 100mm Titanium Black Tips",
+    },
+    category: { ua: "Cars / Bundles", en: "Cars / Bundles" },
+  });
+  assert.match(
+    buildMerchantFeedItemXml(product, "ua", "UAH", rates),
+    /<title>Вихлопна система Remus для VW Golf 7 Faclift AU Silencer 1-950020-1002-30<\/title>/
+  );
+  assert.match(
+    buildMerchantFeedItemXml(product, "en", "EUR", rates),
+    /<title>Sport Exhaust for VW Golf 7 Faclift AU Silencer \(956017 1500\) \| 2x 100mm Titanium Black Tips 1-950020-1002-30 \| Remus<\/title>/
+  );
+});

@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getCsfProductsServer } from "@/lib/shopCatalogServer";
 import { buildCsfHeroSummary } from "@/lib/csfHeroCatalog";
@@ -18,16 +19,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/csf", {
-    title:
-      resolvedLocale === "ua"
-        ? "CSF Racing | Системи Охолодження | One Company"
-        : "CSF Racing | Performance Cooling | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Високопродуктивні радіатори, інтеркулери та системи охолодження CSF Racing для дороги й треку."
-        : "High-performance radiators, intercoolers, and cooling systems by CSF Racing for road and track.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/csf", BRAND_HOME_HEAD.csf[resolvedLocale]);
 }
 
 export default async function CSFRacingPage({ params, searchParams }: Props) {

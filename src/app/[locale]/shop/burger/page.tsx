@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getBurgerProductsServer } from "@/lib/shopCatalogServer";
 import BurgerStoreHome from "../components/BurgerStoreHome";
@@ -16,16 +17,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/burger", {
-    title:
-      resolvedLocale === "ua"
-        ? "Burger Motorsports | JB4 Performance Tuning | One Company"
-        : "Burger Motorsports | JB4 Performance Tuning | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Чіпи збільшення потужності JB4, flex fuel кіти, впускні системи та performance-деталі для BMW, Mercedes, Porsche та 30+ марок."
-        : "JB4 power chips, flex fuel kits, intake systems, and performance parts for BMW, Mercedes, Porsche, and 30+ brands.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/burger", BRAND_HOME_HEAD.burger[resolvedLocale]);
 }
 
 export default async function ShopBurgerPage({ params }: Props) {

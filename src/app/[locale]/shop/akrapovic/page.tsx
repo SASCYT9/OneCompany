@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getAkrapovicProductsServer } from "@/lib/shopCatalogServer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -17,16 +18,11 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/akrapovic", {
-    title:
-      resolvedLocale === "ua"
-        ? "Akrapovič — Титанові Вихлопні Системи | One Company"
-        : "Akrapovič — Titanium Exhaust Systems | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Преміальні титанові та карбонові вихлопні системи Akrapovič для BMW, Porsche, Mercedes, Audi, Lamborghini та Ferrari."
-        : "Premium titanium & carbon fibre Akrapovič exhaust systems for BMW, Porsche, Mercedes, Audi, Lamborghini, and Ferrari.",
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    "shop/akrapovic",
+    BRAND_HOME_HEAD.akrapovic[resolvedLocale]
+  );
 }
 
 export default async function ShopAkrapovicPage({ params }: Props) {
@@ -39,6 +35,15 @@ export default async function ShopAkrapovicPage({ params }: Props) {
   ]);
 
   const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
+  // The home portal only filters products by title, tags and text. Variant rows
+  // and galleries were about a third of the page's serialized props (0.3 MB)
+  // and are never read here; the full records stay on the listing pages.
+  const portalProducts = akrapovicProducts.map((product) => ({
+    ...product,
+    variants: undefined,
+    gallery: undefined,
+    galleryMaterials: undefined,
+  }));
 
   const description =
     resolvedLocale === "ua"
@@ -66,7 +71,7 @@ export default async function ShopAkrapovicPage({ params }: Props) {
       />
       <AkrapovicHomeSignature
         locale={resolvedLocale}
-        products={akrapovicProducts}
+        products={portalProducts}
         viewerContext={viewerContext}
       />
     </>

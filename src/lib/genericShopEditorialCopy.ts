@@ -121,7 +121,7 @@ const VEHICLE_BRAND_TITLECASE: Array<[RegExp, string]> = [
   [/CUPRA/gi, 'Cupra'],
 ];
 
-function buildVehiclePhrase(titleEn: string): string {
+export function buildVehiclePhrase(titleEn: string): string {
   const afterFor = titleEn.match(/\bfor\s+(.+)$/i)?.[1];
   if (!afterFor) return '';
   let phrase = afterFor;
@@ -146,7 +146,9 @@ function buildVehiclePhrase(titleEn: string): string {
 const GENERIC_CATEGORY_PATTERN =
   /^(аксесуар(?:и)?|accessory|accessories|інше|other|component|компонент|датчик(?:и)?(?:\s+і\s+аксесуар(?:и)?)?|sensor(?:s)?(?:\s+(?:and|&)\s+accessor(?:y|ies))?)\s*\(?[^)]*\)?$/i;
 
-function pickCategoryUa(input: GenericShopEditorialInput): string {
+export function pickCategoryUa(
+  input: Pick<GenericShopEditorialInput, 'titleEn' | 'categoryUa' | 'categoryEn' | 'productType'>
+): string {
   const fromUa = normalizeWhitespace(input.categoryUa);
   const haystack = `${input.categoryEn ?? ''} ${input.productType ?? ''} ${input.titleEn ?? ''}`;
   // 1. If the title clearly maps to a specific domain (Suspension / Exhaust /

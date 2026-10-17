@@ -122,7 +122,6 @@ export default function UrbanCollectionProductGrid({
   const { currency, rates } = useShopCurrency();
   const pageSize = Math.max(1, settings.productsPerPage);
   const [visibleCount, setVisibleCount] = useState(pageSize);
-  const visibleProducts = products.slice(0, visibleCount);
   const hasMoreProducts = visibleCount < products.length;
 
   return (
@@ -175,7 +174,7 @@ export default function UrbanCollectionProductGrid({
             viewport={{ once: true, amount: 0.1 }}
             className="urban-product-grid__cards"
           >
-            {visibleProducts.map((product) => {
+            {products.map((product, index) => {
               const pricing = viewerContext
                 ? resolveShopProductPricing(product, viewerContext)
                 : {
@@ -212,13 +211,8 @@ export default function UrbanCollectionProductGrid({
                 product
               );
 
-              return (
-                <motion.article
-                  variants={cardVariants}
-                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                  key={product.slug}
-                  className="urban-product-grid__card"
-                >
+              const cardContent = (
+                <>
                   <Link
                     href={buildShopProductPath(locale, product)}
                     className="urban-product-grid__card-link"
@@ -280,7 +274,29 @@ export default function UrbanCollectionProductGrid({
                       </Link>
                     </div>
                   </div>
+                </>
+              );
+
+              // Cards past "Показати ще" are in the HTML but hidden, so crawlers
+              // reach every product of the collection; the button shows them
+              // (and they animate in) as before.
+              return index < visibleCount ? (
+                <motion.article
+                  variants={cardVariants}
+                  // Cards shown by "Показати ще" mount after the grid has played
+                  // its in-view animation; they animate in themselves, otherwise
+                  // they stay at the hidden (transparent) variant.
+                  {...(index >= pageSize ? { initial: "hidden", animate: "show" } : {})}
+                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                  key={product.slug}
+                  className="urban-product-grid__card"
+                >
+                  {cardContent}
                 </motion.article>
+              ) : (
+                <article key={product.slug} hidden className="urban-product-grid__card">
+                  {cardContent}
+                </article>
               );
             })}
           </motion.div>
@@ -311,7 +327,9 @@ export default function UrbanCollectionProductGrid({
           <div className="mt-10 flex justify-center">
             <button
               type="button"
-              onClick={() => setVisibleCount((count) => Math.min(count + pageSize, products.length))}
+              onClick={() =>
+                setVisibleCount((count) => Math.min(count + pageSize, products.length))
+              }
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-foreground/5 px-8 text-xs font-semibold uppercase tracking-[0.15em] text-foreground transition hover:border-foreground/40 hover:bg-foreground/10 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/10"
             >
               {isUa

@@ -5,6 +5,7 @@ import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { buildShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
+import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import {
   getShopProductPageMetadata,
@@ -72,7 +73,7 @@ export default async function IpeProductPage({ params }: Props) {
   );
 }
 
-function CrossShopFitmentSection({
+async function CrossShopFitmentSection({
   product,
   locale,
 }: {
@@ -83,5 +84,11 @@ function CrossShopFitmentSection({
   const fitment = extractProductFitment(product);
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
-  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
+  return (
+    <DeferredCrossShopFitment
+      slug={product.slug}
+      locale={locale}
+      initialResult={await loadCrossShopRecommendationsSafely(product)}
+    />
+  );
 }

@@ -39,7 +39,193 @@ function normalizeWhitespace(value: string | null | undefined) {
   return decodeHtmlEntities(value).replace(/\s+/g, " ").trim();
 }
 
+const PART_SIDES: Array<[string, string]> = [
+  ["передн", "front"],
+  ["задн", "rear"],
+];
+const PART_CORNERS: Array<[string, string]> = [
+  ["прав", "right"],
+  ["лів", "left"],
+];
+
+/** One rule per side: `pattern` gets the Ukrainian stem, `english` the English side. */
+function perSide(
+  pattern: (stem: string) => string,
+  english: (side: string) => string
+): Array<[RegExp, string]> {
+  return PART_SIDES.map(([stem, side]) => [new RegExp(pattern(stem), "giu"), english(side)]);
+}
+
+/**
+ * Whole phrases from supplier imports (GiroDisc brakes, ADRO aero, exhaust
+ * and cooling parts) whose English names were left half-translated in the
+ * database. They run before the single words below: word by word "Комплект
+ * переднього гальмівного ротора" became "Kit Front Halmivnoho Rotora", and
+ * "диски" means wheels only outside brakes.
+ */
+const UK_UA_TO_EN_PART_PHRASES: Array<[RegExp, string]> = [
+  // Brake rotors and their replacement rings.
+  ...perSide(
+    (s) =>
+      String.raw`комплект (?:запасних|змінних) кілець ${s}\S* (?:гальмівн\S* )?(?:ротор|диск)\S*`,
+    (side) => `${side} rotor replacement ring kit`
+  ),
+  ...perSide(
+    (s) => String.raw`${s}\S* змінн\S* кільц\S* гальмівн\S* диск\S*`,
+    (side) => `${side} rotor replacement rings`
+  ),
+  ...perSide(
+    (s) => String.raw`змінн\S* кільц\S* ${s}\S* гальмівн\S* диск\S*`,
+    (side) => `${side} rotor replacement rings`
+  ),
+  [/змінн\S* кільц\S* гальмівн\S* диск\S*/giu, "rotor replacement rings"],
+  ...perSide(
+    (s) => String.raw`${s}\S* змінн\S* кільц\S*`,
+    (side) => `${side} replacement ring`
+  ),
+  ...perSide(
+    (s) => String.raw`комплект ${s}\S* гальмівн\S* (?:ротор|диск)\S*`,
+    (side) => `${side} brake rotor kit`
+  ),
+  ...perSide(
+    (s) => String.raw`комплект сталев\S* ${s}\S* гальмівн\S* (?:ротор|диск)\S*`,
+    (side) => `${side} steel brake rotor kit`
+  ),
+  ...perSide(
+    (s) => String.raw`кільце ${s}\S* гальмівн\S* диск\S*`,
+    (side) => `${side} rotor ring`
+  ),
+  ...PART_SIDES.flatMap(([stem, side]) =>
+    PART_CORNERS.map(([cornerStem, corner]): [RegExp, string] => [
+      new RegExp(String.raw`${stem}\S* ${cornerStem}\S* гальмівн\S* (?:ротор|диск)\S*`, "giu"),
+      `${side} ${corner} brake rotor`,
+    ])
+  ),
+  ...perSide(
+    (s) => String.raw`${s}\S* гальмівн\S* (?:ротор|диск)\S*`,
+    (side) => `${side} brake rotors`
+  ),
+  ...perSide(
+    (s) => String.raw`(?:диск|ротор)\S* гальмівн\S* ${s}\S*`,
+    (side) => `${side} brake rotors`
+  ),
+  [/гальмівн\S* (?:ротор|диск)\S*/giu, "brake rotors"],
+  ...perSide(
+    (s) => String.raw`${s}\S* ротор\S*`,
+    (side) => `${side} rotors`
+  ),
+  [/з насічками (?:та|і) перфорацією/giu, "slotted and drilled"],
+  [/з насічками/giu, "slotted"],
+  [/з перфорацією/giu, "drilled"],
+  [/\((?:2|два)\s*шт\.?\s*(?:компл\.?|комплект)?\)/giu, "(pair)"],
+  // Calipers.
+  ...perSide(
+    (s) =>
+      String.raw`(?:комплект )?(?:пиляк|пильник|пильовик)\S* ${s}\S* (?:гальмівн\S* )?супорт\S*`,
+    (side) => `${side} caliper dust boots`
+  ),
+  [/(?:пиляк|пильник|пильовик)\S* (?:гальмівн\S* )?супорт\S*/giu, "caliper dust boot"],
+  [/пилозахисн\S* комплект/giu, "dust boot kit"],
+  [/(?:пиляк|пильник|пильовик)\S*/giu, "dust boot"],
+  ...perSide(
+    (s) => String.raw`ремкомплект ${s}\S* (?:гальмівн\S* )?супорт\S*`,
+    (side) => `${side} caliper rebuild kit`
+  ),
+  [/ремкомплект (?:гальмівн\S* )?супорт\S*/giu, "caliper rebuild kit"],
+  [/сальник\S* поршн\S* (?:гальмівн\S* )?супорт\S*/giu, "caliper piston seal"],
+  [/ущільненн\S* поршн\S*/giu, "piston seals"],
+  [/ущільненн\S* супорт\S*/giu, "caliper seals"],
+  ...perSide(
+    (s) => String.raw`комплект шпильок ${s}\S* (?:гальмівн\S* )?супорт\S*`,
+    (side) => `${side} caliper stud kit`
+  ),
+  [/довгих шпильок/giu, "long studs"],
+  [/коротких штифтів/giu, "short pins"],
+  [/титанов\S* термопластин\S* для супорт\S*/giu, "titanium caliper heat shields"],
+  [/титанов\S* термопластин\S*/giu, "titanium heat shields"],
+  [/титанов\S* прокладк\S* колодок/giu, "titanium pad shims"],
+  ...perSide(
+    (s) => String.raw`комплект ${s}\S* опорн\S* пластин`,
+    (side) => `${side} pad backing plate kit`
+  ),
+  [/комплект опорн\S* пластин/giu, "pad backing plate kit"],
+  [/комплект обладнання/giu, "hardware kit"],
+  [/(?:гальмівн|тормозн)\S* колодк\S*/giu, "brake pads"],
+  [/з супортами ([A-Za-z][\w-]*)/giu, "with $1 calipers"],
+  [/супорт(?:ами|ів|а|и)?(?=[\s,.)]|$)/giu, "calipers"],
+  // Aero, exhaust, cooling.
+  [/аеродинамічн\S* (?:обвіс|комплект),? карбон/giu, "carbon aero kit"],
+  [/аеродинамічн\S* комплект/giu, "aero kit"],
+  [/карбонов\S* бічн\S* пороги/giu, "carbon side skirts"],
+  [/бічн\S* пороги/giu, "side skirts"],
+  [/передн\S* сплітт?ер/giu, "front splitter"],
+  [/задн\S* дифузор/giu, "rear diffuser"],
+  [/повітрозабірник\S*/giu, "air intakes"],
+  [/вихлопн\S* систем\S*/giu, "exhaust system"],
+  [/впускн\S* колектор/giu, "intake manifold"],
+  [/повний комплект/giu, "complete kit"],
+  [/для моделей|для моделі/giu, "for"],
+  [/(?<=[\s(])титан(?=[\s,)]|$)/giu, "titanium"],
+  [/(?<=[\s(,])карбон(?=[\s,)]|$)/giu, "carbon"],
+  [/(?<=\d)\s?мм(?=[\s,.)/]|$)/giu, " mm"],
+  [/заміна/giu, "replacement"],
+  [/повітровод\p{L}*/giu, "air ducts"],
+  [/монтажн\p{L}* комплект/giu, "mounting kit"],
+  [/диспле\p{L}*/giu, "display"],
+  [/стенд зі зразками вихлопних труб/giu, "exhaust tip display stand"],
+  [
+    /інструмент для розведення поршн\p{L}* (?:гальмівн\p{L}* )?суп{1,2}орт\p{L}*/giu,
+    "caliper piston spreader tool",
+  ],
+  [/комплект шпил\p{L}* центральн\p{L}* замк\p{L}* колес\p{L}*/giu, "center lock wheel stud kit"],
+  ...perSide(
+    (s) => String.raw`комплект шпил\p{L}* ${s}\p{L}* (?:гальмівн|тормозн)\p{L}* суп{1,2}орт\p{L}*`,
+    (side) => `${side} caliper stud kit`
+  ),
+  [/суппорт\p{L}*/giu, "caliper"],
+  [/тормозн\p{L}*/giu, "brake"],
+  [/шпил\p{L}*/giu, "studs"],
+  [/дифузор/giu, "diffuser"],
+  [/бокові|бічні/giu, "side"],
+  [/паливн\p{L}*/giu, "fuel"],
+  [/коробк\p{L}* передач/giu, "gearbox"],
+  [/універсальн\p{L}*/giu, "universal"],
+  [/однопрохідн\p{L}*/giu, "single-pass"],
+  [/спортивн\p{L}*/giu, "sport"],
+  [/вихлопн\p{L}*/giu, "exhaust"],
+  [/^для\s/giu, "for "],
+  [/(\d+)-(?:те|ге|й|ого) поколінн\p{L}*/giu, "gen $1"],
+  [/(\d+)-поршнев\p{L}*/giu, "$1-piston"],
+  [/комплект шпиль\p{L}*/giu, "stud kit"],
+  [/шпиль\p{L}*/giu, "studs"],
+  [/штифт\p{L}*/giu, "pins"],
+  [/довг\p{L}*/giu, "long"],
+  [/коротк\p{L}*/giu, "short"],
+  [/опорн\p{L}* пластин\p{L}*/giu, "backing plates"],
+  [/термопластин\p{L}*/giu, "heat shields"],
+  [/колодок/giu, "pads"],
+  [/гоночн\p{L}*/giu, "racing"],
+  [/сталев\p{L}*/giu, "steel"],
+  [/чавун\p{L}*/giu, "cast iron"],
+  [/титанов\p{L}*/giu, "titanium"],
+  [/високопродуктивн\p{L}*/giu, "high-performance"],
+  [/високоефективн\p{L}*/giu, "high-efficiency"],
+  [/алюмінієв\p{L}*/giu, "aluminum"],
+  [/маслян\p{L}* радіатор\p{L}*/giu, "oil cooler"],
+  [/маслян\p{L}*/giu, "oil"],
+  [/охолодженн\p{L}*/giu, "cooling"],
+  [/трансмісі\p{L}*/giu, "transmission"],
+  [/керуванн\p{L}*/giu, "control"],
+  [/колектор\p{L}*/giu, "manifolds"],
+  // Any remaining "передн…"/"задн…" word, e.g. "колодки задні".
+  ...perSide(
+    (s) => String.raw`(?<!\p{L})${s}\p{L}*`,
+    (side) => side
+  ),
+];
+
 const UK_UA_TO_EN_GLOSSARY: Array<[RegExp, string]> = [
+  ...UK_UA_TO_EN_PART_PHRASES,
   [/аеродинамічний обвіс/gi, "aerodynamic body kit"],
   [/аерокіт/gi, "aero kit"],
   [/змінний кузов/gi, "body conversion"],
@@ -173,13 +359,17 @@ function transliterateUkrainian(value: string) {
     .join("");
 }
 
+/** Joining words and units stay lower case inside a translated title. */
+const TITLE_LOWERCASE_WORDS = new Set(["for", "with", "and", "or", "of", "mm"]);
+
 function sentenceCaseWords(value: string) {
   return value
     .split(/(\s+|\/|-|–|—|\(|\))/)
-    .map((part) => {
+    .map((part, index) => {
       if (!part || /^[\s/–—()_-]+$/.test(part)) return part;
       if (/^[A-Z0-9"'.]+$/.test(part)) return part;
       if (/^\d/.test(part)) return part;
+      if (index > 0 && TITLE_LOWERCASE_WORDS.has(part)) return part;
       return part.charAt(0).toUpperCase() + part.slice(1);
     })
     .join("")

@@ -8,6 +8,7 @@ const stockLoading = readFileSync("src/app/[locale]/shop/stock/loading.tsx", "ut
 const catalogLoading = readFileSync("src/app/[locale]/shop/catalog/loading.tsx", "utf8");
 const loadingShell = readFileSync("src/app/[locale]/shop/stock/CatalogLoadingShell.tsx", "utf8");
 const stockSearch = readFileSync("src/lib/shopStockSearch.server.ts", "utf8");
+const guestInitialData = readFileSync("src/lib/shopStockGuestInitialData.server.ts", "utf8");
 const fitmentCatalog = readFileSync("src/lib/shopFitmentCatalogServer.ts", "utf8");
 const storefrontRevalidation = readFileSync("src/lib/shopStorefrontRevalidation.ts", "utf8");
 const genericProductPage = readFileSync(
@@ -26,9 +27,16 @@ test("catalog streams a useful theme-aware loading shell during its initial sear
   assert.doesNotMatch(catalogLoading, /return null/);
 });
 
-test("catalog serves its loading UI immediately and lets the cacheable API provide products", () => {
-  assert.match(stockPage, /<StockCatalogClient \/>/);
+test("catalog serves its loading UI immediately, guests get a cached first page, the API stays cacheable", () => {
+  // The shell streams first; the first page follows in the same response for
+  // guests (crawlable product links) and the client reuses it.
+  assert.match(stockPage, /<StockCatalogClient initialData=\{initialData\} \/>/);
+  assert.match(stockPage, /import\("@\/lib\/shopStockGuestInitialData\.server"\)/);
   assert.doesNotMatch(stockPage, /searchShopStock/);
+  assert.match(guestInitialData, /searchShopStock\([\s\S]{0,160}\{ anonymous: true \}/);
+  assert.match(guestInitialData, /unstable_cache\(/);
+  assert.match(guestInitialData, /revalidate: 60/);
+  assert.match(guestInitialData, /if \(session\) return undefined;/);
   assert.match(stockClient, /if \(isInitialCatalogLoading\) return <CatalogLoadingShell \/>;/);
   assert.match(stockSearch, /public, s-maxage=60, stale-while-revalidate=300/);
   assert.match(stockSearch, /const pricingContextPromise = buildShopViewerPricingContextServer/);

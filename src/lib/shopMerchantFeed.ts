@@ -1,5 +1,6 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { siteConfig } from "@/lib/seo";
+import { buildLocalizedProductSeoTitle } from "@/lib/seoProductMeta";
 import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
 import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
@@ -18,14 +19,22 @@ export function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
+/** Google's length limit for g:title. */
+const MERCHANT_TITLE_MAX_LENGTH = 150;
+
 function localize(
   product: ShopProduct,
   locale: "ua" | "en"
 ): { title: string; description: string } {
-  const title = localizeShopProductTitle(locale, product);
+  const name = localizeShopProductTitle(locale, product);
+  // The product page's title: Ukrainian for untranslated supplier imports in
+  // the ua feed, with the SKU and brand, within Google's title limit.
+  const title = name
+    ? buildLocalizedProductSeoTitle(locale, product, name, MERCHANT_TITLE_MAX_LENGTH)
+    : "";
   const description = localizeShopDescription(locale, product.shortDescription);
   return {
-    title: (title || product.slug).trim().slice(0, 150),
+    title: (title || product.slug).trim().slice(0, MERCHANT_TITLE_MAX_LENGTH),
     description: (description || "").trim().slice(0, 5000),
   };
 }

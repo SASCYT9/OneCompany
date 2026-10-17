@@ -7,7 +7,7 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { StopflexDescriptionCallout } from "@/components/shop/StopflexDescriptionCallout";
 import { buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
-import { buildProductSeoDescription, buildProductSeoTitle } from "@/lib/seoProductMeta";
+import { buildLocalizedProductSeoTitle, buildProductSeoDescription } from "@/lib/seoProductMeta";
 import { resolveLegacyProductPath } from "@/lib/legacyProductSlugs.server";
 import { getBrandLogo } from "@/lib/brandLogos";
 import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
@@ -77,6 +77,7 @@ import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { getUrbanCollectionPageConfig } from "../data/urbanCollectionPages.server";
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
+import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -436,12 +437,7 @@ export async function getShopProductPageMetadata({
     brand: product.brand,
     category: product.category?.[resolvedLocale] || product.category?.en,
   });
-  const metadataTitle = buildProductSeoTitle({
-    explicitTitle: product.seoTitle?.[resolvedLocale],
-    title: localizedTitle,
-    sku: product.sku,
-    brand: product.brand,
-  });
+  const metadataTitle = buildLocalizedProductSeoTitle(resolvedLocale, product, localizedTitle);
 
   // Drop the trailing "| One Company Shop" — siteName already carries it in
   // og:site_name, and the suffix used to push titles past the truncation
@@ -1177,7 +1173,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   );
 }
 
-function CrossShopFitmentDeferredSection({
+async function CrossShopFitmentDeferredSection({
   product,
   locale,
 }: {
@@ -1188,5 +1184,11 @@ function CrossShopFitmentDeferredSection({
   const fitment = extractProductFitment(product);
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
-  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
+  return (
+    <DeferredCrossShopFitment
+      slug={product.slug}
+      locale={locale}
+      initialResult={await loadCrossShopRecommendationsSafely(product)}
+    />
+  );
 }

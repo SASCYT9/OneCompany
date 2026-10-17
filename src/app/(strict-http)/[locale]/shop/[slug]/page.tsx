@@ -22,7 +22,7 @@ import {
   resolveShopProductPricing,
   type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
-import { buildProductSeoDescription, buildProductSeoTitle } from "@/lib/seoProductMeta";
+import { buildLocalizedProductSeoTitle, buildProductSeoDescription } from "@/lib/seoProductMeta";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -109,12 +109,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Same builders as the storefront product routes: honour the admin SEO
   // fields (previously ignored here, which left UA pages with English text),
   // and put the SKU in the title so same-name products stay distinct.
-  const pageTitle = buildProductSeoTitle({
-    explicitTitle: product.seoTitle?.[resolvedLocale],
-    title: localizedTitle,
-    sku: product.sku,
-    brand: product.brand,
-  });
+  const pageTitle = buildLocalizedProductSeoTitle(resolvedLocale, product, localizedTitle);
   return buildPageMetadata(resolvedLocale, canonicalSlug, {
     title: pageTitle,
     description: buildProductSeoDescription({

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getDo88ProductsServer } from "@/lib/shopCatalogServer";
 import Do88HomeSignature from "../components/Do88HomeSignature";
@@ -21,14 +22,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/do88", {
-    title:
-      resolvedLocale === "ua" ? "DO88 Performance | One Company" : "DO88 Performance | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Преміальні системи охолодження DO88 зі Швеції. Інтеркулери, радіатори та силіконові патрубки для максимальної ефективності."
-        : "Premium DO88 performance cooling systems from Sweden. Intercoolers, radiators, and silicone hoses built for maximum efficiency.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/do88", BRAND_HOME_HEAD.do88[resolvedLocale]);
 }
 
 export default async function ShopDo88Page({ params }: Props) {
