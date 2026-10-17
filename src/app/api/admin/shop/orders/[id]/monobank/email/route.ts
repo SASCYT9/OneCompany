@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
+import { formatEmailMoney } from "@/components/emails/EmailLayout";
 import PaymentLinkEmail from "@/components/emails/PaymentLinkEmail";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
@@ -54,12 +55,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const country = String(snapshotRecord(order.shippingAddress).country ?? "");
   const locale = isInternationalDelivery(country) ? "en" : "ua";
-  const amountText = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
-    style: "currency",
-    currency: order.currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(order.total));
+  // Same money format as every other customer email ("48 000 грн", "€6,935.50").
+  const amountText = formatEmailMoney(Number(order.total), order.currency, locale);
   const expiresAt = order.monobankPayment?.expiresAt;
   const validUntilText = expiresAt
     ? expiresAt.toLocaleString(locale === "ua" ? "uk-UA" : "en-GB", {
