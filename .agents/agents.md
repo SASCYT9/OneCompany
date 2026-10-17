@@ -110,6 +110,8 @@ editor needs PostgreSQL or Blob-backed persistence.
 Start with:
 
 - `src/app/api/shop/stock/assistant/`;
+- `src/lib/shopAiAgent/` and `src/components/shop/OneAiAssistant.tsx` (current assistant);
+- `scripts/one-ai-eval/` (37-dialog regression set);
 - `src/lib/shopAi*.ts`;
 - `src/lib/shopKnowledgeV2/`;
 - `tests/shop/evals/`;

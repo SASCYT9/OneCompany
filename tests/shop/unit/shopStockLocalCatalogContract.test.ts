@@ -77,10 +77,17 @@ test("fitment selector options are shared across requests and invalidated with t
   assert.match(adminReset, /revalidateTag\(SHOP_CATALOG_SELECTOR_CACHE_TAG/);
 });
 
-test("catalog text search waits for Enter and keeps One AI hidden", () => {
+test("catalog text search waits for Enter and keeps One AI behind its flag", () => {
   assert.match(stockPage, /const LIVE_SEARCH_SUGGESTIONS = false as boolean;/);
-  assert.match(stockPage, /const ONE_AI_ENABLED = false as boolean;/);
-  assert.match(stockPage, /\{ONE_AI_ENABLED \? \(\s*<StockAiAssistant/);
+  // The One AI button renders only when NEXT_PUBLIC_ONE_AI_ENABLED=1 is built in.
+  assert.match(
+    stockPage,
+    /const ONE_AI_ENABLED = process\.env\.NEXT_PUBLIC_ONE_AI_ENABLED === "1";/
+  );
+  assert.match(stockPage, /\{ONE_AI_ENABLED && !showLegacyOneAi \? \(\s*<OneAiAssistant/);
+  // The previous assistant is a development-only comparison, never in production.
+  assert.match(stockPage, /if \(process\.env\.NODE_ENV === "production"\) return;/);
+  assert.match(stockPage, /\{showLegacyOneAi \? \(\s*<StockAiAssistant/);
   // Typing only edits the draft; the applied query changes on Enter / "Search".
   assert.match(stockPage, /value=\{queryDraft\}/);
   assert.match(stockPage, /onChange=\{\(event\) => setQueryDraft\(event\.target\.value\)\}/);

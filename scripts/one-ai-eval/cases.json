@@ -1,0 +1,299 @@
+[
+  {
+    "id": "ua-m3-loud",
+    "lang": "ua",
+    "turns": ["вихлоп на BMW M3 G80 щоб гучніше"],
+    "expect": {
+      "kind": "products",
+      "category": "exhaust",
+      "vehicle": ["G80", "M3"],
+      "note": "valved systems (Fi, Akrapovič, iPE) and why they are louder"
+    }
+  },
+  {
+    "id": "ua-urus-5000",
+    "lang": "ua",
+    "turns": ["що поставити на Urus до 5000 €"],
+    "expect": {
+      "kind": "products",
+      "vehicle": ["Urus", "RSQ8"],
+      "maxEur": 5000,
+      "note": "RaceChip GTS5 1749 €, iPE 4561 €, Brabus spacers, Eventuri — or one question about the goal"
+    }
+  },
+  {
+    "id": "ua-akra-vs-remus",
+    "lang": "ua",
+    "turns": ["чим Akrapovič відрізняється від Remus"],
+    "expect": {
+      "kind": "knowledge",
+      "note": "materials, sound, price level, homologation; may offer to pick for a car"
+    }
+  },
+  {
+    "id": "en-992ts-intake",
+    "lang": "en",
+    "turns": ["intake for Porsche 992 Turbo S"],
+    "expect": {
+      "kind": "products",
+      "category": "performance",
+      "vehicle": ["992"],
+      "note": "do88 LF-210 Turbo (992.1) intake, turbo intake hoses, BMC filter"
+    }
+  },
+  {
+    "id": "ua-golf8r-power",
+    "lang": "ua",
+    "turns": ["хочу +50 к.с. на Golf 8 R"],
+    "expect": {
+      "kind": "products",
+      "category": "chipTuning",
+      "vehicle": ["Golf VIII", "MK8", "Golf 8"],
+      "note": "RaceChip GTS5 2.0 TSI R 320 HP, JB4 MK8"
+    }
+  },
+  {
+    "id": "ua-m2-comfort-susp",
+    "lang": "ua",
+    "turns": ["підвіска на M2 G87, щоб не було жорстко на щодень"],
+    "expect": {
+      "kind": "products",
+      "category": "suspension",
+      "vehicle": ["G87", "M2"],
+      "note": "KW V3/DDC, Öhlins; adjustable damping"
+    }
+  },
+  {
+    "id": "ua-rs6-brakes",
+    "lang": "ua",
+    "turns": ["гальма на RS6 C8"],
+    "expect": { "kind": "products", "category": "brakes", "vehicle": ["RS6", "RS 6", "C8"] }
+  },
+  {
+    "id": "ua-m4-carbon",
+    "lang": "ua",
+    "turns": ["карбон на M4 G82"],
+    "expect": { "kind": "products", "category": "carbonAero", "vehicle": ["G82", "M4"] }
+  },
+  {
+    "id": "ua-supra-ic",
+    "lang": "ua",
+    "turns": ["інтеркулер для Supra A90"],
+    "expect": { "kind": "products", "category": "cooling", "vehicle": ["Supra", "A90"] }
+  },
+  {
+    "id": "ua-g63-instock",
+    "lang": "ua",
+    "turns": ["що є в наявності для G63?"],
+    "expect": {
+      "kind": "products",
+      "vehicle": ["G63", "G 63", "G-Class", "W463", "W465"],
+      "inStock": true
+    }
+  },
+  {
+    "id": "ua-x5m-chip",
+    "lang": "ua",
+    "turns": ["чіп на X5 M F95"],
+    "expect": { "kind": "products", "category": "chipTuning", "vehicle": ["X5", "F95"] }
+  },
+  {
+    "id": "ua-b58-downpipe",
+    "lang": "ua",
+    "turns": ["даунпайп на B58"],
+    "expect": {
+      "kind": "honest_or_alt",
+      "note": "no B58 downpipe in catalog: say so, offer B58 alternatives or a manager"
+    }
+  },
+  {
+    "id": "ua-panigale-akra",
+    "lang": "ua",
+    "turns": ["Akrapovič на Panigale V4"],
+    "expect": { "kind": "products", "vehicle": ["Panigale"], "note": "moto" }
+  },
+  {
+    "id": "ua-s1000rr-carbon",
+    "lang": "ua",
+    "turns": ["карбон для S1000RR"],
+    "expect": {
+      "kind": "products",
+      "vehicle": ["S 1000 RR", "S1000RR"],
+      "note": "Ilmberger carbon (moto)"
+    }
+  },
+  {
+    "id": "ua-sku",
+    "lang": "ua",
+    "turns": ["S-BM/TI/33H"],
+    "expect": { "kind": "sku", "sku": "S-BM/TI/33H" }
+  },
+  {
+    "id": "ua-sku-compat",
+    "lang": "ua",
+    "turns": ["чи підійде Akrapovič S-BM/TI/33H на M4 G82 Competition?"],
+    "expect": {
+      "kind": "compat",
+      "sku": "S-BM/TI/33H",
+      "note": "title says M3 G80/G81, M4 G82/G83"
+    }
+  },
+  {
+    "id": "ua-gift-cayenne",
+    "lang": "ua",
+    "turns": ["порадьте щось на подарунок чоловіку, у нього Cayenne"],
+    "expect": {
+      "kind": "clarify_or_products",
+      "vehicle": ["Cayenne"],
+      "note": "ask budget/generation, or show affordable items"
+    }
+  },
+  {
+    "id": "ua-rs3-wheels",
+    "lang": "ua",
+    "turns": ["потрібні диски на RS3 8Y"],
+    "expect": { "kind": "products", "category": "wheels", "vehicle": ["RS3", "RS 3"] }
+  },
+  {
+    "id": "ua-f80-handling",
+    "lang": "ua",
+    "turns": ["як зробити щоб BMW M3 F80 краще трималась у поворотах"],
+    "expect": { "kind": "products", "category": "suspension", "vehicle": ["F80", "M3"] }
+  },
+  {
+    "id": "ua-mustang-loud",
+    "lang": "ua",
+    "turns": ["вихлоп на Mustang GT 5.0, хочу щоб ревів"],
+    "expect": {
+      "kind": "products",
+      "category": "exhaust",
+      "vehicle": ["Mustang"],
+      "note": "V8 5.0 systems, not EcoBoost"
+    }
+  },
+  {
+    "id": "ua-m5-akra-price",
+    "lang": "ua",
+    "turns": ["скільки коштує повна система Akrapovič на M5 F90"],
+    "expect": {
+      "kind": "products",
+      "category": "exhaust",
+      "brand": "AKRAPOVIC",
+      "vehicle": ["F90", "M5"]
+    }
+  },
+  {
+    "id": "ua-992turbo-radiator",
+    "lang": "ua",
+    "turns": ["радіатори на 911 Turbo 992"],
+    "expect": { "kind": "products", "category": "cooling", "vehicle": ["992"] }
+  },
+  {
+    "id": "ua-defender-vague",
+    "lang": "ua",
+    "turns": ["хочу тюнінг на Defender"],
+    "expect": {
+      "kind": "clarify_or_products",
+      "vehicle": ["Defender"],
+      "note": "ask the goal with quick replies, or show an overview"
+    }
+  },
+  {
+    "id": "ua-model3-cheap",
+    "lang": "ua",
+    "turns": ["що найдешевше у вас для Tesla Model 3?"],
+    "expect": { "kind": "products", "vehicle": ["Model 3"], "note": "cheapest first" }
+  },
+  {
+    "id": "ru-c63-valves",
+    "lang": "ru",
+    "turns": ["выхлоп на мерс C63 W205 с клапанами"],
+    "expect": { "kind": "products", "category": "exhaust", "vehicle": ["C63", "W205", "C205"] }
+  },
+  {
+    "id": "ru-rs3-remus-vs-akra",
+    "lang": "ru",
+    "turns": ["что лучше на RS3 8Y — Remus или Akrapovič?"],
+    "expect": {
+      "kind": "compare",
+      "vehicle": ["RS3", "RS 3"],
+      "note": "Remus GPF-back ~4.2–4.4k vs Akrapovič Evolution ~6.0–6.2k"
+    }
+  },
+  {
+    "id": "ru-eventuri-g80",
+    "lang": "ru",
+    "turns": ["впуск eventuri на м3 g80 есть?"],
+    "expect": { "kind": "products", "brand": "Eventuri", "vehicle": ["G80", "M3"] }
+  },
+  {
+    "id": "ru-golf7r-kw",
+    "lang": "ru",
+    "turns": ["нужна подвеска KW на Golf 7 R"],
+    "expect": {
+      "kind": "products",
+      "category": "suspension",
+      "brand": "KW",
+      "vehicle": ["GOLF", "Golf"]
+    }
+  },
+  {
+    "id": "en-huracan-10k",
+    "lang": "en",
+    "turns": ["Best exhaust for a 2021 Lamborghini Huracán EVO under €10k"],
+    "expect": {
+      "kind": "products",
+      "category": "exhaust",
+      "vehicle": ["Huracan", "Huracán"],
+      "maxEur": 10000
+    }
+  },
+  {
+    "id": "en-model3-carbon",
+    "lang": "en",
+    "turns": ["Do you have carbon fiber parts for Tesla Model 3?"],
+    "expect": { "kind": "products", "category": "carbonAero", "vehicle": ["Model 3"] }
+  },
+  {
+    "id": "en-340i-power",
+    "lang": "en",
+    "turns": ["I want more power on my BMW M340i G20"],
+    "expect": { "kind": "products", "vehicle": ["G20", "B58", "340"] }
+  },
+  {
+    "id": "en-gt3-brakes",
+    "lang": "en",
+    "turns": ["brake upgrade for Porsche 992 GT3"],
+    "expect": { "kind": "products", "category": "brakes", "vehicle": ["992", "GT3"] }
+  },
+  {
+    "id": "ua-camry-honest",
+    "lang": "ua",
+    "turns": ["вихлоп на Toyota Camry 70"],
+    "expect": { "kind": "honest_no" }
+  },
+  {
+    "id": "ua-lada-honest",
+    "lang": "ua",
+    "turns": ["чи є у вас диски на Ладу Пріору?"],
+    "expect": { "kind": "honest_no" }
+  },
+  {
+    "id": "dlg-exhaust-m2",
+    "lang": "ua",
+    "turns": ["підбери вихлоп", "BMW M2 G87, 2024", "а щось дешевше 3000 €?", "порівняй перші два"],
+    "expect": { "kind": "dialog", "category": "exhaust", "vehicle": ["G87", "M2"] }
+  },
+  {
+    "id": "dlg-intake-rs6",
+    "lang": "en",
+    "turns": ["I need an intake for my car", "Audi RS6 C8", "which of these is in stock?"],
+    "expect": { "kind": "dialog", "vehicle": ["RS6", "RS 6", "C8"] }
+  },
+  {
+    "id": "dlg-urus-sound",
+    "lang": "ua",
+    "turns": ["що порадиш на Urus для звуку?", "а яка різниця між ними?"],
+    "expect": { "kind": "dialog", "vehicle": ["Urus"], "category": "exhaust" }
+  }
+]

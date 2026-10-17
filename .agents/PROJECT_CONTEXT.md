@@ -119,7 +119,12 @@ Customer and admin sessions are intentionally separate.
 ### One AI and knowledge
 
 - Public assistant APIs: `src/app/api/shop/stock/assistant/`.
-- Core logic: `src/lib/shopAi*.ts`.
+- Customer assistant (2026-10): `assistant/agent/route.ts` streams NDJSON from
+  `src/lib/shopAiAgent/` — Gemini function calling over `searchShopStock`, product
+  cards with reasons, comparisons, quick replies. UI: `src/components/shop/OneAiAssistant.tsx`.
+  Dark unless `SHOP_AI_AGENT_ENABLED=1` (API) and `NEXT_PUBLIC_ONE_AI_ENABLED=1` (button).
+  Regression set: `scripts/one-ai-eval/` (run against a local server, one request at a time).
+- Core logic of the previous plan/retrieve assistant: `src/lib/shopAi*.ts`.
 - Knowledge V2: `src/lib/shopKnowledgeV2/`.
 - Admin quality UI/API: `src/app/admin/shop/ai-quality/` and
   `src/app/api/admin/shop/ai-quality/`.
