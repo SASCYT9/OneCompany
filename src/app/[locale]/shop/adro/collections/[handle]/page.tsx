@@ -1,4 +1,5 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { adroLineHead } from "@/lib/seoHubHeadCopy";
 import { localizeShopProductTitle } from "@/lib/shopText";
 import { ADRO_PRODUCT_LINES } from "../../../data/adroHomeData";
 import { getAdroProductsServer } from "@/lib/shopCatalogServer";
@@ -34,17 +35,11 @@ export async function generateMetadata({
   const resolvedLocale = resolveLocale(locale);
   const line = ADRO_PRODUCT_LINES.find((l) => l.id === handle);
   if (!line) notFound();
-  const title = line
-    ? `${resolvedLocale === "ua" ? line.nameUk : line.name} | ADRO | One Company`
-    : `${handle} | ADRO | One Company`;
-
-  return buildPageMetadata(resolvedLocale, `shop/adro/collections/${handle}`, {
-    title,
-    description:
-      resolvedLocale === "ua"
-        ? `Програма ADRO для ${line?.nameUk ?? handle}. Препрег-карбон і CFD-аеродинаміка рівня F1.`
-        : `ADRO aerodynamic program for ${line?.name ?? handle}. Prepreg carbon and F1-level CFD aero.`,
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    `shop/adro/collections/${handle}`,
+    adroLineHead(resolvedLocale, line)
+  );
 }
 
 export default async function AdroCollectionHandlePage({ params }: Props) {

@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 // 2026-05-15: use light fetcher (narrow SELECT, no relations) — this page only
 // needs car_make:/car_model: tags from each row to build the dropdown, so the
@@ -21,16 +22,11 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/racechip", {
-    title:
-      resolvedLocale === "ua"
-        ? "RaceChip Україна | GTS 5 Black + App Control | One Company"
-        : "RaceChip Catalog | GTS 5 Black + App Control | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Офіційний магазин RaceChip. Максимальна потужність з GTS 5 Black + управління зі смартфону (App Control). 50+ брендів авто."
-        : "Official RaceChip storefront. Maximize performance with GTS 5 Black + Smartphone App Control. 50+ vehicle brands.",
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    "shop/racechip",
+    BRAND_HOME_HEAD.racechip[resolvedLocale]
+  );
 }
 
 async function loadMakeModelsWithCount(): Promise<{

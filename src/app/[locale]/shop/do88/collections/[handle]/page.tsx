@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { do88CollectionHead } from "@/lib/seoHubHeadCopy";
 import { getDo88ProductsServer } from "@/lib/shopCatalogServer";
 import { getProductsForDo88Collection } from "@/lib/do88CollectionMatcher";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -50,18 +51,8 @@ export async function generateMetadata({ params, searchParams }: Props) {
     };
   }
   if (!card) notFound();
-  const title = card ? `${card.title} | DO88 | One Company` : "DO88 | One Company";
   const baseSlug = `shop/do88/collections/${handle}`;
-  const meta = {
-    title:
-      resolvedLocale === "ua"
-        ? `${card?.titleUk ?? card?.title ?? handle} | DO88 | One Company`
-        : title,
-    description:
-      resolvedLocale === "ua"
-        ? `Високопродуктивні ${card?.titleUk ?? card?.title ?? handle} DO88 зі Швеції. Інтеркулери, радіатори та компоненти для стабільного охолодження.`
-        : `High-performance DO88 ${card?.title ?? handle} from Sweden. Intercoolers, radiators, and cooling components built for stable temperatures.`,
-  };
+  const meta = do88CollectionHead(resolvedLocale, handle, card);
 
   // Faceted filter URLs (?brand=&model=&chassis=) spawn an unbounded
   // number of vehicle-combination URLs that all show subsets of the

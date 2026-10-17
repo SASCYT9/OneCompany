@@ -6,6 +6,7 @@ import EventuriMachineAtelier, {
   type EventuriLandingProduct,
 } from "./EventuriMachineAtelier";
 import { absoluteUrl, buildPageMetadata, resolveLocale, type SupportedLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { getShopProductsByBrandServer } from "@/lib/shopCatalogServer";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
@@ -107,11 +108,11 @@ const featuredProductTypes: Record<string, { ua: string; en: string }> = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  const copy = pageCopy[resolvedLocale];
-  return buildPageMetadata(resolvedLocale, "shop/eventuri", {
-    title: copy.title,
-    description: copy.description,
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    "shop/eventuri",
+    BRAND_HOME_HEAD.eventuri[resolvedLocale]
+  );
 }
 
 function buildEventuriTypeHref(locale: SupportedLocale, productType: string) {

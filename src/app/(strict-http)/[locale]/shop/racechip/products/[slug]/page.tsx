@@ -9,6 +9,7 @@ import {
 } from "@/lib/shopCatalogServer";
 import { localizeShopDescription, localizeShopProductTitle } from "@/lib/shopText";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
+import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import RacechipShopProductDetailLayout from "@/app/[locale]/shop/components/RacechipShopProductDetailLayout";
 import { requireCanonicalStorefrontProduct } from "@/app/[locale]/shop/components/ShopProductDetailPage";
@@ -106,7 +107,7 @@ export default async function RacechipProductPage({
   );
 }
 
-function CrossShopFitmentSection({
+async function CrossShopFitmentSection({
   product,
   locale,
 }: {
@@ -117,6 +118,13 @@ function CrossShopFitmentSection({
   const fitment = extractProductFitment(product);
   if (!fitment.make && fitment.chassisCodes.length === 0) return null;
 
-  // Cross-shop iterates the full catalog. Streaming makes this non-blocking.
-  return <DeferredCrossShopFitment slug={product.slug} locale={locale} />;
+  // With the projection reader the cards are one bounded query and part of the
+  // server HTML; otherwise they still load near the viewport.
+  return (
+    <DeferredCrossShopFitment
+      slug={product.slug}
+      locale={locale}
+      initialResult={await loadCrossShopRecommendationsSafely(product)}
+    />
+  );
 }

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import { absoluteUrl, buildAlternateLinks, buildLocalizedPath, siteConfig } from "@/lib/seo";
 import {
+  buildBrandHubSitemapEntries,
   buildStaticSitemapEntries,
   planProductSitemapChunks,
   type SitemapProductChunk,
@@ -40,16 +40,7 @@ export const loadProductSitemapChunks = memoizeAsyncWithTtl(
 );
 
 export async function loadPagesSitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const urbanCollectionEntries = siteConfig.locales.flatMap((locale) =>
-    URBAN_COLLECTION_CARDS.map((collection) => {
-      const pageSlug = `/shop/urban/collections/${collection.collectionHandle}`;
-      return {
-        url: absoluteUrl(buildLocalizedPath(locale, pageSlug)),
-        alternates: { languages: buildAlternateLinks(pageSlug) },
-      } satisfies MetadataRoute.Sitemap[number];
-    })
-  );
-  return [...buildStaticSitemapEntries(), ...urbanCollectionEntries];
+  return [...buildStaticSitemapEntries(), ...buildBrandHubSitemapEntries()];
 }
 
 export async function loadBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {

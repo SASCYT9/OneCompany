@@ -274,7 +274,7 @@ test("GiroDisc and Öhlins home pages use the shared canonical locale metadata",
   ]) {
     const source = readFileSync(file, "utf8");
     assert.match(source, /buildPageMetadata/);
-    assert.match(source, /buildPageMetadata\(resolvedLocale, "shop\/(?:girodisc|ohlins)"/);
+    assert.match(source, /buildPageMetadata\(\s*resolvedLocale,\s*"shop\/(?:girodisc|ohlins)"/);
   }
 });
 

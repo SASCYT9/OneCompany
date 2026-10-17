@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import { getBrabusProductsServer } from "@/lib/shopCatalogServer";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
@@ -18,13 +19,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/brabus", {
-    title: resolvedLocale === "ua" ? "Brabus | One Company" : "Brabus | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Преміальний тюнінг Brabus. Аеродинамічні обвіси, ковані диски та фірмовий ефект 1-Second-Wow."
-        : "Premium Brabus tuning. Aerodynamic kits, forged wheels, and the signature 1-Second-Wow effect.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/brabus", BRAND_HOME_HEAD.brabus[resolvedLocale]);
 }
 
 export default async function ShopBrabusPage({ params }: Props) {

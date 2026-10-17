@@ -1,4 +1,5 @@
 import { buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { BRAND_HOME_HEAD } from "@/lib/seoHubHeadCopy";
 import { JsonLd, generateBrandSchema } from "@/lib/jsonLd";
 import UrbanHomeSignature from "../components/UrbanHomeSignature";
 
@@ -14,14 +15,7 @@ type Props = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const resolvedLocale = resolveLocale(locale);
-  return buildPageMetadata(resolvedLocale, "shop/urban", {
-    title:
-      resolvedLocale === "ua" ? "Urban Automotive | One Company" : "Urban Automotive | One Company",
-    description:
-      resolvedLocale === "ua"
-        ? "Преміальні обвіси Urban Automotive. Виразний widebody-дизайн і вивірена стилістика OEM+."
-        : "Premium Urban Automotive body kits. Distinctive widebody design with refined OEM+ presence.",
-  });
+  return buildPageMetadata(resolvedLocale, "shop/urban", BRAND_HOME_HEAD.urban[resolvedLocale]);
 }
 
 export default async function ShopUrbanPage({ params }: Props) {

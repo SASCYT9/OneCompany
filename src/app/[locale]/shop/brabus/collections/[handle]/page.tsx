@@ -1,4 +1,5 @@
 import { absoluteUrl, buildLocalizedPath, buildPageMetadata, resolveLocale } from "@/lib/seo";
+import { brabusCollectionHead } from "@/lib/seoHubHeadCopy";
 import { BRABUS_COLLECTION_CARDS } from "../../../data/brabusCollectionsList";
 import { getBrabusCollectionPageConfig } from "../../../data/brabusCollectionPages";
 import { getBrabusProductsServer } from "@/lib/shopCatalogServer";
@@ -37,16 +38,11 @@ export async function generateMetadata({
   const card = BRABUS_COLLECTION_CARDS.find((c) => c.collectionHandle === handle);
   const config = getBrabusCollectionPageConfig(handle);
   if (!config && !card) notFound();
-  const title = config
-    ? `${resolvedLocale === "ua" ? config.titleUk : config.title} | Brabus | One Company`
-    : `${card?.title ?? handle} | Brabus | One Company`;
-  return buildPageMetadata(resolvedLocale, `shop/brabus/collections/${handle}`, {
-    title,
-    description:
-      resolvedLocale === "ua"
-        ? `Програма BRABUS ${config?.titleUk ?? card?.title ?? handle}. Аеродинаміка, ковані диски та індивідуальні апгрейди преміум-класу.`
-        : `BRABUS ${config?.title ?? card?.title ?? handle} programme. Aerodynamic kits, forged wheels, and premium bespoke upgrades.`,
-  });
+  return buildPageMetadata(
+    resolvedLocale,
+    `shop/brabus/collections/${handle}`,
+    brabusCollectionHead(resolvedLocale, handle, config?.title ?? card?.title ?? handle)
+  );
 }
 
 export default async function BrabusCollectionHandlePage({ params }: Props) {
