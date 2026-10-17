@@ -15,7 +15,9 @@ test("thank-you page reads the shipping agreement status, not the shipping amoun
   assert.match(page, /to be agreed with a manager/);
 });
 
-test("the pre-shipping total leaves out any provisional shipping cost", () => {
-  assert.match(page, /order\.total - order\.shippingCost/);
+test("the pre-shipping total matches checkout: items plus adjustment, no provisional shipping or tax", () => {
+  assert.match(page, /order\.subtotal \+ order\.regionalAdjustmentAmount/);
   assert.match(page, /formatShopMoney\(locale, totalShown,/);
+  // Tax computed on provisional shipping is not shown as final either.
+  assert.match(page, /!shippingAwaitsAgreement &&\s*!order\.landedCost/);
 });
