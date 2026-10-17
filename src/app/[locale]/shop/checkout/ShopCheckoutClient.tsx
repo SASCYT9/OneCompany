@@ -197,6 +197,9 @@ export default function ShopCheckoutClient({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [internationalConsent, setInternationalConsent] = useState(false);
+  // Opt-in (unchecked by default) for one reminder email if this cart is left behind.
+  const [reminderOptIn, setReminderOptIn] = useState(false);
+  const reminderSaved = useRef<string | null>(null);
   const [error, setError] = useState("");
   const [accountLoaded, setAccountLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -280,6 +283,39 @@ export default function ShopCheckoutClient({
     (quote?.items ?? []).map((item) => [quoteLineKey(item.productSlug, item.variantId), item])
   );
   const quoteCurrency = (quote?.currency || form.currency) as ShopCurrencyCode;
+
+  // Saves the reminder consent for this cart (or withdraws it) once the email is valid.
+  useEffect(() => {
+    if (preview) return;
+    const email = form.email.trim();
+    const wanted =
+      reminderOptIn && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+        ? JSON.stringify([email, form.firstName.trim(), quoteCurrency, form.country])
+        : "off";
+    if (wanted === (reminderSaved.current ?? "off")) return;
+    const timer = setTimeout(() => {
+      reminderSaved.current = wanted;
+      void fetch("/api/shop/cart/reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consent: wanted !== "off",
+          email,
+          firstName: form.firstName.trim(),
+          currency: quoteCurrency,
+          country: form.country,
+          locale,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) reminderSaved.current = null;
+        })
+        .catch(() => {
+          reminderSaved.current = null;
+        });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [preview, reminderOptIn, form.email, form.firstName, form.country, quoteCurrency, locale]);
   const showRegionalAdjustment =
     Boolean(quote?.regionalPricingRule) || hasMoneyAmount(quote?.regionalAdjustmentAmount);
   const showVatLine =
@@ -681,6 +717,19 @@ export default function ShopCheckoutClient({
                     setForm((current) => ({ ...current, email: event.target.value }))
                   }
                 />
+              </label>
+              <label className={styles.reminderOptIn}>
+                <input
+                  type="checkbox"
+                  name="cartReminder"
+                  checked={reminderOptIn}
+                  onChange={(event) => setReminderOptIn(event.target.checked)}
+                />
+                <span>
+                  {isUa
+                    ? "Нагадати мені на email, якщо я не завершу замовлення. Один лист, відписатися можна будь-коли."
+                    : "Remind me by email if I don't finish my order. One email; unsubscribe anytime."}
+                </span>
               </label>
               <div className={styles.fieldPair}>
                 <label className={styles.field}>

@@ -1400,19 +1400,50 @@ model ShopCustomerAddress {
 }
 
 model ShopCart {
-  id         String         @id @default(cuid())
-  token      String         @unique
+  id         String            @id @default(cuid())
+  token      String            @unique
   customerId String?
-  currency   String         @default("EUR")
-  locale     String         @default("en")
+  currency   String            @default("EUR")
+  locale     String            @default("en")
   expiresAt  DateTime
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  customer   ShopCustomer?  @relation(fields: [customerId], references: [id])
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  customer   ShopCustomer?     @relation(fields: [customerId], references: [id])
   items      ShopCartItem[]
+  /// Abandoned-cart reminder the buyer opted into at checkout (one per cart).
+  reminder   ShopCartReminder?
 
   @@index([customerId])
   @@index([expiresAt])
+}
+
+/// Opt-in from checkout: remind this email about the cart once if no order follows.
+model ShopCartReminder {
+  cartId    String    @id
+  email     String
+  firstName String?
+  locale    String    @default("ua")
+  currency  String    @default("UAH")
+  country   String?
+  /// Random secret for the email links (restore cart, unsubscribe).
+  token     String    @unique
+  consentAt DateTime
+  /// Set once the reminder is sent or skipped; outcome says which.
+  handledAt DateTime?
+  outcome   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  cart      ShopCart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@index([handledAt, consentAt])
+  @@index([email])
+}
+
+/// Addresses that unsubscribed from reminder emails; outlives the carts.
+model ShopEmailSuppression {
+  email     String   @id
+  source    String?
+  createdAt DateTime @default(now())
 }
 
 model ShopCartItem {
