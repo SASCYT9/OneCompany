@@ -193,6 +193,13 @@ function matchesLocation(ruleValues: string[], candidate?: string | null) {
   });
 }
 
+/** Countries match by name or ISO code ("Germany" = "DE"), whichever a rule was set up with. */
+function matchesCountry(ruleValues: string[], candidate?: string | null) {
+  if (matchesLocation(ruleValues, candidate)) return true;
+  const code = resolveShopCountry(candidate)?.code ?? null;
+  return code !== null && ruleValues.some((entry) => resolveShopCountry(entry)?.code === code);
+}
+
 /**
  * Regions also match across languages by subdivision code: the Ukrainian site submits
  * "Київська область", while a rule may say "Kyiv Oblast" (or "UA-32").
@@ -282,7 +289,7 @@ function resolveShippingZone(
 ) {
   const matched = settings.shippingZones.find((zone) => {
     if (!zone.enabled) return false;
-    if (!matchesLocation(zone.countries, address.country)) return false;
+    if (!matchesCountry(zone.countries, address.country)) return false;
     if (!matchesRegion(zone.regions, address)) return false;
     if (zone.minimumSubtotal != null && subtotal < zone.minimumSubtotal) return false;
     return true;
@@ -294,7 +301,7 @@ function resolveShippingZone(
 function resolveTaxRegion(settings: ShopSettingsRuntime, address: CheckoutShippingAddress) {
   const matched = settings.taxRegions.find((region) => {
     if (!region.enabled) return false;
-    if (!matchesLocation(region.countries, address.country)) return false;
+    if (!matchesCountry(region.countries, address.country)) return false;
     if (!matchesRegion(region.regions, address)) return false;
     return true;
   });
@@ -308,7 +315,7 @@ function resolveRegionalPricingRule(
 ) {
   const matched = settings.regionalPricingRules.find((rule) => {
     if (!rule.enabled) return false;
-    if (!matchesLocation(rule.countries, address.country)) return false;
+    if (!matchesCountry(rule.countries, address.country)) return false;
     if (!matchesRegion(rule.regions, address)) return false;
     return true;
   });

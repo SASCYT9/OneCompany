@@ -133,3 +133,22 @@ test("region rules match one oblast in Ukrainian or English, never every Ukraini
   assert.equal(cyrillicZone("Lviv Oblast"), "lviv");
   assert.equal(cyrillicZone("Київська область"), null);
 });
+
+test("country rules match by name or ISO code, whichever the rule uses", () => {
+  const zoneFor = (countries: string[], country: string) =>
+    buildCheckoutSettingsPreview(
+      buildShopSettingsRuntimeFromPayload({
+        defaultCurrency: "EUR",
+        enabledCurrencies: ["EUR"],
+        currencyRates: { EUR: 1, USD: 1.15, UAH: 50 },
+        shippingZones: [
+          { id: "zone", name: "Zone", countries, baseRate: 30, perItemRate: 0, currency: "EUR", enabled: true },
+        ],
+        taxRegions: [],
+      } as never),
+      { currency: "EUR", subtotal: 1000, itemCount: 1, shippingAddress: { country, city: "Berlin", line1: "Test" } }
+    ).shippingZone?.id ?? null;
+  assert.equal(zoneFor(["DE"], "Germany"), "zone");
+  assert.equal(zoneFor(["Germany"], "DE"), "zone");
+  assert.equal(zoneFor(["DE"], "Austria"), null);
+});

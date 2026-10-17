@@ -303,6 +303,12 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       assert.equal(foreignCurrency.status, 400);
       assert.equal((await foreignCurrency.json()).code, "UAH_ONLY_FOR_UKRAINE");
     }
+    // A quote that falls back to EUR (UAH disabled in settings) is refused for Ukraine too.
+    f.quote.currency = "EUR";
+    const fallback = await f.post({ ...f.body, currency: "UAH", paymentMethod: "FOP" });
+    assert.equal(fallback.status, 400);
+    assert.equal((await fallback.json()).code, "UAH_ONLY_FOR_UKRAINE");
+    f.quote.currency = "UAH";
     // "Ukraine." resolves to Ukraine, so it gets the same hryvnia and domestic rules.
     const punctuated = { ...f.body.shipping, country: "Ukraine." };
     const punctuatedEuro = await f.post({ ...f.body, currency: "EUR", paymentMethod: "FOP", shipping: punctuated });

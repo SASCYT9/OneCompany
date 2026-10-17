@@ -297,6 +297,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No valid items in cart" }, { status: 400 });
   }
 
+  // The quote falls back to the store default when the requested currency is disabled,
+  // so check what it actually bills: delivery in Ukraine stays hryvnia only.
+  if (!isShopCurrencyAllowedForCountry(country, quote.currency)) {
+    return NextResponse.json(
+      {
+        error:
+          body.locale === "ua"
+            ? "Для доставки по Україні оплата лише в гривнях."
+            : "Orders delivered in Ukraine are paid in hryvnia only.",
+        code: "UAH_ONLY_FOR_UKRAINE",
+      },
+      { status: 400 }
+    );
+  }
+
   if (quote.requiresQuote && !internationalDelivery) {
     return NextResponse.json(
       {
