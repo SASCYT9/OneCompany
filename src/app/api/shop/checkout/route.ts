@@ -126,11 +126,25 @@ export async function POST(req: NextRequest) {
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
   let monoKeyHash: string | undefined;
   let monoRequestHash: string | undefined;
-  const internationalDelivery = isInternationalDelivery(
-    typeof body.shipping?.country === "string" ? body.shipping.country : ""
-  );
+  // One canonical country for every rule below: a raw "Ukraine." or "UA" must not slip
+  // past the hryvnia and international checks, which compare exact names. It must be a
+  // country we know (the picker's "Other" included), or the region would be skipped.
+  const requestedCountry =
+    typeof body.shipping?.country === "string" ? body.shipping.country.trim() : "";
+  const resolvedCountry = resolveShopCountry(requestedCountry);
+  if (requestedCountry && !resolvedCountry) {
+    return NextResponse.json(
+      {
+        error: body.locale === "ua" ? "Оберіть країну зі списку." : "Please choose a country from the list.",
+        code: "UNKNOWN_COUNTRY",
+      },
+      { status: 400 }
+    );
+  }
+  const canonicalCountry = resolvedCountry?.value ?? "";
+  const internationalDelivery = isInternationalDelivery(canonicalCountry);
   const policyError = validateInternationalCheckout(
-    typeof body.shipping?.country === "string" ? body.shipping.country : "",
+    canonicalCountry,
     paymentMethod,
     body.internationalDeliveryConsent
   );
@@ -199,25 +213,14 @@ export async function POST(req: NextRequest) {
   const shipping = body.shipping ?? {};
   const line1 = typeof shipping.line1 === "string" ? shipping.line1.trim() : "";
   const city = typeof shipping.city === "string" ? shipping.city.trim() : "";
-  const country = typeof shipping.country === "string" ? shipping.country.trim() : "";
+  const country = canonicalCountry;
   if (!line1 || !city || !country) {
     return NextResponse.json(
       { error: "Shipping address (line1, city, country) is required" },
       { status: 400 }
     );
   }
-  const countryCode = resolveShopCountry(country)?.code ?? null;
-  // The country decides which fields are required, so it must be one we know (the
-  // picker's "Other" included); an unknown name would silently skip the region.
-  if (!countryCode) {
-    return NextResponse.json(
-      {
-        error: body.locale === "ua" ? "Оберіть країну зі списку." : "Please choose a country from the list.",
-        code: "UNKNOWN_COUNTRY",
-      },
-      { status: 400 }
-    );
-  }
+  const countryCode = resolvedCountry?.code ?? null;
   const region = typeof shipping.region === "string" ? shipping.region : "";
   const countryHasRegions = shopCountryHasRegions(countryCode);
   const missingFields = missingShopCheckoutFields({

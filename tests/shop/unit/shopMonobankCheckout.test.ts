@@ -303,6 +303,20 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       assert.equal(foreignCurrency.status, 400);
       assert.equal((await foreignCurrency.json()).code, "UAH_ONLY_FOR_UKRAINE");
     }
+    // "Ukraine." resolves to Ukraine, so it gets the same hryvnia and domestic rules.
+    const punctuated = { ...f.body.shipping, country: "Ukraine." };
+    const punctuatedEuro = await f.post({ ...f.body, currency: "EUR", paymentMethod: "FOP", shipping: punctuated });
+    assert.equal(punctuatedEuro.status, 400);
+    assert.equal((await punctuatedEuro.json()).code, "UAH_ONLY_FOR_UKRAINE");
+    const punctuatedQuote = await f.post({
+      ...f.body,
+      currency: "EUR",
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: punctuated,
+    });
+    assert.equal(punctuatedQuote.status, 400);
+    assert.equal((await punctuatedQuote.json()).error, "MANAGER_QUOTE_REQUIRES_INTERNATIONAL_DELIVERY");
     // An unknown country cannot skip the region by not being on any list, even as a
     // consented manager-quote request that passes the international checks.
     f.quote.currency = "EUR";
