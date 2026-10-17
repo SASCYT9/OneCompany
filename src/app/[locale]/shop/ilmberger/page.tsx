@@ -36,12 +36,7 @@ export default async function ShopIlmbergerPage({ params }: Props) {
     getIlmbergerProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const description =
     resolvedLocale === "ua"

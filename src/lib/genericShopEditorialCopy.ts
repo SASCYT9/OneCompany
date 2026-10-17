@@ -36,43 +36,55 @@ export type GenericShopEditorialCopy = {
 };
 
 const CATEGORY_UA_FALLBACK: Array<[RegExp, string]> = [
-  [/\b(exhaust|tailpipe|catback|cat-back|downpipe|slip[- ]on|muffler|midpipe)\b/i, 'Вихлопна система'],
+  [
+    /\b(exhaust|tailpipe|catback|cat-back|downpipe|slip[- ]on|muffler|midpipe)\b/i,
+    "Вихлопна система",
+  ],
   // EDC / electronic damping / cancellation kits ship as suspension parts even
   // though the supplier sometimes tags them as "sensors / accessories".
-  [/\b(suspension|coilover|coil[- ]over|damper|damping|shock|strut|spring|spacer|mount|bushing|edc(?:\s+cancel\w*)?|electronic\s+damp\w*)\b/i, 'Підвіска'],
-  [/\b(brake|disc|rotor|pad|caliper|hardware\s+kit|big\s+brake)\b/i, 'Гальмівна система'],
-  [/\b(radiator|intercooler|oil\s+cooler|charge\s+air|cooling)\b/i, 'Система охолодження'],
-  [/\b(intake|inlet\s+manifold|charge\s+pipe|turbo\s+inlet)\b/i, 'Впускна система'],
-  [/\b(turbocharger|turbo\s+kit|methanol|water\s+meth|nitrous|fueling|injector|fuel\s+pump)\b/i, 'Силова доробка',],
-  [/\b(chip[- ]?tuning|tuning\s+box|piggyback|ecu|map|stage\s*\d)\b/i, 'Чіп-тюнінг'],
-  [/\b(spoiler|splitter|diffuser|wing|aerokit|body\s?kit|bumper|hood|bonnet|side\s+skirt)\b/i, 'Аеродинаміка / обвіс'],
-  [/\b(wheel|rim|forged|cast)\b/i, 'Колісні диски'],
-  [/\b(intercom|harness|wiring|control\s+module|controller|switch|indicator)\b/i, 'Електроніка'],
+  [
+    /\b(suspension|coilover|coil[- ]over|damper|damping|shock|strut|spring|spacer|mount|bushing|edc(?:\s+cancel\w*)?|electronic\s+damp\w*)\b/i,
+    "Підвіска",
+  ],
+  [/\b(brake|disc|rotor|pad|caliper|hardware\s+kit|big\s+brake)\b/i, "Гальмівна система"],
+  [/\b(radiator|intercooler|oil\s+cooler|charge\s+air|cooling)\b/i, "Система охолодження"],
+  [/\b(intake|inlet\s+manifold|charge\s+pipe|turbo\s+inlet)\b/i, "Впускна система"],
+  [
+    /\b(turbocharger|turbo\s+kit|methanol|water\s+meth|nitrous|fueling|injector|fuel\s+pump)\b/i,
+    "Силова доробка",
+  ],
+  [/\b(chip[- ]?tuning|tuning\s+box|piggyback|ecu|map|stage\s*\d)\b/i, "Чіп-тюнінг"],
+  [
+    /\b(spoiler|splitter|diffuser|wing|aerokit|body\s?kit|bumper|hood|bonnet|side\s+skirt)\b/i,
+    "Аеродинаміка / обвіс",
+  ],
+  [/\b(wheel|rim|forged|cast)\b/i, "Колісні диски"],
+  [/\b(intercom|harness|wiring|control\s+module|controller|switch|indicator)\b/i, "Електроніка"],
   [/\b(seat|steering\s+wheel|gauge|pedal|shift\s+knob|interior)\b/i, "Інтер'єр"],
 ];
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function normalizeWhitespace(value: string | null | undefined): string {
-  return String(value ?? '')
-    .replace(/\s+/g, ' ')
-    .replace(/\s+([,.:;!?])/g, '$1')
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.:;!?])/g, "$1")
     .trim();
 }
 
 function stripHtml(value: string | null | undefined): string {
-  return normalizeWhitespace(String(value ?? '').replace(/<[^>]+>/g, ' '));
+  return normalizeWhitespace(String(value ?? "").replace(/<[^>]+>/g, " "));
 }
 
 function cyrillicRatio(value: string | null | undefined): number {
-  const text = String(value ?? '');
+  const text = String(value ?? "");
   const letters = text.match(/[A-Za-zА-Яа-яІіЇїЄєҐґÄÖÜßäöüçñ]/g)?.length ?? 0;
   if (!letters) return 0;
   const cyrillic = text.match(/[А-Яа-яІіЇїЄєҐґ]/g)?.length ?? 0;
@@ -85,53 +97,55 @@ export function isUaBodyEmptyOrLatin(row: {
   longDescUa?: string | null;
   shortDescUa?: string | null;
 }): boolean {
-  const stripped = stripHtml(row.bodyHtmlUa) || stripHtml(row.longDescUa) || stripHtml(row.shortDescUa);
+  const stripped =
+    stripHtml(row.bodyHtmlUa) || stripHtml(row.longDescUa) || stripHtml(row.shortDescUa);
   if (!stripped) return true;
   if (stripped.length < 40) return true;
   // Official BMC application tables contain many Latin make/model/engine
   // names. Preserve their Ukrainian copy instead of replacing the table.
   if (
-    row.brand?.trim().toUpperCase() === 'BMC' &&
+    row.brand?.trim().toUpperCase() === "BMC" &&
     /[А-Яа-яІіЇїЄєҐґ]/.test(stripped) &&
-    /https:\/\/www\.bmcairfilters\.com\//i.test(row.bodyHtmlUa ?? '')
-  ) return false;
+    /https:\/\/www\.bmcairfilters\.com\//i.test(row.bodyHtmlUa ?? "")
+  )
+    return false;
   return cyrillicRatio(stripped) < 0.4;
 }
 
 const VEHICLE_BRAND_TITLECASE: Array<[RegExp, string]> = [
-  [/MERCEDES(?:[- ]BENZ)?(?:[- ]?AMG)?/gi, 'Mercedes'],
-  [/PORSCHE/gi, 'Porsche'],
-  [/FERRARI/gi, 'Ferrari'],
-  [/TOYOTA/gi, 'Toyota'],
-  [/NISSAN/gi, 'Nissan'],
-  [/VOLKSWAGEN/gi, 'Volkswagen'],
-  [/LAMBORGHINI/gi, 'Lamborghini'],
-  [/MCLAREN/gi, 'McLaren'],
-  [/CHEVROLET/gi, 'Chevrolet'],
-  [/RENAULT/gi, 'Renault'],
-  [/AUDI/gi, 'Audi'],
-  [/HYUNDAI/gi, 'Hyundai'],
-  [/KIA/gi, 'Kia'],
-  [/HONDA/gi, 'Honda'],
-  [/MAZDA/gi, 'Mazda'],
-  [/SUBARU/gi, 'Subaru'],
-  [/MITSUBISHI/gi, 'Mitsubishi'],
-  [/FORD/gi, 'Ford'],
-  [/MINI/gi, 'Mini'],
-  [/CUPRA/gi, 'Cupra'],
+  [/MERCEDES(?:[- ]BENZ)?(?:[- ]?AMG)?/gi, "Mercedes"],
+  [/PORSCHE/gi, "Porsche"],
+  [/FERRARI/gi, "Ferrari"],
+  [/TOYOTA/gi, "Toyota"],
+  [/NISSAN/gi, "Nissan"],
+  [/VOLKSWAGEN/gi, "Volkswagen"],
+  [/LAMBORGHINI/gi, "Lamborghini"],
+  [/MCLAREN/gi, "McLaren"],
+  [/CHEVROLET/gi, "Chevrolet"],
+  [/RENAULT/gi, "Renault"],
+  [/AUDI/gi, "Audi"],
+  [/HYUNDAI/gi, "Hyundai"],
+  [/KIA/gi, "Kia"],
+  [/HONDA/gi, "Honda"],
+  [/MAZDA/gi, "Mazda"],
+  [/SUBARU/gi, "Subaru"],
+  [/MITSUBISHI/gi, "Mitsubishi"],
+  [/FORD/gi, "Ford"],
+  [/MINI/gi, "Mini"],
+  [/CUPRA/gi, "Cupra"],
 ];
 
 function buildVehiclePhrase(titleEn: string): string {
   const afterFor = titleEn.match(/\bfor\s+(.+)$/i)?.[1];
-  if (!afterFor) return '';
+  if (!afterFor) return "";
   let phrase = afterFor;
   phrase = phrase
-    .replace(/\s+\d{4}\s*[–—\-]\s*\d{4}.*$/i, '')
-    .replace(/\s+\d{4}\s*[+–—\-]\s*$/i, '')
-    .replace(/\s+\d{4}\s*onwards.*$/i, '')
-    .replace(/\s+\d{4}\s*$/i, '')
-    .replace(/\s*\((?:OPF|GPF|ECE|EC|without|with|non-)[^)]*\)\s*$/i, '')
-    .replace(/[,;]\s*$/, '')
+    .replace(/\s+\d{4}\s*[–—\-]\s*\d{4}.*$/i, "")
+    .replace(/\s+\d{4}\s*[+–—\-]\s*$/i, "")
+    .replace(/\s+\d{4}\s*onwards.*$/i, "")
+    .replace(/\s+\d{4}\s*$/i, "")
+    .replace(/\s*\((?:OPF|GPF|ECE|EC|without|with|non-)[^)]*\)\s*$/i, "")
+    .replace(/[,;]\s*$/, "")
     .trim();
   for (const [pattern, replacement] of VEHICLE_BRAND_TITLECASE) {
     phrase = phrase.replace(pattern, replacement);
@@ -148,7 +162,7 @@ const GENERIC_CATEGORY_PATTERN =
 
 function pickCategoryUa(input: GenericShopEditorialInput): string {
   const fromUa = normalizeWhitespace(input.categoryUa);
-  const haystack = `${input.categoryEn ?? ''} ${input.productType ?? ''} ${input.titleEn ?? ''}`;
+  const haystack = `${input.categoryEn ?? ""} ${input.productType ?? ""} ${input.titleEn ?? ""}`;
   // 1. If the title clearly maps to a specific domain (Suspension / Exhaust /
   //    Cooling / etc.), prefer it — it beats both "Аксесуари" generic and
   //    misleading vendor labels like "Датчики і аксесуари" for an EDC kit.
@@ -158,7 +172,7 @@ function pickCategoryUa(input: GenericShopEditorialInput): string {
   // 2. Otherwise trust the DB categoryUa unless it's a known catchall.
   if (fromUa && !GENERIC_CATEGORY_PATTERN.test(fromUa)) return fromUa;
   const fromEn = normalizeWhitespace(input.categoryEn);
-  return fromEn || 'Компонент';
+  return fromEn || "Компонент";
 }
 
 function buildShortDescription(
@@ -171,18 +185,16 @@ function buildShortDescription(
     productType &&
     !GENERIC_CATEGORY_PATTERN.test(productType) &&
     productType.toLowerCase() !== categoryUa.toLowerCase();
-  const subject = productTypeIsInformative
-    ? `${categoryUa} (${productType})`
-    : categoryUa;
-  const brandSuffix = brand ? ` ${brand}` : '';
-  const vehicleSuffix = vehicle ? ` для ${vehicle}` : '';
+  const subject = productTypeIsInformative ? `${categoryUa} (${productType})` : categoryUa;
+  const brandSuffix = brand ? ` ${brand}` : "";
+  const vehicleSuffix = vehicle ? ` для ${vehicle}` : "";
   return normalizeWhitespace(
     `${subject}${brandSuffix}${vehicleSuffix}. Конфігурація відповідає офіційному артикулу виробника.`
   );
 }
 
 const CLOSING_SENTENCE =
-  'Точна комплектація, оздоблення та сумісність визначаються офіційним артикулом виробника для конкретної платформи.';
+  "Точна комплектація, оздоблення та сумісність визначаються офіційним артикулом виробника для конкретної платформи.";
 
 export function buildGenericShopEditorialCopy(
   input: GenericShopEditorialInput
@@ -207,11 +219,11 @@ export function buildGenericShopEditorialCopy(
 
   const bodyHtmlUa = [
     `<p>${escapeHtml(shortDescUa)}</p>`,
-    bullets.length ? `<ul>${bullets.join('')}</ul>` : '',
+    bullets.length ? `<ul>${bullets.join("")}</ul>` : "",
     `<p>${escapeHtml(CLOSING_SENTENCE)}</p>`,
   ]
     .filter(Boolean)
-    .join('');
+    .join("");
 
   const longDescUa = `${shortDescUa} ${CLOSING_SENTENCE}`;
 

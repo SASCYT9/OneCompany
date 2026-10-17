@@ -311,7 +311,9 @@ export default function UrbanCollectionProductGrid({
           <div className="mt-10 flex justify-center">
             <button
               type="button"
-              onClick={() => setVisibleCount((count) => Math.min(count + pageSize, products.length))}
+              onClick={() =>
+                setVisibleCount((count) => Math.min(count + pageSize, products.length))
+              }
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-foreground/20 bg-foreground/5 px-8 text-xs font-semibold uppercase tracking-[0.15em] text-foreground transition hover:border-foreground/40 hover:bg-foreground/10 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/10"
             >
               {isUa

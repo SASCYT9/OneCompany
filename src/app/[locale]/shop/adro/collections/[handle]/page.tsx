@@ -58,12 +58,7 @@ export default async function AdroCollectionHandlePage({ params }: Props) {
     getAdroProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const collectionProducts = getProductsForAdroCollection(products, handle);
 

@@ -65,9 +65,7 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
     getUrbanProductsServer(),
     getPublicShopSettingsRuntime(),
   ]);
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord, null, false, null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
   const matchedProducts = getProductsForUrbanCollection(products, handle, card.title, card.brand);
   const collectionProducts = sortUrbanCollectionProducts(matchedProducts, viewerContext);
 
@@ -131,7 +129,15 @@ export default async function UrbanCollectionHandlePage({ params }: Props) {
           collectionImages={[]}
           products={collectionProducts}
           viewerContext={viewerContext}
-          settings={{ productsPerPage: 16, columnsDesktop: 3, columnsMobile: 1, enableFiltering: false, enableSorting: false, paddingTop: 48, paddingBottom: 64 }}
+          settings={{
+            productsPerPage: 16,
+            columnsDesktop: 3,
+            columnsMobile: 1,
+            enableFiltering: false,
+            enableSorting: false,
+            paddingTop: 48,
+            paddingBottom: 64,
+          }}
         />
       </div>
     );

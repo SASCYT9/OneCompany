@@ -61,12 +61,7 @@ export default async function BrabusCollectionHandlePage({ params }: Props) {
     getBrabusProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   const collectionProducts = getProductsForBrabusCollection(products, handle);
 

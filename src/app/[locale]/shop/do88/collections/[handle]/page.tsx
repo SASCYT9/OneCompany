@@ -8,10 +8,7 @@ import { DO88_COLLECTION_CARDS } from "../../../data/do88CollectionsList";
 import Do88CollectionProductGrid from "../../../components/Do88CollectionProductGrid";
 import Do88VehicleFilter from "../../Do88VehicleFilter";
 import Do88CategoryFilter from "../../Do88CategoryFilter";
-import {
-  findDo88ClampKitFitmentParent,
-  matchesDo88VehicleFilter,
-} from "../../do88FitmentData";
+import { findDo88ClampKitFitmentParent, matchesDo88VehicleFilter } from "../../do88FitmentData";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 
@@ -159,12 +156,7 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
     getDo88ProductsServer(),
   ]);
 
-  const viewerContext = buildShopViewerPricingContext(
-    settingsRecord,
-    null,
-    false,
-    null
-  );
+  const viewerContext = buildShopViewerPricingContext(settingsRecord, null, false, null);
 
   let collectionProducts = getProductsForDo88Collection(products, handle, card.title);
 
@@ -191,11 +183,11 @@ export default async function Do88CollectionHandlePage({ params, searchParams }:
         fitmentTitleUa = clampParent.title?.ua ?? "";
       }
 
-      return matchesDo88VehicleFilter(
-        fitmentCategory,
-        `${fitmentTitleEn} ${fitmentTitleUa}`,
-        { make: brand, model, chassis }
-      );
+      return matchesDo88VehicleFilter(fitmentCategory, `${fitmentTitleEn} ${fitmentTitleUa}`, {
+        make: brand,
+        model,
+        chassis,
+      });
     });
   }
 

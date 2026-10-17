@@ -22,7 +22,12 @@ import {
   type Fitment,
 } from "@/lib/crossShopFitment";
 import { prisma } from "@/lib/prisma";
-import { isExactWheelForceSkuSearch, isWheelForceWheel, wheelForceSetMoney, WHEELFORCE_FAMILY_CHILD_TAG } from "@/lib/wheelforceFamily";
+import {
+  isExactWheelForceSkuSearch,
+  isWheelForceWheel,
+  wheelForceSetMoney,
+  WHEELFORCE_FAMILY_CHILD_TAG,
+} from "@/lib/wheelforceFamily";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { type ShopCurrencyCode } from "@/lib/shopAdminSettings";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
@@ -689,9 +694,7 @@ function buildFilterStats(
       label,
       count,
       key: categoryKeys.get(label),
-    })).sort(
-      byCountThenLabel
-    ),
+    })).sort(byCountThenLabel),
     stock: {
       all: productsWithFitments.length,
       inStock,
@@ -1039,12 +1042,12 @@ export async function searchShopStock(request: { url: string }) {
     const hasBrandFilter = brandNames.length > 0;
     const hasVehicleConstraints = Boolean(
       make ||
-      model ||
-      chassis ||
-      requestedYear ||
-      requestedEngine ||
-      requestedFuel ||
-      requestedOpfGpf
+        model ||
+        chassis ||
+        requestedYear ||
+        requestedEngine ||
+        requestedFuel ||
+        requestedOpfGpf
     );
     const queryVehiclePlan = buildShopCatalogVehicleSearchPlan(searchParams, {
       readerMode: "legacy",
@@ -1070,16 +1073,16 @@ export async function searchShopStock(request: { url: string }) {
       .filter(Boolean);
     const shadowUnsupported = Boolean(
       page !== 1 ||
-      all ||
-      sort !== "default" ||
-      stock !== "all" ||
-      productType ||
-      (productKind && productKind !== "any") ||
-      strictCatalogApplied ||
-      minPrice !== null ||
-      maxPrice !== null ||
-      requestedOpfGpf ||
-      rawBrands.length > 1
+        all ||
+        sort !== "default" ||
+        stock !== "all" ||
+        productType ||
+        (productKind && productKind !== "any") ||
+        strictCatalogApplied ||
+        minPrice !== null ||
+        maxPrice !== null ||
+        requestedOpfGpf ||
+        rawBrands.length > 1
     );
     const shadowStartedAt = Date.now();
     const shadowPromise = shadowUnsupported
@@ -1103,15 +1106,15 @@ export async function searchShopStock(request: { url: string }) {
         }).catch((error: unknown) => ({ error }) as const);
     const useCompactBrowseCatalog = Boolean(
       !isLocalStorefrontMode() &&
-      !q &&
-      !category &&
-      !productType &&
-      (!productKind || productKind === "any") &&
-      !hasBrandFilter &&
-      !hasVehicleConstraints &&
-      !strictCatalogApplied &&
-      !all &&
-      searchParams.get("carousel") !== "1"
+        !q &&
+        !category &&
+        !productType &&
+        (!productKind || productKind === "any") &&
+        !hasBrandFilter &&
+        !hasVehicleConstraints &&
+        !strictCatalogApplied &&
+        !all &&
+        searchParams.get("carousel") !== "1"
     );
 
     const [settings, session, vehicleProductResolution, strictCatalogResolution] =
@@ -1126,15 +1129,15 @@ export async function searchShopStock(request: { url: string }) {
               modelAlternates: queryVehiclePlan.modelAlternates,
             })
           : resolveCanonicalVehicleProductIds({
-          make: resolvedVehicleMake,
-          model: resolvedVehicleModel,
-          chassis: resolvedVehicleChassis,
-          year: resolvedVehicleYear,
-          engine: requestedEngine,
-          fuel: requestedFuel,
-          opfGpf: requestedOpfGpf,
-          scope: vehicleScope,
-        }),
+              make: resolvedVehicleMake,
+              model: resolvedVehicleModel,
+              chassis: resolvedVehicleChassis,
+              year: resolvedVehicleYear,
+              engine: requestedEngine,
+              fuel: requestedFuel,
+              opfGpf: requestedOpfGpf,
+              scope: vehicleScope,
+            }),
         strictCatalogPromise,
       ]);
     // The legacy reader also reports which ids match the exact selection;
@@ -1615,8 +1618,8 @@ export async function searchShopStock(request: { url: string }) {
     }
 
     if (!isExactWheelForceSkuSearch(q)) {
-      scoredItems = scoredItems.filter((item) =>
-        !(item.product.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG)
+      scoredItems = scoredItems.filter(
+        (item) => !(item.product.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG)
       );
     }
     if (vehicleExactIds && sort === "default" && !strictCatalogEffective) {
@@ -1699,7 +1702,9 @@ export async function searchShopStock(request: { url: string }) {
           ? expandShopPrices(pricing.effectiveCompareAt, settings.currencyRates)
           : null;
         const expandedEffectiveCompareAtSet = unitEffectiveCompareAtSet
-          ? isWheelForceWheel(product) ? wheelForceSetMoney(unitEffectiveCompareAtSet) : unitEffectiveCompareAtSet
+          ? isWheelForceWheel(product)
+            ? wheelForceSetMoney(unitEffectiveCompareAtSet)
+            : unitEffectiveCompareAtSet
           : null;
         const effectiveCompareAtSet = hasAnyShopMoney(expandedEffectiveCompareAtSet)
           ? expandedEffectiveCompareAtSet
@@ -1709,7 +1714,9 @@ export async function searchShopStock(request: { url: string }) {
           ? expandShopPrices(pricing.bands.b2c.price, settings.currencyRates)
           : null;
         const expandedB2cPriceSet = unitB2cPriceSet
-          ? isWheelForceWheel(product) ? wheelForceSetMoney(unitB2cPriceSet) : unitB2cPriceSet
+          ? isWheelForceWheel(product)
+            ? wheelForceSetMoney(unitB2cPriceSet)
+            : unitB2cPriceSet
           : null;
         const b2cCompareAtFallback = hasAnyShopMoney(expandedB2cPriceSet)
           ? expandedB2cPriceSet
@@ -1790,9 +1797,10 @@ export async function searchShopStock(request: { url: string }) {
           originalPriceSet: compareAtPriceSet,
           markupPct: pricing.discountPercent || 0,
           slug: product.slug,
-          href: isExactWheelForceSkuSearch(q) && product.brand.toLowerCase() === "wheelforce"
-            ? `${buildShopStorefrontProductPathForProduct(locale, product)}?variantSku=${encodeURIComponent(q.trim())}`
-            : buildShopStorefrontProductPathForProduct(locale, product),
+          href:
+            isExactWheelForceSkuSearch(q) && product.brand.toLowerCase() === "wheelforce"
+              ? `${buildShopStorefrontProductPathForProduct(locale, product)}?variantSku=${encodeURIComponent(q.trim())}`
+              : buildShopStorefrontProductPathForProduct(locale, product),
           variantId: strictCatalogMatch?.variantId || defaultVariant?.id || null,
           source: "local" as const,
           ...(strictCatalogMatch
@@ -1872,7 +1880,9 @@ export async function searchShopStock(request: { url: string }) {
       fallbackApplied === null;
     // Editor labels/order/visibility for product groups; the cached stats stay untouched.
     const groupSettings = await loadShopCategoryGroupSettings();
-    const withGroupSettings = <S extends { categories: Array<{ key?: string; label: string; count: number }> }>(
+    const withGroupSettings = <
+      S extends { categories: Array<{ key?: string; label: string; count: number }> },
+    >(
       stats: S
     ): S => ({
       ...stats,
