@@ -83,6 +83,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   const trackedRef = useRef(false);
   const isUa = locale === "ua";
   const showRegionalAdjustment = Boolean(order && hasMoneyAmount(order.regionalAdjustmentAmount));
+  // International orders get their shipping price from a manager after checkout.
+  const shippingAwaitsAgreement = Boolean(
+    order && order.paymentMethod === "MANAGER_QUOTE" && !hasMoneyAmount(order.shippingCost)
+  );
   const showVatLine = Boolean(
     order &&
     !order.landedCost &&
@@ -342,7 +346,11 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               ) : null}
               <p>
                 {isUa ? "Доставка" : "Shipping"}:{" "}
-                {formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
+                {shippingAwaitsAgreement
+                  ? isUa
+                    ? "буде узгоджена з менеджером"
+                    : "to be agreed with a manager"
+                  : formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
               </p>
               {order.landedCost ? (
                 <div className="mt-3 rounded-xl border border-primary/15 bg-primary/5 px-3 py-3 text-xs">
@@ -401,7 +409,14 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               ) : null}
             </div>
             <p className="mt-4 font-medium text-foreground">
-              {isUa ? "Разом" : "Total"}:{" "}
+              {shippingAwaitsAgreement
+                ? isUa
+                  ? "Разом без доставки"
+                  : "Total before shipping"
+                : isUa
+                  ? "Разом"
+                  : "Total"}
+              :{" "}
               {formatShopMoney(locale, order.total, order.currency as ShopCurrencyCode)}
             </p>
           </div>

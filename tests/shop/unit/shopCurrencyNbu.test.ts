@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildShopCurrencyRatesFromNbu } from "../../../src/lib/shopCurrencyNbu";
-import { defaultCurrencyForShopCountry } from "../../../src/lib/shopCountryCurrency";
+import {
+  defaultCurrencyForShopCountry,
+  isShopCurrencyAllowedForCountry,
+} from "../../../src/lib/shopCountryCurrency";
 import { expandShopPrices } from "../../../src/lib/shopPriceConversion";
 
 test("preserve raw NBU evidence and derive the sale cross from both one-hryvnia reserves", () => {
@@ -31,4 +34,12 @@ test("initial currency follows the chosen country", () => {
   assert.equal(defaultCurrencyForShopCountry("Ukraine"), "UAH");
   assert.equal(defaultCurrencyForShopCountry("Germany"), "EUR");
   assert.equal(defaultCurrencyForShopCountry("United States"), "USD");
+});
+
+test("Ukraine can only use hryvnia; other countries choose freely", () => {
+  assert.equal(isShopCurrencyAllowedForCountry("Ukraine", "UAH"), true);
+  assert.equal(isShopCurrencyAllowedForCountry("Ukraine", "EUR"), false);
+  assert.equal(isShopCurrencyAllowedForCountry("Україна", "USD"), false);
+  assert.equal(isShopCurrencyAllowedForCountry("Germany", "USD"), true);
+  assert.equal(isShopCurrencyAllowedForCountry("United States", "UAH"), true);
 });

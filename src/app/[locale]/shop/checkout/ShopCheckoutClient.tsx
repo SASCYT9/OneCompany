@@ -2,6 +2,9 @@
 
 import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 import { isInternationalDelivery } from "@/lib/shopInternationalCheckout";
+import { isUkraineCountry } from "@/lib/revozportShipping";
+import { resolveShopCountry } from "@/lib/shopCountries";
+import { shopCountryUsesPostcode } from "@/lib/shopCheckoutAddress";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -212,6 +215,30 @@ export default function ShopCheckoutClient({
     paymentMethod: "FOP" as "FOP" | "WHITEBIT" | "WHITEPAY_FIAT" | "MONOBANK",
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
+  const countryCode = resolveShopCountry(form.country)?.code ?? null;
+  // Per country: the region list, null when it could not load (free text then).
+  const [regionLists, setRegionLists] = useState<
+    Record<string, Array<{ code: string; name: string }> | null>
+  >({});
+  const regionListKey = countryCode ? `${countryCode}:${locale}` : null;
+  const regionOptions = regionListKey ? regionLists[regionListKey] : [];
+  const postcodeRequired = shopCountryUsesPostcode(countryCode);
+
+  useEffect(() => {
+    if (!countryCode || !regionListKey || regionListKey in regionLists) return;
+    let cancelled = false;
+    fetch(`/api/shop/regions?country=${countryCode}&locale=${locale}`)
+      .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+      .then((data: { regions?: Array<{ code: string; name: string }> }) => {
+        if (!cancelled) setRegionLists((lists) => ({ ...lists, [regionListKey]: data.regions ?? [] }));
+      })
+      .catch(() => {
+        if (!cancelled) setRegionLists((lists) => ({ ...lists, [regionListKey]: null }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [countryCode, locale, regionListKey, regionLists]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [previewMessage, setPreviewMessage] = useState("");
   const previewCartItems = imagePreview ? imageFormatPreviewItems : previewItems;
@@ -219,7 +246,11 @@ export default function ShopCheckoutClient({
   useEffect(() => {
     setForm((current) => {
       const nextCountry = selectedShopCountry || current.country;
-      const nextCurrency = selectedShopCurrency || current.currency;
+      // Orders delivered in Ukraine are settled in hryvnia only; EUR/USD stay
+      // available elsewhere on the site for comparison.
+      const nextCurrency = isUkraineCountry(nextCountry)
+        ? "UAH"
+        : selectedShopCurrency || current.currency;
       if (current.country === nextCountry && current.currency === nextCurrency) {
         return current;
       }
@@ -555,6 +586,8 @@ export default function ShopCheckoutClient({
     quoteLoading ||
     !quote ||
     Boolean(quoteError) ||
+    // The region list decides whether the region is required; wait for it.
+    regionOptions === undefined ||
     (!internationalDelivery && quote.requiresQuote === true) ||
     (internationalDelivery && !internationalConsent) ||
     (!internationalDelivery && form.paymentMethod === "MONOBANK" && quote.currency !== "UAH");
@@ -660,6 +693,7 @@ export default function ShopCheckoutClient({
                   <input
                     name="lastName"
                     autoComplete="family-name"
+                    required
                     value={form.lastName}
                     onChange={(event) =>
                       setForm((current) => ({ ...current, lastName: event.target.value }))
@@ -673,6 +707,7 @@ export default function ShopCheckoutClient({
                   name="phone"
                   type="tel"
                   autoComplete="tel"
+                  required
                   placeholder="+380"
                   value={form.phone}
                   onChange={(event) =>
@@ -697,7 +732,10 @@ export default function ShopCheckoutClient({
                     buttonClassName={styles.countryButton}
                     ariaLabel={isUa ? "Країна" : "Country"}
                     onChange={(country) => {
-                      setForm((current) => ({ ...current, country }));
+                      // A region belongs to its country; another country needs a new one.
+                      setForm((current) =>
+                        current.country === country ? current : { ...current, country, region: "" }
+                      );
                       setSelectedShopCountry(country);
                     }}
                   />
@@ -732,49 +770,83 @@ export default function ShopCheckoutClient({
                   }
                 />
               </label>
-              <details className={styles.optional}>
-                <summary>
-                  <ChevronDown size={14} aria-hidden="true" />
-                  {isUa ? "Квартира, область, індекс" : "Apartment, region, postal code"}
-                </summary>
-                <div className={styles.fields}>
-                  <label className={styles.field}>
-                    <span>{isUa ? "Квартира / офіс" : "Apartment / suite"}</span>
-                    <input
-                      name="line2"
-                      autoComplete="address-line2"
-                      value={form.line2}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, line2: event.target.value }))
-                      }
-                    />
-                  </label>
-                  <div className={styles.fieldPair}>
+              <label className={styles.field}>
+                <span>{isUa ? "Квартира / офіс" : "Apartment / suite"}</span>
+                <input
+                  name="line2"
+                  autoComplete="address-line2"
+                  required
+                  value={form.line2}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, line2: event.target.value }))
+                  }
+                />
+              </label>
+              {regionOptions?.length !== 0 || postcodeRequired ? (
+                <div className={styles.fieldPair}>
+                  {regionOptions === undefined ? (
+                    <label className={styles.field}>
+                      <span>{isUa ? "Область / регіон" : "State / region"}</span>
+                      <select name="region" disabled value="">
+                        <option value="">{isUa ? "Завантаження…" : "Loading…"}</option>
+                      </select>
+                    </label>
+                  ) : regionOptions === null ? (
                     <label className={styles.field}>
                       <span>{isUa ? "Область / регіон" : "State / region"}</span>
                       <input
                         name="region"
                         autoComplete="address-level1"
+                        required
                         value={form.region}
                         onChange={(event) =>
                           setForm((current) => ({ ...current, region: event.target.value }))
                         }
                       />
                     </label>
+                  ) : regionOptions.length > 0 ? (
+                    <label className={styles.field}>
+                      <span>{isUa ? "Область / регіон" : "State / region"}</span>
+                      <select
+                        name="region"
+                        autoComplete="address-level1"
+                        required
+                        value={form.region}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, region: event.target.value }))
+                        }
+                      >
+                        <option value="" disabled>
+                          {isUa ? "Оберіть" : "Select"}
+                        </option>
+                        {form.region && !regionOptions.some((r) => r.name === form.region) ? (
+                          // A saved address may name its region in its own words.
+                          <option value={form.region}>{form.region}</option>
+                        ) : null}
+                        {regionOptions.map((region) => (
+                          <option key={region.code} value={region.name}>
+                            {region.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : null}
+                  {postcodeRequired ? (
                     <label className={styles.field}>
                       <span>{isUa ? "Поштовий індекс" : "Postal code"}</span>
                       <input
                         name="postcode"
                         autoComplete="postal-code"
+                        required
                         value={form.postcode}
                         onChange={(event) =>
                           setForm((current) => ({ ...current, postcode: event.target.value }))
                         }
                       />
                     </label>
-                  </div>
+                  ) : null}
                 </div>
-              </details>
+              ) : null}
             </div>
           </section>
 
@@ -1045,8 +1117,12 @@ export default function ShopCheckoutClient({
                   }}
                 >
                   <option value="UAH">UAH</option>
-                  <option value="EUR">EUR</option>
-                  <option value="USD">USD</option>
+                  {internationalDelivery ? (
+                    <>
+                      <option value="EUR">EUR</option>
+                      <option value="USD">USD</option>
+                    </>
+                  ) : null}
                 </select>
               </div>
               <ul className={styles.items}>

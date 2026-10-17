@@ -6,7 +6,11 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { DEFAULT_CURRENCY_RATES, type ShopCurrencyCode } from "@/lib/shopCurrencyDefaults";
 import { resolveShopCountry } from "@/lib/shopCountries";
 import { isEuropePricingCountry } from "@/lib/shopEuropePricing";
-import { defaultCurrencyForShopCountry } from "@/lib/shopCountryCurrency";
+import {
+  defaultCurrencyForShopCountry,
+  isShopCurrencyAllowedForCountry,
+} from "@/lib/shopCountryCurrency";
+import { isUkraineCountry } from "@/lib/revozportShipping";
 
 type CurrencyCode = ShopCurrencyCode;
 export type ShopRegionCode = "UA" | "EU" | "US";
@@ -169,9 +173,12 @@ export function ShopCurrencyProvider({
         currency?: CurrencyCode;
         currencyExplicit?: boolean;
       };
-      const nextCurrency = normalizeCurrency(parsed.currency, normalizedDefaultCurrency);
-      const nextRegion = normalizeRegion(parsed.region, currencyToRegion(nextCurrency));
+      const storedCurrency = normalizeCurrency(parsed.currency, normalizedDefaultCurrency);
+      const nextRegion = normalizeRegion(parsed.region, currencyToRegion(storedCurrency));
       const nextCountry = normalizeCountry(parsed.country, defaultCountryForRegion(nextRegion));
+      const nextCurrency = isShopCurrencyAllowedForCountry(nextCountry, storedCurrency)
+        ? storedCurrency
+        : "UAH";
       setRegionState(nextRegion);
       setCountryState(nextCountry);
       setCurrencyState(nextCurrency);
@@ -236,12 +243,13 @@ export function ShopCurrencyProvider({
 
   const setRegion = useCallback(
     (next: ShopRegionCode) => {
+      const nextCountry = defaultCountryForRegion(next);
       setRegionState(next);
-      setCountryState(defaultCountryForRegion(next));
-      if (!hasExplicitCurrency)
-        setCurrencyState(defaultCurrencyForShopCountry(defaultCountryForRegion(next)));
+      setCountryState(nextCountry);
+      if (!hasExplicitCurrency || !isShopCurrencyAllowedForCountry(nextCountry, currency))
+        setCurrencyState(defaultCurrencyForShopCountry(nextCountry));
     },
-    [hasExplicitCurrency]
+    [currency, hasExplicitCurrency]
   );
 
   const setCountry = useCallback(
@@ -249,15 +257,26 @@ export function ShopCurrencyProvider({
       const normalized = normalizeCountry(next, country);
       setCountryState(normalized);
       setRegionState(countryToRegion(normalized));
-      if (!hasExplicitCurrency) setCurrencyState(defaultCurrencyForShopCountry(normalized));
+      // Ukraine forces hryvnia, so leaving it restores the new country's currency.
+      if (
+        !hasExplicitCurrency ||
+        !isShopCurrencyAllowedForCountry(normalized, currency) ||
+        (isUkraineCountry(country) && !isUkraineCountry(normalized))
+      )
+        setCurrencyState(defaultCurrencyForShopCountry(normalized));
     },
-    [country, hasExplicitCurrency]
+    [country, currency, hasExplicitCurrency]
   );
 
-  const setCurrency = useCallback((next: CurrencyCode) => {
-    setCurrencyState(next);
-    setHasExplicitCurrency(true);
-  }, []);
+  const setCurrency = useCallback(
+    (next: CurrencyCode) => {
+      // URL, account preference or a stale button cannot pick EUR/USD in Ukraine.
+      if (!isShopCurrencyAllowedForCountry(country, next)) return;
+      setCurrencyState(next);
+      setHasExplicitCurrency(true);
+    },
+    [country]
+  );
 
   return (
     <ShopCurrencyContext.Provider

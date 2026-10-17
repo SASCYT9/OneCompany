@@ -152,8 +152,15 @@ async function fixture() {
   );
   const body: CheckoutFixtureBody = {
     items: [{ slug: "test", quantity: 2 }],
-    contact: { name: "Buyer", email: "qa@example.invalid" },
-    shipping: { line1: "Test", city: "Kyiv", country: "Ukraine" },
+    contact: { name: "Buyer", email: "qa@example.invalid", phone: "+380670000001" },
+    shipping: {
+      line1: "Test",
+      line2: "Flat 1",
+      city: "Kyiv",
+      region: "Київ",
+      postcode: "01001",
+      country: "Ukraine",
+    },
     currency: "UAH",
     locale: "ua",
     paymentMethod: "MONOBANK",
@@ -261,6 +268,28 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     });
     assert.equal(order.currency, "UAH");
     assert.equal(order.paymentMethod, "MONOBANK");
+  });
+
+  await t.test("every contact and delivery field is required before an order exists", async () => {
+    const f = await fixture();
+    const response = await f.post({
+      ...f.body,
+      contact: { name: "Buyer", email: "qa@example.invalid" },
+      shipping: { line1: "Test", city: "Kyiv", country: "Ukraine" },
+    });
+    assert.equal(response.status, 400);
+    const result = await response.json();
+    assert.deepEqual(result.missingFields, ["phone", "line2", "region", "postcode"]);
+    assert.equal(f.orders.length, 0);
+    assert.deepEqual(f.counts(), { notifications: 0, cartClears: 0 });
+    // Hong Kong has no postcodes, so the field is not demanded there.
+    const hongKong = await f.post({
+      ...f.body,
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: { line1: "Test", line2: "Flat 1", city: "Central", country: "HK" },
+    });
+    assert.equal((await hongKong.json()).missingFields, undefined);
   });
 
   await t.test("changed totals, non-UAH quotes and manual quotes never create orders", async () => {

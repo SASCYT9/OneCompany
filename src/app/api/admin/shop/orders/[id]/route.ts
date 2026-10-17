@@ -265,13 +265,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             DELIVERED: `Замовлення ${fullOrder.orderNumber} доставлено ✅`,
           };
 
-          await resend.emails.send({
+          const { error: sendError } = await resend.emails.send({
             from: `One Company <${process.env.EMAIL_FROM}>`,
             to: [fullOrder.email],
             subject:
               subjectMap[updateData.status] || `Оновлення замовлення ${fullOrder.orderNumber}`,
             html: emailHtml,
           });
+          if (sendError) throw new Error(`${sendError.name}: ${sendError.message}`);
           console.log(`[Order ${fullOrder.orderNumber}] Status email sent: ${updateData.status}`);
         }
       } catch (emailErr) {

@@ -36,6 +36,9 @@ import {
   validateInternationalCheckout,
   INTERNATIONAL_DELIVERY_CONSENT_VERSION,
 } from "@/lib/shopInternationalCheckout";
+import { resolveShopCountry } from "@/lib/shopCountries";
+import { missingShopCheckoutFields } from "@/lib/shopCheckoutAddress";
+import { shopCountryHasRegions } from "@/lib/shopCountryRegions.server";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 
@@ -195,6 +198,27 @@ export async function POST(req: NextRequest) {
   if (!line1 || !city || !country) {
     return NextResponse.json(
       { error: "Shipping address (line1, city, country) is required" },
+      { status: 400 }
+    );
+  }
+  const countryCode = resolveShopCountry(country)?.code ?? null;
+  const missingFields = missingShopCheckoutFields({
+    phone: typeof body.contact?.phone === "string" ? body.contact.phone : "",
+    line2: typeof shipping.line2 === "string" ? shipping.line2 : "",
+    region: typeof shipping.region === "string" ? shipping.region : "",
+    postcode: typeof shipping.postcode === "string" ? shipping.postcode : "",
+    countryCode,
+    countryHasRegions: shopCountryHasRegions(countryCode),
+  });
+  if (missingFields.length) {
+    return NextResponse.json(
+      {
+        error:
+          body.locale === "ua"
+            ? "Заповніть усі поля контактів і доставки."
+            : "Please fill in every contact and delivery field.",
+        missingFields,
+      },
       { status: 400 }
     );
   }
@@ -512,15 +536,30 @@ export async function POST(req: NextRequest) {
           items: quote.items.map((i) => ({ title: i.title, quantity: i.quantity, total: i.total })),
         })
       );
-      await resend.emails.send({
+      // Resend reports rejections (bad key, unverified sender) in `error`, not by throwing.
+      const { error: sendError } = await resend.emails.send({
         from: `One Company Shop <${process.env.EMAIL_FROM}>`,
         to: [email],
         subject:
           locale === "ua" ? `Замовлення ${orderNumber} прийнято` : `Order ${orderNumber} confirmed`,
         html: emailHtml,
       });
+      if (sendError) throw new Error(`${sendError.name}: ${sendError.message}`);
     } catch (err) {
       console.error("Order confirmation email failed (order already created):", err);
+      // Managers see in the order history that the buyer got no confirmation.
+      await prisma.shopOrderStatusEvent
+        .create({
+          data: {
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: order.status,
+            actorType: "system",
+            actorName: "email",
+            note: `Лист-підтвердження клієнту не надіслано: ${err instanceof Error ? err.message : "невідома помилка"}`.slice(0, 500),
+          },
+        })
+        .catch(() => {});
     }
   }
 
