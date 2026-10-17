@@ -14,7 +14,8 @@ import {
   resolveMonobankStatusUpdate,
   verifyMonobankSignature,
 } from "../../../src/lib/shopMonobank";
-import { applyMonobankStatus } from "../../../src/lib/shopMonobankPayments";
+import { applyMonobankStatus, prepareMonobankPayment } from "../../../src/lib/shopMonobankPayments";
+import { adminMonobankBlockReason } from "../../../src/lib/shopMonobankEligibility";
 
 const order = {
   orderNumber: "OC-TEST-1",
@@ -265,6 +266,59 @@ test("a settled euro invoice is logged in the order history in euros", async () 
   const prisma = { $transaction: async (run: (client: typeof tx) => unknown) => run(tx) };
   assert.equal(await applyMonobankStatus(prisma as never, { ...event, ccy: 978 }), true);
   assert.deepEqual(notes, ["mono: success; payment: PAID; amount: 253.45 EUR"]);
+});
+
+test("Ukraine is billed in hryvnia only, even after the delivery country changes", async (t) => {
+  const state = {
+    status: "PENDING_PAYMENT",
+    paymentStatus: "PENDING",
+    paymentMethod: "MONOBANK",
+    amountPaid: 0,
+    isDraft: false,
+    monobankPayment: {},
+  };
+  assert.equal(adminMonobankBlockReason({ ...state, currency: "EUR", shippingAddress: { country: "Germany" } }), null);
+  assert.equal(adminMonobankBlockReason({ ...state, currency: "UAH", shippingAddress: { country: "Ukraine" } }), null);
+  for (const shippingAddress of [{ country: "Ukraine" }, { country: "UA" }, {}])
+    assert.equal(
+      adminMonobankBlockReason({ ...state, currency: "EUR", shippingAddress }),
+      "MONOBANK_REQUIRES_UAH_QUOTE"
+    );
+
+  // The buyer cannot reopen a live EUR link once the manager moved delivery to Ukraine.
+  const saved = { ...process.env };
+  t.after(() => {
+    process.env = saved;
+  });
+  process.env.MONOBANK_ENABLED = "1";
+  process.env.MONOBANK_TOKEN = "synthetic-test-token";
+  process.env.MONOBANK_PUBLIC_URL = "https://preview.example.com";
+  const euroLink = (country: string) => ({
+    shopMonobankPayment: {
+      findUnique: async () => ({
+        ...payment,
+        ccy: 978,
+        pageUrl: "https://pay.mbnk.biz/test-invoice",
+        expiresAt: null,
+        order: {
+          ...storedOrder,
+          currency: "EUR",
+          status: "PENDING_PAYMENT",
+          amountPaid: 0,
+          isDraft: false,
+          shippingAddress: { country },
+        },
+      }),
+    },
+  });
+  assert.equal(
+    await prepareMonobankPayment(euroLink("Germany") as never, "order-eur", "en"),
+    "https://pay.mbnk.biz/test-invoice"
+  );
+  await assert.rejects(
+    prepareMonobankPayment(euroLink("Ukraine") as never, "order-eur", "en"),
+    /MONOBANK_ORDER_NOT_PAYABLE/
+  );
 });
 
 test("only exact successful debit settlement marks the order paid", () => {

@@ -747,6 +747,11 @@ export default function AdminOrderDetailPage() {
           <div className="border-l-2 border-amber-400 bg-amber-400/[0.06] px-3 py-2 text-xs text-amber-100 sm:col-span-2">
             Є незавершена оплата через Stripe. Спершу звірте її в кабінеті Stripe.
           </div>
+        ) : monoBlockReason === "MONOBANK_REQUIRES_UAH_QUOTE" ? (
+          <div className="border-l-2 border-amber-400 bg-amber-400/[0.06] px-3 py-2 text-xs text-amber-100 sm:col-span-2">
+            Доставка в Україну оплачується лише в гривні, а сума замовлення в {order!.currency}.
+            Посилання mono недоступне, доки сума не в гривні.
+          </div>
         ) : null}
         {!canReplace ? (
           <button

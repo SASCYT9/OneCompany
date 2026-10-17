@@ -1,5 +1,5 @@
 import type { PrismaClient, ShopMonobankPayment } from "@prisma/client";
-import { adminMonobankBlockReason } from "./shopMonobankEligibility";
+import { adminMonobankBlockReason, monobankCurrencyBlockReason } from "./shopMonobankEligibility";
 import {
   buildMonobankInvoice,
   createMonobankInvoice,
@@ -48,6 +48,8 @@ export async function prepareMonobankPayment(
     order.paymentMethod !== "MONOBANK" ||
     order.isDraft ||
     monobankIsoCode(order.currency) !== payment.ccy ||
+    // A EUR/USD link stops working for the buyer once delivery moves to Ukraine.
+    monobankCurrencyBlockReason(order) !== null ||
     monobankMinorUnits(order.total) !== payment.amount ||
     order.amountPaid > 0 ||
     ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order.paymentStatus) ||

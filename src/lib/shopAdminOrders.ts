@@ -4,6 +4,7 @@ import { orderItemSnapshotDetails } from "@/lib/shopOrderPresentation";
 import {
   adminMonobankBlockReason,
   adminMonobankCanReplaceProvider,
+  monobankCurrencyBlockReason,
 } from "./shopMonobankEligibility";
 import { reusableMonobankLink } from "./shopMonobankPayments";
 import { isOrderTransitionAllowed, ORDER_STATUS_TRANSITIONS } from "./admin/orderWorkflow";
@@ -187,6 +188,8 @@ export function serializeAdminOrder(record: AdminShopOrderRecord) {
     // The current open link is shown from the database, so it stays available even
     // while Mono itself is slow to answer.
     monobankLink: (() => {
+      // A EUR/USD link is withdrawn once delivery moves to Ukraine (hryvnia only).
+      if (monobankCurrencyBlockReason(record)) return null;
       const url = reusableMonobankLink(record.monobankPayment);
       return url
         ? { url, expiresAt: record.monobankPayment?.expiresAt?.toISOString() ?? null }

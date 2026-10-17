@@ -220,6 +220,8 @@ test("admin emails the open mono link in the buyer's language and records it", a
     { amountPaid: 100 },
     { status: "CANCELLED" },
     { paymentMethod: "FOP" },
+    // A EUR/USD link is never emailed for delivery in Ukraine.
+    { currency: "EUR" },
   ]) {
     const refused = await (order = { ...base, ...patch }, call());
     assert.equal(refused.status, 409);
