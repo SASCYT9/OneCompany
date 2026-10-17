@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "scripts",
+    "src/scripts",
+    "temp_pgsql",
+    "temp-skills",
+    "archive",
+    "**/*.figma.tsx",
+    "tmp",
+    "scratch",
+    "tests",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}
