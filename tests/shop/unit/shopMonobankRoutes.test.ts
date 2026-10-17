@@ -152,7 +152,18 @@ test("admin emails the open mono link in the buyer's language and records it", a
   const sent: Array<{ to: string[]; subject: string }> = [];
   const events: Array<{ note: string }> = [];
   let sendError: { name: string; message: string } | null = null;
+  let historyDown = false;
   let order: Record<string, unknown> | null = null;
+  const db: Record<string, unknown> = {
+    shopOrder: { findUnique: async () => order },
+    shopOrderStatusEvent: {
+      create: async ({ data }: { data: { note: string } }) => {
+        if (historyDown) throw new Error("database unavailable");
+        events.push(data);
+      },
+    },
+  };
+  db.$transaction = async (callback: (tx: unknown) => Promise<unknown>) => callback(db);
   const post = await route("src/app/api/admin/shop/orders/[id]/monobank/email/route.ts", {
     "next/headers": { cookies: async () => ({}) },
     "@/lib/adminAuth": { assertAdminRequest: async () => ({ name: "Manager", email: "m@x" }) },
@@ -160,14 +171,7 @@ test("admin emails the open mono link in the buyer's language and records it", a
       ADMIN_PERMISSIONS: { SHOP_ORDERS_WRITE: "shop.orders.write" },
       writeAdminAuditLog: async () => {},
     },
-    "@/lib/prisma": {
-      prisma: {
-        shopOrder: { findUnique: async () => order },
-        shopOrderStatusEvent: {
-          create: async ({ data }: { data: { note: string } }) => events.push(data),
-        },
-      },
-    },
+    "@/lib/prisma": { prisma: db },
     "@/lib/shopMonobankPayments": {
       reusableMonobankLink: (payment: { pageUrl?: string } | null) => payment?.pageUrl ?? null,
     },
@@ -194,6 +198,10 @@ test("admin emails the open mono link in the buyer's language and records it", a
     email: "buyer@example.invalid",
     customerName: "Buyer",
     status: "PENDING_PAYMENT",
+    paymentMethod: "MONOBANK",
+    paymentStatus: "PENDING",
+    amountPaid: 0,
+    isDraft: false,
     currency: "UAH",
     total: 1782.16,
     shippingAddress: { country: "Ukraine" },
@@ -202,6 +210,17 @@ test("admin emails the open mono link in the buyer's language and records it", a
 
   order = { ...base, monobankPayment: null };
   assert.equal((await call()).status, 409);
+  // A settled or cancelled order never gets its old live invoice by email.
+  for (const patch of [
+    { paymentStatus: "PAID" },
+    { amountPaid: 100 },
+    { status: "CANCELLED" },
+    { paymentMethod: "FOP" },
+  ]) {
+    const refused = await (order = { ...base, ...patch }, call());
+    assert.equal(refused.status, 409);
+    assert.equal((await refused.json()).error, "ORDER_NOT_PAYABLE");
+  }
   assert.equal(sent.length, 0);
 
   order = base;
@@ -214,6 +233,14 @@ test("admin emails the open mono link in the buyer's language and records it", a
   order = { ...base, currency: "EUR", shippingAddress: { country: "Germany" } };
   await call();
   assert.equal(sent[1].subject, "Payment for order OC-2026-00099");
+
+  // Sent but the history write failed: still a success, so nobody re-sends it.
+  historyDown = true;
+  const unrecorded = await call();
+  assert.equal(unrecorded.status, 200);
+  assert.equal((await unrecorded.json()).recorded, false);
+  assert.equal(sent.length, 3);
+  historyDown = false;
 
   sendError = { name: "validation_error", message: "API key is invalid" };
   assert.equal((await call()).status, 502);

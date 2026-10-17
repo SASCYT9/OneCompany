@@ -13,6 +13,7 @@ import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
 import { isInternationalDelivery } from "@/lib/shopInternationalCheckout";
 import { snapshotRecord } from "@/lib/shopInternationalDeliveryQuote";
+import { adminMonobankBlockReason } from "@/lib/shopMonobankEligibility";
 import { reusableMonobankLink } from "@/lib/shopMonobankPayments";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
@@ -35,6 +36,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     include: { monobankPayment: true },
   });
   if (!order) return failure("ORDER_NOT_FOUND", 404);
+  // A paid, settled-elsewhere or cancelled order must not get a live invoice again.
+  if (order.paymentMethod !== "MONOBANK" || adminMonobankBlockReason(order))
+    return failure("ORDER_NOT_PAYABLE", 409);
   const paymentUrl = reusableMonobankLink(order.monobankPayment);
   if (!paymentUrl) return failure("PAYMENT_LINK_MISSING", 409);
   if (!order.email) return failure("ORDER_EMAIL_MISSING", 409);
@@ -87,25 +91,38 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return failure("EMAIL_SEND_FAILED", 502);
   }
 
-  await writeAdminAuditLog(prisma, session, {
-    scope: "shop",
-    action: "order.monobank.payment_link_emailed",
-    entityType: "shop.order",
-    entityId: id,
-    metadata: { email: order.email },
-  });
-  await prisma.shopOrderStatusEvent.create({
-    data: {
+  // The email is gone at this point: a failed log write must not read as a failed
+  // send, or the manager would retry and the buyer would get it twice.
+  let recorded = true;
+  try {
+    await prisma.$transaction(async (tx) => {
+      await writeAdminAuditLog(tx, session, {
+        scope: "shop",
+        action: "order.monobank.payment_link_emailed",
+        entityType: "shop.order",
+        entityId: id,
+        metadata: { email: order.email },
+      });
+      await tx.shopOrderStatusEvent.create({
+        data: {
+          orderId: id,
+          fromStatus: order.status,
+          toStatus: order.status,
+          actorType: "admin",
+          actorName: session.name,
+          note: `Посилання на оплату mono надіслано на ${order.email}.`,
+        },
+      });
+    });
+  } catch (error) {
+    recorded = false;
+    console.error("[Admin mono payment email] sent but not recorded", {
       orderId: id,
-      fromStatus: order.status,
-      toStatus: order.status,
-      actorType: "admin",
-      actorName: session.name,
-      note: `Посилання на оплату mono надіслано на ${order.email}.`,
-    },
-  });
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
   return NextResponse.json(
-    { ok: true, email: order.email },
+    { ok: true, email: order.email, recorded },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

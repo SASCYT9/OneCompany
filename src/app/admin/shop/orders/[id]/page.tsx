@@ -469,13 +469,19 @@ export default function AdminOrderDetailPage() {
         const errors: Record<string, string> = {
           PAYMENT_LINK_MISSING: "Спершу створіть чинне посилання mono.",
           ORDER_EMAIL_MISSING: "У замовленні немає email клієнта.",
+          ORDER_NOT_PAYABLE:
+            "Замовлення вже оплачене, закрите або має інший спосіб оплати — посилання не надсилаємо.",
           EMAIL_NOT_CONFIGURED: "Пошта сайту не налаштована (ключ Resend).",
           EMAIL_SEND_FAILED: "Сервіс пошти не прийняв лист. Спробуйте ще раз або надішліть посилання вручну.",
         };
         setMonoError(errors[data.error] || "Не вдалося надіслати лист. Спробуйте ще раз.");
         return;
       }
-      toast.success(`Посилання надіслано на ${data.email ?? order.email}`);
+      toast.success(
+        data.recorded === false
+          ? `Посилання надіслано на ${data.email ?? order.email} (запис в історію не збережено)`
+          : `Посилання надіслано на ${data.email ?? order.email}`
+      );
       await load();
     } catch {
       setMonoError("Немає зв'язку із сервером. Спробуйте ще раз.");
@@ -696,7 +702,7 @@ export default function AdminOrderDetailPage() {
               <button
                 type="button"
                 onClick={() => void handleEmailMonobankLink()}
-                disabled={monoEmailSending}
+                disabled={monoEmailSending || notPayable}
                 className="inline-flex items-center gap-1.5 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Mail className="h-4 w-4" />{" "}
