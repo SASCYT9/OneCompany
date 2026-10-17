@@ -90,6 +90,12 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   // agreement status, not the amount, says whether that has happened yet.
   const shippingAwaitsAgreement =
     order?.pricingSnapshot?.internationalDelivery?.status === "awaiting_agreement";
+  // order.total includes any provisional shipping cost; keep it out until it is agreed.
+  const totalShown = order
+    ? shippingAwaitsAgreement
+      ? Math.round((order.total - order.shippingCost) * 100) / 100
+      : order.total
+    : 0;
   const showVatLine = Boolean(
     order &&
     !order.landedCost &&
@@ -420,7 +426,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                   ? "Разом"
                   : "Total"}
               :{" "}
-              {formatShopMoney(locale, order.total, order.currency as ShopCurrencyCode)}
+              {formatShopMoney(locale, totalShown, order.currency as ShopCurrencyCode)}
             </p>
           </div>
           {order.paymentMethod === "FOP" &&

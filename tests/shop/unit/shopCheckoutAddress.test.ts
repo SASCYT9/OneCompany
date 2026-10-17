@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   missingShopCheckoutFields,
@@ -74,4 +75,13 @@ test("the stored customer name never drops the validated surname", () => {
   assert.equal(shopCheckoutCustomerName({ name: "Buyer" }), "Buyer");
   // A surname alone is not a name.
   assert.equal(shopCheckoutCustomerName({ lastName: "Doe" }), "");
+});
+
+test("a failed region list load offers a retry instead of a free-text region", () => {
+  const checkout = readFileSync("src/app/[locale]/shop/checkout/ShopCheckoutClient.tsx", "utf8");
+  // The server accepts only listed regions, so free text would be a dead end.
+  assert.doesNotMatch(checkout, /\[regionListKey\]: null/);
+  assert.match(checkout, /setRegionListFailed\(regionListKey\)/);
+  assert.match(checkout, /onClick=\{\(\) => setRegionListFailed\(null\)\}/);
+  assert.match(checkout, /Спробувати ще раз/);
 });

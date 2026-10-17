@@ -14,3 +14,8 @@ test("thank-you page reads the shipping agreement status, not the shipping amoun
   assert.match(page, /буде узгоджена з менеджером/);
   assert.match(page, /to be agreed with a manager/);
 });
+
+test("the pre-shipping total leaves out any provisional shipping cost", () => {
+  assert.match(page, /order\.total - order\.shippingCost/);
+  assert.match(page, /formatShopMoney\(locale, totalShown,/);
+});

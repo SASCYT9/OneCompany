@@ -216,16 +216,21 @@ export default function ShopCheckoutClient({
   });
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions | null>(null);
   const countryCode = resolveShopCountry(form.country)?.code ?? null;
-  // Per country: the region list, null when it could not load (free text then).
+  // Per country: its region list (empty when it has none). A failed load is not
+  // cached: the buyer retries, since the server only accepts a region from the list.
   const [regionLists, setRegionLists] = useState<
-    Record<string, Array<{ code: string; name: string }> | null>
+    Record<string, Array<{ code: string; name: string }>>
   >({});
+  const [regionListFailed, setRegionListFailed] = useState<string | null>(null);
   const regionListKey = countryCode ? `${countryCode}:${locale}` : null;
-  const regionOptions = regionListKey ? regionLists[regionListKey] : [];
+  const regionOptions: Array<{ code: string; name: string }> | undefined = regionListKey
+    ? regionLists[regionListKey]
+    : [];
   const postcodeRequired = shopCountryUsesPostcode(countryCode);
 
   useEffect(() => {
     if (!countryCode || !regionListKey || regionListKey in regionLists) return;
+    if (regionListFailed === regionListKey) return;
     let cancelled = false;
     fetch(`/api/shop/regions?country=${countryCode}&locale=${locale}`)
       .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
@@ -233,12 +238,12 @@ export default function ShopCheckoutClient({
         if (!cancelled) setRegionLists((lists) => ({ ...lists, [regionListKey]: data.regions ?? [] }));
       })
       .catch(() => {
-        if (!cancelled) setRegionLists((lists) => ({ ...lists, [regionListKey]: null }));
+        if (!cancelled) setRegionListFailed(regionListKey);
       });
     return () => {
       cancelled = true;
     };
-  }, [countryCode, locale, regionListKey, regionLists]);
+  }, [countryCode, locale, regionListKey, regionLists, regionListFailed]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [previewMessage, setPreviewMessage] = useState("");
   const previewCartItems = imagePreview ? imageFormatPreviewItems : previewItems;
@@ -789,25 +794,29 @@ export default function ShopCheckoutClient({
               {regionOptions?.length !== 0 || postcodeRequired ? (
                 <div className={styles.fieldPair}>
                   {regionOptions === undefined ? (
-                    <label className={styles.field}>
+                    <div className={styles.field}>
                       <span>{isUa ? "Область / регіон" : "State / region"}</span>
                       <select name="region" disabled value="">
-                        <option value="">{isUa ? "Завантаження…" : "Loading…"}</option>
+                        <option value="">
+                          {regionListFailed === regionListKey
+                            ? isUa
+                              ? "Список не завантажився"
+                              : "The list did not load"
+                            : isUa
+                              ? "Завантаження…"
+                              : "Loading…"}
+                        </option>
                       </select>
-                    </label>
-                  ) : regionOptions === null ? (
-                    <label className={styles.field}>
-                      <span>{isUa ? "Область / регіон" : "State / region"}</span>
-                      <input
-                        name="region"
-                        autoComplete="address-level1"
-                        required
-                        value={form.region}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, region: event.target.value }))
-                        }
-                      />
-                    </label>
+                      {regionListFailed === regionListKey ? (
+                        <button
+                          type="button"
+                          className={styles.regionRetry}
+                          onClick={() => setRegionListFailed(null)}
+                        >
+                          {isUa ? "Спробувати ще раз" : "Try again"}
+                        </button>
+                      ) : null}
+                    </div>
                   ) : regionOptions.length > 0 ? (
                     <label className={styles.field}>
                       <span>{isUa ? "Область / регіон" : "State / region"}</span>

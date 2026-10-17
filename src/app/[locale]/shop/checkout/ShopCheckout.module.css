@@ -236,6 +236,17 @@
 .countryLabel {
   display: block;
 }
+.regionRetry {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--checkout-ink);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .countryButton {
   min-height: 49px !important;
   padding: 12px 13px !important;
