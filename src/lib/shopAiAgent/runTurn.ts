@@ -20,10 +20,11 @@ import {
   isOneAiPresentationTool,
   type OneAiToolSession,
 } from "./catalogTools";
+import { stripOneAiRefs } from "./presentation";
 import { ONE_AI_SHOWN_MARKER, buildOneAiSystemPrompt } from "./systemPrompt";
 import type { OneAiContext, OneAiConversationState, OneAiEvent, OneAiUsage } from "./types";
 
-export const ONE_AI_DEFAULT_MODEL = "gemini-3.8-flash";
+export const ONE_AI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
 /** Model steps that may search; parallel searches inside one step count once. */
 const MAX_RESEARCH_ROUNDS = 2;
 const MAX_MODEL_CALLS = MAX_RESEARCH_ROUNDS + 2;
@@ -31,7 +32,7 @@ const MAX_CALLS_PER_RESPONSE = 6;
 const MAX_OUTPUT_TOKENS = 1_600;
 const MODEL_CALL_TIMEOUT_MS = 25_000;
 
-/** USD per 1M tokens. gemini-3.8-flash is billed at the list price so estimates never under-count. */
+/** USD per 1M tokens (list prices, so estimates never under-count). */
 const MODEL_RATES: Record<string, { input: number; output: number }> = {
   "gemini-3.8-flash": { input: 1.5, output: 7.5 },
   "gemini-3.5-flash": { input: 1.5, output: 9 },
@@ -44,7 +45,15 @@ export function resolveOneAiModel() {
   return process.env.SHOP_AI_AGENT_MODEL?.trim() || ONE_AI_DEFAULT_MODEL;
 }
 
-/** LOW is the lowest level gemini-3.8-flash accepts (MINIMAL returns 400). */
+/** LOW by default; gemini-3.8-flash rejects MINIMAL with a 400. */
+/** Optional sampling temperature (SHOP_AI_AGENT_TEMPERATURE); the model default otherwise. */
+function resolveOneAiTemperature() {
+  const raw = process.env.SHOP_AI_AGENT_TEMPERATURE?.trim();
+  if (!raw) return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 && value <= 2 ? value : undefined;
+}
+
 function resolveOneAiThinkingLevel() {
   const value = process.env.SHOP_AI_AGENT_THINKING?.trim().toLowerCase();
   if (value === "medium") return ThinkingLevel.MEDIUM;
@@ -138,6 +147,42 @@ async function runTool(name: string, args: unknown, session: OneAiToolSession) {
   }
 }
 
+const ENGLISH_WORDS =
+  /\b(?:the|a|an|for|my|on|to|is|are|what|which|do|does|you|have|need|want|how|best|under|with|and|or|of|in|this|these|it|can|show|any|me|i)\b/i;
+
+export type OneAiReplyLanguage = "uk" | "en";
+
+/**
+ * The owner's rule: Ukrainian for Ukrainian or Russian, English for English.
+ * Car names and part numbers ("BMW M2 G87, 2024") carry no language, so they
+ * keep the language of the conversation, or the storefront's.
+ */
+export function resolveOneAiReplyLanguage(
+  message: string,
+  previousUserMessages: string[],
+  locale: OneAiContext["locale"]
+): OneAiReplyLanguage {
+  const decide = (text: string): OneAiReplyLanguage | null => {
+    if (/[\u0400-\u04ff]/u.test(text)) return "uk";
+    if (ENGLISH_WORDS.test(text)) return "en";
+    return null;
+  };
+  const own = decide(message);
+  if (own) return own;
+  for (const previous of [...previousUserMessages].reverse()) {
+    const earlier = decide(previous);
+    if (earlier) return earlier;
+  }
+  return locale === "en" ? "en" : "uk";
+}
+
+/** Smaller models drift between languages; a short note next to each message keeps them on it. */
+export function oneAiLanguageNote(language: OneAiReplyLanguage) {
+  return language === "uk"
+    ? "[system] Відповідай українською мовою, навіть якщо клієнт пише російською."
+    : "[system] Answer in English.";
+}
+
 export class OneAiConfigurationError extends Error {
   constructor(message: string) {
     super(message);
@@ -179,11 +224,28 @@ export async function runOneAiTurn(input: {
     state: input.state,
     emit: input.emit,
     shownRefs: [],
+    turnRefs: [],
+    unconfirmedRefs: new Set<string>(),
+    repliesShown: false,
     catalogHref: null,
   };
   const contents: Content[] = [
     ...buildOneAiHistoryContents(input.state, input.context),
-    { role: "user", parts: [{ text: input.message }] },
+    {
+      role: "user",
+      parts: [
+        { text: input.message },
+        {
+          text: oneAiLanguageNote(
+            resolveOneAiReplyLanguage(
+              input.message,
+              input.state.history.flatMap((entry) => (entry.role === "user" ? [entry.text] : [])),
+              input.context.locale
+            )
+          ),
+        },
+      ],
+    },
   ];
   const systemInstruction = buildOneAiSystemPrompt(input.context);
   const allTools = [{ functionDeclarations: [...ONE_AI_TOOL_DECLARATIONS] }];
@@ -219,6 +281,7 @@ export async function runOneAiTurn(input: {
           },
         },
         thinkingConfig: { thinkingLevel: resolveOneAiThinkingLevel() },
+        temperature: resolveOneAiTemperature(),
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         abortSignal: input.signal,
         httpOptions: { timeout: MODEL_CALL_TIMEOUT_MS },
@@ -321,10 +384,131 @@ export async function runOneAiTurn(input: {
     if (!research && answer.trim()) break;
   }
 
+  // Smaller models often answer in text and skip the presentation tools. One
+  // short forced step lets the model attach cards and quick replies to its own
+  // answer; validation still limits cards to this turn's search results.
+  const previousShown =
+    [...input.state.history].reverse().find((entry) => entry.role === "assistant")?.shownRefs ?? [];
+  const needsCards =
+    !session.shownRefs.length && (session.turnRefs.length > 0 || previousShown.length > 0);
+  if (answer.trim() && (needsCards || !session.repliesShown) && !input.signal?.aborted) {
+    const wanted = [
+      ...(needsCards ? ["show_products"] : []),
+      ...(session.repliesShown ? [] : ["suggest_replies"]),
+    ];
+    try {
+      usage.modelCalls += 1;
+      const finishing = await client.models.generateContent({
+        model,
+        contents: [
+          ...contents,
+          { role: "model", parts: [{ text: answer }] },
+          {
+            role: "user",
+            parts: [
+              {
+                text:
+                  "[system] Finish the answer you just wrote. " +
+                  (needsCards
+                    ? "Call show_products with the refs of the products your answer is about (up to 6, best first; " +
+                      "layout compare with rows when you compared them), " +
+                      "each with a one-line reason in the customer's language; if none of the products found fits " +
+                      "your answer, call it with an empty items list. "
+                    : "") +
+                  (session.repliesShown
+                    ? ""
+                    : "Call suggest_replies with 2–4 short next steps in the customer's words."),
+              },
+            ],
+          },
+        ],
+        config: {
+          systemInstruction,
+          tools: [
+            {
+              functionDeclarations: ONE_AI_TOOL_DECLARATIONS.filter((tool) =>
+                wanted.includes(tool.name)
+              ),
+            },
+          ],
+          toolConfig: {
+            functionCallingConfig: {
+              mode: FunctionCallingConfigMode.ANY,
+              allowedFunctionNames: wanted,
+            },
+          },
+          thinkingConfig: { thinkingLevel: resolveOneAiThinkingLevel() },
+          temperature: resolveOneAiTemperature(),
+          maxOutputTokens: 600,
+          abortSignal: input.signal,
+          httpOptions: { timeout: MODEL_CALL_TIMEOUT_MS },
+        },
+      });
+      addUsage(usage, finishing.usageMetadata);
+      const seen = new Set<string>();
+      for (const call of finishing.functionCalls ?? []) {
+        const name = call.name ?? "";
+        if (!wanted.includes(name) || seen.has(name)) continue;
+        seen.add(name);
+        usage.tools.push(name);
+        await runTool(name, call.args ?? {}, session);
+      }
+    } catch (error) {
+      console.warn("One AI finishing step failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // The model can end on tool calls alone; one plain call writes the answer.
+  if (!answer.trim() && !input.signal?.aborted) {
+    try {
+      usage.modelCalls += 1;
+      const written = await client.models.generateContent({
+        model,
+        contents: [
+          ...contents,
+          {
+            role: "user",
+            parts: [
+              {
+                text:
+                  "[system] Write your answer to the customer now: 2–5 sentences about the products you found, " +
+                  "without calling tools.",
+              },
+            ],
+          },
+        ],
+        config: {
+          systemInstruction,
+          tools: allTools,
+          toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.NONE } },
+          thinkingConfig: { thinkingLevel: resolveOneAiThinkingLevel() },
+          temperature: resolveOneAiTemperature(),
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          abortSignal: input.signal,
+          httpOptions: { timeout: MODEL_CALL_TIMEOUT_MS },
+        },
+      });
+      addUsage(usage, written.usageMetadata);
+      const text = stripMarker(written.text ?? "").trim();
+      if (text) {
+        if (usage.firstTextMs === null)
+          usage.firstTextMs = Math.round(performance.now() - startedAt);
+        answer = text;
+        input.emit({ type: "text", text });
+      }
+    } catch (error) {
+      console.warn("One AI answer recovery failed", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   usage.latencyMs = Math.round(performance.now() - startedAt);
   usage.costUsd = estimateOneAiCostUsd(model, usage);
   return {
-    answer: answer.trim(),
+    answer: stripOneAiRefs(answer).trim(),
     shownRefs: session.shownRefs,
     catalogHref: session.catalogHref,
     usage,

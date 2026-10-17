@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Rate limited" }, { status: 429 });
   }
   // A shop-wide daily ceiling keeps the Gemini bill bounded even under abuse
-  // (about $0.02 per answer, so 2,000 answers ≈ $40 a day at most).
+  // (gemini-3.5-flash-lite costs about $0.004 per answer, so 2,000 answers ≈ $8 a day).
   const withinDailyBudget = await consumeRateLimit({
     keyParts: ["one-ai-agent-daily"],
     windowMs: 24 * 60 * 60 * 1000,

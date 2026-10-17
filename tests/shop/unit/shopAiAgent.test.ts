@@ -12,11 +12,17 @@ import {
   buildOneAiSearchParams,
   cleanOneAiSearchArgs,
   describeOneAiProductForModel,
+  needsOneAiVehicle,
   registerOneAiProduct,
   resolveOneAiAvailability,
   resolveOneAiBrand,
+  titleMentionsChassis,
 } from "../../../src/lib/shopAiAgent/catalogQuery";
-import { buildOneAiCards, cleanOneAiReplies } from "../../../src/lib/shopAiAgent/presentation";
+import {
+  buildOneAiCards,
+  cleanOneAiReplies,
+  stripOneAiRefs,
+} from "../../../src/lib/shopAiAgent/presentation";
 import type { OneAiConversationState, OneAiProduct } from "../../../src/lib/shopAiAgent/types";
 
 const serverOnlyStub = pathToFileURL(
@@ -96,6 +102,52 @@ test("model arguments are cleaned before they reach the catalog", () => {
   assert.equal(args.vehicle_type, undefined);
   assert.equal(args.sort, "relevance");
   assert.equal(cleanOneAiSearchArgs({ category: "exhaust" }).category, "exhaust");
+});
+
+test("the make is filled in for models customers type without it", () => {
+  assert.equal(cleanOneAiSearchArgs({ model: "Golf", chassis: "MK8" }).make, "Volkswagen");
+  assert.equal(cleanOneAiSearchArgs({ model: "Urus" }).make, "Lamborghini");
+  assert.equal(cleanOneAiSearchArgs({ model: "S 1000 RR" }).make, "BMW");
+  assert.equal(cleanOneAiSearchArgs({ model: "G-Class" }).make, "Mercedes-Benz");
+  assert.equal(cleanOneAiSearchArgs({ make: "Audi", model: "Golf" }).make, "Audi");
+  assert.equal(cleanOneAiSearchArgs({ model: "Unknown X" }).make, undefined);
+  assert.equal(
+    buildOneAiSearchParams(cleanOneAiSearchArgs({ model: "Golf" }), {
+      locale: "ua",
+      currency: "EUR",
+    }).get("allowFallback"),
+    "0"
+  );
+});
+
+test("fitment parts are never searched without a vehicle", () => {
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ category: "exhaust" })), true);
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ query: "вихлоп" })), true);
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ query: "exhaust M3 G80" })), false);
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ query: "Urus exhaust" })), false);
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ query: "S-BM/TI/33H" })), false);
+  assert.equal(
+    needsOneAiVehicle(cleanOneAiSearchArgs({ category: "exhaust", brand: "Akrapovič" })),
+    false
+  );
+  assert.equal(
+    needsOneAiVehicle(cleanOneAiSearchArgs({ category: "exhaust", engine: "B58" })),
+    false
+  );
+  assert.equal(needsOneAiVehicle(cleanOneAiSearchArgs({ category: "merch" })), false);
+});
+
+test("a title confirms the generation only when it names it", () => {
+  assert.equal(
+    titleMentionsChassis("BMC FB798-20 air filter for Porsche 911 (991/991.2)", "992"),
+    false
+  );
+  assert.equal(
+    titleMentionsChassis("BMC FB01075 air filter for Porsche 911 (992/992.2)", "992"),
+    true
+  );
+  assert.equal(titleMentionsChassis("AKRAPOVIC S-BM/TI/33H для BMW M3 (G80 / G81)", "g80"), true);
+  assert.equal(titleMentionsChassis("Anything", undefined), true);
 });
 
 test("search relaxes generation, then vehicle text, then brand", () => {
@@ -293,6 +345,28 @@ test("One AI stays dark unless the owner switches it on", async () => {
   // The shop-wide daily ceiling and the per-visitor limit both guard the paid model.
   assert.match(route, /keyParts: \["one-ai-agent", ownerKey\]/);
   assert.match(route, /keyParts: \["one-ai-agent-daily"\]/);
+});
+
+test("Russian is answered in Ukrainian; car names keep the conversation's language", async () => {
+  const { resolveOneAiReplyLanguage, oneAiLanguageNote } = await runTurnModule;
+  assert.equal(resolveOneAiReplyLanguage("что лучше на RS3 8Y?", [], "ua"), "uk");
+  assert.equal(resolveOneAiReplyLanguage("I want more power on my M340i", [], "ua"), "en");
+  assert.equal(resolveOneAiReplyLanguage("BMW M2 G87, 2024", ["підбери вихлоп"], "en"), "uk");
+  assert.equal(
+    resolveOneAiReplyLanguage("Audi RS6 C8", ["I need an intake for my car"], "ua"),
+    "en"
+  );
+  assert.equal(resolveOneAiReplyLanguage("S-BM/TI/33H", [], "ua"), "uk");
+  assert.equal(resolveOneAiReplyLanguage("S-BM/TI/33H", [], "en"), "en");
+  assert.match(oneAiLanguageNote("uk"), /українською/);
+});
+
+test("internal refs never reach the customer's text", () => {
+  assert.equal(
+    stripOneAiRefs("Лінк-пайпи (p17) легші, даунпайп (p18, p19) гучніший; p3 — дешевший"),
+    "Лінк-пайпи легші, даунпайп гучніший;  — дешевший"
+  );
+  assert.equal(stripOneAiRefs("McLaren P1 і p-zero"), "McLaren P1 і p-zero");
 });
 
 test("cost estimate uses list prices and discounts cached input", async () => {

@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
+import { stripOneAiRefs } from "@/lib/shopAiAgent/presentation";
+
 /**
  * Minimal, safe renderer for One AI answers: paragraphs, "-"/"*" bullets and
  * **bold**. Everything else stays plain text — no HTML, no links.
@@ -18,7 +20,10 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 }
 
 export function OneAiText({ text }: { text: string }) {
-  const blocks = text
+  const blocks = stripOneAiRefs(text)
+    // Models occasionally emit <strong>/<b>; keep the emphasis, drop any other tag.
+    .replace(/<\/?(?:strong|b)>/gi, "**")
+    .replace(/<[^>]*>/g, "")
     .replace(/\r/g, "")
     .split(/\n{2,}/)
     .map((block) => block.trim())

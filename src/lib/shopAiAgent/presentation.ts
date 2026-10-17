@@ -3,7 +3,7 @@
  * it actually received from the catalog in this conversation; everything else
  * is dropped before it reaches the customer.
  */
-import type { OneAiCard, OneAiComparison, OneAiConversationState } from "./types";
+import type { OneAiCard, OneAiComparison, OneAiConversationState, OneAiProduct } from "./types";
 
 export const ONE_AI_MAX_CARDS = 6;
 const MAX_COMPARISON_ROWS = 8;
@@ -42,22 +42,7 @@ export function buildOneAiCards(
     if (!product || seen.has(ref) || cards.length >= ONE_AI_MAX_CARDS) return;
     seen.add(ref);
     keptIndexes.push(index);
-    // The supplier summary is for the model only and never reaches the page.
-    cards.push({
-      ref: product.ref,
-      id: product.id,
-      slug: product.slug,
-      href: product.href,
-      brand: product.brand,
-      name: product.name,
-      sku: product.sku,
-      image: product.image,
-      priceSet: product.priceSet,
-      compareAtSet: product.compareAtSet,
-      availability: product.availability,
-      category: product.category,
-      reason: cleanLine(entry.reason, 180),
-    });
+    cards.push(toOneAiCard(product, cleanLine(entry.reason, 180)));
   });
   if (!cards.length) {
     return { ok: false, error: "No valid refs. Show only products returned by search_products." };
@@ -83,6 +68,25 @@ export function buildOneAiCards(
   return { ok: true, layout, cards, comparison };
 }
 
+/** The supplier summary is for the model only and never reaches the page. */
+export function toOneAiCard(product: OneAiProduct, reason: string | null): OneAiCard {
+  return {
+    ref: product.ref,
+    id: product.id,
+    slug: product.slug,
+    href: product.href,
+    brand: product.brand,
+    name: product.name,
+    sku: product.sku,
+    image: product.image,
+    priceSet: product.priceSet,
+    compareAtSet: product.compareAtSet,
+    availability: product.availability,
+    category: product.category,
+    reason,
+  };
+}
+
 /** Internal product refs ("p3") mean nothing to a customer. */
 const INTERNAL_REF_PATTERN = /\bp\d{1,3}\b/i;
 
@@ -96,4 +100,9 @@ export function cleanOneAiReplies(rawArgs: unknown) {
     )
     .filter((option, index, all) => all.indexOf(option) === index)
     .slice(0, MAX_REPLIES);
+}
+
+/** Drops internal refs ("(p17)", "p3") the model sometimes writes into its text. */
+export function stripOneAiRefs(text: string) {
+  return text.replace(/\s?\((?:p\d{1,3}(?:,\s*)?)+\)/g, "").replace(/\bp\d{1,3}\b/g, "");
 }

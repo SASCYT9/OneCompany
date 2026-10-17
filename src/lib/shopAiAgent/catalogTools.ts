@@ -3,6 +3,7 @@ import "server-only";
 import { getShopProductsBySlugsServer } from "@/lib/shopCatalogServer";
 import { searchShopStock } from "@/lib/shopStockSearch.server";
 import type { StockSearchResponse } from "@/lib/shopStockSearchTypes";
+import { getShopStockCategoryLabel, type ShopStockCategoryGroupId } from "@/lib/shopStockTaxonomy";
 
 import {
   ONE_AI_CATEGORY_IDS,
@@ -12,7 +13,9 @@ import {
   cleanOneAiSearchArgs,
   describeOneAiProductForModel,
   hasOneAiSearchConstraint,
+  needsOneAiVehicle,
   registerOneAiProduct,
+  titleMentionsChassis,
   toOneAiProduct,
   type OneAiSearchArgs,
 } from "./catalogQuery";
@@ -24,15 +27,19 @@ export const ONE_AI_TOOL_DECLARATIONS = [
   {
     name: "search_products",
     description:
-      "Search the One Company catalog (real products, live prices and availability). " +
-      "Use structured vehicle fields whenever the customer named a vehicle: make as the manufacturer " +
-      "(BMW, Mercedes-Benz, Porsche, Audi, Volkswagen, Lamborghini, Toyota, Ford, Tesla, Land Rover, Ducati...), " +
-      "model as the catalog model name (M3, Golf, 911, G-Class, Urus, Supra, Panigale, S 1000 RR...), " +
-      "chassis as the generation code (G80, G87, F90, MK8, 992, W463A, W205, 8Y, C8, A90...). " +
-      "Put the product type in `query` (exhaust, downpipe, intake, intercooler, coilovers, brake discs, carbon diffuser...) " +
-      "or use `category`. An exact part number goes into `query` alone. " +
-      "Results include facet counts (brands and categories available for these filters). " +
-      "If a result says `relaxed`, the filter was widened — check titles before claiming a fit.",
+      "Search the One Company catalog (real products, live prices and availability). Rules: " +
+      "(1) When the customer named a vehicle, always fill make + model, and chassis when known: make is the " +
+      "manufacturer (BMW, Mercedes-Benz, Porsche, Audi, Volkswagen, Lamborghini, Toyota, Ford, Tesla, Land Rover, Ducati), " +
+      "model the catalog model (M3, Golf, 911, G-Class, Urus, Supra, Panigale, S 1000 RR), chassis the generation " +
+      "code (G80, G87, F90, MK8, 992, W463A, W205, 8Y, C8, A90). " +
+      "(2) One product type per search, given as `category`: exhaust (exhausts, downpipes, tips), chipTuning " +
+      "(power modules, piggyback tuners, ECU flash), performance (intakes, turbo, charge pipes, engine parts), " +
+      "suspension (coilovers, springs), brakes, cooling (radiators, intercoolers, oil coolers), carbonAero " +
+      "(car carbon and aero), motoCarbon, wheels. Add `query` only for a narrower type (downpipe, tips) or a part " +
+      "number; never put several product types in one query — run separate searches in the same step instead. " +
+      "(3) A vague request ('tuning for my car') = one search with the vehicle only; its brands and categories " +
+      "facets show what exists. If a result says `relaxed`, the filter was widened — check titles before " +
+      "claiming a fit.",
     parametersJsonSchema: {
       type: "object",
       properties: {
@@ -132,6 +139,11 @@ export type OneAiToolSession = {
   emit: (event: OneAiEvent) => void;
   /** Refs shown as cards in this turn (saved to history for "compare the first two"). */
   shownRefs: string[];
+  /** Refs the searches of this turn returned, the pool for the card pick step. */
+  turnRefs: string[];
+  /** Found only after the generation filter was widened, and the title names another one. */
+  unconfirmedRefs: Set<string>;
+  repliesShown: boolean;
   catalogHref: string | null;
 };
 
@@ -146,7 +158,10 @@ async function runCatalogSearch(args: OneAiSearchArgs, context: OneAiContext) {
 
 function describeSearchForStatus(args: OneAiSearchArgs, locale: OneAiContext["locale"]) {
   const vehicle = [args.make, args.model, args.chassis].filter(Boolean).join(" ");
-  const what = [args.brand, args.query].filter(Boolean).join(" ");
+  const category = args.category
+    ? getShopStockCategoryLabel(args.category as ShopStockCategoryGroupId, locale)
+    : null;
+  const what = [args.brand, args.query ?? category].filter(Boolean).join(" ");
   const parts = [what, vehicle].filter(Boolean).join(" · ");
   if (locale === "ua") return parts ? `Шукаю в каталозі: ${parts}` : "Шукаю в каталозі";
   return parts ? `Searching the catalog: ${parts}` : "Searching the catalog";
@@ -157,6 +172,12 @@ export async function executeOneAiSearch(rawArgs: unknown, session: OneAiToolSes
   if (!hasOneAiSearchConstraint(args)) {
     return {
       error: "Give at least a vehicle, a product type, a brand, a budget or a part number.",
+    };
+  }
+  if (needsOneAiVehicle(args)) {
+    return {
+      error:
+        "These parts are made for specific vehicles. Ask the customer which car or motorcycle (make, model, generation) before searching.",
     };
   }
   session.emit({ type: "status", text: describeSearchForStatus(args, session.context.locale) });
@@ -170,6 +191,13 @@ export async function executeOneAiSearch(rawArgs: unknown, session: OneAiToolSes
         toOneAiProduct(item, ref, session.context.locale)
       )
     );
+    const generationWidened = Boolean(args.chassis) && attempt.args.chassis !== args.chassis;
+    for (const product of products) {
+      if (!session.turnRefs.includes(product.ref)) session.turnRefs.push(product.ref);
+      if (!generationWidened) session.unconfirmedRefs.delete(product.ref);
+      else if (!titleMentionsChassis(product.name, args.chassis))
+        session.unconfirmedRefs.add(product.ref);
+    }
     const href = buildOneAiCatalogHref(attempt.args, session.context);
     session.catalogHref = href;
     session.state.lastCatalogHref = href;
@@ -179,7 +207,10 @@ export async function executeOneAiSearch(rawArgs: unknown, session: OneAiToolSes
       showing: products.length,
       relaxed: attempt.relaxed ?? undefined,
       corrected_query: payload.meta?.correctedQuery ?? undefined,
-      products: products.map((product) => describeOneAiProductForModel(product, session.context)),
+      products: products.map((product) => ({
+        ...describeOneAiProductForModel(product, session.context),
+        other_generation: session.unconfirmedRefs.has(product.ref) || undefined,
+      })),
       brands_available: facets?.brands
         ?.slice(0, 12)
         .map((brand) => `${brand.label} (${brand.count})`),
@@ -249,6 +280,17 @@ export async function executeOneAiProductDetails(rawArgs: unknown, session: OneA
 export function executeOneAiShowProducts(rawArgs: unknown, session: OneAiToolSession) {
   const result = buildOneAiCards(rawArgs, session.state);
   if (!result.ok) return { error: result.error };
+  const otherGeneration = result.cards.filter((card) => session.unconfirmedRefs.has(card.ref));
+  if (otherGeneration.length) {
+    result.cards = result.cards.filter((card) => !session.unconfirmedRefs.has(card.ref));
+    if (result.comparison) result.comparison = null;
+    if (!result.cards.length) {
+      return {
+        error:
+          "Those products are for another generation than the customer's. Do not show them; say so honestly and offer a manager check.",
+      };
+    }
+  }
   // A second show_products call in the same answer adds only new cards; a
   // comparison always re-renders its full set.
   const cards =
@@ -271,7 +313,10 @@ export function executeOneAiShowProducts(rawArgs: unknown, session: OneAiToolSes
 
 export function executeOneAiSuggestReplies(rawArgs: unknown, session: OneAiToolSession) {
   const options = cleanOneAiReplies(rawArgs);
-  if (options.length) session.emit({ type: "replies", options });
+  if (options.length) {
+    session.repliesShown = true;
+    session.emit({ type: "replies", options });
+  }
   return { shown: options.length };
 }
 

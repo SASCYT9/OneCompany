@@ -97,7 +97,7 @@ const BRAND_ALIASES: Record<string, string> = {
 export function normalizeOneAiToken(value: string) {
   return value
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("uk-UA")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
@@ -107,6 +107,121 @@ export function resolveOneAiBrand(value: string | undefined | null) {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
   return BRAND_ALIASES[normalizeOneAiToken(raw)] ?? raw.slice(0, 60);
+}
+
+/**
+ * Manufacturer for model names customers type without it ("Golf 8 R",
+ * "Urus"). The catalog's vehicle filter needs the make to resolve a model.
+ */
+const MAKE_BY_MODEL: Record<string, string> = {
+  m2: "BMW",
+  m3: "BMW",
+  m4: "BMW",
+  m5: "BMW",
+  m8: "BMW",
+  x3: "BMW",
+  x5: "BMW",
+  x6: "BMW",
+  "x5 m": "BMW",
+  "x6 m": "BMW",
+  xm: "BMW",
+  "s 1000 rr": "BMW",
+  s1000rr: "BMW",
+  "m 1000 rr": "BMW",
+  golf: "Volkswagen",
+  polo: "Volkswagen",
+  arteon: "Volkswagen",
+  tiguan: "Volkswagen",
+  touareg: "Volkswagen",
+  "911": "Porsche",
+  cayenne: "Porsche",
+  macan: "Porsche",
+  panamera: "Porsche",
+  taycan: "Porsche",
+  "718": "Porsche",
+  cayman: "Porsche",
+  boxster: "Porsche",
+  urus: "Lamborghini",
+  huracan: "Lamborghini",
+  aventador: "Lamborghini",
+  revuelto: "Lamborghini",
+  "g class": "Mercedes-Benz",
+  "g-class": "Mercedes-Benz",
+  g63: "Mercedes-Benz",
+  "c class": "Mercedes-Benz",
+  "c-class": "Mercedes-Benz",
+  c63: "Mercedes-Benz",
+  "e class": "Mercedes-Benz",
+  "e-class": "Mercedes-Benz",
+  e63: "Mercedes-Benz",
+  "amg gt": "Mercedes-Benz",
+  "s class": "Mercedes-Benz",
+  "s-class": "Mercedes-Benz",
+  rs3: "Audi",
+  "rs 3": "Audi",
+  rs4: "Audi",
+  rs5: "Audi",
+  rs6: "Audi",
+  "rs 6": "Audi",
+  rs7: "Audi",
+  rsq8: "Audi",
+  "rs q8": "Audi",
+  r8: "Audi",
+  s3: "Audi",
+  supra: "Toyota",
+  "gr yaris": "Toyota",
+  mustang: "Ford",
+  "model 3": "Tesla",
+  "model y": "Tesla",
+  "model s": "Tesla",
+  defender: "Land Rover",
+  "range rover": "Land Rover",
+  panigale: "Ducati",
+  streetfighter: "Ducati",
+};
+
+export function inferOneAiMake(model: string | undefined) {
+  if (!model) return undefined;
+  return MAKE_BY_MODEL[normalizeOneAiToken(model)];
+}
+
+const VEHICLE_SPECIFIC_CATEGORIES = new Set([
+  "exhaust",
+  "chipTuning",
+  "suspension",
+  "brakes",
+  "performance",
+  "cooling",
+  "carbonAero",
+  "motoCarbon",
+  "wheels",
+]);
+// \b ignores Cyrillic letters, so word edges are explicit letter lookarounds.
+const GENERIC_PART_WORDS =
+  /(?<!\p{L})(?:exhaust|intake|downpipe|coilovers?|suspension|brakes?|wheels?|carbon|chip|tuning|intercooler|вихлоп\p{L}*|впуск\p{L}*|даунпайп\p{L}*|підвіск\p{L}*|гальм\p{L}*|диск\p{L}*|карбон\p{L}*|чіп\p{L}*|тюнінг\p{L}*|інтеркулер\p{L}*)(?!\p{L})/iu;
+
+/**
+ * Fitment parts searched without any vehicle return random cars' parts; the
+ * model must ask for the vehicle first. A brand browse, a part number or a
+ * vehicle written into the query text is fine.
+ */
+export function needsOneAiVehicle(args: OneAiSearchArgs) {
+  if (args.make || args.model || args.chassis || args.engine || args.brand) return false;
+  const query = args.query ?? "";
+  if (/\d/.test(query)) return false;
+  const words = normalizeOneAiToken(query);
+  if (Object.keys(MAKE_BY_MODEL).some((model) => ` ${words} `.includes(` ${model} `))) return false;
+  return Boolean(
+    (args.category && VEHICLE_SPECIFIC_CATEGORIES.has(args.category)) ||
+      (query && GENERIC_PART_WORDS.test(query))
+  );
+}
+
+/** Whether a product title names the requested generation ("G80", "992", "MK8"). */
+export function titleMentionsChassis(title: string, chassis: string | undefined) {
+  if (!chassis) return true;
+  const code = normalizeOneAiToken(chassis);
+  return code ? ` ${normalizeOneAiToken(title)} `.includes(` ${code} `) : true;
 }
 
 function cleanText(value: unknown, maxLength: number) {
@@ -133,10 +248,11 @@ export function cleanOneAiSearchArgs(input: unknown): OneAiSearchArgs {
   if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
     [minPrice, maxPrice] = [maxPrice, minPrice];
   }
+  const model = cleanText(source.model, 60);
   return {
     query: cleanText(source.query, 120),
-    make: cleanText(source.make, 60),
-    model: cleanText(source.model, 60),
+    make: cleanText(source.make, 60) ?? inferOneAiMake(model),
+    model,
     chassis: cleanText(source.chassis, 40),
     year:
       Number.isInteger(year) && year >= 1950 && year <= new Date().getFullYear() + 2
@@ -250,6 +366,9 @@ export function buildOneAiSearchParams(
   params.set("currency", context.currency);
   params.set("locale", context.locale);
   params.set("limit", String(args.limit ?? ONE_AI_SEARCH_LIMIT_DEFAULT));
+  // The catalog's typo recovery rescans the whole catalog; the agent widens
+  // its own searches step by step and the model fixes spelling itself.
+  params.set("allowFallback", "0");
   return params;
 }
 
@@ -261,6 +380,7 @@ export function buildOneAiCatalogHref(
   const search = buildOneAiSearchParams(args, context);
   search.delete("locale");
   search.delete("limit");
+  search.delete("allowFallback");
   if (!args.min_price && !args.max_price) search.delete("currency");
   return `/${context.locale}/shop/catalog?${search.toString()}`;
 }
