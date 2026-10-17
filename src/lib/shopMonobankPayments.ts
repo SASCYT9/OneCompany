@@ -1,5 +1,5 @@
 import type { PrismaClient, ShopMonobankPayment } from "@prisma/client";
-import { adminMonobankBlockReason } from "./shopMonobankEligibility";
+import { adminMonobankBlockReason, monobankCurrencyBlockReason } from "./shopMonobankEligibility";
 import {
   buildMonobankInvoice,
   createMonobankInvoice,
@@ -9,6 +9,7 @@ import {
   isMonobankPaymentUrl,
   MONOBANK_VALIDITY_SECONDS,
   MonobankError,
+  monobankIsoCode,
   monobankMinorUnits,
   resolveMonobankStatusUpdate,
   type MonobankInvoiceStatus,
@@ -46,7 +47,9 @@ export async function prepareMonobankPayment(
   if (
     order.paymentMethod !== "MONOBANK" ||
     order.isDraft ||
-    order.currency !== "UAH" ||
+    monobankIsoCode(order.currency) !== payment.ccy ||
+    // A EUR/USD link stops working for the buyer once delivery moves to Ukraine.
+    monobankCurrencyBlockReason(order) !== null ||
     monobankMinorUnits(order.total) !== payment.amount ||
     order.amountPaid > 0 ||
     ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order.paymentStatus) ||
@@ -297,7 +300,8 @@ export async function applyMonobankStatus(prisma: PrismaClient, event: MonobankI
           toStatus: status,
           actorType: "system",
           actorName: "plata by mono",
-          note: `mono: ${event.status}; payment: ${update.paymentStatus}; amount: ${update.amountPaid} UAH`,
+          // The invoice is billed in the order currency (validated against payment.ccy above).
+          note: `mono: ${event.status}; payment: ${update.paymentStatus}; amount: ${update.amountPaid} ${order.currency}`,
         },
       });
     }

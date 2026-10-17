@@ -1,18 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 import {
   buildMonobankInvoice,
   createMonobankInvoice,
   getMonobankConfig,
   isMonobankEnabled,
   isMonobankPaymentUrl,
+  monobankIsoCode,
   monobankCheckoutKey,
   monobankMinorUnits,
   parseMonobankStatus,
   resolveMonobankStatusUpdate,
   verifyMonobankSignature,
 } from "../../../src/lib/shopMonobank";
+import { applyMonobankStatus, prepareMonobankPayment } from "../../../src/lib/shopMonobankPayments";
+import { adminMonobankBlockReason } from "../../../src/lib/shopMonobankEligibility";
 
 const order = {
   orderNumber: "OC-TEST-1",
@@ -109,7 +113,7 @@ test("basket discounts reconcile to the charged total", () => {
 });
 
 test("zero, unsupported currency, noninteger quantities and unsafe amounts are rejected", () => {
-  for (const currency of ["EUR", "USD"]) {
+  for (const currency of ["GBP", "PLN"]) {
     assert.throws(() =>
       buildMonobankInvoice({ ...order, currency }, payment.id, "en", "https://example.com")
     );
@@ -208,6 +212,126 @@ test("status payload validation does not coerce amounts or accept unknown status
   ]) {
     assert.throws(() => parseMonobankStatus({ ...event, ...patch }));
   }
+});
+
+test("invoices are issued in the order's UAH, EUR or USD and keep that ISO code end to end", () => {
+  assert.equal(monobankIsoCode("UAH"), 980);
+  assert.equal(monobankIsoCode("eur"), 978);
+  assert.equal(monobankIsoCode("USD"), 840);
+  assert.equal(monobankIsoCode("GBP"), null);
+  assert.equal(
+    buildMonobankInvoice({ ...order, currency: "USD" }, payment.id, "en", "https://example.com").ccy,
+    840
+  );
+
+  const euroOrder = { ...order, currency: "EUR" };
+  const invoice = buildMonobankInvoice(euroOrder, payment.id, "en", "https://example.com");
+  assert.equal(invoice.ccy, 978);
+  assert.equal(invoice.amount, 25345);
+  // A buyer abroad reads the basket in English.
+  assert.deepEqual(
+    invoice.merchantPaymInfo.basketOrder.slice(1).map((line) => [line.name, line.unit]),
+    [
+      ["Shipping", "pcs"],
+      ["Taxes", "pcs"],
+      ["Order price adjustment", "pcs"],
+    ]
+  );
+  const euroPayment = { ...payment, ccy: 978 };
+  const euroStored = { ...storedOrder, currency: "EUR" };
+  const paid = resolveMonobankStatusUpdate(euroPayment, euroStored, { ...event, ccy: 978 })!;
+  assert.equal(paid.paymentStatus, "PAID");
+  assert.equal(paid.amountPaid, 253.45);
+  // A hryvnia payment row can never settle a euro order (or the reverse).
+  assert.throws(() => resolveMonobankStatusUpdate(payment, euroStored, event));
+  assert.throws(() => resolveMonobankStatusUpdate(euroPayment, storedOrder, { ...event, ccy: 978 }));
+});
+
+test("the payment table accepts every currency an invoice can be issued in", () => {
+  // The newest migration that defines the ccy check decides what the database accepts.
+  const constraint = readdirSync("prisma/migrations")
+    .filter((name) => /^\d{14}_/.test(name))
+    .sort()
+    .map((name) => readFileSync(`prisma/migrations/${name}/migration.sql`, "utf8"))
+    .filter((sql) => sql.includes("ShopMonobankPayment_amount_check"))
+    .at(-1)!;
+  for (const currency of ["UAH", "EUR", "USD"])
+    assert.match(constraint, new RegExp(`\\b${monobankIsoCode(currency)}\\b`));
+});
+
+test("a settled euro invoice is logged in the order history in euros", async () => {
+  const notes: string[] = [];
+  const euroOrder = { ...storedOrder, id: "order-eur", currency: "EUR", status: "PENDING_PAYMENT", amountPaid: 0 };
+  const tx = {
+    shopMonobankPayment: {
+      findFirst: async () => ({ ...payment, ccy: 978, orderId: euroOrder.id, order: euroOrder }),
+      updateMany: async () => ({ count: 1 }),
+    },
+    shopMonobankPaymentHistory: { count: async () => 0 },
+    shopOrder: { updateMany: async () => ({ count: 1 }) },
+    shopOrderStatusEvent: {
+      create: async ({ data }: { data: { note: string } }) => {
+        notes.push(data.note);
+        return data;
+      },
+    },
+  };
+  const prisma = { $transaction: async (run: (client: typeof tx) => unknown) => run(tx) };
+  assert.equal(await applyMonobankStatus(prisma as never, { ...event, ccy: 978 }), true);
+  assert.deepEqual(notes, ["mono: success; payment: PAID; amount: 253.45 EUR"]);
+});
+
+test("Ukraine is billed in hryvnia only, even after the delivery country changes", async (t) => {
+  const state = {
+    status: "PENDING_PAYMENT",
+    paymentStatus: "PENDING",
+    paymentMethod: "MONOBANK",
+    amountPaid: 0,
+    isDraft: false,
+    monobankPayment: {},
+  };
+  assert.equal(adminMonobankBlockReason({ ...state, currency: "EUR", shippingAddress: { country: "Germany" } }), null);
+  assert.equal(adminMonobankBlockReason({ ...state, currency: "UAH", shippingAddress: { country: "Ukraine" } }), null);
+  for (const shippingAddress of [{ country: "Ukraine" }, { country: "UA" }, {}])
+    assert.equal(
+      adminMonobankBlockReason({ ...state, currency: "EUR", shippingAddress }),
+      "MONOBANK_REQUIRES_UAH_QUOTE"
+    );
+
+  // The buyer cannot reopen a live EUR link once the manager moved delivery to Ukraine.
+  const saved = { ...process.env };
+  t.after(() => {
+    process.env = saved;
+  });
+  process.env.MONOBANK_ENABLED = "1";
+  process.env.MONOBANK_TOKEN = "synthetic-test-token";
+  process.env.MONOBANK_PUBLIC_URL = "https://preview.example.com";
+  const euroLink = (country: string) => ({
+    shopMonobankPayment: {
+      findUnique: async () => ({
+        ...payment,
+        ccy: 978,
+        pageUrl: "https://pay.mbnk.biz/test-invoice",
+        expiresAt: null,
+        order: {
+          ...storedOrder,
+          currency: "EUR",
+          status: "PENDING_PAYMENT",
+          amountPaid: 0,
+          isDraft: false,
+          shippingAddress: { country },
+        },
+      }),
+    },
+  });
+  assert.equal(
+    await prepareMonobankPayment(euroLink("Germany") as never, "order-eur", "en"),
+    "https://pay.mbnk.biz/test-invoice"
+  );
+  await assert.rejects(
+    prepareMonobankPayment(euroLink("Ukraine") as never, "order-eur", "en"),
+    /MONOBANK_ORDER_NOT_PAYABLE/
+  );
 });
 
 test("only exact successful debit settlement marks the order paid", () => {

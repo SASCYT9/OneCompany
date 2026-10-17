@@ -1,4 +1,8 @@
-type OrderPaymentState = {
+import { isInternationalDelivery } from "./shopInternationalCheckout";
+
+type OrderBillingRegion = { currency?: string; shippingAddress?: unknown };
+
+type OrderPaymentState = OrderBillingRegion & {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
@@ -7,6 +11,23 @@ type OrderPaymentState = {
   stripeCheckoutSessionId?: string | null;
   monobankPayment?: unknown;
 };
+
+/**
+ * Delivery in Ukraine is billed in hryvnia only; EUR/USD invoices are for buyers abroad.
+ * Checked whenever a link is issued, reused, shown or emailed, because a manager may
+ * change the delivery country after the invoice exists.
+ */
+export function monobankCurrencyBlockReason(order: OrderBillingRegion): string | null {
+  if (order.currency === undefined) return null;
+  const address = order.shippingAddress;
+  const country =
+    address && typeof address === "object" && !Array.isArray(address)
+      ? String((address as Record<string, unknown>).country ?? "")
+      : "";
+  return order.currency.toUpperCase() !== "UAH" && !isInternationalDelivery(country)
+    ? "MONOBANK_REQUIRES_UAH_QUOTE"
+    : null;
+}
 
 /** Provider changes are permitted only when no external payment attempt can exist. */
 export function adminMonobankBlockReason(order: OrderPaymentState): string | null {
@@ -23,7 +44,7 @@ export function adminMonobankBlockReason(order: OrderPaymentState): string | nul
     (!order.monobankPayment && order.paymentStatus === "PENDING")
   )
     return "PREVIOUS_PAYMENT_UNVERIFIED";
-  return null;
+  return monobankCurrencyBlockReason(order);
 }
 
 /**

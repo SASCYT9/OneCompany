@@ -141,3 +141,131 @@ test("resuming payment requires the order capability or its authenticated custom
   });
   assert.equal(created, 1);
 });
+
+test("admin emails the open mono link in the buyer's language and records it", async (t) => {
+  const saved = { ...process.env };
+  t.after(() => {
+    process.env = saved;
+  });
+  process.env.RESEND_API_KEY = "re_synthetic";
+  process.env.EMAIL_FROM = "info@example.invalid";
+  const sent: Array<{ to: string[]; subject: string; idempotencyKey?: string }> = [];
+  const events: Array<{ note: string }> = [];
+  let sendError: { name: string; message: string } | null = null;
+  let historyDown = false;
+  let order: Record<string, unknown> | null = null;
+  const db: Record<string, unknown> = {
+    shopOrder: { findUnique: async () => order },
+    shopOrderStatusEvent: {
+      findFirst: async ({ where }: { where: { note: { contains: string } } }) =>
+        events.find((event) => event.note.includes(where.note.contains)) ?? null,
+      create: async ({ data }: { data: { note: string } }) => {
+        if (historyDown) throw new Error("database unavailable");
+        events.push(data);
+      },
+    },
+  };
+  db.$transaction = async (callback: (tx: unknown) => Promise<unknown>) => callback(db);
+  const post = await route("src/app/api/admin/shop/orders/[id]/monobank/email/route.ts", {
+    "next/headers": { cookies: async () => ({}) },
+    "@/lib/adminAuth": { assertAdminRequest: async () => ({ name: "Manager", email: "m@x" }) },
+    "@/lib/adminRbac": {
+      ADMIN_PERMISSIONS: { SHOP_ORDERS_WRITE: "shop.orders.write" },
+      writeAdminAuditLog: async () => {},
+    },
+    "@/lib/prisma": { prisma: db },
+    "@/lib/shopMonobankPayments": {
+      reusableMonobankLink: (payment: { pageUrl?: string } | null) => payment?.pageUrl ?? null,
+    },
+    "@/components/emails/PaymentLinkEmail": { __esModule: true, default: () => null },
+    "@react-email/render": { render: async () => "<html></html>" },
+    resend: {
+      Resend: class {
+        emails = {
+          send: async (
+            message: { to: string[]; subject: string },
+            options?: { idempotencyKey?: string }
+          ) => {
+            sent.push({ ...message, idempotencyKey: options?.idempotencyKey });
+            // Like Resend: a repeated idempotency key replays the original email id.
+            const id = options?.idempotencyKey ? `email-${options.idempotencyKey}` : `email-${sent.length}`;
+            return sendError ? { data: null, error: sendError } : { data: { id }, error: null };
+          },
+        };
+      },
+    },
+  });
+  const call = (attemptKey?: string) =>
+    post(new NextRequest("https://preview.example.com/api/admin/shop/orders/o1/monobank/email", {
+      method: "POST",
+      ...(attemptKey ? { body: JSON.stringify({ attemptKey }) } : {}),
+    }), { params: Promise.resolve({ id: "o1" }) });
+  const base = {
+    id: "o1",
+    orderNumber: "OC-2026-00099",
+    email: "buyer@example.invalid",
+    customerName: "Buyer",
+    status: "PENDING_PAYMENT",
+    paymentMethod: "MONOBANK",
+    paymentStatus: "PENDING",
+    amountPaid: 0,
+    isDraft: false,
+    currency: "UAH",
+    total: 1782.16,
+    shippingAddress: { country: "Ukraine" },
+    monobankPayment: { invoiceId: "inv-1", pageUrl: "https://pay.monobank.ua/test", expiresAt: null },
+  };
+
+  order = { ...base, monobankPayment: null };
+  assert.equal((await call()).status, 409);
+  // A settled or cancelled order never gets its old live invoice by email.
+  for (const patch of [
+    { paymentStatus: "PAID" },
+    { amountPaid: 100 },
+    { status: "CANCELLED" },
+    { paymentMethod: "FOP" },
+    // A EUR/USD link is never emailed for delivery in Ukraine.
+    { currency: "EUR" },
+  ]) {
+    const refused = await (order = { ...base, ...patch }, call());
+    assert.equal(refused.status, 409);
+    assert.equal((await refused.json()).error, "ORDER_NOT_PAYABLE");
+  }
+  assert.equal(sent.length, 0);
+
+  order = base;
+  const ok = await call();
+  assert.equal(ok.status, 200);
+  assert.deepEqual(sent[0].to, ["buyer@example.invalid"]);
+  assert.equal(sent[0].subject, "Оплата замовлення OC-2026-00099");
+  assert.match(events[0].note, /buyer@example\.invalid/);
+
+  order = { ...base, currency: "EUR", shippingAddress: { country: "Germany" } };
+  await call();
+  assert.equal(sent[1].subject, "Payment for order OC-2026-00099");
+
+  // Sent but the history write failed: still a success, so nobody re-sends it.
+  historyDown = true;
+  const unrecorded = await call();
+  assert.equal(unrecorded.status, 200);
+  assert.equal((await unrecorded.json()).recorded, false);
+  assert.equal(sent.length, 3);
+  historyDown = false;
+
+  sendError = { name: "validation_error", message: "API key is invalid" };
+  assert.equal((await call()).status, 502);
+  assert.equal(events.length, 2);
+  assert.equal(sent.at(-1)!.idempotencyKey, undefined);
+
+  // A retry of the same attempt reuses its key, so Resend drops the duplicate when the
+  // first response was lost; a malformed key is ignored rather than forwarded.
+  sendError = null;
+  await call("attempt-0001");
+  await call("attempt-0001");
+  assert.equal(sent.at(-2)!.idempotencyKey, "mono-link-email/o1/inv-1/attempt-0001");
+  assert.equal(sent.at(-1)!.idempotencyKey, sent.at(-2)!.idempotencyKey);
+  // The replayed send is recorded once: the history shows one email, not two.
+  assert.equal(events.filter((event) => event.note.includes("attempt-0001")).length, 1);
+  await call("bad key/../x");
+  assert.equal(sent.at(-1)!.idempotencyKey, undefined);
+});

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { PrismaClient, ShopMonobankPayment } from "@prisma/client";
 import {
+  monobankIsoCode,
   monobankCheckoutKey,
   monobankMinorUnits,
   monobankRequestHash,
@@ -137,8 +138,12 @@ export async function prepareAdminMonobankPayment(
       reason === "PREVIOUS_PAYMENT_UNVERIFIED" &&
       adminMonobankCanReplaceProvider(order);
     if (reason && !replacing) throw new MonobankError(reason, true);
-    if (order.currency !== "UAH") throw new MonobankError("MONOBANK_REQUIRES_UAH_QUOTE", true);
+    // The invoice uses the order's currency: hryvnia for Ukraine, and for a buyer
+    // abroad the UAH/EUR/USD the manager agreed with them.
     const country = String(snapshotRecord(order.shippingAddress).country ?? "");
+    const ccy = monobankIsoCode(order.currency);
+    if (ccy === null || (!isInternationalDelivery(country) && order.currency !== "UAH"))
+      throw new MonobankError("MONOBANK_REQUIRES_UAH_QUOTE", true);
     if (
       isInternationalDelivery(country) &&
       !internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total)
@@ -154,8 +159,12 @@ export async function prepareAdminMonobankPayment(
       create: {
         orderId,
         checkoutKeyHash: monobankCheckoutKey(randomUUID()),
-        requestHash: monobankRequestHash({ orderId, amount, currency: "UAH" }, order.customerId),
+        requestHash: monobankRequestHash(
+          { orderId, amount, currency: order.currency },
+          order.customerId
+        ),
         amount,
+        ccy,
       },
     });
     const changed = await tx.shopOrder.updateMany({
@@ -185,5 +194,14 @@ export async function prepareAdminMonobankPayment(
     });
   });
   await renewExpiredMonobankPayment(prisma, orderId, actorName);
-  return { url: await prepareMonobankPayment(prisma, orderId, locale), statusVerified: true };
+  // A buyer abroad reads the bank page's basket in English ("Shipping", not «Доставка»).
+  const invoiceLocale = isInternationalDelivery(
+    String(snapshotRecord(current.shippingAddress).country ?? "")
+  )
+    ? "en"
+    : locale;
+  return {
+    url: await prepareMonobankPayment(prisma, orderId, invoiceLocale),
+    statusVerified: true,
+  };
 }

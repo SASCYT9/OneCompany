@@ -5,6 +5,8 @@ import type { Prisma } from "@prisma/client";
 import { assertAdminRequest } from "@/lib/adminAuth";
 import { ADMIN_PERMISSIONS, writeAdminAuditLog } from "@/lib/adminRbac";
 import { prisma } from "@/lib/prisma";
+import { monobankCurrencyBlockReason } from "@/lib/shopMonobankEligibility";
+import { reusableMonobankLink } from "@/lib/shopMonobankPayments";
 import { orderAddressText } from "@/lib/shopOrderPresentation";
 import {
   appendOrderSnapshotItems,
@@ -35,7 +37,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const result = await prisma.$transaction(async (tx) => {
       const order = await tx.shopOrder.findUnique({
         where: { id },
-        include: { items: true, monobankPayment: { select: { id: true } } },
+        include: {
+          items: true,
+          monobankPayment: {
+            select: { id: true, invoiceId: true, pageUrl: true, status: true, expiresAt: true },
+          },
+        },
       });
       if (!order) throw new OrderEditError("ORDER_NOT_FOUND", "Замовлення не знайдено.", 404);
       if (order.updatedAt.toISOString() !== edit.expectedUpdatedAt)
@@ -66,6 +73,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
       if (edit.shippingAddress) {
         const { address, changed } = mergeOrderAddress(order.shippingAddress, edit.shippingAddress);
+        // The buyer may still hold an open EUR/USD mono link, and delivery in Ukraine is
+        // paid in hryvnia only: that link must close before the order moves to Ukraine.
+        if (
+          changed &&
+          monobankCurrencyBlockReason({ currency: order.currency, shippingAddress: address }) &&
+          reusableMonobankLink(order.monobankPayment)
+        )
+          throw new OrderEditError(
+            "FOREIGN_INVOICE_OPEN",
+            `Доставка в Україну оплачується лише в гривні, а клієнт ще може оплатити відкрите посилання mono в ${order.currency}. Скасуйте рахунок у кабінеті mono або дочекайтеся, поки посилання закінчиться, і тоді змініть країну.`,
+            409
+          );
         if (changed) {
           lines.push(
             `адреса «${orderAddressText(order.shippingAddress) || "—"}» → «${orderAddressText(address) || "—"}»`

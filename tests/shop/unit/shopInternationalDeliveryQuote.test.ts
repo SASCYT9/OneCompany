@@ -12,6 +12,76 @@ const order = {
   items: [{ id: "i1", quantity: 3, price: 10.01, total: 30.03 }],
 };
 
+test("billing in the order's own currency keeps item prices and converts only shipping", () => {
+  const euroOrder = {
+    currency: "EUR",
+    pricingSnapshot: { regionalAdjustmentAmount: -5 },
+    items: [{ id: "i1", quantity: 2, price: 100.5, total: 201 }],
+  };
+  const quote = calculateInternationalDeliveryQuote(euroOrder, rates, "22", undefined, "USD", "EUR");
+  assert.equal(quote.currency, "EUR");
+  assert.deepEqual(quote.items, [{ id: "i1", quantity: 2, price: 100.5, total: 201 }]);
+  assert.equal(quote.subtotal, 201);
+  assert.equal(quote.regionalAdjustmentAmount, -5);
+  assert.equal(quote.shippingCost, 20);
+  assert.equal(quote.total, 216);
+  assert.equal(quote.shippingQuote.amount, 22);
+  assert.equal(quote.shippingQuote.currency, "USD");
+  const sameCurrency = calculateInternationalDeliveryQuote(euroOrder, rates, "15", undefined, "EUR", "EUR");
+  assert.equal(sameCurrency.shippingCost, 15);
+  assert.equal(calculateInternationalDeliveryQuote(euroOrder, rates, "15", undefined, "EUR").currency, "UAH");
+  assert.throws(
+    () => calculateInternationalDeliveryQuote(euroOrder, rates, "15", undefined, "EUR", "GBP" as "EUR"),
+    /UNSUPPORTED_BILLING_CURRENCY/
+  );
+});
+
+test("re-billing an agreed order converts the regional adjustment from checkout, not again", () => {
+  // Checkout: 100 EUR with a -5 EUR regional adjustment, later agreed in UAH at 49.
+  const agreedInHryvnia = {
+    currency: "UAH",
+    pricingSnapshot: {
+      regionalAdjustmentAmount: -245,
+      originalPricingSnapshot: {
+        currency: "EUR",
+        regionalAdjustmentAmount: -5,
+        items: [{ slug: "part", variantId: null, unitPrice: 100, sourceAmount: 100, sourceCurrency: "EUR" }],
+      },
+    },
+    items: [{ id: "i1", productSlug: "part", variantId: null, quantity: 1, price: 4900, total: 4900 }],
+  };
+  // The hryvnia moved to 50: the euro bill must still show -5 EUR, not -245/50 = -4.9.
+  const moved = { EUR: 1, USD: 1.1, UAH: 50 };
+  const inEuro = calculateInternationalDeliveryQuote(agreedInHryvnia, moved, "0", undefined, "EUR", "EUR");
+  assert.equal(inEuro.regionalAdjustmentAmount, -5);
+  assert.equal(inEuro.items[0].price, 100);
+  assert.equal(inEuro.total, 95);
+});
+
+test("the manager may bill another currency: prices are converted once, like for hryvnia", () => {
+  // A hryvnia order to Germany billed in euro; an EUR order to the US billed in dollars.
+  const hryvniaOrder = {
+    currency: "UAH",
+    pricingSnapshot: {},
+    items: [{ id: "i1", quantity: 1, price: 4900, total: 4900 }],
+  };
+  const inEuro = calculateInternationalDeliveryQuote(hryvniaOrder, rates, "10", undefined, "EUR", "EUR");
+  assert.equal(inEuro.currency, "EUR");
+  assert.equal(inEuro.items[0].price, 100);
+  assert.equal(inEuro.shippingCost, 10);
+  assert.equal(inEuro.total, 110);
+  const euroOrder = {
+    currency: "EUR",
+    pricingSnapshot: {},
+    items: [{ id: "i1", quantity: 2, price: 50, total: 100 }],
+  };
+  const inDollars = calculateInternationalDeliveryQuote(euroOrder, rates, "11", undefined, "USD", "USD");
+  assert.equal(inDollars.currency, "USD");
+  assert.equal(inDollars.items[0].price, 55);
+  assert.equal(inDollars.shippingCost, 11);
+  assert.equal(inDollars.total, 121);
+});
+
 test("managed requotes tax only Europe-priced lines and preserve negative regional adjustments", () => {
   const fx = { EUR: 1, USD: 1.25, UAH: 50, _rawUsdToUah: 40, _uahReserve: 1 };
   for (const region of ["default", "europe"] as const) {

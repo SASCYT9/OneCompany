@@ -16,9 +16,10 @@ const bundled = build({
   } }],
 });
 
-async function fixture(options: { paid?: boolean; invoice?: boolean; concurrent?: boolean; authError?: string; agreedUsd?: boolean } = {}) {
+async function fixture(options: { paid?: boolean; invoice?: boolean; concurrent?: boolean; authError?: string; agreedUsd?: boolean; country?: string } = {}) {
   const order = {
     id: "order1", currency: options.agreedUsd ? "UAH" : "EUR", paymentMethod: "MANAGER_QUOTE", status: "PENDING_REVIEW",
+    shippingAddress: options.country ? { country: options.country } : null,
     amountPaid: options.paid ? 10 : 0, paymentStatus: options.paid ? "PAID" : "UNPAID",
     monobankPayment: options.invoice ? { invoiceId: "synthetic-invoice" } : null,
     updatedAt: new Date("2026-10-03T12:00:00Z"), total: new Prisma.Decimal(options.agreedUsd ? 6221.74 : 100), taxAmount: new Prisma.Decimal(0),
@@ -93,6 +94,33 @@ test("manager quote preview is read-only; agreement saves exact UAH totals, orig
   assert.equal(f.lines.length, 1);
   assert.equal(f.audits[0].metadata.customerAgreed, true);
   assert.equal(f.events.length, 1);
+});
+
+test("billing follows the buyer's region unless the manager picks another currency", async () => {
+  const europe = await fixture({ country: "Germany" });
+  const regional = await (await europe.get({ shippingAmount: "10", shippingCurrency: "EUR" })).json();
+  assert.equal(regional.currency, "EUR");
+  assert.equal(regional.total, 110);
+  const inHryvnia = await (await europe.get({ shippingAmount: "10", shippingCurrency: "EUR", billingCurrency: "UAH" })).json();
+  assert.equal(inHryvnia.currency, "UAH");
+  assert.equal((await europe.get({ billingCurrency: "GBP" })).status, 409);
+  assert.equal((await europe.post({ shippingAmount: 10, shippingCurrency: "EUR", billingCurrency: "EUR", expectedShippingCostUah: 10, expectedTotalUah: 110 })).status, 200);
+  assert.equal(europe.writes[0].currency, "EUR");
+  assert.equal(europe.writes[0].total, 110);
+  const america = await fixture({ country: "United States" });
+  assert.equal((await (await america.get({ shippingAmount: "10", shippingCurrency: "USD" })).json()).currency, "USD");
+
+  // Delivery in Ukraine is billed in hryvnia only; mono would refuse the agreement.
+  const ukraine = await fixture({ country: "Ukraine" });
+  const refused = await ukraine.get({ shippingAmount: "10", shippingCurrency: "UAH", billingCurrency: "EUR" });
+  assert.equal(refused.status, 409);
+  assert.equal((await refused.json()).error, "UAH_ONLY_FOR_UKRAINE");
+  assert.equal(
+    (await ukraine.post({ shippingAmount: 10, shippingCurrency: "UAH", billingCurrency: "USD", expectedShippingCostUah: 10, expectedTotalUah: 110 })).status,
+    409
+  );
+  assert.equal(ukraine.writes.length, 0);
+  assert.equal((await (await ukraine.get({ shippingAmount: "10", shippingCurrency: "UAH" })).json()).currency, "UAH");
 });
 
 test("USD and EUR shipping are saved with source amount/currency, converted value and rates", async () => {

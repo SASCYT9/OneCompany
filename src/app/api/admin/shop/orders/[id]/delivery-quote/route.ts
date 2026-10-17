@@ -10,13 +10,20 @@ import {
   snapshotRecord,
 } from "@/lib/shopInternationalDeliveryQuote";
 import { monobankMinorUnits } from "@/lib/shopMonobank";
+import { defaultCurrencyForShopCountry } from "@/lib/shopCountryCurrency";
 import {
   getAgreedInternationalShippingSource,
   internationalDeliveryAgreementMatches,
+  isInternationalDelivery,
 } from "@/lib/shopInternationalCheckout";
-import type { ShopCurrencyRates } from "@/lib/shopMoneyFormat";
+import type { ShopCurrencyCode, ShopCurrencyRates } from "@/lib/shopMoneyFormat";
 
-async function loadQuote(id: string, shipping: unknown, shippingCurrency: unknown = "UAH") {
+async function loadQuote(
+  id: string,
+  shipping: unknown,
+  shippingCurrency: unknown = "UAH",
+  billingCurrency: unknown = null
+) {
   const order = await prisma.shopOrder.findUnique({
     where: { id },
     include: { items: true, monobankPayment: true },
@@ -47,13 +54,30 @@ async function loadQuote(id: string, shipping: unknown, shippingCurrency: unknow
         }
       : {}),
   };
-  // An unchanged agreed amount keeps its saved rate. Editing the source amount
-  // or currency starts a fresh calculation and requires a new agreement.
+  const agreed = internationalDeliveryAgreementMatches(
+    order.pricingSnapshot,
+    order.currency,
+    order.total
+  );
+  // The manager picks the billing currency. Without a choice: the agreed one, else the
+  // buyer's region (hryvnia for Ukraine, euro for Europe, dollars elsewhere).
+  const requested =
+    typeof billingCurrency === "string" ? billingCurrency.trim().toUpperCase() : "";
+  if (requested && !["UAH", "EUR", "USD"].includes(requested))
+    throw new Error("UNSUPPORTED_BILLING_CURRENCY");
+  const country = String(snapshotRecord(order.shippingAddress).country ?? "");
+  const billing = (requested ||
+    (agreed ? order.currency : country ? defaultCurrencyForShopCountry(country) : "UAH")) as ShopCurrencyCode;
+  // Delivery in Ukraine is paid in hryvnia only: mono would refuse a EUR/USD agreement.
+  if (billing !== "UAH" && !isInternationalDelivery(country)) throw new Error("UAH_ONLY_FOR_UKRAINE");
+  // An unchanged agreed amount keeps its saved rate. Editing the source amount,
+  // its currency or the billing currency starts a fresh calculation and agreement.
   const ratesLocked = Boolean(
     source &&
       source.currency === shippingCurrency &&
       source.amount === Number(shipping) &&
-      internationalDeliveryAgreementMatches(order.pricingSnapshot, order.currency, order.total) &&
+      agreed &&
+      billing === order.currency &&
       (["EUR", "USD", "UAH"] as const).every(
         (key) => Number.isFinite(savedRates[key]) && savedRates[key] > 0
       )
@@ -66,7 +90,8 @@ async function loadQuote(id: string, shipping: unknown, shippingCurrency: unknow
         ratesLocked ? savedRates : settings.currencyRates,
         shipping,
         undefined,
-        shippingCurrency
+        shippingCurrency,
+        billing
       ),
       ratesLocked,
     },
@@ -101,7 +126,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { quote } = await loadQuote(
       id,
       query.get("shippingAmount") ?? query.get("shippingCostUah") ?? "0",
-      currency
+      currency,
+      query.get("billingCurrency")
     );
     return NextResponse.json(quote, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
@@ -122,7 +148,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { order, quote } = await loadQuote(
       id,
       hasShippingAmount ? body.shippingAmount : body.shippingCostUah,
-      shippingCurrency
+      shippingCurrency,
+      body.billingCurrency
     );
     if (
       typeof body.expectedTotalUah !== "number" ||
@@ -147,7 +174,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           amountPaid: 0,
         },
         data: {
-          currency: "UAH",
+          currency: quote.currency,
           subtotal: quote.subtotal,
           shippingCost: quote.shippingCost,
           shippingCalculatedCost: quote.shippingCost,
@@ -157,7 +184,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             JSON.stringify({
               ...snapshot,
               originalPricingSnapshot: snapshot.originalPricingSnapshot ?? snapshot,
-              currency: "UAH",
+              currency: quote.currency,
               currencyRates: quote.currencyRates,
               subtotal: quote.subtotal,
               shippingCost: quote.shippingCost,
@@ -183,14 +210,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                   quantity: item.quantity,
                   unitPrice: quoted.price,
                   total: quoted.total,
-                  currency: "UAH",
+                  currency: quote.currency,
                 };
               }),
               regionalAdjustmentAmount: quote.regionalAdjustmentAmount,
               internationalDelivery: {
                 ...previous,
                 status: "agreed",
-                currency: "UAH",
+                currency: quote.currency,
                 total: quote.total,
                 shippingCost: quote.shippingCost,
                 shippingQuote: quote.shippingQuote,
@@ -224,7 +251,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         entityType: "shop.order",
         entityId: id,
         metadata: {
-          currency: "UAH",
+          currency: quote.currency,
           total: quote.total,
           shippingCost: quote.shippingCost,
           shippingQuote: quote.shippingQuote,
@@ -239,11 +266,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           toStatus: order.status,
           actorType: "admin",
           actorName: session.name,
-          note: `Міжнародну доставку та суму погоджено з клієнтом: ${quote.total} UAH; доставка ${quote.shippingQuote.amount} ${quote.shippingQuote.currency} (${quote.shippingCost} UAH).`,
+          note: `Міжнародну доставку та суму погоджено з клієнтом: ${quote.total} ${quote.currency}; доставка ${quote.shippingQuote.amount} ${quote.shippingQuote.currency} (${quote.shippingCost} ${quote.currency}).`,
         },
       });
     });
-    return NextResponse.json({ ok: true, currency: "UAH", total: quote.total });
+    return NextResponse.json({ ok: true, currency: quote.currency, total: quote.total });
   } catch (error) {
     return failure(error);
   }

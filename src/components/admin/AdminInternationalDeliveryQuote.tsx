@@ -7,17 +7,26 @@ import type { ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import styles from "./AdminInternationalDeliveryQuote.module.css";
 
 type QuotePreview = {
+  /** What mono will charge in: hryvnia, or the order's own EUR/USD. */
+  currency: ShopCurrencyCode;
   subtotal: number;
   shippingCost: number;
   taxAmount: number;
   regionalAdjustmentAmount?: number;
   total: number;
-  shippingQuote: { amount: number; currency: ShopCurrencyCode; amountUah: number; rateToUah: number };
+  shippingQuote: {
+    amount: number;
+    currency: ShopCurrencyCode;
+    rateToUah?: number;
+    rateToBilling?: number;
+  };
   ratesLocked: boolean;
 };
-const formatMoney = new Intl.NumberFormat("uk-UA", {
-  style: "currency", currency: "UAH", minimumFractionDigits: 2, maximumFractionDigits: 2,
-}).format;
+const formatMoney = (value: number, currency: ShopCurrencyCode = "UAH") =>
+  new Intl.NumberFormat("uk-UA", {
+    style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2,
+  }).format(value);
+const CURRENCY_IN = { UAH: "у гривні", EUR: "в євро", USD: "у доларах" } as const;
 
 function quoteError(code?: string) {
   switch (code) {
@@ -28,31 +37,49 @@ function quoteError(code?: string) {
     case "DELIVERY_QUOTE_CHANGED": return "Розрахунок змінився. Перевірте нову суму й погодьте її з клієнтом.";
     case "DELIVERY_IMPORT_COST_REVIEW_REQUIRED": return "Спершу перевірте імпортні витрати цього замовлення.";
     case "ORDER_QUOTE_NOT_EDITABLE": return "Суму вже зафіксовано для оплати або замовлення оплачено. Перевірте його стан.";
+    case "UAH_ONLY_FOR_UKRAINE": return "Доставка в Україну оплачується лише в гривні — оберіть UAH.";
     default: return "Не вдалося оновити розрахунок. Перевірте доставку та спробуйте ще раз.";
   }
 }
 
 export function AdminInternationalDeliveryQuote({
   orderId,
-  shippingCostUah,
+  savedCurrency,
+  savedShippingCost,
   shippingSource,
-  savedTotalUah,
+  savedTotal,
+  regionCurrency,
+  uahOnly = false,
   isAgreed = false,
   paymentActions,
   onSaved,
 }: {
   orderId: string;
-  shippingCostUah?: number;
+  /** The order as saved now (currency, shipping, total) — ready once a quote matches it. */
+  savedCurrency: string;
+  savedShippingCost: number;
   shippingSource?: { amount: number; currency: ShopCurrencyCode } | null;
-  savedTotalUah?: number;
+  savedTotal: number;
+  /** The buyer's region currency, offered first: UAH, EUR for Europe, USD elsewhere. */
+  regionCurrency: ShopCurrencyCode;
+  /** Delivery in Ukraine (or no country yet): mono bills hryvnia only. */
+  uahOnly?: boolean;
   isAgreed?: boolean;
   paymentActions: (ready: boolean) => ReactNode;
   onSaved: () => Promise<void>;
 }) {
   const savedSourceCurrency = shippingSource?.currency ?? "UAH";
-  const savedSourceAmount = shippingSource?.amount ?? shippingCostUah;
+  const savedSourceAmount =
+    shippingSource?.amount ?? (savedCurrency === "UAH" ? savedShippingCost : undefined);
   const [shipping, setShipping] = useState(savedSourceAmount == null ? "" : String(savedSourceAmount));
   const [shippingCurrency, setShippingCurrency] = useState<ShopCurrencyCode>(savedSourceCurrency);
+  const [billingCurrency, setBillingCurrency] = useState<ShopCurrencyCode>(
+    uahOnly
+      ? "UAH"
+      : isAgreed && (savedCurrency === "UAH" || savedCurrency === "EUR" || savedCurrency === "USD")
+        ? savedCurrency
+        : regionCurrency
+  );
   const [agreed, setAgreed] = useState(false);
   const [quote, setQuote] = useState<QuotePreview | null>(null);
   const [error, setError] = useState("");
@@ -69,6 +96,7 @@ export function AdminInternationalDeliveryQuote({
       const params = new URLSearchParams({
         shippingAmount: shipping || "0",
         shippingCurrency,
+        billingCurrency,
       });
       fetch(`/api/admin/shop/orders/${orderId}/delivery-quote?${params}`, {
         signal: controller.signal,
@@ -97,7 +125,7 @@ export function AdminInternationalDeliveryQuote({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [orderId, shipping, shippingCurrency, refresh]);
+  }, [orderId, shipping, shippingCurrency, billingCurrency, refresh]);
 
   async function save() {
     if (lock.current || !agreed || !quote || shipping === "") return;
@@ -112,6 +140,7 @@ export function AdminInternationalDeliveryQuote({
         body: JSON.stringify({
           shippingAmount: shipping,
           shippingCurrency,
+          billingCurrency,
           expectedShippingCostUah: quote.shippingCost,
           expectedTotalUah: quote.total,
           customerAgreed: agreed,
@@ -138,9 +167,12 @@ export function AdminInternationalDeliveryQuote({
   }
 
   const paymentReady = Boolean(isAgreed && quote && !saving && !error && shipping !== "" &&
-    quote.total === savedTotalUah && quote.shippingCost === (shippingCostUah ?? 0) &&
+    quote.currency === savedCurrency &&
+    quote.total === savedTotal && quote.shippingCost === savedShippingCost &&
     shippingCurrency === savedSourceCurrency && Number(shipping) === savedSourceAmount &&
     quote.shippingQuote?.currency === shippingCurrency && Number(shipping) === quote.shippingQuote.amount);
+  const billing = quote?.currency ?? "UAH";
+  const rateToBilling = quote?.shippingQuote.rateToBilling ?? quote?.shippingQuote.rateToUah;
   return (
     <section id="international-delivery" className={styles.panel} aria-label="Міжнародна доставка та оплата">
       <header className={styles.header}>
@@ -167,29 +199,44 @@ export function AdminInternationalDeliveryQuote({
             />
           </div>
           <p className={styles.inputHint}>Якщо доставка безкоштовна, вкажіть 0.</p>
-          {quote?.shippingQuote && shippingCurrency !== "UAH" ?
+          <div className={styles.shippingFields}>
+            <AdminSelectField label="Валюта оплати (mono)" value={billingCurrency} disabled={saving || uahOnly}
+              options={
+                uahOnly
+                  ? [{ value: "UAH", label: "UAH" }]
+                  : [{ value: "EUR", label: "EUR" }, { value: "USD", label: "USD" }, { value: "UAH", label: "UAH" }]
+              }
+              onChange={(value) => { setBillingCurrency(value as ShopCurrencyCode); setQuote(null); setAgreed(false); setNotice(""); }}
+            />
+          </div>
+          <p className={styles.inputHint}>
+            {uahOnly
+              ? "Доставка в Україну — оплата лише в гривні."
+              : `Валюта регіону клієнта — ${regionCurrency}. Можна вибрати іншу: суму буде перераховано.`}
+          </p>
+          {quote?.shippingQuote && shippingCurrency !== billing && rateToBilling ?
             <p className={styles.exchangeRate}>
-              {quote.ratesLocked ? "Зафіксований курс" : "Курс для розрахунку"}: 1 {shippingCurrency} = {new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 6 }).format(quote.shippingQuote.rateToUah)} грн
+              {quote.ratesLocked ? "Зафіксований курс" : "Курс для розрахунку"}: 1 {shippingCurrency} = {new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 6 }).format(rateToBilling)} {billing === "UAH" ? "грн" : billing}
             </p> : null}
           <p className={styles.calculationStatus} role="status">
-            {error ? "Розрахунок недоступний." : !quote ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Оновлюємо розрахунок…</> : "Сума для mono — у гривні. Податки враховуються автоматично."}
+            {error ? "Розрахунок недоступний." : !quote ? <><Loader2 size={14} className="animate-spin" aria-hidden="true" /> Оновлюємо розрахунок…</> : `Сума для mono — ${CURRENCY_IN[billing]}. Податки враховуються автоматично.`}
           </p>
           {error ? <p role="alert" className={styles.error}>{error}</p> : null}
         </div>
         <div className={styles.summary}>
           <p className={styles.summaryTitle}>Сума для погодження</p>
           <dl>
-            <div><dt>Товари</dt><dd>{quote ? formatMoney(quote.subtotal) : "—"}</dd></div>
-            <div><dt>Доставка</dt><dd>{quote ? formatMoney(quote.shippingCost) : "—"}</dd></div>
-            <div><dt>Податки</dt><dd>{quote ? formatMoney(quote.taxAmount) : "—"}</dd></div>
-            {quote?.regionalAdjustmentAmount ? <div><dt>Регіональне коригування</dt><dd>{formatMoney(quote.regionalAdjustmentAmount)}</dd></div> : null}
+            <div><dt>Товари</dt><dd>{quote ? formatMoney(quote.subtotal, billing) : "—"}</dd></div>
+            <div><dt>Доставка</dt><dd>{quote ? formatMoney(quote.shippingCost, billing) : "—"}</dd></div>
+            <div><dt>Податки</dt><dd>{quote ? formatMoney(quote.taxAmount, billing) : "—"}</dd></div>
+            {quote?.regionalAdjustmentAmount ? <div><dt>Регіональне коригування</dt><dd>{formatMoney(quote.regionalAdjustmentAmount, billing)}</dd></div> : null}
           </dl>
-          {quote?.shippingQuote && shippingCurrency !== "UAH" ? <p className={styles.sourceAmount}>
-            Доставка: {new Intl.NumberFormat("uk-UA", { style: "currency", currency: shippingCurrency, minimumFractionDigits: 2 }).format(quote.shippingQuote.amount)} → {formatMoney(quote.shippingCost)}
+          {quote?.shippingQuote && shippingCurrency !== billing ? <p className={styles.sourceAmount}>
+            Доставка: {formatMoney(quote.shippingQuote.amount, shippingCurrency)} → {formatMoney(quote.shippingCost, billing)}
           </p> : null}
           <div className={styles.total}>
             <span>Разом до списання</span>
-            <strong aria-live="polite">{quote ? formatMoney(quote.total) : error ? "—" : "Розраховуємо…"}</strong>
+            <strong aria-live="polite">{quote ? formatMoney(quote.total, billing) : error ? "—" : "Розраховуємо…"}</strong>
           </div>
         </div>
       </div>
@@ -199,7 +246,7 @@ export function AdminInternationalDeliveryQuote({
         <label className={styles.checkbox}>
           <input type="checkbox" checked={agreed} disabled={saving || !quote || shipping === ""}
             onChange={(event) => setAgreed(event.target.checked)} />
-          <span>Вартість доставки, загальна сума та списання у гривні погоджені з клієнтом</span>
+          <span>Вартість доставки, загальна сума та списання {CURRENCY_IN[billing]} погоджені з клієнтом</span>
         </label>
         <div className={styles.saveRow}>
           <button type="button" disabled={saving || !agreed || !quote || shipping === ""}

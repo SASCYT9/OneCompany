@@ -197,6 +197,47 @@ test("an unpaid manual order can receive a Mono invoice", async (t) => {
   );
 });
 
+test("a buyer in Ukraine is billed only in hryvnia; abroad the agreed currency is used", async (t) => {
+  configureMono(t);
+  const domestic = fakePrisma({ paymentMethod: "FOP", paymentStatus: "UNPAID", currency: "EUR" });
+  t.mock.method(globalThis, "fetch", async () => {
+    domestic.countProviderCreate();
+    throw new Error("Mono must not be called for a euro order in Ukraine");
+  });
+  await assert.rejects(
+    prepareAdminMonobankPayment(domestic.prisma, "synthetic-order-1", "ua", "Test admin"),
+    /MONOBANK_REQUIRES_UAH_QUOTE/
+  );
+  assert.equal(domestic.providerCreates, 0);
+});
+
+test("an agreed euro order abroad gets a euro invoice with an English basket", async (t) => {
+  configureMono(t);
+  const fake = fakePrisma({
+    paymentMethod: "MANAGER_QUOTE",
+    paymentStatus: "UNPAID",
+    status: "PENDING_REVIEW",
+    currency: "EUR",
+    shippingAddress: { country: "Germany" },
+    pricingSnapshot: {
+      internationalDelivery: { status: "agreed", currency: "EUR", total: 1000 },
+    },
+  });
+  const sentBodies: Record<string, unknown>[] = [];
+  t.mock.method(globalThis, "fetch", async (_input: unknown, init?: RequestInit) => {
+    fake.countProviderCreate();
+    sentBodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+    return Response.json({
+      invoiceId: "synthetic-invoice-eur",
+      pageUrl: "https://pay.mbnk.biz/synthetic-invoice-eur",
+    });
+  });
+  await prepareAdminMonobankPayment(fake.prisma, "synthetic-order-1", "ua", "Test admin");
+  assert.equal(sentBodies[0].ccy, 978);
+  assert.equal(sentBodies[0].amount, 100000);
+  assert.match(String(sentBodies[0].redirectUrl), /\/en\/shop\/checkout\/success/);
+});
+
 test("paid amounts cannot be retried even with explicit confirmation", async (t) => {
   configureMono(t);
   const fake = fakePrisma({ amountPaid: 1000, paymentStatus: "PAID", status: "CONFIRMED" });

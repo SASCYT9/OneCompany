@@ -2,6 +2,16 @@ import { createHash, createPublicKey, verify } from "node:crypto";
 
 const API_URL = "https://api.monobank.ua";
 export const MONOBANK_CCY = 980;
+/**
+ * ISO 4217 numeric codes of the currencies mono invoices are issued in. An invoice uses
+ * the order's currency: hryvnia in Ukraine, or what the manager agreed for a buyer abroad
+ * (mono converts it for the merchant).
+ */
+const MONOBANK_ISO_CODES: Readonly<Record<string, number>> = { UAH: 980, USD: 840, EUR: 978 };
+
+export function monobankIsoCode(currency: string): number | null {
+  return MONOBANK_ISO_CODES[currency.trim().toUpperCase()] ?? null;
+}
 export const MONOBANK_VALIDITY_SECONDS = 24 * 60 * 60;
 const INVOICE_STATUSES = [
   "created",
@@ -162,9 +172,12 @@ export function buildMonobankInvoice(
   publicUrl: string
 ) {
   const amount = monobankMinorUnits(order.total);
-  if (order.currency !== "UAH" || amount <= 0 || !order.items.length) {
+  const ccy = monobankIsoCode(order.currency);
+  if (ccy === null || amount <= 0 || !order.items.length) {
     throw new MonobankError("MONOBANK_REQUIRES_UAH_QUOTE", true);
   }
+  // The buyer reads this basket on the bank page: Ukrainian for Ukraine, English abroad.
+  const unit = locale === "ua" ? "шт." : "pcs";
   const basketOrder = order.items.map((item) => {
     if (!Number.isSafeInteger(item.quantity) || item.quantity <= 0) {
       throw new MonobankError("MONOBANK_INVALID_QUANTITY", true);
@@ -180,7 +193,7 @@ export function buildMonobankInvoice(
       qty: item.quantity,
       sum,
       total,
-      unit: "шт.",
+      unit,
       code: (item.variantId || item.productSlug).slice(0, 128),
       ...(icon ? { icon } : {}),
     };
@@ -190,7 +203,7 @@ export function buildMonobankInvoice(
     ["tax", locale === "ua" ? "Податки" : "Taxes", order.taxAmount],
   ] as const) {
     const sum = monobankMinorUnits(value);
-    if (sum) basketOrder.push({ name, qty: 1, sum, total: sum, unit: "шт.", code });
+    if (sum) basketOrder.push({ name, qty: 1, sum, total: sum, unit, code });
   }
   const adjustment = amount - basketOrder.reduce((sum, item) => sum + item.total, 0);
   if (adjustment > 0) {
@@ -199,13 +212,13 @@ export function buildMonobankInvoice(
       qty: 1,
       sum: adjustment,
       total: adjustment,
-      unit: "шт.",
+      unit,
       code: "adjustment",
     });
   }
   return {
     amount,
-    ccy: MONOBANK_CCY,
+    ccy,
     merchantPaymInfo: {
       reference,
       destination: `OneCompany ${order.orderNumber}`,
@@ -376,7 +389,7 @@ export function resolveMonobankStatusUpdate(
 ) {
   if (
     order.paymentMethod !== "MONOBANK" ||
-    order.currency !== "UAH" ||
+    monobankIsoCode(order.currency) !== payment.ccy ||
     monobankMinorUnits(order.total) !== payment.amount ||
     event.amount !== payment.amount ||
     event.ccy !== payment.ccy ||

@@ -29,7 +29,9 @@ const bundled = build({
 
 const UPDATED_AT = new Date("2026-10-13T09:00:00.000Z");
 
-async function fixture(options: { paid?: boolean; mono?: boolean; concurrent?: boolean } = {}) {
+async function fixture(
+  options: { paid?: boolean; mono?: boolean; concurrent?: boolean; order?: Record<string, unknown> } = {}
+) {
   const claims: Array<{ where: Record<string, unknown>; data: Record<string, unknown> }> = [];
   const itemWrites: Array<[string, unknown]> = [];
   const events: Array<{ data: { note: string } }> = [];
@@ -61,6 +63,7 @@ async function fixture(options: { paid?: boolean; mono?: boolean; concurrent?: b
         total: new Prisma.Decimal(1000),
       },
     ],
+    ...options.order,
   };
   const db = {
     shopOrder: {
@@ -148,6 +151,37 @@ test("contacts and address can be fixed even on a paid order, keeping carrier da
   });
   assert.match(f.events[0].data.note, /телефон \+380000000000 → \+380111111111/);
   assert.equal(f.audits.length, 1);
+});
+
+test("delivery cannot move to Ukraine while a EUR/USD mono link can still be paid", async () => {
+  const live = {
+    id: "payment1",
+    invoiceId: "inv-1",
+    pageUrl: "https://pay.mbnk.biz/inv-1",
+    status: "created",
+    expiresAt: new Date(Date.now() + 3_600_000),
+  };
+  const abroad = {
+    currency: "EUR",
+    shippingAddress: { country: "Germany", city: "Berlin", line1: "Str. 1" },
+    monobankPayment: live,
+  };
+  const toUkraine = { shippingAddress: { country: "Ukraine", city: "Київ", line1: "НП 1" } };
+  const f = await fixture({ mono: true, order: abroad });
+  const refused = await f.patch(toUkraine);
+  assert.equal(refused.status, 409);
+  assert.equal((await refused.json()).error, "FOREIGN_INVOICE_OPEN");
+  assert.equal(f.claims.length, 0);
+  // Another address abroad, a closed link, or a hryvnia order can still be edited.
+  const elsewhere = await fixture({ mono: true, order: abroad });
+  assert.equal(
+    (await elsewhere.patch({ shippingAddress: { country: "Austria", city: "Wien", line1: "Str. 2" } })).status,
+    200
+  );
+  const closed = await fixture({ mono: true, order: { ...abroad, monobankPayment: { ...live, status: "expired" } } });
+  assert.equal((await closed.patch(toUkraine)).status, 200);
+  const hryvnia = await fixture({ mono: true, order: { ...abroad, currency: "UAH" } });
+  assert.equal((await hryvnia.patch(toUkraine)).status, 200);
 });
 
 test("items cannot change once a payment link carries the old amount", async () => {
