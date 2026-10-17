@@ -328,10 +328,12 @@ export const SHOP_COUNTRIES: ReadonlyArray<ShopCountry> = [
 ];
 
 function normalizeCountryToken(value: string | null | undefined) {
+  // Unicode-aware so Ukrainian names ("Україна") resolve like their English ones.
   return String(value ?? "")
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, " ");
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 }
 
 const COUNTRY_BY_TOKEN = new Map<string, ShopCountry>();

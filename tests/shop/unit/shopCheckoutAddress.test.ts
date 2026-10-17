@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { missingShopCheckoutFields, shopCountryUsesPostcode } from "../../../src/lib/shopCheckoutAddress";
+import { resolveShopCountry } from "../../../src/lib/shopCountries";
 import {
   getShopCountryRegions,
   isShopCountryRegion,
@@ -31,6 +32,14 @@ test("foreign regions stay in Latin script for the carrier", () => {
     getShopCountryRegions(code, "en").filter((region) => /[²³¹†‡*]/u.test(region.name))
   );
   assert.deepEqual(marked, []);
+});
+
+test("Ukrainian country names resolve to the same country as the English ones", () => {
+  assert.equal(resolveShopCountry("Україна")?.code, "UA");
+  assert.equal(resolveShopCountry("  україна ")?.code, "UA");
+  assert.equal(resolveShopCountry("Німеччина")?.code, "DE");
+  assert.equal(resolveShopCountry("Germany")?.code, "DE");
+  assert.equal(resolveShopCountry("Ukraine")?.code, "UA");
 });
 
 test("checkout demands every field except where the country has none", () => {
