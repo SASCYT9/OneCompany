@@ -4,6 +4,7 @@ import { render } from "@react-email/render";
 import AbandonedCartEmail from "../../../src/components/emails/AbandonedCartEmail";
 import {
   CART_REMINDER_DELAY_MS,
+  cartReminderState,
   isCartReminderSendWindow,
   normalizeReminderEmail,
   runCartReminders,
@@ -192,13 +193,42 @@ test("checkout consent creates a token, withdrawal removes only an unsent remind
   assert.equal(created.create.consentAt, NOON_KYIV);
   assert.equal(created.update.handledAt, null);
 
+  // Once sent, the row keeps its recipient and token (its email links must stay valid).
   existing = { outcome: "SENT" };
-  await saveCartReminderConsent(db, { ...base, email: "buyer@example.com", consent: true });
-  const renewed = calls[1][1] as { update: Record<string, unknown> };
-  assert.equal("handledAt" in renewed.update, false, "one reminder per cart");
+  await saveCartReminderConsent(db, { ...base, email: "someone-else@example.com", consent: true });
+  assert.equal(calls.length, 1, "a sent reminder is never rewritten");
 
   await saveCartReminderConsent(db, { ...base, email: null, consent: false });
-  assert.deepEqual(calls[2], ["deleteMany", { where: { cartId: "cart1", handledAt: null } }]);
+  assert.deepEqual(calls[1], ["deleteMany", { where: { cartId: "cart1", handledAt: null } }]);
+});
+
+test("checkout can show the consent the server still holds", async () => {
+  let row: { email: string; handledAt: Date | null } | null = { email: "buyer@example.com", handledAt: null };
+  const db = { shopCartReminder: { findUnique: async () => row } } as never;
+  assert.deepEqual(await cartReminderState(db, "cart1"), { consent: true, email: "buyer@example.com" });
+  row = { email: "buyer@example.com", handledAt: NOON_KYIV };
+  assert.deepEqual(await cartReminderState(db, "cart1"), { consent: false });
+  row = null;
+  assert.deepEqual(await cartReminderState(db, "cart1"), { consent: false });
+});
+
+test("a send cut off mid-run is picked up again, and a run stops inside its time budget", async () => {
+  const wheres: unknown[] = [];
+  const f = fakeDb([reminder("due")]);
+  const db = f.db as unknown as { shopCartReminder: { findMany: (args: { where: unknown }) => Promise<unknown> } };
+  const findMany = db.shopCartReminder.findMany;
+  db.shopCartReminder.findMany = async (args) => {
+    wheres.push(args.where);
+    return findMany(args);
+  };
+  const out = await runCartReminders(f.db, { now: NOON_KYIV, budgetMs: -1, send: async () => assert.fail("over budget") });
+  assert.equal(out.considered, 0);
+  // Pending rows, plus claims older than 15 minutes still marked SENDING.
+  const where = wheres[0] as { OR: Array<{ outcome?: string; handledAt: unknown }> };
+  assert.deepEqual(where.OR[1], {
+    outcome: "SENDING",
+    handledAt: { lt: new Date(NOON_KYIV.getTime() - 15 * 60 * 1000) },
+  });
 });
 
 test("unsubscribing suppresses the address and closes its pending reminders", async () => {

@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
 import { isInternationalDelivery } from "./shopInternationalCheckout";
-import { isCustomerEmailSendWindow, normalizeReminderEmail } from "./shopCartReminder";
+import {
+  CUSTOMER_EMAIL_TIME_BUDGET_MS,
+  isCustomerEmailSendWindow,
+  normalizeReminderEmail,
+} from "./shopCartReminder";
 
 /**
  * Review requests: a week after a manager marks an order «Доставлено», a retail buyer
@@ -64,9 +68,16 @@ export type ReviewRequestSender = (order: ReviewRequestOrder) => Promise<string 
 
 export async function runReviewRequests(
   prisma: PrismaClient,
-  options: { send: ReviewRequestSender; now?: Date; dryRun?: boolean; batch?: number }
+  options: {
+    send: ReviewRequestSender;
+    now?: Date;
+    dryRun?: boolean;
+    batch?: number;
+    budgetMs?: number;
+  }
 ) {
   const now = options.now ?? new Date();
+  const deadline = Date.now() + (options.budgetMs ?? CUSTOMER_EMAIL_TIME_BUDGET_MS);
   const result = {
     window: isCustomerEmailSendWindow(now),
     considered: 0,
@@ -84,7 +95,8 @@ export async function runReviewRequests(
     },
     select: { orderId: true },
     orderBy: { createdAt: "asc" },
-    take: 200,
+    // Far above a week of deliveries; handled orders are filtered out below.
+    take: 1000,
   });
   const ids = [...new Set(delivered.map((event) => event.orderId))];
   if (!ids.length) return result;
@@ -118,6 +130,7 @@ export async function runReviewRequests(
   );
 
   for (const order of pending) {
+    if (Date.now() > deadline) break;
     result.considered += 1;
     const email = normalizeReminderEmail(order.email);
     let outcome: ReviewRequestOutcome | null =

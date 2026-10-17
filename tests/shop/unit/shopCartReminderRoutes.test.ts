@@ -46,12 +46,15 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
       findUnique: async ({ where }: { where: { token: string } }) => (where.token === "tok" ? guestCart : null),
     },
     shopCartReminder: {
-      findUnique: async () => null,
+      findUnique: async ({ where }: { where: { cartId?: string } }) =>
+        where.cartId === "cart-guest" && saved.length === 1
+          ? { email: "buyer@example.com", handledAt: null, outcome: null }
+          : null,
       upsert: async (args: unknown) => saved.push(args),
       deleteMany: async (args: unknown) => saved.push(["withdraw", args]),
     },
   };
-  const { POST } = await route("src/app/api/shop/cart/reminder/route.ts", {
+  const { GET, POST } = await route("src/app/api/shop/cart/reminder/route.ts", {
     "@/lib/prisma": { prisma },
     "@/lib/localStorefront": { isLocalStorefrontMode: () => false },
     "@/lib/shopCart": { SHOP_CART_COOKIE: "oc_cart_token" },
@@ -75,6 +78,11 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
   assert.equal(upsert.create.email, "buyer@example.com");
   assert.equal(upsert.create.currency, "EUR");
   assert.equal(upsert.create.locale, "en");
+  // After a reload, checkout learns the consent is still on.
+  const state = await GET!(
+    new NextRequest("https://onecompany.global/api/shop/cart/reminder", { headers: { cookie: "oc_cart_token=tok" } })
+  );
+  assert.deepEqual(await state.json(), { consent: true, email: "buyer@example.com" });
 
   assert.equal((await post({ consent: false })).status, 200);
   assert.deepEqual(saved[1], ["withdraw", { where: { cartId: "cart-guest", handledAt: null } }]);
@@ -83,6 +91,9 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
   assert.equal((await post({ consent: true, email: "buyer@example.com" })).status, 404);
   allowed = false;
   assert.equal((await post({ consent: true, email: "buyer@example.com" })).status, 429);
+  // Withdrawing is never rate limited.
+  guestCart = { id: "cart-guest" };
+  assert.equal((await post({ consent: false })).status, 200);
 });
 
 test("the email link restores that cart in any browser; unsubscribe works by link and one click", async () => {

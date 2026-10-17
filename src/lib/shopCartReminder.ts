@@ -10,7 +10,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 export const CART_REMINDER_DELAY_MS = 24 * 60 * 60 * 1000;
 /** Older carts are not worth a reminder any more. */
 export const CART_REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-export const CART_REMINDER_BATCH = 25;
+export const CART_REMINDER_BATCH = 15;
 const SEND_FROM_HOUR = 9;
 const SEND_UNTIL_HOUR = 21;
 
@@ -84,13 +84,24 @@ export async function saveCartReminderConsent(
     where: { cartId: input.cartId },
     select: { outcome: true },
   });
+  // One reminder per cart. Once it went out the row stays as sent: its recipient and the
+  // token behind its links (cart, unsubscribe) must keep pointing at that email.
+  if (existing?.outcome === "SENT") return { saved: true };
   await prisma.shopCartReminder.upsert({
     where: { cartId: input.cartId },
     create: { cartId: input.cartId, token: newCartReminderToken(), ...details },
-    // One reminder per cart: once it went out, a renewed opt-in does not queue another.
-    update: existing?.outcome === "SENT" ? details : { ...details, handledAt: null, outcome: null },
+    update: { ...details, handledAt: null, outcome: null },
   });
   return { saved: true };
+}
+
+/** Whether the buyer's current cart has a pending reminder (checkout shows the box ticked). */
+export async function cartReminderState(prisma: PrismaClient, cartId: string) {
+  const reminder = await prisma.shopCartReminder.findUnique({
+    where: { cartId },
+    select: { email: true, handledAt: true },
+  });
+  return reminder && !reminder.handledAt ? { consent: true, email: reminder.email } : { consent: false };
 }
 
 /** Unsubscribe link (GET or one-click POST): the address never gets a reminder again. */
@@ -130,11 +141,23 @@ export type DueCartReminder = Prisma.ShopCartReminderGetPayload<{
 /** Sends one reminder; returns the provider's email id. Throw "EMPTY" if nothing is left to show. */
 export type CartReminderSender = (reminder: DueCartReminder) => Promise<string | null>;
 
+/** A claim whose run died mid-send (timeout, crash) is picked up again after this. */
+const STALE_CLAIM_MS = 15 * 60 * 1000;
+/** Stop well inside the cron's 60 s limit so no run is cut off mid-send. */
+export const CUSTOMER_EMAIL_TIME_BUDGET_MS = 40 * 1000;
+
 export async function runCartReminders(
   prisma: PrismaClient,
-  options: { send: CartReminderSender; now?: Date; dryRun?: boolean; batch?: number }
+  options: {
+    send: CartReminderSender;
+    now?: Date;
+    dryRun?: boolean;
+    batch?: number;
+    budgetMs?: number;
+  }
 ) {
   const now = options.now ?? new Date();
+  const deadline = Date.now() + (options.budgetMs ?? CUSTOMER_EMAIL_TIME_BUDGET_MS);
   const result = {
     window: isCartReminderSendWindow(now),
     considered: 0,
@@ -144,13 +167,17 @@ export async function runCartReminders(
 
   const dueBefore = new Date(now.getTime() - CART_REMINDER_DELAY_MS);
   const oldestActivity = new Date(now.getTime() - CART_REMINDER_MAX_AGE_MS);
+  const staleClaim = new Date(now.getTime() - STALE_CLAIM_MS);
+  const claimable = [
+    { handledAt: null },
+    { outcome: "SENDING", handledAt: { lt: staleClaim } },
+  ] satisfies Prisma.ShopCartReminderWhereInput[];
   // A cart counts as abandoned once neither it, its items nor the opt-in moved for a day.
   const due = await prisma.shopCartReminder.findMany({
     where: {
-      handledAt: null,
       consentAt: { lte: dueBefore },
-      updatedAt: { lte: dueBefore },
       cart: { updatedAt: { lte: dueBefore }, items: { none: { updatedAt: { gt: dueBefore } } } },
+      OR: [{ handledAt: null, updatedAt: { lte: dueBefore } }, claimable[1]],
     },
     include: dueReminderInclude,
     orderBy: { consentAt: "asc" },
@@ -158,6 +185,7 @@ export async function runCartReminders(
   });
 
   for (const reminder of due) {
+    if (Date.now() > deadline) break;
     result.considered += 1;
     const lastActivity = Math.max(
       reminder.consentAt.getTime(),
@@ -189,9 +217,10 @@ export async function runCartReminders(
       continue;
     }
 
-    // Claim first: two overlapping runs can never both send for one cart.
+    // Claim first: two overlapping runs can never both send for one cart. A stale claim
+    // is safe to retry: the Resend idempotency key keeps the email single.
     const claimed = await prisma.shopCartReminder.updateMany({
-      where: { cartId: reminder.cartId, handledAt: null },
+      where: { cartId: reminder.cartId, OR: claimable },
       data: { handledAt: now, outcome: outcome ?? "SENDING" },
     });
     if (claimed.count !== 1) continue;

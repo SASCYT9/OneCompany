@@ -1,12 +1,17 @@
 /**
- * POST /api/shop/cart/reminder — the checkout's "remind me" checkbox. Saves (or withdraws)
- * the buyer's consent to one abandoned-cart email for their current cart.
+ * The checkout's "remind me" checkbox for the buyer's current cart.
+ * - GET  — is a reminder pending (so the box shows ticked after a reload)?
+ * - POST — save or withdraw the consent to one abandoned-cart email.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import { prisma } from "@/lib/prisma";
 import { SHOP_CART_COOKIE } from "@/lib/shopCart";
-import { normalizeReminderEmail, saveCartReminderConsent } from "@/lib/shopCartReminder";
+import {
+  cartReminderState,
+  normalizeReminderEmail,
+  saveCartReminderConsent,
+} from "@/lib/shopCartReminder";
 import { getCurrentShopCustomerSession } from "@/lib/shopCustomerSession";
 import { consumeRateLimit, getRequestIp } from "@/lib/shopPublicRateLimit";
 
@@ -14,6 +19,28 @@ const CURRENCIES = new Set(["UAH", "EUR", "USD"]);
 
 function reply(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+}
+
+/** The same cart checkout uses: the customer's own cart first, else this browser's. */
+async function currentCart(request: NextRequest) {
+  const session = await getCurrentShopCustomerSession();
+  const token = request.cookies.get(SHOP_CART_COOKIE)?.value?.trim();
+  return (
+    (session?.customerId
+      ? await prisma.shopCart.findFirst({
+          where: { customerId: session.customerId },
+          orderBy: { updatedAt: "desc" },
+          select: { id: true },
+        })
+      : null) ??
+    (token ? await prisma.shopCart.findUnique({ where: { token }, select: { id: true } }) : null)
+  );
+}
+
+export async function GET(request: NextRequest) {
+  if (isLocalStorefrontMode()) return reply({ consent: false });
+  const cart = await currentCart(request);
+  return reply(cart ? await cartReminderState(prisma, cart.id) : { consent: false });
 }
 
 export async function POST(request: NextRequest) {
@@ -26,7 +53,9 @@ export async function POST(request: NextRequest) {
   if (isLocalStorefrontMode()) return reply({ ok: true, saved: false });
 
   // Each opt-in can trigger an email, so one visitor cannot enrol address after address.
+  // Withdrawing never sends anything and must always work.
   if (
+    consent &&
     !(await consumeRateLimit({
       keyParts: ["cart-reminder", getRequestIp(request.headers)],
       windowMs: 10 * 60 * 1000,
@@ -35,18 +64,7 @@ export async function POST(request: NextRequest) {
   )
     return reply({ error: "RATE_LIMITED" }, 429);
 
-  const session = await getCurrentShopCustomerSession();
-  const token = request.cookies.get(SHOP_CART_COOKIE)?.value?.trim();
-  // The same cart checkout uses: the customer's own cart first, else this browser's.
-  const cart =
-    (session?.customerId
-      ? await prisma.shopCart.findFirst({
-          where: { customerId: session.customerId },
-          orderBy: { updatedAt: "desc" },
-          select: { id: true },
-        })
-      : null) ??
-    (token ? await prisma.shopCart.findUnique({ where: { token }, select: { id: true } }) : null);
+  const cart = await currentCart(request);
   if (!cart) return reply({ error: "CART_NOT_FOUND" }, 404);
 
   const currency = String(body.currency ?? "").toUpperCase();
