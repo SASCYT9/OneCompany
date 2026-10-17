@@ -230,6 +230,17 @@ export function calculateInternationalDeliveryQuote(
   });
   const subtotal = items.reduce((sum, item) => sum + monobankMinorUnits(item.total), 0) / 100;
   const region = snapshotRecord(originalSnapshot.regionalPricingRule);
+  // Like the item prices, a saved adjustment is converted once from the checkout
+  // snapshot; re-converting an already agreed amount would chain exchange rates.
+  const originalAdjustment = typeof originalSnapshot.regionalAdjustmentAmount === "number";
+  const adjustmentAmount = Number(
+    (originalAdjustment ? originalSnapshot.regionalAdjustmentAmount : snapshot.regionalAdjustmentAmount) ?? 0
+  );
+  const adjustmentCurrency =
+    originalAdjustment && ["EUR", "USD", "UAH"].includes(String(originalSnapshot.currency))
+      ? (originalSnapshot.currency as ShopCurrencyCode)
+      : source;
+  if (!Number.isFinite(adjustmentAmount)) throw new Error("INVALID_ORDER_AMOUNT");
   const regionalAdjustmentAmount =
     isShopSourcePriceBook(rates) && region.mode === "percent" && typeof region.value === "number"
       ? (Math.sign(region.value) * monobankMinorUnits((subtotal * Math.abs(region.value)) / 100)) /
@@ -243,7 +254,8 @@ export function calculateInternationalDeliveryQuote(
               toTarget(Math.abs(region.value), region.currency as ShopCurrencyCode)
             )) /
           100
-        : convert(Number(snapshot.regionalAdjustmentAmount ?? 0));
+        : Math.sign(adjustmentAmount) *
+          convertShopCurrencyAmount(Math.abs(adjustmentAmount), adjustmentCurrency, target, rates, 2);
   const shippingSourceAmount = cost(shippingAmount);
   const shippingCost = monobankMinorUnits(toTarget(shippingSourceAmount, shippingSource)) / 100;
   const taxRegion = snapshotRecord(snapshot.taxRegion);

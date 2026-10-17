@@ -36,6 +36,28 @@ test("billing in the order's own currency keeps item prices and converts only sh
   );
 });
 
+test("re-billing an agreed order converts the regional adjustment from checkout, not again", () => {
+  // Checkout: 100 EUR with a -5 EUR regional adjustment, later agreed in UAH at 49.
+  const agreedInHryvnia = {
+    currency: "UAH",
+    pricingSnapshot: {
+      regionalAdjustmentAmount: -245,
+      originalPricingSnapshot: {
+        currency: "EUR",
+        regionalAdjustmentAmount: -5,
+        items: [{ slug: "part", variantId: null, unitPrice: 100, sourceAmount: 100, sourceCurrency: "EUR" }],
+      },
+    },
+    items: [{ id: "i1", productSlug: "part", variantId: null, quantity: 1, price: 4900, total: 4900 }],
+  };
+  // The hryvnia moved to 50: the euro bill must still show -5 EUR, not -245/50 = -4.9.
+  const moved = { EUR: 1, USD: 1.1, UAH: 50 };
+  const inEuro = calculateInternationalDeliveryQuote(agreedInHryvnia, moved, "0", undefined, "EUR", "EUR");
+  assert.equal(inEuro.regionalAdjustmentAmount, -5);
+  assert.equal(inEuro.items[0].price, 100);
+  assert.equal(inEuro.total, 95);
+});
+
 test("the manager may bill another currency: prices are converted once, like for hryvnia", () => {
   // A hryvnia order to Germany billed in euro; an EUR order to the US billed in dollars.
   const hryvniaOrder = {
