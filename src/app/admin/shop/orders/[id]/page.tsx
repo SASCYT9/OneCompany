@@ -969,6 +969,7 @@ export default function AdminOrderDetailPage() {
                     regionCurrency={defaultCurrencyForShopCountry(
                       String(order.shippingAddress?.country ?? "")
                     )}
+                    uahOnly={!isInternationalDelivery(String(order.shippingAddress?.country ?? ""))}
                     isAgreed={internationalDeliveryAgreementMatches(
                       order.pricingSnapshot,
                       order.currency,

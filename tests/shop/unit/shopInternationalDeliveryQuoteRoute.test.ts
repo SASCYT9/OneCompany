@@ -109,6 +109,18 @@ test("billing follows the buyer's region unless the manager picks another curren
   assert.equal(europe.writes[0].total, 110);
   const america = await fixture({ country: "United States" });
   assert.equal((await (await america.get({ shippingAmount: "10", shippingCurrency: "USD" })).json()).currency, "USD");
+
+  // Delivery in Ukraine is billed in hryvnia only; mono would refuse the agreement.
+  const ukraine = await fixture({ country: "Ukraine" });
+  const refused = await ukraine.get({ shippingAmount: "10", shippingCurrency: "UAH", billingCurrency: "EUR" });
+  assert.equal(refused.status, 409);
+  assert.equal((await refused.json()).error, "UAH_ONLY_FOR_UKRAINE");
+  assert.equal(
+    (await ukraine.post({ shippingAmount: 10, shippingCurrency: "UAH", billingCurrency: "USD", expectedShippingCostUah: 10, expectedTotalUah: 110 })).status,
+    409
+  );
+  assert.equal(ukraine.writes.length, 0);
+  assert.equal((await (await ukraine.get({ shippingAmount: "10", shippingCurrency: "UAH" })).json()).currency, "UAH");
 });
 
 test("USD and EUR shipping are saved with source amount/currency, converted value and rates", async () => {

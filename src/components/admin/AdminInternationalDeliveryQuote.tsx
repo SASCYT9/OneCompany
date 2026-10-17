@@ -37,6 +37,7 @@ function quoteError(code?: string) {
     case "DELIVERY_QUOTE_CHANGED": return "Розрахунок змінився. Перевірте нову суму й погодьте її з клієнтом.";
     case "DELIVERY_IMPORT_COST_REVIEW_REQUIRED": return "Спершу перевірте імпортні витрати цього замовлення.";
     case "ORDER_QUOTE_NOT_EDITABLE": return "Суму вже зафіксовано для оплати або замовлення оплачено. Перевірте його стан.";
+    case "UAH_ONLY_FOR_UKRAINE": return "Доставка в Україну оплачується лише в гривні — оберіть UAH.";
     default: return "Не вдалося оновити розрахунок. Перевірте доставку та спробуйте ще раз.";
   }
 }
@@ -48,6 +49,7 @@ export function AdminInternationalDeliveryQuote({
   shippingSource,
   savedTotal,
   regionCurrency,
+  uahOnly = false,
   isAgreed = false,
   paymentActions,
   onSaved,
@@ -60,6 +62,8 @@ export function AdminInternationalDeliveryQuote({
   savedTotal: number;
   /** The buyer's region currency, offered first: UAH, EUR for Europe, USD elsewhere. */
   regionCurrency: ShopCurrencyCode;
+  /** Delivery in Ukraine (or no country yet): mono bills hryvnia only. */
+  uahOnly?: boolean;
   isAgreed?: boolean;
   paymentActions: (ready: boolean) => ReactNode;
   onSaved: () => Promise<void>;
@@ -70,9 +74,11 @@ export function AdminInternationalDeliveryQuote({
   const [shipping, setShipping] = useState(savedSourceAmount == null ? "" : String(savedSourceAmount));
   const [shippingCurrency, setShippingCurrency] = useState<ShopCurrencyCode>(savedSourceCurrency);
   const [billingCurrency, setBillingCurrency] = useState<ShopCurrencyCode>(
-    isAgreed && (savedCurrency === "UAH" || savedCurrency === "EUR" || savedCurrency === "USD")
-      ? savedCurrency
-      : regionCurrency
+    uahOnly
+      ? "UAH"
+      : isAgreed && (savedCurrency === "UAH" || savedCurrency === "EUR" || savedCurrency === "USD")
+        ? savedCurrency
+        : regionCurrency
   );
   const [agreed, setAgreed] = useState(false);
   const [quote, setQuote] = useState<QuotePreview | null>(null);
@@ -194,13 +200,19 @@ export function AdminInternationalDeliveryQuote({
           </div>
           <p className={styles.inputHint}>Якщо доставка безкоштовна, вкажіть 0.</p>
           <div className={styles.shippingFields}>
-            <AdminSelectField label="Валюта оплати (mono)" value={billingCurrency} disabled={saving}
-              options={[{ value: "EUR", label: "EUR" }, { value: "USD", label: "USD" }, { value: "UAH", label: "UAH" }]}
+            <AdminSelectField label="Валюта оплати (mono)" value={billingCurrency} disabled={saving || uahOnly}
+              options={
+                uahOnly
+                  ? [{ value: "UAH", label: "UAH" }]
+                  : [{ value: "EUR", label: "EUR" }, { value: "USD", label: "USD" }, { value: "UAH", label: "UAH" }]
+              }
               onChange={(value) => { setBillingCurrency(value as ShopCurrencyCode); setQuote(null); setAgreed(false); setNotice(""); }}
             />
           </div>
           <p className={styles.inputHint}>
-            Валюта регіону клієнта — {regionCurrency}. Можна вибрати іншу: суму буде перераховано.
+            {uahOnly
+              ? "Доставка в Україну — оплата лише в гривні."
+              : `Валюта регіону клієнта — ${regionCurrency}. Можна вибрати іншу: суму буде перераховано.`}
           </p>
           {quote?.shippingQuote && shippingCurrency !== billing && rateToBilling ?
             <p className={styles.exchangeRate}>

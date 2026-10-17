@@ -14,6 +14,7 @@ import { defaultCurrencyForShopCountry } from "@/lib/shopCountryCurrency";
 import {
   getAgreedInternationalShippingSource,
   internationalDeliveryAgreementMatches,
+  isInternationalDelivery,
 } from "@/lib/shopInternationalCheckout";
 import type { ShopCurrencyCode, ShopCurrencyRates } from "@/lib/shopMoneyFormat";
 
@@ -67,6 +68,8 @@ async function loadQuote(
   const country = String(snapshotRecord(order.shippingAddress).country ?? "");
   const billing = (requested ||
     (agreed ? order.currency : country ? defaultCurrencyForShopCountry(country) : "UAH")) as ShopCurrencyCode;
+  // Delivery in Ukraine is paid in hryvnia only: mono would refuse a EUR/USD agreement.
+  if (billing !== "UAH" && !isInternationalDelivery(country)) throw new Error("UAH_ONLY_FOR_UKRAINE");
   // An unchanged agreed amount keeps its saved rate. Editing the source amount,
   // its currency or the billing currency starts a fresh calculation and agreement.
   const ratesLocked = Boolean(
