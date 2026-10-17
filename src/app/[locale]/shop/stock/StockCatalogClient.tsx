@@ -2525,6 +2525,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setStockFilter("all");
     setSortOrder("default");
     setQuery("");
+    // Text typed but never submitted is part of the search too.
+    setQueryDraft("");
     setMinPriceFilter("");
     setMaxPriceFilter("");
     setBrandFilterQuery("");
@@ -2700,6 +2702,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     if (suggestion.type === "brand") {
       setSelectedBrands([suggestion.label]);
       setQuery("");
+      setQueryDraft("");
       return;
     }
 
@@ -2712,6 +2715,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     setOpfGpfFilter(null);
     setSelectedBrands([]);
     setQuery("");
+    setQueryDraft("");
   };
 
   // Applies a new search text right away instead of after the typing debounce.

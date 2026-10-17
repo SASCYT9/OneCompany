@@ -96,6 +96,10 @@ test("catalog text search waits for Enter and keeps One AI hidden", () => {
   const panelClose = stockPage.indexOf("setMobileFiltersOpen(false);", panelEnter);
   assert.ok(panel >= 0 && panelEnter > panel && panelClose > panelEnter);
   assert.ok(panelClose - panel < 1200, "Enter must close the phone panel inside renderFilterPanel");
+  // "Reset all" also clears text that was typed but never submitted.
+  const reset = stockPage.indexOf("function handleResetFilters()");
+  const resetEnd = stockPage.indexOf("\n  }\n", reset);
+  assert.ok(reset >= 0 && stockPage.slice(reset, resetEnd).includes('setQueryDraft("")'));
 });
 
 test("initial search remains immediate across React Strict Mode effect replay", () => {
