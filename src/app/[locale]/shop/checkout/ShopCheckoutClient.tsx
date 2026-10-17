@@ -800,8 +800,8 @@ export default function ShopCheckoutClient({
                         <option value="">
                           {regionListFailed === regionListKey
                             ? isUa
-                              ? "Список не завантажився"
-                              : "The list did not load"
+                              ? "Не завантажено"
+                              : "Not loaded"
                             : isUa
                               ? "Завантаження…"
                               : "Loading…"}
