@@ -42,6 +42,9 @@ type OrderData = {
   total: number;
   landedCost: LandedCost | null;
   showTaxesIncludedNotice: boolean;
+  pricingSnapshot?: {
+    internationalDelivery?: { status?: "awaiting_agreement" | "agreed" | string } | null;
+  } | null;
   createdAt: string;
   items: Array<{
     productSlug: string;
@@ -83,10 +86,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   const trackedRef = useRef(false);
   const isUa = locale === "ua";
   const showRegionalAdjustment = Boolean(order && hasMoneyAmount(order.regionalAdjustmentAmount));
-  // International orders get their shipping price from a manager after checkout.
-  const shippingAwaitsAgreement = Boolean(
-    order && order.paymentMethod === "MANAGER_QUOTE" && !hasMoneyAmount(order.shippingCost)
-  );
+  // International orders get their shipping price from a manager after checkout; the
+  // agreement status, not the amount, says whether that has happened yet.
+  const shippingAwaitsAgreement =
+    order?.pricingSnapshot?.internationalDelivery?.status === "awaiting_agreement";
   const showVatLine = Boolean(
     order &&
     !order.landedCost &&
