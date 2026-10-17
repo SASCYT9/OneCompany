@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/render';
-import { ReplyEmail } from '@/components/emails/ReplyEmail';
+import { ReplyEmail, replyEmailLocale } from '@/components/emails/ReplyEmail';
 import { Resend } from 'resend';
 import React from 'react';
 import { Status } from '@prisma/client';
@@ -69,20 +69,27 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        // Answer in the customer's language (the inquiry itself does not store one).
+        const locale = replyEmailLocale(originalMessage);
         const emailHtml = await render(
           React.createElement(ReplyEmail, {
             userName: userName,
             replyText: replyText,
             originalMessage: originalMessage,
+            locale,
           })
         );
 
-        await resend.emails.send({
-          from: `OneCompany <${from}>`,
+        const { error: sendError } = await resend.emails.send({
+          from: `One Company <${from}>`,
           to: [recipientEmail],
-          subject: `Re: Your inquiry to OneCompany`,
+          subject:
+            locale === 'ua'
+              ? 'Відповідь на ваше звернення до One Company'
+              : 'Re: Your inquiry to One Company',
           html: emailHtml,
         });
+        if (sendError) throw new Error(`${sendError.name}: ${sendError.message}`);
       } catch (error) {
         console.error('Failed to send reply email:', error);
         return NextResponse.json({ error: 'Failed to send reply email' }, { status: 500 });
