@@ -18,6 +18,7 @@ import { SHOP_COUNTRIES } from "@/lib/shopCountries";
 import { getShopNavigationActiveKey } from "@/lib/shopNavigation";
 import { STOREFRONT_ROUTE_REGISTRY } from "@/lib/storefrontRouteRegistry";
 import { CATALOG_FOCUS_SEARCH_EVENT, isCatalogSearchPath } from "@/lib/catalogSearchFocus";
+import { isShopCurrencyAllowedForCountry } from "@/lib/shopCountryCurrency";
 
 const navItems = [
   { key: "automotive", href: "/auto" },
@@ -323,19 +324,21 @@ export function Header() {
                         <div className="mt-2 grid grid-cols-3 gap-1">
                           {SHOP_CURRENCIES.map((option) => {
                             const selected = mounted && currency === option.value;
+                            const allowed = isShopCurrencyAllowedForCountry(country, option.value);
                             return (
                               <button
                                 key={option.value}
                                 type="button"
+                                disabled={!allowed}
                                 onClick={() => {
                                   setCurrency(option.value);
                                   setShopSelectorOpen(false);
                                 }}
                                 className={cn(
-                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition",
+                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-30",
                                   selected
                                     ? "bg-primary text-primary-foreground"
-                                    : "bg-foreground/5 text-foreground/75 hover:bg-foreground/10 hover:text-foreground"
+                                    : "bg-foreground/5 text-foreground/75 enabled:hover:bg-foreground/10 enabled:hover:text-foreground"
                                 )}
                               >
                                 {option.label}
@@ -498,16 +501,18 @@ export function Header() {
                         <div className="mt-2 grid grid-cols-3 gap-1">
                           {SHOP_CURRENCIES.map((option) => {
                             const selected = mounted && currency === option.value;
+                            const allowed = isShopCurrencyAllowedForCountry(country, option.value);
                             return (
                               <button
                                 key={option.value}
                                 type="button"
+                                disabled={!allowed}
                                 onClick={() => setCurrency(option.value)}
                                 className={cn(
-                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition",
+                                  "rounded-lg px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-30",
                                   selected
                                     ? "bg-primary text-primary-foreground"
-                                    : "bg-foreground/5 text-foreground/75 hover:bg-foreground/10 hover:text-foreground"
+                                    : "bg-foreground/5 text-foreground/75 enabled:hover:bg-foreground/10 enabled:hover:text-foreground"
                                 )}
                               >
                                 {option.label}

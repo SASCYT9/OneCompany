@@ -42,6 +42,9 @@ type OrderData = {
   total: number;
   landedCost: LandedCost | null;
   showTaxesIncludedNotice: boolean;
+  pricingSnapshot?: {
+    internationalDelivery?: { status?: "awaiting_agreement" | "agreed" | string } | null;
+  } | null;
   createdAt: string;
   items: Array<{
     productSlug: string;
@@ -83,8 +86,20 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
   const trackedRef = useRef(false);
   const isUa = locale === "ua";
   const showRegionalAdjustment = Boolean(order && hasMoneyAmount(order.regionalAdjustmentAmount));
+  // International orders get their shipping price from a manager after checkout; the
+  // agreement status, not the amount, says whether that has happened yet.
+  const shippingAwaitsAgreement =
+    order?.pricingSnapshot?.internationalDelivery?.status === "awaiting_agreement";
+  // Until shipping is agreed, show what checkout showed: items plus the regional
+  // adjustment, without provisional shipping or any tax computed on it.
+  const totalShown = order
+    ? shippingAwaitsAgreement
+      ? Math.round((order.subtotal + order.regionalAdjustmentAmount) * 100) / 100
+      : order.total
+    : 0;
   const showVatLine = Boolean(
     order &&
+    !shippingAwaitsAgreement &&
     !order.landedCost &&
     (hasMoneyAmount(order.taxAmount) ||
       (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
@@ -342,7 +357,11 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               ) : null}
               <p>
                 {isUa ? "Доставка" : "Shipping"}:{" "}
-                {formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
+                {shippingAwaitsAgreement
+                  ? isUa
+                    ? "буде узгоджена з менеджером"
+                    : "to be agreed with a manager"
+                  : formatShopMoney(locale, order.shippingCost, order.currency as ShopCurrencyCode)}
               </p>
               {order.landedCost ? (
                 <div className="mt-3 rounded-xl border border-primary/15 bg-primary/5 px-3 py-3 text-xs">
@@ -401,8 +420,15 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               ) : null}
             </div>
             <p className="mt-4 font-medium text-foreground">
-              {isUa ? "Разом" : "Total"}:{" "}
-              {formatShopMoney(locale, order.total, order.currency as ShopCurrencyCode)}
+              {shippingAwaitsAgreement
+                ? isUa
+                  ? "Разом без доставки"
+                  : "Total before shipping"
+                : isUa
+                  ? "Разом"
+                  : "Total"}
+              :{" "}
+              {formatShopMoney(locale, totalShown, order.currency as ShopCurrencyCode)}
             </p>
           </div>
           {order.paymentMethod === "FOP" &&

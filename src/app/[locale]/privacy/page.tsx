@@ -172,6 +172,9 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                     : "We do not sell goods or provide services to residents of Russia and Belarus."}
                 </strong>
               </li>
+              {l === "ua" ? (
+                <li>Для України оплата лише в гривнях. Ціни в EUR і USD — для порівняння.</li>
+              ) : null}
             </ul>
           </section>
 

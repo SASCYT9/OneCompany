@@ -29,6 +29,8 @@ import {
   type ShopPriceAudience,
 } from "@/lib/shopPricingAudience";
 import { buildShopViewerPricingContextServer } from "@/lib/shopPricingContext.server";
+import { resolveShopCountry } from "@/lib/shopCountries";
+import { shopCountryRegionCode } from "@/lib/shopCountryRegions.server";
 import { isWheelForceWheel, WHEELFORCE_WHEEL_SET_SIZE } from "@/lib/wheelforceFamily";
 import {
   addRevozportUkraineShippingToPriceSet,
@@ -175,7 +177,9 @@ function normalizeMatchValue(value?: string | null) {
   return String(value ?? "")
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, " ");
+    // Unicode letters: Cyrillic names must not all collapse to the same blank value.
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
 }
 
 function matchesLocation(ruleValues: string[], candidate?: string | null) {
@@ -187,6 +191,20 @@ function matchesLocation(ruleValues: string[], candidate?: string | null) {
     const normalizedEntry = normalizeMatchValue(rawEntry);
     return normalizedEntry === normalizedCandidate;
   });
+}
+
+/**
+ * Regions also match across languages by subdivision code: the Ukrainian site submits
+ * "Київська область", while a rule may say "Kyiv Oblast" (or "UA-32").
+ */
+function matchesRegion(ruleValues: string[], address: CheckoutShippingAddress) {
+  if (matchesLocation(ruleValues, address.region)) return true;
+  const countryCode = resolveShopCountry(address.country)?.code ?? null;
+  const regionCode = shopCountryRegionCode(countryCode, address.region);
+  return (
+    regionCode !== null &&
+    ruleValues.some((entry) => shopCountryRegionCode(countryCode, entry) === regionCode)
+  );
 }
 
 function resolveRequestedCurrency(settings: ShopSettingsRuntime, requested?: string) {
@@ -265,7 +283,7 @@ function resolveShippingZone(
   const matched = settings.shippingZones.find((zone) => {
     if (!zone.enabled) return false;
     if (!matchesLocation(zone.countries, address.country)) return false;
-    if (!matchesLocation(zone.regions, address.region)) return false;
+    if (!matchesRegion(zone.regions, address)) return false;
     if (zone.minimumSubtotal != null && subtotal < zone.minimumSubtotal) return false;
     return true;
   });
@@ -277,7 +295,7 @@ function resolveTaxRegion(settings: ShopSettingsRuntime, address: CheckoutShippi
   const matched = settings.taxRegions.find((region) => {
     if (!region.enabled) return false;
     if (!matchesLocation(region.countries, address.country)) return false;
-    if (!matchesLocation(region.regions, address.region)) return false;
+    if (!matchesRegion(region.regions, address)) return false;
     return true;
   });
 
@@ -291,7 +309,7 @@ function resolveRegionalPricingRule(
   const matched = settings.regionalPricingRules.find((rule) => {
     if (!rule.enabled) return false;
     if (!matchesLocation(rule.countries, address.country)) return false;
-    if (!matchesLocation(rule.regions, address.region)) return false;
+    if (!matchesRegion(rule.regions, address)) return false;
     return true;
   });
 

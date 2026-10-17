@@ -18,7 +18,7 @@ type StoredOrder = {
 type PaymentCreate = { checkoutKeyHash: string; requestHash: string; amount: number };
 type CheckoutFixtureBody = {
   items: Array<{ slug: string; quantity: number }>;
-  contact: { name: string; email: string; phone?: string };
+  contact: { name: string; email: string; lastName?: string; phone?: string };
   shipping: {
     line1: string;
     line2?: string;
@@ -152,8 +152,15 @@ async function fixture() {
   );
   const body: CheckoutFixtureBody = {
     items: [{ slug: "test", quantity: 2 }],
-    contact: { name: "Buyer", email: "qa@example.invalid" },
-    shipping: { line1: "Test", city: "Kyiv", country: "Ukraine" },
+    contact: { name: "Buyer Pryklad", email: "qa@example.invalid", lastName: "Pryklad", phone: "+380670000001" },
+    shipping: {
+      line1: "Test",
+      line2: "Flat 1",
+      city: "Kyiv",
+      region: "Київ",
+      postcode: "01001",
+      country: "Ukraine",
+    },
     currency: "UAH",
     locale: "ua",
     paymentMethod: "MONOBANK",
@@ -228,6 +235,7 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
       ...f.body,
       contact: {
         name: "Oleksandr Pryklad",
+        lastName: "Pryklad",
         email: "buyer@example.invalid",
         phone: "+380670000000",
       },
@@ -263,6 +271,77 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     assert.equal(order.paymentMethod, "MONOBANK");
   });
 
+  await t.test("a surname sent separately by an API caller stays in the order name", async () => {
+    const f = await fixture();
+    const response = await f.post({
+      ...f.body,
+      contact: { ...f.body.contact, name: "Buyer", lastName: "Doe" },
+    });
+    assert.equal(response.status, 200);
+    assert.equal((f.orders[0] as StoredOrder & { customerName: string }).customerName, "Buyer Doe");
+  });
+
+  await t.test("every contact and delivery field is required before an order exists", async () => {
+    const f = await fixture();
+    const response = await f.post({
+      ...f.body,
+      contact: { name: "Buyer", email: "qa@example.invalid" },
+      shipping: { line1: "Test", city: "Kyiv", country: "Ukraine" },
+    });
+    assert.equal(response.status, 400);
+    const result = await response.json();
+    assert.deepEqual(result.missingFields, ["lastName", "phone", "line2", "region", "postcode"]);
+    // A region that is not one of the country's own counts as missing.
+    const foreignRegion = await f.post({
+      ...f.body,
+      shipping: { ...f.body.shipping, region: "Bavaria" },
+    });
+    assert.deepEqual((await foreignRegion.json()).missingFields, ["region"]);
+    // Delivery in Ukraine cannot be billed in euro or dollars, whatever the client sends.
+    for (const currency of ["EUR", "USD"]) {
+      const foreignCurrency = await f.post({ ...f.body, currency, paymentMethod: "FOP" });
+      assert.equal(foreignCurrency.status, 400);
+      assert.equal((await foreignCurrency.json()).code, "UAH_ONLY_FOR_UKRAINE");
+    }
+    // "Ukraine." resolves to Ukraine, so it gets the same hryvnia and domestic rules.
+    const punctuated = { ...f.body.shipping, country: "Ukraine." };
+    const punctuatedEuro = await f.post({ ...f.body, currency: "EUR", paymentMethod: "FOP", shipping: punctuated });
+    assert.equal(punctuatedEuro.status, 400);
+    assert.equal((await punctuatedEuro.json()).code, "UAH_ONLY_FOR_UKRAINE");
+    const punctuatedQuote = await f.post({
+      ...f.body,
+      currency: "EUR",
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: punctuated,
+    });
+    assert.equal(punctuatedQuote.status, 400);
+    assert.equal((await punctuatedQuote.json()).error, "MANAGER_QUOTE_REQUIRES_INTERNATIONAL_DELIVERY");
+    // An unknown country cannot skip the region by not being on any list, even as a
+    // consented manager-quote request that passes the international checks.
+    f.quote.currency = "EUR";
+    f.quote.requiresQuote = true;
+    const unknownCountry = await f.post({
+      ...f.body,
+      currency: "EUR",
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: { ...f.body.shipping, country: "Germanyx", region: "" },
+    });
+    assert.equal(unknownCountry.status, 400);
+    assert.equal((await unknownCountry.json()).code, "UNKNOWN_COUNTRY");
+    assert.equal(f.orders.length, 0);
+    assert.deepEqual(f.counts(), { notifications: 0, cartClears: 0 });
+    // Hong Kong has no postcodes, so the field is not demanded there.
+    const hongKong = await f.post({
+      ...f.body,
+      paymentMethod: "MANAGER_QUOTE",
+      internationalDeliveryConsent: true,
+      shipping: { line1: "Test", line2: "Flat 1", city: "Central", country: "HK" },
+    });
+    assert.equal((await hongKong.json()).missingFields, undefined);
+  });
+
   await t.test("changed totals, non-UAH quotes and manual quotes never create orders", async () => {
     const f = await fixture();
     assert.equal((await f.post({ ...f.body, expectedAmount: 1 })).status, 409);
@@ -293,7 +372,7 @@ test("checkout adds mono without duplicate orders or weakening price/quote gates
     f.quote.requiresQuote = true;
     const body = {
       ...f.body, currency: "USD", paymentMethod: "MANAGER_QUOTE",
-      shipping: { ...f.body.shipping, country: "United States" },
+      shipping: { ...f.body.shipping, country: "United States", region: "California", postcode: "90001" },
       internationalDeliveryConsent: true,
     };
     const response = await f.post(body);

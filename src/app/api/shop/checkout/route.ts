@@ -36,6 +36,10 @@ import {
   validateInternationalCheckout,
   INTERNATIONAL_DELIVERY_CONSENT_VERSION,
 } from "@/lib/shopInternationalCheckout";
+import { resolveShopCountry } from "@/lib/shopCountries";
+import { missingShopCheckoutFields, shopCheckoutCustomerName } from "@/lib/shopCheckoutAddress";
+import { isShopCountryRegion, shopCountryHasRegions } from "@/lib/shopCountryRegions.server";
+import { isShopCurrencyAllowedForCountry } from "@/lib/shopCountryCurrency";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
 
@@ -53,7 +57,7 @@ function normalizePaymentMethod(value: unknown): PaymentMethod {
 
 type CheckoutBody = {
   items?: Array<{ slug: string; quantity: number; variantId?: string | null }>;
-  contact?: { email?: string; name?: string; phone?: string };
+  contact?: { email?: string; name?: string; firstName?: string; lastName?: string; phone?: string };
   shipping?: {
     line1?: string;
     line2?: string;
@@ -122,11 +126,25 @@ export async function POST(req: NextRequest) {
   const paymentMethod = normalizePaymentMethod(body.paymentMethod);
   let monoKeyHash: string | undefined;
   let monoRequestHash: string | undefined;
-  const internationalDelivery = isInternationalDelivery(
-    typeof body.shipping?.country === "string" ? body.shipping.country : ""
-  );
+  // One canonical country for every rule below: a raw "Ukraine." or "UA" must not slip
+  // past the hryvnia and international checks, which compare exact names. It must be a
+  // country we know (the picker's "Other" included), or the region would be skipped.
+  const requestedCountry =
+    typeof body.shipping?.country === "string" ? body.shipping.country.trim() : "";
+  const resolvedCountry = resolveShopCountry(requestedCountry);
+  if (requestedCountry && !resolvedCountry) {
+    return NextResponse.json(
+      {
+        error: body.locale === "ua" ? "Оберіть країну зі списку." : "Please choose a country from the list.",
+        code: "UNKNOWN_COUNTRY",
+      },
+      { status: 400 }
+    );
+  }
+  const canonicalCountry = resolvedCountry?.value ?? "";
+  const internationalDelivery = isInternationalDelivery(canonicalCountry);
   const policyError = validateInternationalCheckout(
-    typeof body.shipping?.country === "string" ? body.shipping.country : "",
+    canonicalCountry,
     paymentMethod,
     body.internationalDeliveryConsent
   );
@@ -183,7 +201,11 @@ export async function POST(req: NextRequest) {
   }
 
   const email = typeof body.contact?.email === "string" ? body.contact.email.trim() : "";
-  const name = typeof body.contact?.name === "string" ? body.contact.name.trim() : "";
+  const name = shopCheckoutCustomerName({
+    name: typeof body.contact?.name === "string" ? body.contact.name : "",
+    firstName: typeof body.contact?.firstName === "string" ? body.contact.firstName : "",
+    lastName: typeof body.contact?.lastName === "string" ? body.contact.lastName : "",
+  });
   if (!email || !name) {
     return NextResponse.json({ error: "Email and name are required" }, { status: 400 });
   }
@@ -191,10 +213,51 @@ export async function POST(req: NextRequest) {
   const shipping = body.shipping ?? {};
   const line1 = typeof shipping.line1 === "string" ? shipping.line1.trim() : "";
   const city = typeof shipping.city === "string" ? shipping.city.trim() : "";
-  const country = typeof shipping.country === "string" ? shipping.country.trim() : "";
+  const country = canonicalCountry;
   if (!line1 || !city || !country) {
     return NextResponse.json(
       { error: "Shipping address (line1, city, country) is required" },
+      { status: 400 }
+    );
+  }
+  const countryCode = resolvedCountry?.code ?? null;
+  const region = typeof shipping.region === "string" ? shipping.region : "";
+  const countryHasRegions = shopCountryHasRegions(countryCode);
+  const missingFields = missingShopCheckoutFields({
+    lastName: typeof body.contact?.lastName === "string" ? body.contact.lastName : "",
+    phone: typeof body.contact?.phone === "string" ? body.contact.phone : "",
+    line2: typeof shipping.line2 === "string" ? shipping.line2 : "",
+    // A region from another country (or typed by hand) is as good as none.
+    region: countryHasRegions && !isShopCountryRegion(countryCode, region) ? "" : region,
+    postcode: typeof shipping.postcode === "string" ? shipping.postcode : "",
+    countryCode,
+    countryHasRegions,
+  });
+  if (missingFields.length) {
+    return NextResponse.json(
+      {
+        error:
+          body.locale === "ua"
+            ? "Заповніть усі поля контактів і доставки."
+            : "Please fill in every contact and delivery field.",
+        missingFields,
+      },
+      { status: 400 }
+    );
+  }
+  const requestedCurrency = CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+    ? ((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
+    : "EUR";
+  // Delivery in Ukraine is settled in hryvnia; the client restriction alone is bypassable.
+  if (!isShopCurrencyAllowedForCountry(country, requestedCurrency)) {
+    return NextResponse.json(
+      {
+        error:
+          body.locale === "ua"
+            ? "Для доставки по Україні оплата лише в гривнях."
+            : "Orders delivered in Ukraine are paid in hryvnia only.",
+        code: "UAH_ONLY_FOR_UKRAINE",
+      },
       { status: 400 }
     );
   }
@@ -211,9 +274,7 @@ export async function POST(req: NextRequest) {
         postcode: typeof shipping.postcode === "string" ? shipping.postcode.trim() : undefined,
         country,
       },
-      currency: CURRENCIES.includes((body.currency ?? "EUR") as (typeof CURRENCIES)[number])
-        ? (body.currency ?? "EUR")
-        : "EUR",
+      currency: requestedCurrency,
       customerGroup: session?.group ?? null,
       customerId: session?.customerId ?? null,
       customerB2BDiscountPercent: session?.b2bDiscountPercent ?? null,
@@ -512,15 +573,30 @@ export async function POST(req: NextRequest) {
           items: quote.items.map((i) => ({ title: i.title, quantity: i.quantity, total: i.total })),
         })
       );
-      await resend.emails.send({
+      // Resend reports rejections (bad key, unverified sender) in `error`, not by throwing.
+      const { error: sendError } = await resend.emails.send({
         from: `One Company Shop <${process.env.EMAIL_FROM}>`,
         to: [email],
         subject:
           locale === "ua" ? `Замовлення ${orderNumber} прийнято` : `Order ${orderNumber} confirmed`,
         html: emailHtml,
       });
+      if (sendError) throw new Error(`${sendError.name}: ${sendError.message}`);
     } catch (err) {
       console.error("Order confirmation email failed (order already created):", err);
+      // Managers see in the order history that the buyer got no confirmation.
+      await prisma.shopOrderStatusEvent
+        .create({
+          data: {
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: order.status,
+            actorType: "system",
+            actorName: "email",
+            note: `Лист-підтвердження клієнту не надіслано: ${err instanceof Error ? err.message : "невідома помилка"}`.slice(0, 500),
+          },
+        })
+        .catch(() => {});
     }
   }
 

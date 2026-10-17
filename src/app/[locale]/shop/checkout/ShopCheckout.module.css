@@ -214,6 +214,18 @@
   border-color: var(--checkout-ink);
   box-shadow: 0 1px 0 var(--checkout-ink);
 }
+/* The open list is drawn by the system: give it the page colours so the dark
+   theme does not get white text on a white list. */
+.field select option {
+  background: var(--checkout-bg);
+  color: var(--checkout-ink);
+}
+.field select option:disabled {
+  color: var(--checkout-muted);
+}
+:global(.dark) .field select {
+  color-scheme: dark;
+}
 .field input::placeholder {
   color: var(--checkout-muted);
   opacity: 0.75;
@@ -223,6 +235,17 @@
 }
 .countryLabel {
   display: block;
+}
+.regionRetry {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--checkout-ink);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .countryButton {
   min-height: 49px !important;
