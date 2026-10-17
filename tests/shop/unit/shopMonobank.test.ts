@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 import {
   buildMonobankInvoice,
   createMonobankInvoice,
@@ -244,6 +245,18 @@ test("invoices are issued in the order's UAH, EUR or USD and keep that ISO code 
   // A hryvnia payment row can never settle a euro order (or the reverse).
   assert.throws(() => resolveMonobankStatusUpdate(payment, euroStored, event));
   assert.throws(() => resolveMonobankStatusUpdate(euroPayment, storedOrder, { ...event, ccy: 978 }));
+});
+
+test("the payment table accepts every currency an invoice can be issued in", () => {
+  // The newest migration that defines the ccy check decides what the database accepts.
+  const constraint = readdirSync("prisma/migrations")
+    .filter((name) => /^\d{14}_/.test(name))
+    .sort()
+    .map((name) => readFileSync(`prisma/migrations/${name}/migration.sql`, "utf8"))
+    .filter((sql) => sql.includes("ShopMonobankPayment_amount_check"))
+    .at(-1)!;
+  for (const currency of ["UAH", "EUR", "USD"])
+    assert.match(constraint, new RegExp(`\\b${monobankIsoCode(currency)}\\b`));
 });
 
 test("a settled euro invoice is logged in the order history in euros", async () => {
