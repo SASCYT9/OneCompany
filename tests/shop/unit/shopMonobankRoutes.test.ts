@@ -141,3 +141,81 @@ test("resuming payment requires the order capability or its authenticated custom
   });
   assert.equal(created, 1);
 });
+
+test("admin emails the open mono link in the buyer's language and records it", async (t) => {
+  const saved = { ...process.env };
+  t.after(() => {
+    process.env = saved;
+  });
+  process.env.RESEND_API_KEY = "re_synthetic";
+  process.env.EMAIL_FROM = "info@example.invalid";
+  const sent: Array<{ to: string[]; subject: string }> = [];
+  const events: Array<{ note: string }> = [];
+  let sendError: { name: string; message: string } | null = null;
+  let order: Record<string, unknown> | null = null;
+  const post = await route("src/app/api/admin/shop/orders/[id]/monobank/email/route.ts", {
+    "next/headers": { cookies: async () => ({}) },
+    "@/lib/adminAuth": { assertAdminRequest: async () => ({ name: "Manager", email: "m@x" }) },
+    "@/lib/adminRbac": {
+      ADMIN_PERMISSIONS: { SHOP_ORDERS_WRITE: "shop.orders.write" },
+      writeAdminAuditLog: async () => {},
+    },
+    "@/lib/prisma": {
+      prisma: {
+        shopOrder: { findUnique: async () => order },
+        shopOrderStatusEvent: {
+          create: async ({ data }: { data: { note: string } }) => events.push(data),
+        },
+      },
+    },
+    "@/lib/shopMonobankPayments": {
+      reusableMonobankLink: (payment: { pageUrl?: string } | null) => payment?.pageUrl ?? null,
+    },
+    "@/components/emails/PaymentLinkEmail": { __esModule: true, default: () => null },
+    "@react-email/render": { render: async () => "<html></html>" },
+    resend: {
+      Resend: class {
+        emails = {
+          send: async (message: { to: string[]; subject: string }) => {
+            sent.push(message);
+            return sendError ? { data: null, error: sendError } : { data: { id: "e1" }, error: null };
+          },
+        };
+      },
+    },
+  });
+  const call = () =>
+    post(new NextRequest("https://preview.example.com/api/admin/shop/orders/o1/monobank/email", {
+      method: "POST",
+    }), { params: Promise.resolve({ id: "o1" }) });
+  const base = {
+    id: "o1",
+    orderNumber: "OC-2026-00099",
+    email: "buyer@example.invalid",
+    customerName: "Buyer",
+    status: "PENDING_PAYMENT",
+    currency: "UAH",
+    total: 1782.16,
+    shippingAddress: { country: "Ukraine" },
+    monobankPayment: { pageUrl: "https://pay.monobank.ua/test", expiresAt: null },
+  };
+
+  order = { ...base, monobankPayment: null };
+  assert.equal((await call()).status, 409);
+  assert.equal(sent.length, 0);
+
+  order = base;
+  const ok = await call();
+  assert.equal(ok.status, 200);
+  assert.deepEqual(sent[0].to, ["buyer@example.invalid"]);
+  assert.equal(sent[0].subject, "Оплата замовлення OC-2026-00099");
+  assert.match(events[0].note, /buyer@example\.invalid/);
+
+  order = { ...base, currency: "EUR", shippingAddress: { country: "Germany" } };
+  await call();
+  assert.equal(sent[1].subject, "Payment for order OC-2026-00099");
+
+  sendError = { name: "validation_error", message: "API key is invalid" };
+  assert.equal((await call()).status, 502);
+  assert.equal(events.length, 2);
+});

@@ -10,6 +10,7 @@ import {
   ExternalLink,
   FileText,
   Lock,
+  Mail,
   Pencil,
   Printer,
   RotateCcw,
@@ -54,6 +55,7 @@ import {
   getAgreedInternationalShippingSource,
 } from "@/lib/shopInternationalCheckout";
 import { buildOrderPaymentUpdate } from "@/lib/admin/orderPaymentDraft";
+import { defaultCurrencyForShopCountry } from "@/lib/shopCountryCurrency";
 import {
   orderStatusLabel,
   orderStatusTone,
@@ -245,6 +247,7 @@ export default function AdminOrderDetailPage() {
   const [monoLoading, setMonoLoading] = useState(false);
   const [monoNotice, setMonoNotice] = useState("");
   const [monoError, setMonoError] = useState("");
+  const [monoEmailSending, setMonoEmailSending] = useState(false);
   const [newShipment, setNewShipment] = useState<ShipmentDraft>(emptyShipmentDraft());
   const [shipmentDrafts, setShipmentDrafts] = useState<Record<string, ShipmentDraft>>({});
   const [shipmentSavingId, setShipmentSavingId] = useState<string | null>(null);
@@ -444,6 +447,40 @@ export default function AdminOrderDetailPage() {
       toast.success("Відправлення видалено");
     } finally {
       setShipmentDeletingId(null);
+    }
+  }
+
+  async function handleEmailMonobankLink() {
+    if (!id || !order || monoEmailSending) return;
+    const ok = await confirm({
+      title: "Надіслати посилання на оплату клієнту?",
+      description: `Лист із посиланням mono піде на ${order.email}. Запис з'явиться в історії замовлення.`,
+      confirmLabel: "Надіслати",
+    });
+    if (!ok) return;
+    setMonoEmailSending(true);
+    setMonoError("");
+    try {
+      const response = await fetch(`/api/admin/shop/orders/${id}/monobank/email`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errors: Record<string, string> = {
+          PAYMENT_LINK_MISSING: "Спершу створіть чинне посилання mono.",
+          ORDER_EMAIL_MISSING: "У замовленні немає email клієнта.",
+          EMAIL_NOT_CONFIGURED: "Пошта сайту не налаштована (ключ Resend).",
+          EMAIL_SEND_FAILED: "Сервіс пошти не прийняв лист. Спробуйте ще раз або надішліть посилання вручну.",
+        };
+        setMonoError(errors[data.error] || "Не вдалося надіслати лист. Спробуйте ще раз.");
+        return;
+      }
+      toast.success(`Посилання надіслано на ${data.email ?? order.email}`);
+      await load();
+    } catch {
+      setMonoError("Немає зв'язку із сервером. Спробуйте ще раз.");
+    } finally {
+      setMonoEmailSending(false);
     }
   }
 
@@ -656,6 +693,15 @@ export default function AdminOrderDetailPage() {
               >
                 <ExternalLink className="h-4 w-4" /> Відкрити
               </a>
+              <button
+                type="button"
+                onClick={() => void handleEmailMonobankLink()}
+                disabled={monoEmailSending}
+                className="inline-flex items-center gap-1.5 border border-white/15 px-3 py-2 text-[13px] text-zinc-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Mail className="h-4 w-4" />{" "}
+                {monoEmailSending ? "Надсилаємо…" : "Надіслати на email"}
+              </button>
             </div>
             {monoNotice ? (
               <p className="text-[12px] leading-5 text-amber-200">{monoNotice}</p>
@@ -899,9 +945,13 @@ export default function AdminOrderDetailPage() {
                   <AdminInternationalDeliveryQuote
                     key={order.updatedAt}
                     orderId={order.id}
-                    shippingCostUah={order.currency === "UAH" ? order.shippingCost : undefined}
+                    savedCurrency={order.currency}
+                    savedShippingCost={order.shippingCost}
                     shippingSource={getAgreedInternationalShippingSource(order.pricingSnapshot)}
-                    savedTotalUah={order.currency === "UAH" ? order.total : undefined}
+                    savedTotal={order.total}
+                    regionCurrency={defaultCurrencyForShopCountry(
+                      String(order.shippingAddress?.country ?? "")
+                    )}
                     isAgreed={internationalDeliveryAgreementMatches(
                       order.pricingSnapshot,
                       order.currency,

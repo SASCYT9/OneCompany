@@ -7,6 +7,7 @@ import {
   getMonobankConfig,
   isMonobankEnabled,
   isMonobankPaymentUrl,
+  monobankIsoCode,
   monobankCheckoutKey,
   monobankMinorUnits,
   parseMonobankStatus,
@@ -109,7 +110,7 @@ test("basket discounts reconcile to the charged total", () => {
 });
 
 test("zero, unsupported currency, noninteger quantities and unsafe amounts are rejected", () => {
-  for (const currency of ["EUR", "USD"]) {
+  for (const currency of ["GBP", "PLN"]) {
     assert.throws(() =>
       buildMonobankInvoice({ ...order, currency }, payment.id, "en", "https://example.com")
     );
@@ -208,6 +209,39 @@ test("status payload validation does not coerce amounts or accept unknown status
   ]) {
     assert.throws(() => parseMonobankStatus({ ...event, ...patch }));
   }
+});
+
+test("invoices are issued in the order's UAH, EUR or USD and keep that ISO code end to end", () => {
+  assert.equal(monobankIsoCode("UAH"), 980);
+  assert.equal(monobankIsoCode("eur"), 978);
+  assert.equal(monobankIsoCode("USD"), 840);
+  assert.equal(monobankIsoCode("GBP"), null);
+  assert.equal(
+    buildMonobankInvoice({ ...order, currency: "USD" }, payment.id, "en", "https://example.com").ccy,
+    840
+  );
+
+  const euroOrder = { ...order, currency: "EUR" };
+  const invoice = buildMonobankInvoice(euroOrder, payment.id, "en", "https://example.com");
+  assert.equal(invoice.ccy, 978);
+  assert.equal(invoice.amount, 25345);
+  // A buyer abroad reads the basket in English.
+  assert.deepEqual(
+    invoice.merchantPaymInfo.basketOrder.slice(1).map((line) => [line.name, line.unit]),
+    [
+      ["Shipping", "pcs"],
+      ["Taxes", "pcs"],
+      ["Order price adjustment", "pcs"],
+    ]
+  );
+  const euroPayment = { ...payment, ccy: 978 };
+  const euroStored = { ...storedOrder, currency: "EUR" };
+  const paid = resolveMonobankStatusUpdate(euroPayment, euroStored, { ...event, ccy: 978 })!;
+  assert.equal(paid.paymentStatus, "PAID");
+  assert.equal(paid.amountPaid, 253.45);
+  // A hryvnia payment row can never settle a euro order (or the reverse).
+  assert.throws(() => resolveMonobankStatusUpdate(payment, euroStored, event));
+  assert.throws(() => resolveMonobankStatusUpdate(euroPayment, storedOrder, { ...event, ccy: 978 }));
 });
 
 test("only exact successful debit settlement marks the order paid", () => {

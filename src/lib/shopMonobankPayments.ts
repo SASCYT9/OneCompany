@@ -9,6 +9,7 @@ import {
   isMonobankPaymentUrl,
   MONOBANK_VALIDITY_SECONDS,
   MonobankError,
+  monobankIsoCode,
   monobankMinorUnits,
   resolveMonobankStatusUpdate,
   type MonobankInvoiceStatus,
@@ -46,7 +47,7 @@ export async function prepareMonobankPayment(
   if (
     order.paymentMethod !== "MONOBANK" ||
     order.isDraft ||
-    order.currency !== "UAH" ||
+    monobankIsoCode(order.currency) !== payment.ccy ||
     monobankMinorUnits(order.total) !== payment.amount ||
     order.amountPaid > 0 ||
     ["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "PARTIALLY_PAID"].includes(order.paymentStatus) ||
