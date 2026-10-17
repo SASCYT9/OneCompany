@@ -154,7 +154,8 @@ export async function PATCH(request: NextRequest, context: Params) {
 
       let emailSent = true;
       try {
-        await resend.emails.send({
+        // Resend reports rejections (bad key, unverified sender) in `error`, not by throwing.
+        const { error: rejected } = await resend.emails.send({
           from: FROM_ADDRESS,
           to: existing.email,
           subject:
@@ -163,6 +164,7 @@ export async function PATCH(request: NextRequest, context: Params) {
               : "Reset your One Company password",
           html,
         });
+        if (rejected) throw new Error(`${rejected.name}: ${rejected.message}`);
       } catch (sendError) {
         emailSent = false;
         console.error("Admin send_password_reset email send", sendError);

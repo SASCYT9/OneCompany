@@ -95,12 +95,14 @@ const shellCopy = {
     hours: "Ми на зв’язку щодня з 10:00 до 21:00 (Київ).",
     address: "One Company · вул. Басейна, 21Б, Київ",
     privacy: "Політика конфіденційності",
+    unsubscribe: "Відписатися",
   },
   en: {
     questions: "Need a hand?",
     hours: "We answer every day, 10:00–21:00 Kyiv time.",
     address: "One Company · 21B Baseina St, Kyiv, Ukraine",
     privacy: "Privacy policy",
+    unsubscribe: "Unsubscribe",
   },
 } as const;
 
@@ -108,10 +110,13 @@ export function EmailShell({
   locale,
   preview,
   children,
+  unsubscribe,
 }: {
   locale: EmailLocale;
   preview: string;
   children: React.ReactNode;
+  /** Optional emails (reminders): why the buyer gets them and a one-click way out. */
+  unsubscribe?: { reason: string; url: string };
 }) {
   const t = shellCopy[locale];
   return (
@@ -158,6 +163,14 @@ export function EmailShell({
             </Text>
           </Section>
           <Section style={styles.footer}>
+            {unsubscribe ? (
+              <Text style={styles.footerText}>
+                {unsubscribe.reason}{" "}
+                <Link href={unsubscribe.url} style={styles.unsubscribeLink}>
+                  {t.unsubscribe}
+                </Link>
+              </Text>
+            ) : null}
             <Text style={styles.footerText}>{t.address}</Text>
             <Text style={styles.footerText}>
               <Link href={emailBaseUrl} style={styles.footerLink}>
@@ -326,4 +339,5 @@ const styles = {
   footer: { padding: "20px 8px 0", textAlign: "center" as const },
   footerText: { color: emailColors.faint, fontSize: "11px", lineHeight: "18px", margin: "0 0 4px" },
   footerLink: { color: emailColors.muted, textDecoration: "none" },
+  unsubscribeLink: { color: emailColors.muted, textDecoration: "underline" },
 };

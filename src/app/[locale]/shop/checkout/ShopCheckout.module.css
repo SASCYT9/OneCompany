@@ -177,6 +177,21 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+.reminderOptIn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: -8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--checkout-muted);
+  cursor: pointer;
+}
+.reminderOptIn input {
+  flex: none;
+  margin-top: 2px;
+  accent-color: var(--checkout-ink);
+}
 .field {
   display: flex;
   position: relative;

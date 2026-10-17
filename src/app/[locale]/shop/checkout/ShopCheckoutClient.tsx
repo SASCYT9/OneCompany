@@ -197,6 +197,10 @@ export default function ShopCheckoutClient({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [internationalConsent, setInternationalConsent] = useState(false);
+  // Opt-in (unchecked by default) for one reminder email if this cart is left behind.
+  const [reminderOptIn, setReminderOptIn] = useState(false);
+  const reminderSaved = useRef<string | null>(null);
+  const reminderToggled = useRef(false);
   const [error, setError] = useState("");
   const [accountLoaded, setAccountLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -280,6 +284,76 @@ export default function ShopCheckoutClient({
     (quote?.items ?? []).map((item) => [quoteLineKey(item.productSlug, item.variantId), item])
   );
   const quoteCurrency = (quote?.currency || form.currency) as ShopCurrencyCode;
+
+  // After a reload the box shows the consent the server still holds for this cart.
+  useEffect(() => {
+    if (preview) return;
+    let cancelled = false;
+    fetch("/api/shop/cart/reminder", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((state: { consent?: boolean; email?: string } | null) => {
+        if (cancelled || !state?.consent) return;
+        reminderSaved.current = "server";
+        setReminderOptIn(true);
+        const saved = state.email;
+        if (saved)
+          setForm((current) => (current.email.trim() ? current : { ...current, email: saved }));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [preview]);
+
+  // Saves the reminder consent for this cart (or withdraws it) once the email is valid.
+  useEffect(() => {
+    if (preview) return;
+    const toggled = reminderToggled.current;
+    reminderToggled.current = false;
+    const email = form.email.trim();
+    const wanted =
+      reminderOptIn && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+        ? JSON.stringify([email, form.firstName.trim(), quoteCurrency, form.country])
+        : "off";
+    if (wanted === (reminderSaved.current ?? "off")) return;
+    let sent = false;
+    const send = () => {
+      if (sent) return;
+      sent = true;
+      reminderSaved.current = wanted;
+      void fetch("/api/shop/cart/reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Still delivered when the tab closes right after the click.
+        keepalive: true,
+        body: JSON.stringify({
+          consent: wanted !== "off",
+          email,
+          firstName: form.firstName.trim(),
+          currency: quoteCurrency,
+          country: form.country,
+          locale,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) reminderSaved.current = null;
+        })
+        .catch(() => {
+          reminderSaved.current = null;
+        });
+    };
+    // A click on the box is saved at once; typing waits a moment but is flushed on leaving.
+    if (toggled) {
+      send();
+      return;
+    }
+    const timer = setTimeout(send, 800);
+    window.addEventListener("pagehide", send);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pagehide", send);
+    };
+  }, [preview, reminderOptIn, form.email, form.firstName, form.country, quoteCurrency, locale]);
   const showRegionalAdjustment =
     Boolean(quote?.regionalPricingRule) || hasMoneyAmount(quote?.regionalAdjustmentAmount);
   const showVatLine =
@@ -681,6 +755,22 @@ export default function ShopCheckoutClient({
                     setForm((current) => ({ ...current, email: event.target.value }))
                   }
                 />
+              </label>
+              <label className={styles.reminderOptIn}>
+                <input
+                  type="checkbox"
+                  name="cartReminder"
+                  checked={reminderOptIn}
+                  onChange={(event) => {
+                    reminderToggled.current = true;
+                    setReminderOptIn(event.target.checked);
+                  }}
+                />
+                <span>
+                  {isUa
+                    ? "Нагадати мені на email, якщо я не завершу замовлення. Один лист, відписатися можна будь-коли."
+                    : "Remind me by email if I don't finish my order. One email; unsubscribe anytime."}
+                </span>
               </label>
               <div className={styles.fieldPair}>
                 <label className={styles.field}>

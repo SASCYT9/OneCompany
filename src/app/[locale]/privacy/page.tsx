@@ -109,6 +109,11 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
               </li>
               <li>
                 {l === "ua"
+                  ? "Одного нагадування про незавершене замовлення — лише якщо ви погодилися на це під час оформлення. Відписатися можна за посиланням у листі."
+                  : "One reminder about an unfinished order — only if you agreed to it at checkout. You can unsubscribe with the link in the email."}
+              </li>
+              <li>
+                {l === "ua"
                   ? "Повідомлення про оновлення асортименту, спеціальні пропозиції та новини індустрії."
                   : "Notify you of inventory updates, special offers, and industry news."}
               </li>
