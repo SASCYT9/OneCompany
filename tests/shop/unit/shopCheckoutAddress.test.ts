@@ -7,6 +7,8 @@ import {
   shopCountryUsesPostcode,
 } from "../../../src/lib/shopCheckoutAddress";
 import { resolveShopCountry } from "../../../src/lib/shopCountries";
+import { buildShopSettingsRuntimeFromPayload } from "../../../src/lib/shopAdminSettings";
+import { buildCheckoutSettingsPreview } from "../../../src/lib/shopCheckout";
 import {
   getShopCountryRegions,
   isShopCountryRegion,
@@ -84,4 +86,50 @@ test("a failed region list load offers a retry instead of a free-text region", (
   assert.match(checkout, /setRegionListFailed\(regionListKey\)/);
   assert.match(checkout, /onClick=\{\(\) => setRegionListFailed\(null\)\}/);
   assert.match(checkout, /Спробувати ще раз/);
+});
+
+test("region rules match one oblast in Ukrainian or English, never every Ukrainian name", () => {
+  const settings = buildShopSettingsRuntimeFromPayload({
+    defaultCurrency: "UAH",
+    enabledCurrencies: ["UAH"],
+    currencyRates: { EUR: 1, USD: 1.15, UAH: 50 },
+    shippingZones: [
+      { id: "kyiv-oblast", name: "Kyiv Oblast", countries: ["Ukraine", "UA"], regions: ["Kyiv Oblast"], baseRate: 100, perItemRate: 0, currency: "UAH", enabled: true },
+    ],
+    taxRegions: [],
+  } as never);
+  const zoneFor = (region: string) =>
+    buildCheckoutSettingsPreview(settings, {
+      currency: "UAH",
+      subtotal: 1000,
+      itemCount: 1,
+      shippingAddress: { country: "Ukraine", city: "Test", line1: "Test", region },
+    }).shippingZone?.id ?? null;
+  // The Ukrainian site submits the Ukrainian name of the same subdivision.
+  assert.equal(zoneFor("Київська область"), "kyiv-oblast");
+  assert.equal(zoneFor("Kyiv Oblast"), "kyiv-oblast");
+  // Another oblast, or Kyiv city, must not fall into the Kyiv Oblast rule.
+  assert.equal(zoneFor("Львівська область"), null);
+  assert.equal(zoneFor("Київ"), null);
+
+  // A rule written in Cyrillic matches its own oblast only (no shared blank value).
+  const cyrillic = buildShopSettingsRuntimeFromPayload({
+    defaultCurrency: "UAH",
+    enabledCurrencies: ["UAH"],
+    currencyRates: { EUR: 1, USD: 1.15, UAH: 50 },
+    shippingZones: [
+      { id: "lviv", name: "Львів", countries: ["Ukraine", "UA"], regions: ["Львівська область"], baseRate: 80, perItemRate: 0, currency: "UAH", enabled: true },
+    ],
+    taxRegions: [],
+  } as never);
+  const cyrillicZone = (region: string) =>
+    buildCheckoutSettingsPreview(cyrillic, {
+      currency: "UAH",
+      subtotal: 1000,
+      itemCount: 1,
+      shippingAddress: { country: "Ukraine", city: "Test", line1: "Test", region },
+    }).shippingZone?.id ?? null;
+  assert.equal(cyrillicZone("Львівська область"), "lviv");
+  assert.equal(cyrillicZone("Lviv Oblast"), "lviv");
+  assert.equal(cyrillicZone("Київська область"), null);
 });

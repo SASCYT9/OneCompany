@@ -25,6 +25,25 @@ export function shopCountryHasRegions(countryCode: string | null | undefined) {
   return (REGIONS[String(countryCode ?? "").toUpperCase()]?.length ?? 0) > 0;
 }
 
+/**
+ * The subdivision code ("UA-32") for a listed name in either language, or for the code
+ * itself; null when the country does not list it. Lets rules match across languages.
+ */
+export function shopCountryRegionCode(
+  countryCode: string | null | undefined,
+  region: string | null | undefined
+): string | null {
+  const wanted = String(region ?? "").trim().toLowerCase();
+  if (!wanted) return null;
+  const entry = (REGIONS[String(countryCode ?? "").toUpperCase()] ?? []).find(
+    (item) =>
+      item.code.toLowerCase() === wanted ||
+      item.en.toLowerCase() === wanted ||
+      item.uk?.toLowerCase() === wanted
+  );
+  return entry?.code ?? null;
+}
+
 /** Whether `region` is one of the country's listed names, in either language. */
 export function isShopCountryRegion(countryCode: string | null | undefined, region: string) {
   const wanted = region.trim().toLowerCase();
