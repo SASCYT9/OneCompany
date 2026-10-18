@@ -147,6 +147,18 @@ test("items without a resolvable price or flagged as test are skipped", () => {
   );
 });
 
+test("every item carries its Nova Poshta size class as the shipping label", () => {
+  const exhaust = buildMerchantFeedItemXml(makeProduct(), "ua", "UAH", rates);
+  assert.match(exhaust, /<g:shipping_label>large<\/g:shipping_label>/);
+  const chip = buildMerchantFeedItemXml(
+    makeProduct({ productType: "Chip Tuning", brand: "RaceChip" }),
+    "ua",
+    "UAH",
+    rates
+  );
+  assert.match(chip, /<g:shipping_label>small<\/g:shipping_label>/);
+});
+
 test("text fields are XML-escaped", () => {
   assert.equal(
     escapeXml(`a & b < c > "d" 'e'`),

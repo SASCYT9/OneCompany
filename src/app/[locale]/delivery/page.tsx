@@ -88,8 +88,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                   {l === "ua" ? "Нова Пошта (по Україні):" : "Nova Poshta (within Ukraine):"}
                 </strong>{" "}
                 {l === "ua"
-                  ? "Доставка на відділення, у поштомати або кур'єром за вказаною адресою. Терміни та вартість доставки — згідно з тарифами перевізника."
-                  : "Delivery to branches, parcel lockers, or by courier to a specified address. Timelines and shipping costs are according to the carrier's rates."}
+                  ? "Доставка на відділення, у поштомати або кур'єром за вказаною адресою. Терміни та вартість доставки — згідно з тарифами перевізника. Орієнтовна вартість — від 300 грн за невеликі деталі до 5 000 грн за габаритні (обвіси, бампери, диски); точну суму розраховує перевізник за вагою й габаритами."
+                  : "Delivery to branches, parcel lockers, or by courier to a specified address. Timelines and shipping costs are according to the carrier's rates. The approximate cost is from UAH 300 for small parts to UAH 5,000 for bulky ones (body kits, bumpers, wheels); the carrier calculates the exact amount by weight and size."}
               </li>
               <li>
                 <strong className="text-foreground">

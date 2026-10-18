@@ -6,6 +6,7 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
+import { resolveShopShippingClass } from "@/lib/shopShippingClass";
 import { isShopInStockProduct, SHOP_DIGITAL_IN_STOCK_SKUS } from "@/lib/shopWarehouseInventory";
 
 export type MerchantFeedCurrency = "EUR" | "USD" | "UAH";
@@ -162,6 +163,8 @@ export function buildMerchantFeedItemXml(
       : `<g:price>${escapeXml(price)}</g:price>`,
     salePrice ? `<g:sale_price>${escapeXml(salePrice)}</g:sale_price>` : "",
     "<g:condition>new</g:condition>",
+    // Size class priced by the Ukraine shipping policy in Merchant Center.
+    `<g:shipping_label>${resolveShopShippingClass(product)}</g:shipping_label>`,
     brand ? `<g:brand>${escapeXml(brand)}</g:brand>` : "",
     mpn ? `<g:mpn>${escapeXml(mpn)}</g:mpn>` : "",
     // Brand plus MPN is a valid identifier pair; only declare "no identifier"
