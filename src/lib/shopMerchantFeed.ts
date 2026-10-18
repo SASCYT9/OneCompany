@@ -6,7 +6,10 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
-import { resolveShopShippingClass } from "@/lib/shopShippingClass";
+import { resolveShopShippingClass, SHOP_SHIPPING_CLASS_PRICE_UAH } from "@/lib/shopShippingClass";
+
+/** Nova Poshta in Ukraine: ships the same or next business day, 1–2 days on the road. */
+const UA_SHIPPING_DAYS = { handling: [0, 1], transit: [1, 2] } as const;
 import { isShopInStockProduct, SHOP_DIGITAL_IN_STOCK_SKUS } from "@/lib/shopWarehouseInventory";
 
 export type MerchantFeedCurrency = "EUR" | "USD" | "UAH";
@@ -141,6 +144,7 @@ export function buildMerchantFeedItemXml(
 
   const mpn = product.sku?.trim();
   const brand = product.brand?.trim();
+  const shippingClass = resolveShopShippingClass(product);
 
   return [
     "<item>",
@@ -163,8 +167,23 @@ export function buildMerchantFeedItemXml(
       : `<g:price>${escapeXml(price)}</g:price>`,
     salePrice ? `<g:sale_price>${escapeXml(salePrice)}</g:sale_price>` : "",
     "<g:condition>new</g:condition>",
-    // Size class priced by the Ukraine shipping policy in Merchant Center.
-    `<g:shipping_label>${resolveShopShippingClass(product)}</g:shipping_label>`,
+    `<g:shipping_label>${shippingClass}</g:shipping_label>`,
+    // Item-level Nova Poshta shipping for Ukraine (owner-approved class prices,
+    // 1–3 business days). It overrides the account's shipping settings for UA,
+    // which cannot price by label until Merchant Center has accepted products.
+    currency === "UAH"
+      ? [
+          "<g:shipping>",
+          "<g:country>UA</g:country>",
+          "<g:service>Нова пошта</g:service>",
+          `<g:price>${formatPrice(SHOP_SHIPPING_CLASS_PRICE_UAH[shippingClass], "UAH")}</g:price>`,
+          `<g:min_handling_time>${UA_SHIPPING_DAYS.handling[0]}</g:min_handling_time>`,
+          `<g:max_handling_time>${UA_SHIPPING_DAYS.handling[1]}</g:max_handling_time>`,
+          `<g:min_transit_time>${UA_SHIPPING_DAYS.transit[0]}</g:min_transit_time>`,
+          `<g:max_transit_time>${UA_SHIPPING_DAYS.transit[1]}</g:max_transit_time>`,
+          "</g:shipping>",
+        ].join("")
+      : "",
     brand ? `<g:brand>${escapeXml(brand)}</g:brand>` : "",
     mpn ? `<g:mpn>${escapeXml(mpn)}</g:mpn>` : "",
     // Brand plus MPN is a valid identifier pair; only declare "no identifier"

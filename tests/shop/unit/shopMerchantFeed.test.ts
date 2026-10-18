@@ -159,6 +159,25 @@ test("every item carries its Nova Poshta size class as the shipping label", () =
   assert.match(chip, /<g:shipping_label>small<\/g:shipping_label>/);
 });
 
+test("the Ukraine feed carries Nova Poshta shipping at the class price, 1–3 days", () => {
+  const exhaust = buildMerchantFeedItemXml(makeProduct(), "ua", "UAH", rates);
+  assert.match(
+    exhaust,
+    /<g:shipping><g:country>UA<\/g:country><g:service>Нова пошта<\/g:service><g:price>2000\.00 UAH<\/g:price><g:min_handling_time>0<\/g:min_handling_time><g:max_handling_time>1<\/g:max_handling_time><g:min_transit_time>1<\/g:min_transit_time><g:max_transit_time>2<\/g:max_transit_time><\/g:shipping>/
+  );
+  const chip = buildMerchantFeedItemXml(
+    makeProduct({ productType: "Chip Tuning", brand: "RaceChip" }),
+    "ua",
+    "UAH",
+    rates
+  );
+  assert.match(chip, /<g:price>300\.00 UAH<\/g:price><g:min_handling_time>/);
+
+  // Feeds in other currencies are for other countries: no Ukrainian shipping.
+  const euro = buildMerchantFeedItemXml(makeProduct(), "en", "EUR", rates);
+  assert.doesNotMatch(euro, /<g:shipping>/);
+});
+
 test("text fields are XML-escaped", () => {
   assert.equal(
     escapeXml(`a & b < c > "d" 'e'`),
