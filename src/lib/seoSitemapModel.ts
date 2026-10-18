@@ -7,6 +7,7 @@ import { categoryData } from "@/lib/categoryData";
 import { EVENTURI_SHARED_V8_INTAKE_LEGACY_SLUGS } from "@/lib/eventuriSharedIntake";
 import { absoluteUrl, buildAlternateLinks, buildLocalizedPath, siteConfig } from "@/lib/seo";
 import { localizedStaticSlugs } from "@/lib/seoIndexPolicy";
+import { SHOP_CATALOG_LANDINGS } from "@/lib/shopCatalogLandings";
 import {
   buildShopStorefrontProductPathForProduct,
   resolveShopStorefrontSegment,
@@ -33,6 +34,7 @@ export const SITEMAP_MIN_BRAND_GROUP_SIZE = 300;
 
 export const SITEMAP_PAGES_ID = "pages";
 export const SITEMAP_BLOG_ID = "blog";
+export const SITEMAP_CATALOG_LANDINGS_ID = "catalog-landings";
 
 export type SitemapProductInput = {
   slug: string;
@@ -217,6 +219,23 @@ export function buildBrandHubSitemapEntries(): MetadataRoute.Sitemap {
       url: absoluteUrl(buildLocalizedPath(locale, pageSlug)),
       alternates: { languages: buildAlternateLinks(pageSlug) },
     }))
+  );
+}
+
+/**
+ * Catalog landing pages (vehicle make/model, make × category, brand,
+ * brand × make). A file of their own shows in Search Console how many of
+ * them Google indexes.
+ */
+export function buildCatalogLandingSitemapEntries(): MetadataRoute.Sitemap {
+  return siteConfig.locales.flatMap((locale) =>
+    SHOP_CATALOG_LANDINGS.map((landing) => {
+      const pageSlug = `/shop/${landing.path}`;
+      return {
+        url: absoluteUrl(buildLocalizedPath(locale, pageSlug)),
+        alternates: { languages: buildAlternateLinks(pageSlug) },
+      };
+    })
   );
 }
 

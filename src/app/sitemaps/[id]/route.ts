@@ -1,6 +1,8 @@
 import {
   SITEMAP_BLOG_ID,
+  SITEMAP_CATALOG_LANDINGS_ID,
   SITEMAP_PAGES_ID,
+  buildCatalogLandingSitemapEntries,
   buildProductSitemapEntries,
   parseSitemapChildId,
   renderUrlsetXml,
@@ -43,6 +45,8 @@ export async function GET(_request: Request, { params }: Context) {
     entries = await loadPagesSitemapEntries();
   } else if (id === SITEMAP_BLOG_ID) {
     entries = await loadBlogSitemapEntries();
+  } else if (id === SITEMAP_CATALOG_LANDINGS_ID) {
+    entries = buildCatalogLandingSitemapEntries();
   } else {
     const chunks = await loadProductSitemapChunks();
     const chunk = chunks.find((item) => item.id === id);

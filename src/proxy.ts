@@ -9,6 +9,7 @@ import {
   resolveLegacyBrandRedirectPath,
   resolveRemovedBlogRedirectPath,
 } from "@/lib/seoIndexPolicy";
+import { resolveShopCatalogLandingRedirect } from "@/lib/shopCatalogLandingUrl";
 import { ADMIN_PATH_HEADER } from "@/lib/admin/adminPathHeader";
 import { ADMIN_SESSION_COOKIE } from "@/lib/adminAuth";
 import { shouldAllowAdminApiRequest, shouldAllowAdminPageRequest } from "@/lib/adminProxyAuth";
@@ -102,6 +103,14 @@ export default async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = normalizedPathname;
     return NextResponse.redirect(url, 308);
+  }
+
+  const catalogLandingPath = resolveShopCatalogLandingRedirect(
+    currentPath,
+    req.nextUrl.searchParams
+  );
+  if (catalogLandingPath) {
+    return NextResponse.redirect(new URL(catalogLandingPath, req.url), 308);
   }
 
   const catalogCanaryResponse = routeCatalogCanary(req, currentPath);

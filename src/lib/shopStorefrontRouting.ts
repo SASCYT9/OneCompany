@@ -1,3 +1,4 @@
+import catalogLandingBrandHubs from "@/data/shopCatalogLandingBrandHubs.json";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { extractStorefrontTag } from "@/lib/shopProductStorefront";
 import { STOREFRONT_ROUTE_REGISTRY, type StorefrontSegment } from "@/lib/storefrontRouteRegistry";
@@ -23,6 +24,23 @@ const STOREFRONT_SEGMENT_BY_BRAND = new Map<string, StorefrontSegment>(
     route.brandAliases.map((brand) => [normalizeStorefrontKey(brand), route.segment] as const)
   )
 );
+
+/** Brand key (catalog label or landing slug) → `/shop/brand/<slug>` landing page. */
+const CATALOG_LANDING_BRAND_HUBS = new Map(
+  Object.entries(catalogLandingBrandHubs as Record<string, string>).flatMap(([label, slug]) => [
+    [normalizeStorefrontKey(label), slug] as const,
+    [normalizeStorefrontKey(slug), slug] as const,
+  ])
+);
+
+/** "KW Suspension", "KW Suspensions" and "kw" all reach the KW landing page. */
+function resolveCatalogLandingBrandHub(brand: string | null | undefined): string | null {
+  const key = normalizeStorefrontKey(brand);
+  if (!key) return null;
+  return (
+    CATALOG_LANDING_BRAND_HUBS.get(key) ?? CATALOG_LANDING_BRAND_HUBS.get(key.split(" ")[0]) ?? null
+  );
+}
 
 export function isExternalCatalogProductSlug(slug: string | null | undefined) {
   if (!slug) {
@@ -99,6 +117,10 @@ export function buildShopStorefrontBrandPath(locale: string, brand: string | nul
     return `/${locale}/shop/${segment}/${route?.listingSurface ?? "catalog"}`;
   }
 
+  // Brands without a storefront link to their catalog landing page when it exists.
+  const hub = resolveCatalogLandingBrandHub(normalizedLabel);
+  if (hub) return `/${locale}/shop/brand/${hub}`;
+
   return `/${locale}/shop/catalog?brand=${encodeURIComponent(normalizedLabel)}`;
 }
 
@@ -118,8 +140,11 @@ export function resolveShopStorefrontBrandLandingPath(
   const normalizedBrand = normalizeStorefrontKey(brand);
   if (!normalizedBrand) return null;
   if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
-  if (!STOREFRONT_SEGMENT_BY_BRAND.has(normalizedBrand)) return null;
-  return buildShopStorefrontBrandPath(locale, brand);
+  if (STOREFRONT_SEGMENT_BY_BRAND.has(normalizedBrand)) {
+    return buildShopStorefrontBrandPath(locale, brand);
+  }
+  const hub = resolveCatalogLandingBrandHub(brand);
+  return hub ? `/${locale}/shop/brand/${hub}` : null;
 }
 
 /**

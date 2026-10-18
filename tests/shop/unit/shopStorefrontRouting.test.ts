@@ -77,11 +77,9 @@ test("brand labels link to the complete dedicated storefront or a filtered catal
       );
     }
   }
-  assert.equal(
-    buildShopStorefrontBrandPath("ua", "KW Suspensions"),
-    "/ua/shop/catalog?brand=KW%20Suspensions"
-  );
-  assert.equal(buildShopStorefrontBrandPath("en", "Remus"), "/en/shop/catalog?brand=Remus");
+  assert.equal(buildShopStorefrontBrandPath("ua", "KW Suspensions"), "/ua/shop/brand/kw");
+  assert.equal(buildShopStorefrontBrandPath("en", "Remus"), "/en/shop/brand/remus");
+  assert.equal(buildShopStorefrontBrandPath("en", "Setrab"), "/en/shop/catalog?brand=Setrab");
   assert.equal(buildShopStorefrontBrandPath("ua", ""), "/ua/shop");
 });
 
@@ -171,7 +169,7 @@ test("catalog product links fall back safely for missing or unexpected hrefs", (
   assert.equal(resolveShopCatalogProductHref("ua", "javascript:alert(1)", ""), "/ua/shop");
 });
 
-test("brand landing path exists only for brands with their own storefront", () => {
+test("brand landing path exists only for brands with a storefront or a catalog landing page", () => {
   assert.equal(
     resolveShopStorefrontBrandLandingPath("ua", "Akrapovič"),
     "/ua/shop/akrapovic/collections"
@@ -183,11 +181,19 @@ test("brand landing path exists only for brands with their own storefront", () =
     resolveShopStorefrontBrandLandingPath("ua", "Burger Motorsports"),
     "/ua/shop/burger/products"
   );
+  // Brands without a storefront reach their catalog landing page.
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Remus"), "/ua/shop/brand/remus");
+  assert.equal(resolveShopStorefrontBrandLandingPath("en", "KW Suspension"), "/en/shop/brand/kw");
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "BMC filters"), "/ua/shop/brand/bmc");
+  assert.equal(
+    resolveShopStorefrontBrandLandingPath("ua", "FI Exhaust"),
+    "/ua/shop/brand/fi-exhaust"
+  );
 });
 
 test("brand landing path is null for brands that would only reach a noindex filter", () => {
   assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Mansory"), null);
-  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Remus"), null);
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Setrab"), null);
   assert.equal(resolveShopStorefrontBrandLandingPath("ua", ""), null);
   assert.equal(resolveShopStorefrontBrandLandingPath("ua", null), null);
 });
