@@ -120,9 +120,13 @@ export function ShopProductPurchaseFacts({
       </Fact>
       <Fact icon={<RotateCcw className={iconClassName} />}>
         <span className="opacity-75">
-          {isUa
-            ? "Обмін і повернення — за Законом «Про захист прав споживачів». "
-            : "Exchange and returns under Ukrainian consumer protection law. "}
+          {availability === "inStock"
+            ? isUa
+              ? "Обмін і повернення — 14 днів, зворотна доставка за рахунок покупця. "
+              : "Exchange and returns within 14 days; the customer pays return shipping. "
+            : isUa
+              ? "Товар під замовлення привозимо спеціально для вас, тому він не підлягає поверненню, крім браку. "
+              : "Made-to-order items are brought in specially for you and cannot be returned, except for defects. "}
         </span>
         <Link href={`/${locale}/refund`} className={linkClassName}>
           {isUa ? "Умови" : "Terms"}

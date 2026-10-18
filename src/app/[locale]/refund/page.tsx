@@ -77,6 +77,11 @@ export default async function RefundPage({ params }: { params: Promise<{ locale:
                 ? "Товари, які були виготовлені під індивідуальне замовлення, або імпортовані спеціально під вимоги замовника (наприклад, індивідуальні параметри дисків або кастомні елементи інтер'єру), не підлягають поверненню."
                 : "Products manufactured as custom orders or specifically imported for a customer's unique specifications (e.g. custom wheel offsets, custom interior elements) are non-refundable."}
             </p>
+            <p className="mt-4">
+              {l === "ua"
+                ? "На сторінці товару такі товари позначені «Під замовлення». Брак і помилки з нашого боку ми виправляємо за власний рахунок."
+                : "On the product page these items are marked “Made to order”. Defects and mistakes on our side are fixed at our expense."}
+            </p>
           </section>
 
           <section>
