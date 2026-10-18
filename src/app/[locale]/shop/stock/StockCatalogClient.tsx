@@ -421,6 +421,9 @@ type VehiclePickerSelectProps = {
 
 // One field of the "Parts for [make] [model] [chassis]" sentence: a compact
 // trigger plus an inline searchable list that opens right under it.
+/** Below Tailwind's `sm` breakpoint the warehouse carousel is hidden (see its `sm:block`). */
+const WAREHOUSE_HERO_HIDDEN_MEDIA = "(max-width: 639.98px)";
+
 function VehiclePickerSelect({
   label,
   value,
@@ -1117,12 +1120,15 @@ function SafeProductImage({
   alt,
   className,
   isMini = false,
+  priority = false,
 }: {
   src: string | null | undefined;
   fallbackSrcs?: string[];
   alt: string;
   className?: string;
   isMini?: boolean;
+  /** First card on the page: usually the largest thing on a phone's first screen. */
+  priority?: boolean;
 }) {
   const cleanUrl = (value: string) => {
     const trimmed = value.trim();
@@ -1166,7 +1172,9 @@ function SafeProductImage({
           : "(min-width: 2400px) 18vw, (min-width: 1900px) 23vw, (min-width: 1280px) 31vw, (min-width: 768px) 48vw, 100vw"
       }
       quality={75}
-      loading="lazy"
+      preload={priority}
+      fetchPriority={priority ? "high" : undefined}
+      loading={priority ? "eager" : "lazy"}
       onError={() => setSourceIndex((current) => Math.min(current + 1, sources.length))}
       className={className}
     />
@@ -1336,6 +1344,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       : null
   );
   const [warehouseHeroItems, setWarehouseHeroItems] = useState<StockItem[]>([]);
+  const [warehouseHeroRequestDone, setWarehouseHeroRequestDone] = useState(false);
   const [heroProductIndex, setHeroProductIndex] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
   const [heroInView, setHeroInView] = useState(true);
@@ -1529,6 +1538,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
   useEffect(() => {
     if (!showWarehouseHero) return;
+    // Phones hide the carousel so products are on the first screen; skip its request.
+    if (window.matchMedia(WAREHOUSE_HERO_HIDDEN_MEDIA).matches) return;
     const controller = new AbortController();
     const params = new URLSearchParams({
       locale,
@@ -1550,6 +1561,9 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         if (!(requestError instanceof DOMException && requestError.name === "AbortError")) {
           setWarehouseHeroItems([]);
         }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setWarehouseHeroRequestDone(true);
       });
 
     return () => controller.abort();
@@ -3161,7 +3175,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
 
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 flex w-full items-center gap-2.5 text-[14px] text-foreground/70 sm:w-auto">
+        <span className="mr-1 hidden w-full items-center gap-2.5 text-[14px] text-foreground/70 sm:flex sm:w-auto">
           <PremiumVehicleIcon mode={vehicleMode} className="h-5 w-7 text-foreground/60" />
           {isUa ? "Деталі для" : "Parts for"}
         </span>
@@ -3244,7 +3258,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 : "No model found"
           }
           anyLabel={isUa ? "Будь-яка модель" : "Any model"}
-          className="flex-1 sm:w-[180px] sm:flex-none"
+          className={`${make ? "" : "max-sm:hidden "}flex-1 sm:w-[180px] sm:flex-none`}
         />
 
         <VehiclePickerSelect
@@ -3263,7 +3277,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
           searchPlaceholder={isUa ? "Знайти кузов…" : "Find a chassis…"}
           emptyLabel={isUa ? "Кузов не знайдено" : "No chassis found"}
           anyLabel={isUa ? "Будь-який кузов" : "Any chassis"}
-          className="flex-1 sm:w-[150px] sm:flex-none"
+          className={`${make ? "" : "max-sm:hidden "}flex-1 sm:w-[150px] sm:flex-none`}
         />
 
         {make ? (
@@ -3861,7 +3875,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   // Keep card subtrees stable while typing or rotating the warehouse hero.
   const gridCards = useMemo(
     () =>
-      visibleItems.map((item) => {
+      visibleItems.map((item, index) => {
         const logoPath = getBrandLogoPath(item.brand);
         const compareAtLabel = formatItemCompareAt(item);
         const priceLabel = formatItemPrice(item);
@@ -3905,6 +3919,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                   src={item.thumbnail}
                   fallbackSrcs={item.imageSources}
                   alt={item.name}
+                  priority={index === 0}
                   className={`h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.018] ${
                     item.brand === "Eventuri"
                       ? "p-6 mix-blend-multiply dark:mix-blend-normal md:p-7"
@@ -4442,7 +4457,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
         </AnimatePresence>
       </CatalogOverlayPortal>
 
-      <div className="relative w-full max-w-none px-3 pb-32 pt-8 sm:px-5 lg:px-6 2xl:px-8">
+      <div className="relative w-full max-w-none px-3 pb-32 pt-5 sm:px-5 sm:pt-8 lg:px-6 2xl:px-8">
         {/* Desktop: filters own the whole left column from the top of the page. */}
         <div className="lg:grid lg:grid-cols-[288px_minmax(0,1fr)] lg:items-start lg:gap-5 xl:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside
@@ -4454,7 +4469,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
             </div>
           </aside>
           <div className="min-w-0">
-            {showWarehouseHero ? (
+            {showWarehouseHero && (activeHeroProduct || !warehouseHeroRequestDone) ? (
               <section
                 ref={heroSectionRef}
                 onMouseEnter={() => setHeroPaused(true)}
@@ -4463,7 +4478,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                 onBlurCapture={() => setHeroPaused(false)}
                 aria-roledescription="carousel"
                 aria-label={isUa ? "Товари в наявності" : "Products in stock"}
-                className="@container relative z-30 isolate mx-2 overflow-hidden rounded-[6px] border border-black/10 bg-[#efebe4] text-[#11110f] dark:border-white/10 dark:bg-[#08090b] dark:text-white sm:mx-0"
+                className="@container relative z-30 isolate mx-2 hidden overflow-hidden rounded-[6px] border border-black/10 bg-[#efebe4] text-[#11110f] dark:border-white/10 dark:bg-[#08090b] dark:text-white sm:mx-0 sm:block"
               >
                 <style>
                   {
@@ -4626,7 +4641,11 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                       </div>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  // Holds the carousel's height until its products arrive, so the
+                  // finder and the catalog below do not jump down when it fills in.
+                  <div aria-hidden="true" className="h-[190px] @3xl:h-[162px]" />
+                )}
               </section>
             ) : null}
 
@@ -4638,7 +4657,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     : "Пошук і підбір за мото"
                   : "Search and vehicle finder"
               }
-              className="relative z-40 mx-2 mt-3 rounded-[6px] border border-foreground/10 bg-card dark:bg-[#08090b] sm:mx-0"
+              className="relative z-40 mx-2 rounded-[6px] border border-foreground/10 bg-card dark:bg-[#08090b] sm:mx-0 sm:mt-3"
             >
               <div data-vehicle-finder className="p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">

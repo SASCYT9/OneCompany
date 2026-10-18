@@ -19,7 +19,9 @@ test("organization schema carries the shared return policy", () => {
   const policy = schema.hasMerchantReturnPolicy as Record<string, unknown>;
   assert.equal(policy.returnPolicyCategory, "https://schema.org/MerchantReturnFiniteReturnWindow");
   assert.equal(policy.merchantReturnDays, 14);
-  assert.equal("returnFees" in policy, false);
+  // Owner, 2026-10-18: the customer pays return shipping unless the item is
+  // defective or we made a mistake (stated on /refund).
+  assert.equal(policy.returnFees, "https://schema.org/ReturnFeesCustomerResponsibility");
 });
 
 test("product offers omit fabricated sale dates and empty categories", () => {
