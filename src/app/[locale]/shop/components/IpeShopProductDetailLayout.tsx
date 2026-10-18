@@ -375,8 +375,7 @@ export function IpeShopProductDetailLayout({
       const next = [...prev];
       next[axisIndex] = value;
       const showDownpipeChoice =
-        !hasConditionalDownpipeAxis ||
-        systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
+        !hasConditionalDownpipeAxis || systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
       if (!showDownpipeChoice) next[2] = "";
       // If no variant matches this combo, lock other axes to a compatible
       // variant: pick the first variant that has the chosen value at this axis

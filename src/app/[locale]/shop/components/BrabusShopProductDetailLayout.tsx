@@ -477,7 +477,9 @@ export function BrabusShopProductDetailLayout({
           text-decoration: underline;
           text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
           text-underline-offset: 0.35em;
-          transition: color 0.2s, text-decoration-color 0.2s;
+          transition:
+            color 0.2s,
+            text-decoration-color 0.2s;
         }
         .b-brand--link:hover {
           color: var(--b-fg);
