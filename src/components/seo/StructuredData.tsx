@@ -38,6 +38,14 @@ const SHARED_RETURN_POLICY = {
   returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
 };
 
+// Made-to-order items are brought in for the customer and are not returnable
+// (/refund, section 2); the offer-level policy overrides the shared one.
+const MADE_TO_ORDER_RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  applicableCountry: "UA",
+  returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+};
+
 interface OrganizationSchemaProps {
   locale?: "en" | "ua";
 }
@@ -203,6 +211,8 @@ interface OfferLike {
   validFrom?: string;
   availabilityStarts?: string;
   priceValidUntil?: string;
+  /** Made-to-order offer: returns are not accepted (see MADE_TO_ORDER_RETURN_POLICY). */
+  returnsNotPermitted?: boolean;
 }
 
 interface ProductSchemaProps {
@@ -242,6 +252,7 @@ function buildOfferEntry(offer: OfferLike, url: string, primaryImage?: string) {
   if (offer.validFrom) entry.validFrom = offer.validFrom;
   if (offer.availabilityStarts) entry.availabilityStarts = offer.availabilityStarts;
   if (offer.priceValidUntil) entry.priceValidUntil = offer.priceValidUntil;
+  if (offer.returnsNotPermitted) entry.hasMerchantReturnPolicy = MADE_TO_ORDER_RETURN_POLICY;
   if (offer.compareAtPrice && offer.compareAtPrice > offer.price) {
     entry.priceSpecification = [
       {
@@ -389,6 +400,7 @@ export function ShopProductStructuredData({
         availability: resolvedStock,
         ...(compareAtPrice && compareAtPrice > price ? { compareAtPrice } : {}),
         ...(availabilityDate ? { availabilityStarts: availabilityDate } : {}),
+        ...(resolvedStock === "preOrder" ? { returnsNotPermitted: true } : {}),
       };
     })
     .filter((o): o is NonNullable<typeof o> => Boolean(o));

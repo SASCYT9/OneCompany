@@ -152,6 +152,11 @@ export function buildMerchantFeedItemXml(
     availabilityDate
       ? `<g:availability_date>${escapeXml(availabilityDate)}</g:availability_date>`
       : "",
+    // Made-to-order items are not returnable (/refund, section 2). Merchant
+    // Center applies its "no returns" exception to this label.
+    availability === "backorder"
+      ? "<g:return_policy_label>made_to_order</g:return_policy_label>"
+      : "",
     listPrice
       ? `<g:price>${escapeXml(listPrice)}</g:price>`
       : `<g:price>${escapeXml(price)}</g:price>`,

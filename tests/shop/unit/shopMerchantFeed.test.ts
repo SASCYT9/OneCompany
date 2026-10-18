@@ -188,6 +188,8 @@ test("only warehouse-confirmed items are in stock; supplier stock is a dated bac
   );
   assert.match(supplierStock, /<g:availability>backorder<\/g:availability>/);
   assert.match(supplierStock, /<g:availability_date>2026-11-08T00:00:00Z<\/g:availability_date>/);
+  // Sold to order, so Merchant Center applies the "no returns" exception.
+  assert.match(supplierStock, /<g:return_policy_label>made_to_order<\/g:return_policy_label>/);
 
   const confirmed = buildMerchantFeedItemXml(
     makeProduct({
@@ -201,6 +203,7 @@ test("only warehouse-confirmed items are in stock; supplier stock is a dated bac
   );
   assert.match(confirmed, /<g:availability>in_stock<\/g:availability>/);
   assert.doesNotMatch(confirmed, /availability_date/);
+  assert.doesNotMatch(confirmed, /return_policy_label/);
 });
 
 test("core feed: confirmed stock first, then curated brands in turn, up to the limit", () => {
