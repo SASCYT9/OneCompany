@@ -3,7 +3,11 @@
  * Use for [slug] page and sitemap. When DATABASE_URL is set and migration applied,
  * products from admin appear; otherwise only static catalog is used.
  */
-import { tagShopProductMoneySources, withShopPriceSource, shopDbPriceSource } from "./shopPriceBookCurrency";
+import {
+  tagShopProductMoneySources,
+  withShopPriceSource,
+  shopDbPriceSource,
+} from "./shopPriceBookCurrency";
 
 import fs from "fs";
 import path from "path";
@@ -1279,8 +1283,12 @@ function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {
 
 function applyShopProductImageOverridesOnly(product: ShopProduct): ShopProduct {
   const isBmcProduct =
-    String(product.brand ?? "").trim().toUpperCase() === "BMC" ||
-    String(product.vendor ?? "").trim().toUpperCase() === "BMC";
+    String(product.brand ?? "")
+      .trim()
+      .toUpperCase() === "BMC" ||
+    String(product.vendor ?? "")
+      .trim()
+      .toUpperCase() === "BMC";
   const officialBmcMedia = isBmcProduct ? getBmcOfficialProductImage(product.sku) : null;
   if (officialBmcMedia) {
     return {
@@ -1368,7 +1376,8 @@ function normalizeBrandImageKey(value: string | null | undefined) {
 
 function hasCatalogPrice(
   product:
-    Pick<ShopProduct, "price"> | Pick<AdminShopProductRecord, "priceEur" | "priceUsd" | "priceUah">
+    | Pick<ShopProduct, "price">
+    | Pick<AdminShopProductRecord, "priceEur" | "priceUsd" | "priceUah">
 ) {
   if ("price" in product) {
     return [product.price.eur, product.price.usd, product.price.uah].some(
@@ -1416,9 +1425,7 @@ function shouldExposeCatalogProduct(
   product: Pick<ShopProduct, "brand" | "vendor" | "tags" | "slug">
 ) {
   const tags = product.tags ?? [];
-  const catalogHidden = tags.some((tag) =>
-    String(tag).trim().toLowerCase() === "catalog:hidden"
-  );
+  const catalogHidden = tags.some((tag) => String(tag).trim().toLowerCase() === "catalog:hidden");
   return !catalogHidden && (!isUrbanCatalogProduct(product) || hasUrbanGpPortalSource(product));
 }
 
@@ -1574,7 +1581,8 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const revozportShipping = parseRevozportShippingQuotes(row.metafields ?? []);
   let accessoryOptions: ShopProduct["accessoryOptions"];
   const accessoryOptionsValue = (row.metafields ?? []).find(
-    (metafield) => metafield.namespace === "wheelforce_import" && metafield.key === "accessory_options"
+    (metafield) =>
+      metafield.namespace === "wheelforce_import" && metafield.key === "accessory_options"
   )?.value;
   if (accessoryOptionsValue) {
     try {
@@ -1586,7 +1594,8 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         const titleEn = String(option.titleEn ?? "").trim();
         if (!sku || !slug || !titleUa || !titleEn) return [];
         const readMoney = (value: unknown) => {
-          const money = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+          const money =
+            value && typeof value === "object" ? (value as Record<string, unknown>) : {};
           return {
             eur: Number(money.eur ?? 0) || 0,
             usd: Number(money.usd ?? 0) || 0,
@@ -1596,22 +1605,25 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         const price = readMoney(option.price);
         const europePrice = readMoney(option.europePrice);
         const requestedQuantity = Number(option.quantity ?? 1);
-        const quantity = Number.isInteger(requestedQuantity) && requestedQuantity > 0
-          ? Math.min(99, requestedQuantity)
-          : 1;
+        const quantity =
+          Number.isInteger(requestedQuantity) && requestedQuantity > 0
+            ? Math.min(99, requestedQuantity)
+            : 1;
         const variantSkus = Array.isArray(option.variantSkus)
           ? option.variantSkus.map((value) => String(value).trim()).filter(Boolean)
           : [];
-        return [{
-          sku,
-          slug,
-          title: { ua: titleUa, en: titleEn },
-          image: typeof option.imageUrl === "string" ? option.imageUrl : null,
-          price,
-          ...(europePrice.eur || europePrice.usd || europePrice.uah ? { europePrice } : {}),
-          ...(variantSkus.length ? { variantSkus } : {}),
-          ...(quantity > 1 ? { quantity } : {}),
-        }];
+        return [
+          {
+            sku,
+            slug,
+            title: { ua: titleUa, en: titleEn },
+            image: typeof option.imageUrl === "string" ? option.imageUrl : null,
+            price,
+            ...(europePrice.eur || europePrice.usd || europePrice.uah ? { europePrice } : {}),
+            ...(variantSkus.length ? { variantSkus } : {}),
+            ...(quantity > 1 ? { quantity } : {}),
+          },
+        ];
       });
     } catch {
       accessoryOptions = undefined;
@@ -1619,13 +1631,15 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   }
   let wheelForceSet: ShopProduct["wheelForceSet"];
   const wheelForceSetValue = (row.metafields ?? []).find(
-    (metafield) => metafield.namespace === "wheelforce_import" && metafield.key === "wheel_set_components"
+    (metafield) =>
+      metafield.namespace === "wheelforce_import" && metafield.key === "wheel_set_components"
   )?.value;
   if (wheelForceSetValue) {
     try {
       const raw = JSON.parse(wheelForceSetValue) as Record<string, unknown>;
       const readComponent = (value: unknown) => {
-        const component = value && typeof value === "object" ? value as Record<string, unknown> : {};
+        const component =
+          value && typeof value === "object" ? (value as Record<string, unknown>) : {};
         const sku = String(component.sku ?? "").trim();
         const title = String(component.title ?? "").trim();
         const sizeSpec = String(component.sizeSpec ?? "").trim();
@@ -1636,18 +1650,23 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       const vehicleLabels = Array.isArray(raw.vehicleLabels)
         ? raw.vehicleLabels.map((value) => String(value).trim()).filter(Boolean)
         : [];
-      if (front && rear) wheelForceSet = { front, rear, ...(vehicleLabels.length ? { vehicleLabels } : {}) };
+      if (front && rear)
+        wheelForceSet = { front, rear, ...(vehicleLabels.length ? { vehicleLabels } : {}) };
     } catch {
       wheelForceSet = undefined;
     }
   }
-  const familyParentSlug = (row.metafields ?? []).find(
-    (metafield) => metafield.namespace === "wheelforce_import" && metafield.key === "family_parent_slug"
-  )?.value?.trim();
+  const familyParentSlug = (row.metafields ?? [])
+    .find(
+      (metafield) =>
+        metafield.namespace === "wheelforce_import" && metafield.key === "family_parent_slug"
+    )
+    ?.value?.trim();
   let wheelForceFamily: ShopProduct["wheelForceFamily"];
   if (familyParentSlug) {
     const rawMembers = (row.metafields ?? []).find(
-      (metafield) => metafield.namespace === "wheelforce_import" && metafield.key === "family_members"
+      (metafield) =>
+        metafield.namespace === "wheelforce_import" && metafield.key === "family_members"
     )?.value;
     let members: NonNullable<ShopProduct["wheelForceFamily"]>["members"] = [];
     if (rawMembers) {
@@ -1822,12 +1841,26 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
   const generatedUaDescription =
     generatedAkrapovicUaDescription ?? generatedUrbanUaDescription ?? generatedGenericUaDescription;
   const productB2BPrice = moneySet({
-    ...withShopPriceSource({ eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b), usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b), uah: num(row.priceUahB2b ?? primaryVariant?.priceUahB2b) }, shopDbPriceSource(row, primaryVariant, 'b2bPrice')),
+    ...withShopPriceSource(
+      {
+        eur: num(row.priceEurB2b ?? primaryVariant?.priceEurB2b),
+        usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
+        uah: num(row.priceUahB2b ?? primaryVariant?.priceUahB2b),
+      },
+      shopDbPriceSource(row, primaryVariant, "b2bPrice")
+    ),
     usd: num(row.priceUsdB2b ?? primaryVariant?.priceUsdB2b),
     uah: num(row.priceUahB2b ?? primaryVariant?.priceUahB2b),
   });
   const productB2BCompareAt = moneySet({
-    ...withShopPriceSource({ eur: num(row.compareAtEurB2b ?? primaryVariant?.compareAtEurB2b), usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b), uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b) }, shopDbPriceSource(row, primaryVariant, 'b2bCompareAt')),
+    ...withShopPriceSource(
+      {
+        eur: num(row.compareAtEurB2b ?? primaryVariant?.compareAtEurB2b),
+        usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b),
+        uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b),
+      },
+      shopDbPriceSource(row, primaryVariant, "b2bCompareAt")
+    ),
     usd: num(row.compareAtUsdB2b ?? primaryVariant?.compareAtUsdB2b),
     uah: num(row.compareAtUahB2b ?? primaryVariant?.compareAtUahB2b),
   });
@@ -1898,7 +1931,10 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     slug: row.slug,
     sku: rowSku || variantSku || fallbackAkrapovicSku || "",
     scope: row.scope as ShopScope,
-    availabilityDate: row.metafields?.find((field) => field.namespace === "onecompany" && field.key === "availability_date")?.value ?? null,
+    availabilityDate:
+      row.metafields?.find(
+        (field) => field.namespace === "onecompany" && field.key === "availability_date"
+      )?.value ?? null,
     brand: resolveShopProductBrand(row),
     vendor: row.vendor ?? undefined,
     productType: row.productType ?? undefined,
@@ -1975,7 +2011,14 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     adminMediaOverride: hasShopProductAdminMediaOverride(row.metafields),
     collection: { ua: row.collectionUa ?? "", en: row.collectionEn ?? "" },
     price: {
-      ...withShopPriceSource({ eur: num(row.priceEur ?? primaryVariant?.priceEur), usd: num(row.priceUsd ?? primaryVariant?.priceUsd), uah: num(row.priceUah ?? primaryVariant?.priceUah) }, shopDbPriceSource(row, primaryVariant, 'price')),
+      ...withShopPriceSource(
+        {
+          eur: num(row.priceEur ?? primaryVariant?.priceEur),
+          usd: num(row.priceUsd ?? primaryVariant?.priceUsd),
+          uah: num(row.priceUah ?? primaryVariant?.priceUah),
+        },
+        shopDbPriceSource(row, primaryVariant, "price")
+      ),
       usd: num(row.priceUsd ?? primaryVariant?.priceUsd),
       uah: num(row.priceUah ?? primaryVariant?.priceUah),
     },
@@ -1992,7 +2035,14 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
       primaryVariant?.compareAtUsd != null ||
       primaryVariant?.compareAtUah != null
         ? {
-            ...withShopPriceSource({ eur: num(row.compareAtEur ?? primaryVariant?.compareAtEur), usd: num(row.compareAtUsd ?? primaryVariant?.compareAtUsd), uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah) }, shopDbPriceSource(row, primaryVariant, 'compareAt')),
+            ...withShopPriceSource(
+              {
+                eur: num(row.compareAtEur ?? primaryVariant?.compareAtEur),
+                usd: num(row.compareAtUsd ?? primaryVariant?.compareAtUsd),
+                uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah),
+              },
+              shopDbPriceSource(row, primaryVariant, "compareAt")
+            ),
             usd: num(row.compareAtUsd ?? primaryVariant?.compareAtUsd),
             uah: num(row.compareAtUah ?? primaryVariant?.compareAtUah),
           }
@@ -2044,12 +2094,26 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
     wheelForceFamily,
     variants: row.variants.map((variant) => {
       const variantB2BPrice = moneySet({
-        ...withShopPriceSource({ eur: num(variant.priceEurB2b), usd: num(variant.priceUsdB2b), uah: num(variant.priceUahB2b) }, variant.b2bPriceSourceCurrency),
+        ...withShopPriceSource(
+          {
+            eur: num(variant.priceEurB2b),
+            usd: num(variant.priceUsdB2b),
+            uah: num(variant.priceUahB2b),
+          },
+          variant.b2bPriceSourceCurrency
+        ),
         usd: num(variant.priceUsdB2b),
         uah: num(variant.priceUahB2b),
       });
       const variantB2BCompareAt = moneySet({
-        ...withShopPriceSource({ eur: num(variant.compareAtEurB2b), usd: num(variant.compareAtUsdB2b), uah: num(variant.compareAtUahB2b) }, variant.b2bCompareAtSourceCurrency),
+        ...withShopPriceSource(
+          {
+            eur: num(variant.compareAtEurB2b),
+            usd: num(variant.compareAtUsdB2b),
+            uah: num(variant.compareAtUahB2b),
+          },
+          variant.b2bCompareAtSourceCurrency
+        ),
         usd: num(variant.compareAtUsdB2b),
         uah: num(variant.compareAtUahB2b),
       });
@@ -2066,7 +2130,10 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
         image: variant.image ? resolveCatalogAssetUrl(variant.image, catalogFallbackImage) : null,
         isDefault: variant.isDefault,
         price: moneySet({
-          ...withShopPriceSource({ eur: num(variant.priceEur), usd: num(variant.priceUsd), uah: num(variant.priceUah) }, variant.priceSourceCurrency),
+          ...withShopPriceSource(
+            { eur: num(variant.priceEur), usd: num(variant.priceUsd), uah: num(variant.priceUah) },
+            variant.priceSourceCurrency
+          ),
           usd: num(variant.priceUsd),
           uah: num(variant.priceUah),
         }),
@@ -2093,7 +2160,14 @@ function mapDbToCatalog(row: CatalogDbRecord): ShopProduct {
           variant.compareAtUsd != null ||
           variant.compareAtUah != null
             ? moneySet({
-                ...withShopPriceSource({ eur: num(variant.compareAtEur), usd: num(variant.compareAtUsd), uah: num(variant.compareAtUah) }, variant.compareAtSourceCurrency),
+                ...withShopPriceSource(
+                  {
+                    eur: num(variant.compareAtEur),
+                    usd: num(variant.compareAtUsd),
+                    uah: num(variant.compareAtUah),
+                  },
+                  variant.compareAtSourceCurrency
+                ),
                 usd: num(variant.compareAtUsd),
                 uah: num(variant.compareAtUah),
               })
@@ -2820,7 +2894,16 @@ export async function getShopRelatedProductsByBrandServer(brand: string): Promis
           image: true,
           metafields: {
             where: {
-              OR: [{ namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE, key: SHOP_PRODUCT_ADMIN_MEDIA_KEY }, { namespace: "revozport_logistics", key: { in: ["delivery_pricing_weight_kg", "sea_shipping_usd"] } }],
+              OR: [
+                {
+                  namespace: SHOP_PRODUCT_ADMIN_MEDIA_NAMESPACE,
+                  key: SHOP_PRODUCT_ADMIN_MEDIA_KEY,
+                },
+                {
+                  namespace: "revozport_logistics",
+                  key: { in: ["delivery_pricing_weight_kg", "sea_shipping_usd"] },
+                },
+              ],
             },
             select: { namespace: true, key: true, value: true },
           },
@@ -2985,11 +3068,23 @@ export const getRacechipProductBySlugLightServer = cache(
         inventoryQty: variant.inventoryQty,
         image: variant.image ?? null,
         isDefault: variant.isDefault,
-        price: withShopPriceSource(money(variant.priceEur, variant.priceUsd, variant.priceUah), variant.priceSourceCurrency),
+        price: withShopPriceSource(
+          money(variant.priceEur, variant.priceUsd, variant.priceUah),
+          variant.priceSourceCurrency
+        ),
         europePrice: money(variant.priceEurEurope, null, null),
-        b2bPrice: withShopPriceSource(money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b), variant.b2bPriceSourceCurrency),
-        compareAt: withShopPriceSource(money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah), variant.compareAtSourceCurrency),
-        b2bCompareAt: withShopPriceSource(money(variant.compareAtEurB2b, variant.compareAtUsdB2b, variant.compareAtUahB2b), variant.b2bCompareAtSourceCurrency),
+        b2bPrice: withShopPriceSource(
+          money(variant.priceEurB2b, variant.priceUsdB2b, variant.priceUahB2b),
+          variant.b2bPriceSourceCurrency
+        ),
+        compareAt: withShopPriceSource(
+          money(variant.compareAtEur, variant.compareAtUsd, variant.compareAtUah),
+          variant.compareAtSourceCurrency
+        ),
+        b2bCompareAt: withShopPriceSource(
+          money(variant.compareAtEurB2b, variant.compareAtUsdB2b, variant.compareAtUahB2b),
+          variant.b2bCompareAtSourceCurrency
+        ),
       }));
       const primaryVariant = variants.find((variant: any) => variant.isDefault) ?? variants[0];
       const product: ShopProduct = {
@@ -3011,11 +3106,23 @@ export const getRacechipProductBySlugLightServer = cache(
         leadTime: empty,
         stock: row.stock === "preOrder" ? "preOrder" : "inStock",
         collection: empty,
-        price: withShopPriceSource(money(row.priceEur, row.priceUsd, row.priceUah), row.priceSourceCurrency),
+        price: withShopPriceSource(
+          money(row.priceEur, row.priceUsd, row.priceUah),
+          row.priceSourceCurrency
+        ),
         europePrice: money(row.priceEurEurope, null, null),
-        b2bPrice: withShopPriceSource(money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b), row.b2bPriceSourceCurrency),
-        compareAt: withShopPriceSource(money(row.compareAtEur, row.compareAtUsd, row.compareAtUah), row.compareAtSourceCurrency),
-        b2bCompareAt: withShopPriceSource(money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b), row.b2bCompareAtSourceCurrency),
+        b2bPrice: withShopPriceSource(
+          money(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b),
+          row.b2bPriceSourceCurrency
+        ),
+        compareAt: withShopPriceSource(
+          money(row.compareAtEur, row.compareAtUsd, row.compareAtUah),
+          row.compareAtSourceCurrency
+        ),
+        b2bCompareAt: withShopPriceSource(
+          money(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
+          row.b2bCompareAtSourceCurrency
+        ),
         image: row.image ?? primaryVariant?.image ?? "",
         highlights: [],
         variants,
@@ -3195,10 +3302,19 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
       // car_make:*, car_model:*, car_engine:*. Saves ~470 KB across 5 k rows.
       const carTags = (row.tags ?? []).filter((t) => t.startsWith("car_"));
 
-      const b2bPrice = withShopPriceSource(toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b), row.b2bPriceSourceCurrency);
+      const b2bPrice = withShopPriceSource(
+        toMoney(row.priceEurB2b, row.priceUsdB2b, row.priceUahB2b),
+        row.b2bPriceSourceCurrency
+      );
       const europePrice = toMoney(row.priceEurEurope, null, null);
-      const compareAt = withShopPriceSource(toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah), row.compareAtSourceCurrency);
-      const b2bCompareAt = withShopPriceSource(toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b), row.b2bCompareAtSourceCurrency);
+      const compareAt = withShopPriceSource(
+        toMoney(row.compareAtEur, row.compareAtUsd, row.compareAtUah),
+        row.compareAtSourceCurrency
+      );
+      const b2bCompareAt = withShopPriceSource(
+        toMoney(row.compareAtEurB2b, row.compareAtUsdB2b, row.compareAtUahB2b),
+        row.b2bCompareAtSourceCurrency
+      );
 
       return {
         slug: row.slug,
@@ -3218,7 +3334,10 @@ export async function getRacechipProductsLightServer(): Promise<ShopProduct[]> {
         leadTime: empty,
         stock: (row.stock === "preOrder" ? "preOrder" : "inStock") as ShopStock,
         collection: empty,
-        price: withShopPriceSource(toMoney(row.priceEur, row.priceUsd, row.priceUah), row.priceSourceCurrency),
+        price: withShopPriceSource(
+          toMoney(row.priceEur, row.priceUsd, row.priceUah),
+          row.priceSourceCurrency
+        ),
         europePrice: anyPositive(europePrice) ? europePrice : undefined,
         // Only attach optional B2B/compare bundles when they have non-zero
         // values; matches existing convention in `mapDbToCatalog` and lets
@@ -3515,7 +3634,11 @@ export async function listShopProductSlugsForSitemap(
   options: { fresh?: boolean } = {}
 ): Promise<ShopProductSitemapEntry[]> {
   const now = Date.now();
-  if (!options.fresh && sitemapEntriesCache && now - sitemapEntriesCache.ts < SITEMAP_CACHE_TTL_MS) {
+  if (
+    !options.fresh &&
+    sitemapEntriesCache &&
+    now - sitemapEntriesCache.ts < SITEMAP_CACHE_TTL_MS
+  ) {
     return sitemapEntriesCache.entries;
   }
 
@@ -3607,8 +3730,10 @@ function projectShopProductForListGridInternal(
   // Default variant only — list cards never expand variant lists.
   const defaultVariant = product.variants?.find((v) => v.isDefault) ?? product.variants?.[0];
   const variantsToProject = options.includeAllVariantSearchFields
-    ? product.variants ?? []
-    : defaultVariant ? [defaultVariant] : [];
+    ? (product.variants ?? [])
+    : defaultVariant
+      ? [defaultVariant]
+      : [];
   const slimVariants = variantsToProject.map((variant) => ({
     id: variant.id,
     title: variant.title,
@@ -4084,9 +4209,10 @@ async function assembleWheelForceFamilyProduct(product: ShopProduct): Promise<Sh
   const parentSlug = product.wheelForceFamily?.parentSlug;
   if (product.brand.toLowerCase() !== "wheelforce" || !parentSlug) return product;
 
-  const parentResult = parentSlug === product.slug
-    ? { kind: "found" as const, product }
-    : await lookupShopProductBySlugServer(parentSlug);
+  const parentResult =
+    parentSlug === product.slug
+      ? { kind: "found" as const, product }
+      : await lookupShopProductBySlugServer(parentSlug);
   if (parentResult.kind !== "found") return product;
   const parent = parentResult.product;
   const members = parent.wheelForceFamily?.members ?? [];
@@ -4103,23 +4229,27 @@ async function assembleWheelForceFamilyProduct(product: ShopProduct): Promise<Sh
   const variants = members.flatMap((member, index) => {
     const sibling = bySlug.get(member.slug);
     if (!sibling) return [];
-    const physical = sibling.variants?.find((variant) => variant.isDefault) ?? sibling.variants?.[0];
-    const label = sizeCounts.get(member.sizeSpec) === 1
-      ? member.sizeSpec
-      : `${member.sizeSpec} · ${member.sku}`;
-    return [{
-      ...physical,
-      id: physical?.id,
-      purchaseSlug: sibling.slug,
-      sku: physical?.sku || member.sku,
-      title: label,
-      position: index + 1,
-      optionValues: [label],
-      image: physical?.image || sibling.image,
-      price: physical?.price ?? sibling.price,
-      europePrice: physical?.europePrice ?? sibling.europePrice,
-      isDefault: sibling.slug === product.slug,
-    }];
+    const physical =
+      sibling.variants?.find((variant) => variant.isDefault) ?? sibling.variants?.[0];
+    const label =
+      sizeCounts.get(member.sizeSpec) === 1
+        ? member.sizeSpec
+        : `${member.sizeSpec} · ${member.sku}`;
+    return [
+      {
+        ...physical,
+        id: physical?.id,
+        purchaseSlug: sibling.slug,
+        sku: physical?.sku || member.sku,
+        title: label,
+        position: index + 1,
+        optionValues: [label],
+        image: physical?.image || sibling.image,
+        price: physical?.price ?? sibling.price,
+        europePrice: physical?.europePrice ?? sibling.europePrice,
+        isDefault: sibling.slug === product.slug,
+      },
+    ];
   });
   if (variants.length < 2) return product;
 
@@ -4140,7 +4270,13 @@ async function assembleWheelForceFamilyProduct(product: ShopProduct): Promise<Sh
   return {
     ...parent,
     slug: product.slug,
-    options: [{ name: "Wheel size", position: 1, values: variants.map((variant) => variant.optionValues?.[0] ?? "") }],
+    options: [
+      {
+        name: "Wheel size",
+        position: 1,
+        values: variants.map((variant) => variant.optionValues?.[0] ?? ""),
+      },
+    ],
     variants,
     accessoryOptions: [...accessories.values()],
   };
