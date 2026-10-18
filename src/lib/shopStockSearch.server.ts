@@ -119,6 +119,7 @@ import { compareShopBrandLabels, getProductDisplayBrand } from "@/lib/shopProduc
 import { canUsePremiumCatalogProjection } from "@/lib/shopCatalogPremiumEligibility";
 import { compareShopStockPriceAmounts } from "@/lib/shopStockPriceSort";
 import { singleFlight } from "@/lib/singleFlight";
+import { resolveOhlinsFamilyImage } from "@/lib/ohlinsFamilyImages";
 export { getProductDisplayBrand } from "@/lib/shopProductDisplayBrand";
 
 type StockSearchSort = "default" | "price_asc" | "price_desc" | "name_asc";
@@ -1781,7 +1782,14 @@ export async function searchShopStock(request: { url: string }, options?: { anon
                 .filter(Boolean)
             )
           ),
-          thumbnail: product.image || product.gallery?.[0] || null,
+          thumbnail:
+            product.image ||
+            product.gallery?.[0] ||
+            resolveOhlinsFamilyImage({
+              brand: product.brand,
+              title: product.title.ua || product.title.en,
+            }) ||
+            null,
           inStock: isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay),
           availability: getShopConfirmedAvailability(
             product.sku,

@@ -661,12 +661,12 @@ const nextConfig: NextConfig = {
     const legacyBrandRedirects = [
       {
         source: "/:locale(ua|en)/kw",
-        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        destination: "/:locale/shop/brand/kw",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/fi",
-        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        destination: "/:locale/shop/brand/fi-exhaust",
         permanent: true,
       },
       {
@@ -676,12 +676,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:locale(ua|en)/shop/kw",
-        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        destination: "/:locale/shop/brand/kw",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/shop/fi",
-        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        destination: "/:locale/shop/brand/fi-exhaust",
         permanent: true,
       },
       // Former brand URLs that Search Console still reports as 404 (GSC

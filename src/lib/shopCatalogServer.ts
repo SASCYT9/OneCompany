@@ -12,6 +12,7 @@ import {
 import fs from "fs";
 import path from "path";
 import { readShopStorefrontDisplay } from "@/lib/shopStorefrontDisplay";
+import { resolveOhlinsFamilyImage } from "@/lib/ohlinsFamilyImages";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
 import { getUrbanVerifiedProductMedia } from "@/lib/urbanVerifiedProductMedia";
 import { getBmcOfficialProductImage } from "@/lib/bmcOfficialProductImages";
@@ -1450,7 +1451,9 @@ function resolveBrandFallbackImage(brand: string | null | undefined, vendor?: st
 export function resolveFeedManagedCatalogImage(
   input: string | null | undefined,
   brand: string | null | undefined,
-  vendor?: string | null
+  vendor?: string | null,
+  /** The product's title, for an Öhlins family photo when it has no photo. */
+  title?: string | null
 ) {
   const src = String(input ?? "").trim();
   const brandKey = resolveFeedManagedBrandKey(brand, vendor);
@@ -1460,8 +1463,9 @@ export function resolveFeedManagedCatalogImage(
     return src;
   }
 
-  if (!src) {
-    return fallbackImage;
+  // No photo of its own: empty, or the brand picture the catalog mapping put in.
+  if (!src || src === fallbackImage) {
+    return (title ? resolveOhlinsFamilyImage({ brand: brandKey, title }) : null) ?? fallbackImage;
   }
 
   const expectedLocalPrefix = LOCAL_SHOP_BRAND_IMAGE_PREFIXES[brandKey];
@@ -1476,7 +1480,7 @@ export function resolveFeedManagedCatalogImage(
   return isOtherKnownBrandAsset ? fallbackImage : src;
 }
 
-function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
+export function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
   if (product.adminMediaOverride) {
     return {
       ...product,
@@ -1489,11 +1493,16 @@ function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
     return product;
   }
 
-  const image = resolveFeedManagedCatalogImage(product.image, product.brand, product.vendor);
+  const title = [product.title?.ua, product.title?.en].filter(Boolean).join(" ");
+  const image = resolveFeedManagedCatalogImage(product.image, product.brand, product.vendor, title);
+  // Any substitute (brand picture, family photo) is not a photo of this item.
+  const imagePlaceholder =
+    image !== String(product.image ?? "").trim() ||
+    image === resolveBrandFallbackImage(product.brand, product.vendor);
   const gallery = product.gallery
     ? uniqueStrings(
         product.gallery.map((src) =>
-          resolveFeedManagedCatalogImage(src, product.brand, product.vendor)
+          resolveFeedManagedCatalogImage(src, product.brand, product.vendor, title)
         )
       )
     : product.gallery;
@@ -1514,7 +1523,7 @@ function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
     Boolean(variants) &&
     variants?.some((variant, index) => variant.image !== product.variants?.[index]?.image);
 
-  if (!imageChanged && !galleryChanged && !variantsChanged) {
+  if (!imageChanged && !galleryChanged && !variantsChanged && !imagePlaceholder) {
     return product;
   }
 
@@ -1523,6 +1532,7 @@ function normalizeFeedManagedProductImages(product: ShopProduct): ShopProduct {
     image,
     gallery,
     variants,
+    ...(imagePlaceholder ? { imagePlaceholder } : {}),
   };
 }
 
@@ -4112,8 +4122,11 @@ export const lookupShopProductBySlugServer = cache(async function lookupShopProd
         ? await prisma.shopProduct.findFirst(queryParams)
         : await prisma.shopProduct.findFirst(queryParams);
       if (row) {
+        // Same image rules as the catalog cards, so a product page shows the card's picture.
         const product = applyShopProductImageOverrides(
-          mapDbToCatalog(row as unknown as AdminShopProductRecord)
+          normalizeFeedManagedProductImages(
+            mapDbToCatalog(row as unknown as AdminShopProductRecord)
+          )
         );
         if (shouldExposeCatalogProduct(product)) {
           return { kind: "found", product, source: "database" };

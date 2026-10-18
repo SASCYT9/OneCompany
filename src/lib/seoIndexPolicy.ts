@@ -75,8 +75,8 @@ export const noindexPrefixes = ["/admin", "/api", "/quote", "/ops-app"] as const
 export const removedBlogSlugs = ["one-company-dtskmdmjfgf"] as const;
 
 const legacyBrandRedirectTargets = {
-  kw: "/shop/catalog?brand=KW%20Suspensions",
-  fi: "/shop/catalog?brand=Fi%20EXHAUST",
+  kw: "/shop/brand/kw",
+  fi: "/shop/brand/fi-exhaust",
   eventuri: "/shop/eventuri",
 } as const;
 

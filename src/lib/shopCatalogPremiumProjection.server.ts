@@ -49,6 +49,7 @@ import {
 } from "@/lib/shopCatalogVehicleSearchPlan";
 import { buildShopCatalogEffectivePriceContext } from "@/lib/shopCatalogEffectivePrice.server";
 import { canonicalizeShopSearchQuery } from "@/lib/shopSearch";
+import { resolveOhlinsFamilyImage } from "@/lib/ohlinsFamilyImages";
 
 const PAGE_SIZE = 24;
 
@@ -455,7 +456,9 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       description: item.cardCopy ?? "",
       category: item.categoryLabel ?? "",
       imageSources,
-      thumbnail: primaryImage,
+      // Öhlins items the supplier sent without a photo show their family's photo.
+      thumbnail:
+        primaryImage ?? resolveOhlinsFamilyImage({ brand: displayBrand, title: item.title }),
       inStock:
         Boolean(warehouseProduct) ||
         isShopInStockProduct(

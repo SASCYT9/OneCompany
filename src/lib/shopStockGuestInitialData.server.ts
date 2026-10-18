@@ -34,6 +34,22 @@ const readGuestCatalogPage = unstable_cache(
 );
 
 /**
+ * The guest search for a filter set (first page unless `page` is given),
+ * shared with the catalog's first render through the same 60-second cache.
+ */
+export function readGuestCatalogSearch(
+  locale: string,
+  query: StockPageSearchParams
+): Promise<StockSearchResponse> {
+  const request = buildStockInitialSearch(
+    stockPageSearchParams(query),
+    resolveLocale(locale),
+    CATALOG_INITIAL_CURRENCY
+  );
+  return readGuestCatalogPage(request.toString());
+}
+
+/**
  * The catalog's first result page for a guest, keyed exactly like the
  * client's own first request so the browser reuses it instead of searching
  * again. Signed-in customers get `undefined`: their personal prices keep

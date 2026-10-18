@@ -55,9 +55,12 @@ export async function GET(request: NextRequest) {
     return new Response("Failed to generate feed", { status: 500 });
   }
 
+  // A listing needs a photo of the item itself: products showing a brand
+  // picture or a family photo instead (no photo from the supplier) stay out.
   const listable = products.filter(
     (p) =>
       p.image &&
+      !p.imagePlaceholder &&
       ((p.price?.eur ?? 0) > 0 ||
         (p.price?.usd ?? 0) > 0 ||
         (p.price?.uah ?? 0) > 0 ||

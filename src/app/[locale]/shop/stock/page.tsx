@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import type { StockPageSearchParams } from "@/lib/shopStockInitialSearch";
+import ShopCatalogLinkRows from "@/components/shop/ShopCatalogLinkRows";
+import { popularShopCatalogMakeLandings, shopCatalogLandingHref } from "@/lib/shopCatalogLandings";
 import CatalogLoadingShell from "./CatalogLoadingShell";
 import StockCatalogClient from "./StockCatalogClient";
 
@@ -49,5 +51,25 @@ async function StockCatalogWithFirstPage({
       });
       return undefined;
     });
-  return <StockCatalogClient initialData={initialData} />;
+  return <StockCatalogClient initialData={initialData} intro={<PopularMakes locale={locale} />} />;
+}
+
+/** Links to the biggest vehicle-make landing pages, above the unfiltered catalog. */
+function PopularMakes({ locale }: { locale: string }) {
+  const resolvedLocale = locale === "en" ? "en" : "ua";
+  return (
+    <div className="mb-4 sm:mb-5">
+      <ShopCatalogLinkRows
+        groups={[
+          {
+            title: resolvedLocale === "ua" ? "Популярні марки" : "Popular makes",
+            links: popularShopCatalogMakeLandings().map((landing) => ({
+              name: landing.make ?? "",
+              href: shopCatalogLandingHref(resolvedLocale, landing),
+            })),
+          },
+        ]}
+      />
+    </div>
+  );
 }

@@ -30,7 +30,7 @@ test("catalog streams a useful theme-aware loading shell during its initial sear
 test("catalog serves its loading UI immediately, guests get a cached first page, the API stays cacheable", () => {
   // The shell streams first; the first page follows in the same response for
   // guests (crawlable product links) and the client reuses it.
-  assert.match(stockPage, /<StockCatalogClient initialData=\{initialData\} \/>/);
+  assert.match(stockPage, /<StockCatalogClient initialData=\{initialData\}[\s\S]{0,80}\/>/);
   assert.match(stockPage, /import\("@\/lib\/shopStockGuestInitialData\.server"\)/);
   assert.doesNotMatch(stockPage, /searchShopStock/);
   assert.match(guestInitialData, /searchShopStock\([\s\S]{0,160}\{ anonymous: true \}/);

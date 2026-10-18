@@ -157,6 +157,12 @@ export interface ShopProduct {
   gallery?: string[];
   /** True after an admin explicitly edits the product's image or gallery. */
   adminMediaOverride?: boolean;
+  /**
+   * True when `image` is not a photo of this exact item: a brand picture or a
+   * photo of the product's family shown because the supplier sent none.
+   * Merchant Center listings need the item's own photo, so the feed skips it.
+   */
+  imagePlaceholder?: boolean;
   externalVideos?: ShopProductExternalVideo[];
   /**
    * Per-image material tag aligned with `gallery` order. Only set on iPE

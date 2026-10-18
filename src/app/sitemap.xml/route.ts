@@ -1,5 +1,6 @@
 import {
   SITEMAP_BLOG_ID,
+  SITEMAP_CATALOG_LANDINGS_ID,
   SITEMAP_PAGES_ID,
   buildSitemapChildUrl,
   renderSitemapIndexXml,
@@ -31,6 +32,7 @@ export async function GET() {
   const items = [
     { loc: buildSitemapChildUrl(SITEMAP_PAGES_ID) },
     { loc: buildSitemapChildUrl(SITEMAP_BLOG_ID), lastModified: blogLastModified },
+    { loc: buildSitemapChildUrl(SITEMAP_CATALOG_LANDINGS_ID) },
     ...chunks.map((chunk) => ({
       loc: buildSitemapChildUrl(chunk.id),
       lastModified: resolveChunkLastModified(chunk),

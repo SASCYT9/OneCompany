@@ -3,7 +3,15 @@ import assert from "node:assert/strict";
 import "./fixtures/register-server-only.mjs";
 
 import { detectOhlinsCategory, detectOhlinsMake } from "../../../src/lib/ohlinsCatalog";
-import { resolveFeedManagedCatalogImage } from "../../../src/lib/shopCatalogServer";
+import {
+  normalizeFeedManagedProductImages,
+  resolveFeedManagedCatalogImage,
+} from "../../../src/lib/shopCatalogServer";
+import type { ShopProduct } from "../../../src/lib/shopCatalog";
+import {
+  OHLINS_FAMILY_IMAGES,
+  resolveOhlinsFamilyImage,
+} from "../../../src/lib/ohlinsFamilyImages";
 
 test("detectOhlinsMake maps the corrected Isuzu prefix", () => {
   assert.equal(
@@ -104,4 +112,97 @@ test("resolveFeedManagedCatalogImage replaces stale Brabus cache images for Ohli
     ),
     "https://d3pd3d30e33rxi.cloudfront.net/_default_upload_bucket/ohlins-pov-my00-1.jpg"
   );
+});
+
+test("Öhlins items without a photo show their family's photo, the rest the brand picture", () => {
+  const family = (title: string) => resolveOhlinsFamilyImage({ brand: "OHLINS", title });
+  assert.equal(
+    family(
+      "OHLINS BMV GU21M2 Комплект койловерів Advanced Trackday TTX (включаючи пружини та верхні опори)"
+    ),
+    OHLINS_FAMILY_IMAGES.ttxKit
+  );
+  assert.equal(
+    family("OHLINS BMS 1U00 Амортизатор передній лівий для BMW 3 (F30/G20)"),
+    OHLINS_FAMILY_IMAGES.roadDamper
+  );
+  assert.equal(
+    family(
+      "OHLINS FOV 3X50 Задній лівий амортизатор для FORD Everest (U704/UB) 2022 (Пружини продаються окремо)"
+    ),
+    OHLINS_FAMILY_IMAGES.offRoadDamper
+  );
+  assert.equal(
+    family("OHLINS 10363-01 Передня пружина ліфта підвіски 30 мм для амортизатора INV MZ00"),
+    OHLINS_FAMILY_IMAGES.spring
+  );
+  assert.equal(
+    family("OHLINS 05173-11 Допоміжна пружина 67/9/105"),
+    OHLINS_FAMILY_IMAGES.helperSpring
+  );
+  assert.equal(
+    family("OHLINS G90377-M2 Опори амортизатора Millway для BMW M2 (F87)"),
+    OHLINS_FAMILY_IMAGES.topMounts
+  );
+  assert.equal(
+    family("OHLINS 35020-35 Комплект для скасування MERCEDES A45 AMG (W177)"),
+    OHLINS_FAMILY_IMAGES.cancelKit
+  );
+  for (const title of [
+    "OHLINS 00710-05 С-подібний ключ",
+    "OHLINS 25602-03 Підшипник для VWS MU21",
+    "OHLINS 35021-04 Комплект кронштейнів EDC TTX для BMW M3 (F80)",
+    "OHLINS 05925-10 Набір підйомних адаптерів Advanced Trackday для Porsche 991",
+  ]) {
+    assert.equal(family(title), null, title);
+  }
+  assert.equal(resolveOhlinsFamilyImage({ brand: "KW Suspensions", title: "Амортизатор" }), null);
+
+  assert.equal(
+    resolveFeedManagedCatalogImage("", "OHLINS", null, "OHLINS 62473-09 Пружина 90/420/50 N/mm"),
+    OHLINS_FAMILY_IMAGES.spring
+  );
+  // The catalog mapping already put the brand picture in for a product without media.
+  assert.equal(
+    resolveFeedManagedCatalogImage(
+      "/images/shop/ohlins/ohlins-product-fallback.png",
+      "OHLINS",
+      null,
+      "Амортизатор задній для TESLA Model 3 / Model Y"
+    ),
+    OHLINS_FAMILY_IMAGES.roadDamper
+  );
+  assert.equal(
+    resolveFeedManagedCatalogImage("", "OHLINS", null, "OHLINS 00710-05 С-подібний ключ"),
+    "/images/shop/ohlins/ohlins-product-fallback.png"
+  );
+  assert.equal(
+    resolveFeedManagedCatalogImage("", "AKRAPOVIC", null, "Пружина"),
+    "/images/shop/akrapovic/factory-fallback.jpg"
+  );
+});
+
+test("products shown with a substitute picture are marked, so the Merchant feed skips them", () => {
+  const product = (brand: string, image: string, title: string) =>
+    ({ brand, image, gallery: [image], title: { ua: title, en: "" } }) as unknown as ShopProduct;
+
+  const damper = normalizeFeedManagedProductImages(
+    product("OHLINS", "/images/shop/ohlins/ohlins-product-fallback.png", "Амортизатор задній")
+  );
+  assert.equal(damper.image, OHLINS_FAMILY_IMAGES.roadDamper);
+  assert.deepEqual(damper.gallery, [OHLINS_FAMILY_IMAGES.roadDamper]);
+  assert.equal(damper.imagePlaceholder, true);
+
+  const exhaust = normalizeFeedManagedProductImages(
+    product("AKRAPOVIC", "/images/shop/akrapovic/factory-fallback.jpg", "Вихлопна система")
+  );
+  assert.equal(exhaust.image, "/images/shop/akrapovic/factory-fallback.jpg");
+  assert.equal(exhaust.imagePlaceholder, true);
+
+  const ownPhoto = OHLINS_FAMILY_IMAGES.ttxKit;
+  const kit = normalizeFeedManagedProductImages(
+    product("OHLINS", ownPhoto, "OHLINS NIR GN00 до-т підвіски Advanced Trackday")
+  );
+  assert.equal(kit.image, ownPhoto);
+  assert.equal(kit.imagePlaceholder, undefined);
 });

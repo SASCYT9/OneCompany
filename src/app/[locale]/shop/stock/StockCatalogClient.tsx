@@ -17,7 +17,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -142,7 +142,15 @@ import {
   parseStockPage,
   stockSearchCacheKey,
 } from "@/lib/shopStockInitialSearch";
+import {
+  findShopCatalogLandingUrl,
+  resolveShopCatalogStateUrl,
+  type ShopCatalogLandingState,
+} from "@/lib/shopCatalogLandingUrl";
 import CatalogLoadingShell from "./CatalogLoadingShell";
+
+/** A catalog landing page (`/shop/catalog/bmw`): fixed filters plus its own heading. */
+export type StockCatalogLanding = ShopCatalogLandingState & { header?: ReactNode };
 
 type StockFilter = "all" | "inStock" | "preOrder";
 type StockSort = "default" | "price_asc" | "price_desc" | "name_asc";
@@ -1187,7 +1195,16 @@ function CatalogOverlayPortal({ children }: { children: ReactNode }) {
   return createPortal(children, document.body);
 }
 
-function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
+function StockPageContent({
+  initialData,
+  landing,
+  intro,
+}: {
+  initialData?: StockInitialData;
+  landing?: StockCatalogLanding;
+  /** Shown above the unfiltered catalog (links to popular make pages). */
+  intro?: ReactNode;
+}) {
   const initialResponse = initialData?.response;
   // The server-rendered grid must be visible before JS, including when the
   // browser prefers reduced motion (the server cannot read that preference).
@@ -1197,7 +1214,19 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
     serverRenderedInitialPage.current = false;
   }, []);
   const params = useParams();
-  const searchParams = useSearchParams();
+  const urlSearchParams = useSearchParams();
+  const pathname = usePathname();
+  // On a landing page the fixed filters live in the path, not the query
+  // string; the catalog reads them as if they were URL parameters. Once a
+  // shopper changes the filters, the address moves to the general catalog.
+  const onLanding = Boolean(landing) && pathname === landing?.href;
+  const landingFilters = onLanding ? landing?.filters : undefined;
+  const searchParams = useMemo(() => {
+    if (!landingFilters) return urlSearchParams;
+    const merged = new URLSearchParams(urlSearchParams.toString());
+    for (const [key, value] of Object.entries(landingFilters)) merged.set(key, value);
+    return merged;
+  }, [landingFilters, urlSearchParams]);
   const locale = typeof params?.locale === "string" ? params.locale : "ua";
   const isUa = locale === "ua";
   const shouldReduceMotion = useReducedMotion();
@@ -1980,9 +2009,16 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       if (searchPage > 1) params.set("page", String(searchPage));
 
       const queryString = params.toString();
-      const nextUrl = queryString
-        ? `${window.location.pathname}?${queryString}`
+      // Filters that match a landing page get its address (`/shop/catalog/bmw`);
+      // any other filter set lives on the general catalog, also when the
+      // address is currently a landing page's.
+      const basePath = /^\/(ua|en)\/shop\/(catalog|brand)\//.test(window.location.pathname)
+        ? `/${locale}/shop/catalog`
         : window.location.pathname;
+      const nextUrl = landing
+        ? resolveShopCatalogStateUrl(locale, params, landing)
+        : (findShopCatalogLandingUrl(locale, params) ??
+          (queryString ? `${basePath}?${queryString}` : basePath));
       rememberFiltersUrl(nextUrl);
       rememberMakeUrl(nextUrl);
       if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
@@ -1999,6 +2035,8 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       currency,
       engineFilter,
       fuelFilter,
+      landing,
+      locale,
       localCategory,
       productTypeFilter,
       make,
@@ -2016,6 +2054,18 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       vehicleMode,
     ]
   );
+
+  // Pagination links stay on the landing URL while its filters are unchanged.
+  const paginationHref = (targetPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    if (targetPage > 1) params.set("page", String(targetPage));
+    if (onLanding && landing) return resolveShopCatalogStateUrl(locale, params, landing);
+    return (
+      findShopCatalogLandingUrl(locale, params) ??
+      buildStockPaginationHref(locale, searchParams, targetPage)
+    );
+  };
 
   const applySearchPayload = useCallback(
     (data: StockSearchResponse, searchPage: number, vehicleKey: string) => {
@@ -4458,6 +4508,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
       </CatalogOverlayPortal>
 
       <div className="relative w-full max-w-none px-3 pb-32 pt-5 sm:px-5 sm:pt-8 lg:px-6 2xl:px-8">
+        {onLanding ? landing?.header : !landing && showWarehouseHero ? intro : null}
         {/* Desktop: filters own the whole left column from the top of the page. */}
         <div className="lg:grid lg:grid-cols-[288px_minmax(0,1fr)] lg:items-start lg:gap-5 xl:grid-cols-[304px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside
@@ -5617,7 +5668,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                     {totalPages > 1 && (
                       <div className="flex items-center justify-center gap-2 mt-8">
                         <a
-                          href={buildStockPaginationHref(locale, searchParams, page - 1)}
+                          href={paginationHref(page - 1)}
                           aria-disabled={page <= 1}
                           tabIndex={page <= 1 ? -1 : undefined}
                           onClick={(event) => {
@@ -5631,7 +5682,7 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
                           {page} / {totalPages}
                         </span>
                         <a
-                          href={buildStockPaginationHref(locale, searchParams, page + 1)}
+                          href={paginationHref(page + 1)}
                           aria-disabled={page >= totalPages}
                           tabIndex={page >= totalPages ? -1 : undefined}
                           onClick={(event) => {
@@ -5654,10 +5705,18 @@ function StockPageContent({ initialData }: { initialData?: StockInitialData }) {
   );
 }
 
-export default function StockCatalogClient({ initialData }: { initialData?: StockInitialData }) {
+export default function StockCatalogClient({
+  initialData,
+  landing,
+  intro,
+}: {
+  initialData?: StockInitialData;
+  landing?: StockCatalogLanding;
+  intro?: ReactNode;
+}) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-background" />}>
-      <StockPageContent initialData={initialData} />
+      <StockPageContent initialData={initialData} landing={landing} intro={intro} />
     </Suspense>
   );
 }

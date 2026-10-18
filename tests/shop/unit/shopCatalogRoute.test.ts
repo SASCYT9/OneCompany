@@ -67,17 +67,11 @@ test("live Eventuri and Ilmberger entry pages are discoverable in both sitemap l
 });
 
 test("legacy brand routes redirect to localized canonical storefront destinations", () => {
-  assert.equal(resolveLegacyBrandRedirectPath("/kw"), "/ua/shop/catalog?brand=KW%20Suspensions");
-  assert.equal(resolveLegacyBrandRedirectPath("/en/kw"), "/en/shop/catalog?brand=KW%20Suspensions");
-  assert.equal(resolveLegacyBrandRedirectPath("/ua/fi/"), "/ua/shop/catalog?brand=Fi%20EXHAUST");
-  assert.equal(
-    resolveLegacyBrandRedirectPath("/shop/kw"),
-    "/ua/shop/catalog?brand=KW%20Suspensions"
-  );
-  assert.equal(
-    resolveLegacyBrandRedirectPath("/en/shop/fi/"),
-    "/en/shop/catalog?brand=Fi%20EXHAUST"
-  );
+  assert.equal(resolveLegacyBrandRedirectPath("/kw"), "/ua/shop/brand/kw");
+  assert.equal(resolveLegacyBrandRedirectPath("/en/kw"), "/en/shop/brand/kw");
+  assert.equal(resolveLegacyBrandRedirectPath("/ua/fi/"), "/ua/shop/brand/fi-exhaust");
+  assert.equal(resolveLegacyBrandRedirectPath("/shop/kw"), "/ua/shop/brand/kw");
+  assert.equal(resolveLegacyBrandRedirectPath("/en/shop/fi/"), "/en/shop/brand/fi-exhaust");
   assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/ua/shop/eventuri"), null);
@@ -103,12 +97,12 @@ test("next redirects cover localized legacy brand routes before middleware", asy
     [
       {
         source: "/:locale(ua|en)/kw",
-        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        destination: "/:locale/shop/brand/kw",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/fi",
-        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        destination: "/:locale/shop/brand/fi-exhaust",
         permanent: true,
       },
       {
@@ -118,12 +112,12 @@ test("next redirects cover localized legacy brand routes before middleware", asy
       },
       {
         source: "/:locale(ua|en)/shop/kw",
-        destination: "/:locale/shop/catalog?brand=KW%20Suspensions",
+        destination: "/:locale/shop/brand/kw",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/shop/fi",
-        destination: "/:locale/shop/catalog?brand=Fi%20EXHAUST",
+        destination: "/:locale/shop/brand/fi-exhaust",
         permanent: true,
       },
       {
