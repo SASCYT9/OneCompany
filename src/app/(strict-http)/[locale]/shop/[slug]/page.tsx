@@ -28,7 +28,7 @@ import {
   localizeShopProductTitle,
   localizeShopText,
 } from "@/lib/shopText";
-import { extractShopProductDescriptionSections } from "@/lib/shopProductDescription";
+import { buildShopProductDescriptionHtml } from "@/lib/shopProductDescription";
 import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
@@ -187,13 +187,13 @@ export default async function ShopProductPage({ params }: Props) {
   const pricing = resolveShopProductPricing(product, viewerContext);
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
+  const productCollection = localizeShopText(resolvedLocale, product.collection).trim();
   const shortDescription = localizeShopDescription(resolvedLocale, product.shortDescription);
   const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
-  const descriptionSections = extractShopProductDescriptionSections(
-    longDescription || shortDescription
-  );
-  descriptionSections.introHtml = appendRevozportShippingWeight(
-    descriptionSections.introHtml,
+  // This page has no separate feature/spec panels, so it shows the whole
+  // description in order (extracting sections dropped every list from it).
+  const descriptionHtml = appendRevozportShippingWeight(
+    buildShopProductDescriptionHtml(longDescription || shortDescription),
     product,
     resolvedLocale
   );
@@ -247,12 +247,12 @@ export default async function ShopProductPage({ params }: Props) {
               {productTitle}
             </h1>
 
-            {descriptionSections.introHtml || shortDescription ? (
+            {descriptionHtml || shortDescription ? (
               <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>
-                {descriptionSections.introHtml ? (
+                {descriptionHtml ? (
                   <div
-                    className={`product-description ${product.brand.trim().toUpperCase() === "BMC" ? bmcDescriptionStyles.description : ""} max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]`}
-                    dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+                    className={`product-description ${product.brand.trim().toUpperCase() === "BMC" ? bmcDescriptionStyles.description : ""} max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:before:mt-[0.8em] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-current [&_li]:before:opacity-60 [&_ol]:space-y-2 [&_ul]:space-y-2`}
+                    dangerouslySetInnerHTML={{ __html: descriptionHtml }}
                   />
                 ) : shortDescription ? (
                   <p className="text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]">
@@ -275,9 +275,11 @@ export default async function ShopProductPage({ params }: Props) {
               continueShoppingHref={`/${resolvedLocale}/shop`}
             >
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
-                  {localizeShopText(resolvedLocale, product.collection)}
-                </span>
+                {productCollection ? (
+                  <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
+                    {productCollection}
+                  </span>
+                ) : null}
                 {localizedProductType ? (
                   <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
                     {localizedProductType}

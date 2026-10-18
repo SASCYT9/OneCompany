@@ -17,6 +17,8 @@ import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
+import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { notifyShopCartChanged } from "@/lib/shopCartCountCookie";
 
@@ -320,7 +322,18 @@ export default function RacechipShopProductDetailLayout({
                 </Link>
               )}
 
-              <ProductAiOpinionPanel locale={locale} product={product} shape="rounded" />
+              <ShopProductPurchaseFacts
+                locale={locale}
+                availability={getShopConfirmedAvailability(
+                  product.sku,
+                  product.slug,
+                  product.storefrontDisplay
+                )}
+                leadTime={product.leadTime}
+                productSlug={product.slug}
+                className="mt-4"
+              />
+              <ProductAiOpinionPanel locale={locale} product={product} shape="rounded" className="mt-4" />
 
               <p className="text-center text-[10px] sm:text-[11px] text-foreground/55 dark:text-zinc-500 mt-4 sm:mt-6 tracking-wide leading-relaxed">
                 {isUa

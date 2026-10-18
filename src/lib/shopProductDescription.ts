@@ -253,6 +253,11 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
   const introFragments: string[] = [];
   let activeSection: SectionKind | null = null;
   let lastIntroFragmentWasCustomHeading = false;
+  // A short "Heading:" paragraph kept in the intro (e.g. "🔧 Комплектація:").
+  // When the content right after it moves to a section panel, the heading is
+  // left empty in the intro, so it is dropped.
+  let pendingIntroHeading: number | null = null;
+  const emptyIntroHeadings = new Set<number>();
 
   const visit = (element: Element) => {
     const tagName = element.tagName?.toLowerCase() ?? "";
@@ -269,6 +274,18 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
       return;
     }
 
+    const introLengthBefore = introFragments.length;
+    visitContent(element, tagName, text);
+    if (introFragments.length === introLengthBefore) {
+      if (pendingIntroHeading !== null) emptyIntroHeadings.add(pendingIntroHeading);
+      pendingIntroHeading = null;
+    } else {
+      pendingIntroHeading =
+        tagName === "p" && text.length <= 60 && text.endsWith(":") ? introLengthBefore : null;
+    }
+  };
+
+  const visitContent = (element: Element, tagName: string, text: string) => {
     const sectionHeading = detectSectionHeading(text);
     if (sectionHeading && (/^h[1-6]$/.test(tagName) || tagName === "p" || tagName === "div")) {
       activeSection = sectionHeading;
@@ -358,8 +375,12 @@ function parseHtmlDescription(source: string): ShopProductDescriptionSections {
     .children()
     .toArray()
     .forEach((element) => visit(element));
+  if (pendingIntroHeading !== null) emptyIntroHeadings.add(pendingIntroHeading);
 
-  sections.introHtml = introFragments.join("").trim();
+  sections.introHtml = introFragments
+    .filter((_, index) => !emptyIntroHeadings.has(index))
+    .join("")
+    .trim();
   return sections;
 }
 
@@ -402,6 +423,45 @@ function parsePlainTextDescription(source: string): ShopProductDescriptionSectio
 
   sections.introHtml = introLines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
   return sections;
+}
+
+/**
+ * The whole description as safe HTML, in its original order. Pages without
+ * separate feature/spec panels use this instead of the extracted sections,
+ * whose lists they would otherwise drop while keeping the lists' headings.
+ */
+export function buildShopProductDescriptionHtml(source: string | null | undefined) {
+  const normalized = String(source ?? "").trim();
+  if (!normalized) {
+    return "";
+  }
+
+  if (/<[a-z][\s\S]*>/i.test(normalized)) {
+    return sanitizeRichTextHtml(normalized).trim();
+  }
+
+  const blocks: string[] = [];
+  let listItems: string[] = [];
+  const flushList = () => {
+    if (listItems.length) {
+      blocks.push(`<ul>${listItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+      listItems = [];
+    }
+  };
+
+  for (const line of normalized.split(/\n+/).map((value) => normalizeText(value))) {
+    if (!line) continue;
+    const bullet = line.match(/^[-*•—–]+\s*(.+)$/);
+    if (bullet) {
+      listItems.push(bullet[1]);
+      continue;
+    }
+    flushList();
+    blocks.push(`<p>${escapeHtml(line)}</p>`);
+  }
+  flushList();
+
+  return blocks.join("");
 }
 
 export function extractShopProductDescriptionSections(source: string | null | undefined) {

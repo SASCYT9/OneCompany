@@ -23,6 +23,8 @@ import type { SupportedLocale } from "@/lib/seo";
 import BrabusVideoBackground from "./BrabusVideoBackground";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
+import { getShopConfirmedAvailability, isShopInStockProduct } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 
 type Props = {
@@ -56,7 +58,8 @@ export function BrabusShopProductDetailLayout({
   const longDescription = localizeShopDescription(resolvedLocale, product.longDescription);
   const leadTime = localizeShopText(resolvedLocale, product.leadTime);
   const collection = localizeShopText(resolvedLocale, product.collection);
-  const isInStock = product.stock === "inStock";
+  // Same rule as the buy box, catalog and Google feed: warehouse-confirmed only.
+  const isInStock = isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay);
 
   const gallery = product.gallery?.length ? product.gallery : [product.image];
   const cleanImages = gallery
@@ -933,7 +936,18 @@ export function BrabusShopProductDetailLayout({
                     {isUa ? "Запит на встановлення" : "Installation Request"}
                   </Link>
                 </div>
-                <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="square" />
+                <ShopProductPurchaseFacts
+                  locale={resolvedLocale}
+                  availability={getShopConfirmedAvailability(
+                    product.sku,
+                    product.slug,
+                    product.storefrontDisplay
+                  )}
+                  leadTime={product.leadTime}
+                  productSlug={product.slug}
+                  className="mt-5"
+                />
+                <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="square" className="mt-4" />
               </div>
 
               {/* Accordions */}

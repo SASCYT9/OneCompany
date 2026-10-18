@@ -1,6 +1,6 @@
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
-import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
+import { isShopInStockProduct } from "@/lib/shopWarehouseInventory";
 import {
   localizeShopProductTitle,
   localizeShopDescription,
@@ -34,6 +34,8 @@ const SHARED_RETURN_POLICY = {
   returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
   merchantReturnDays: 14,
   returnMethod: "https://schema.org/ReturnByMail",
+  // The customer pays return shipping (the /refund page; defects are on us).
+  returnFees: "https://schema.org/ReturnFeesCustomerResponsibility",
 };
 
 interface OrganizationSchemaProps {
@@ -360,12 +362,15 @@ export function ShopProductStructuredData({
   const primary = pickPrimaryCurrency(locale);
   const currencyOrder: ShopCurrencyCode[] =
     primary === "UAH" ? ["UAH", "USD", "EUR"] : ["USD", "EUR", "UAH"];
-  const resolvedStock = resolveShopConfirmedStock(
+  // In stock only when the warehouse confirms it, the same rule as the feed
+  // and the product page; supplier stock in the database ships on order.
+  const resolvedStock: Availability = isShopInStockProduct(
     product.sku,
     product.slug,
-    product.stock,
     product.storefrontDisplay
-  );
+  )
+    ? "inStock"
+    : "preOrder";
   // Same estimate as the Merchant feed, so page and feed never disagree.
   const availabilityDate = googleMerchantAvailability(
     resolvedStock,

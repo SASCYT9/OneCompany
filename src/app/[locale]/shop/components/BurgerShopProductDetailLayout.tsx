@@ -27,6 +27,8 @@ import styles from "./BurgerShopProductDetailLayout.module.css";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
+import { getShopConfirmedAvailability, isShopInStockProduct } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { buildShopVariantGallery } from "@/lib/shopVariantGallery";
 
@@ -459,7 +461,8 @@ export function BurgerShopProductDetailLayout({
     (activeImageIdx >= 0 && activeImageIdx < gallery.length && !brokenIdx.has(activeImageIdx)
       ? gallery[activeImageIdx]
       : visibleGallery[0]) || "";
-  const isInStock = product.stock === "inStock";
+  // Same rule as the buy box, catalog and Google feed: warehouse-confirmed only.
+  const isInStock = isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay);
 
   const computeCrossPrices = (priceObj: { eur: number; usd: number; uah: number }) => {
     let computedUah = priceObj.uah || 0;
@@ -852,12 +855,18 @@ export function BurgerShopProductDetailLayout({
                       />
                     )}
                   </div>
-                  <ProductAiOpinionPanel
-                    locale={resolvedLocale}
-                    product={product}
-                    shape="rounded"
-                    className={styles.aiOpinion}
-                  />
+                  <ShopProductPurchaseFacts
+                  locale={resolvedLocale}
+                  availability={getShopConfirmedAvailability(
+                    product.sku,
+                    product.slug,
+                    product.storefrontDisplay
+                  )}
+                  leadTime={product.leadTime}
+                  productSlug={product.slug}
+                  className="mt-4"
+                />
+                  <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="rounded" className="mt-4" />
                 </div>
               </div>
             </div>

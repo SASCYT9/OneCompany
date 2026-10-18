@@ -3,13 +3,16 @@ import type { SupportedLocale } from "@/lib/seo";
 export type ProductAiPromptData = {
   title: string;
   brand?: string;
-  category?: string;
-  productType?: string;
   sku?: string;
+  /** Short product type, e.g. "Вихлопна система". Category paths are ignored. */
+  productType?: string;
+  /** Absolute product page URL, so the assistant can read the page itself. */
+  url?: string;
   description?: string;
-  highlights?: string[];
-  specifications?: Array<{ label: string; value: string }>;
 };
+
+/** The description is only a hint (the assistant reads the page); this keeps the link short. */
+const DESCRIPTION_MAX_LENGTH = 350;
 
 function cleanText(value: string | null | undefined, maxLength: number) {
   const withoutMarkup = String(value ?? "")
@@ -26,100 +29,81 @@ function cleanText(value: string | null | undefined, maxLength: number) {
   return `${withoutMarkup.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
-function valueOrMissing(value: string | null | undefined, missing: string) {
-  return cleanText(value, 360) || missing;
-}
-
-function formatProductFacts(data: ProductAiPromptData, missing: string) {
-  const facts = [
-    ["Товар", data.title],
-    ["Бренд", data.brand],
-    ["Категорія", data.category],
-    ["Тип товару", data.productType],
-    ["Артикул / SKU", data.sku],
-  ]
+function factLines(rows: Array<[label: string, value: string | null | undefined]>) {
+  return rows
     .map(([label, value]) => {
-      const normalizedValue = valueOrMissing(value, missing);
-      return normalizedValue === missing ? null : `${label}: ${normalizedValue}`;
+      const text = cleanText(value, 200);
+      return text ? `${label}: ${text}` : null;
     })
     .filter((line): line is string => Boolean(line));
-
-  const description = cleanText(data.description, 1000);
-  if (description) facts.push(`Опис: ${description}`);
-
-  const highlights = (data.highlights ?? [])
-    .map((item) => cleanText(item, 180))
-    .filter(Boolean)
-    .slice(0, 6);
-  if (highlights.length) {
-    facts.push(`Ключові особливості: ${highlights.join("; ")}`);
-  }
-
-  const specifications = (data.specifications ?? [])
-    .slice(0, 8)
-    .map(({ label, value }) => {
-      const normalizedLabel = cleanText(label, 80);
-      const normalizedValue = cleanText(value, 180);
-      return normalizedLabel && normalizedValue ? `${normalizedLabel}: ${normalizedValue}` : null;
-    })
-    .filter((line): line is string => Boolean(line));
-  if (specifications.length) {
-    facts.push(`Характеристики: ${specifications.join("; ")}`);
-  }
-
-  return facts.join("\n");
 }
 
+function usableProductType(value: string | null | undefined) {
+  const text = cleanText(value, 80);
+  // Generic placeholders and "Для автомобілів > Ford" style paths say nothing useful.
+  if (!text || /[>/|]/.test(text) || /^(компонент|component|товар|product)$/i.test(text)) return "";
+  return text;
+}
+
+/**
+ * The question opened in ChatGPT or Perplexity from a product page. It names
+ * the exact part (brand, SKU, page link), asks four concrete questions and
+ * tells the assistant not to invent figures, so the answer stays about this
+ * part instead of generic tuning advice.
+ */
 export function buildProductAiPrompt(locale: SupportedLocale, data: ProductAiPromptData) {
-  const isUa = locale === "ua";
+  const description = cleanText(data.description, DESCRIPTION_MAX_LENGTH);
+  const productType = usableProductType(data.productType);
 
-  if (isUa) {
-    const missing = "не вказано в описі товару";
-    const facts = formatProductFacts(data, missing);
-
+  if (locale === "ua") {
     return [
-      "Проаналізуй цю автомобільну або мото-деталь як технічний експерт і дай мені один самостійний чесний висновок.",
+      "Ти — незалежний експерт з тюнінгу автомобілів і мотоциклів. Я думаю купити цю деталь.",
       "",
-      facts,
+      ...factLines([
+        ["Сторінка товару", data.url],
+        ["Товар", data.title],
+        ["Бренд", data.brand],
+        ["Артикул", data.sku],
+        ["Тип", productType],
+        ["Опис продавця", description],
+      ]),
+      "",
+      "Відповідай українською, коротко, по пунктах:",
+      "1. Що це за деталь і що вона реально дає, без реклами.",
+      "2. Для яких авто, двигунів і років підходить; що перевірити перед покупкою.",
+      "3. Чи потрібні додаткові деталі, прошивка або професійне встановлення.",
+      "4. Плюси й мінуси.",
+      "Спирайся на сторінку товару й офіційні дані виробника за артикулом. Якщо чогось не знаєш напевно — так і напиши, не вигадуй цифр.",
     ].join("\n");
   }
 
-  const missing = "not provided in the product description";
-  const facts = [
-    ["Product", data.title],
-    ["Brand", data.brand],
-    ["Category", data.category],
-    ["Product type", data.productType],
-    ["Part number / SKU", data.sku],
-  ]
-    .map(([label, value]) => {
-      const normalizedValue = valueOrMissing(value, missing);
-      return normalizedValue === missing ? null : `${label}: ${normalizedValue}`;
-    })
-    .filter((line): line is string => Boolean(line));
-
-  const description = cleanText(data.description, 1000);
-  if (description) facts.push(`Description: ${description}`);
-
-  const highlights = (data.highlights ?? [])
-    .map((item) => cleanText(item, 180))
-    .filter(Boolean)
-    .slice(0, 6);
-  if (highlights.length) facts.push(`Key features: ${highlights.join("; ")}`);
-
-  const specifications = (data.specifications ?? [])
-    .slice(0, 8)
-    .map(({ label, value }) => {
-      const normalizedLabel = cleanText(label, 80);
-      const normalizedValue = cleanText(value, 180);
-      return normalizedLabel && normalizedValue ? `${normalizedLabel}: ${normalizedValue}` : null;
-    })
-    .filter((line): line is string => Boolean(line));
-  if (specifications.length) facts.push(`Specifications: ${specifications.join("; ")}`);
-
   return [
-    "Analyze this automotive or motorcycle part as a technical expert and give me one independent, honest conclusion.",
+    "You are an independent car and motorcycle tuning expert. I am considering buying this part.",
     "",
-    facts.join("\n"),
+    ...factLines([
+      ["Product page", data.url],
+      ["Product", data.title],
+      ["Brand", data.brand],
+      ["Part number", data.sku],
+      ["Type", productType],
+      ["Seller description", description],
+    ]),
+    "",
+    "Answer in English, briefly, as a list:",
+    "1. What this part is and what it really does, without marketing.",
+    "2. Which cars, engines and years it fits; what to check before buying.",
+    "3. Whether it needs extra parts, a tune or professional installation.",
+    "4. Pros and cons.",
+    "Rely on the product page and the manufacturer's official data for this part number. If you are not sure about something, say so and do not invent figures.",
   ].join("\n");
+}
+
+export type ProductAiProvider = "chatgpt" | "perplexity";
+
+export function buildProductAiProviderHref(provider: ProductAiProvider, prompt: string) {
+  const query = encodeURIComponent(prompt);
+  // `hints=search` opens ChatGPT with web search on, so it can read the product page.
+  return provider === "chatgpt"
+    ? `https://chatgpt.com/?hints=search&q=${query}`
+    : `https://www.perplexity.ai/?q=${query}`;
 }

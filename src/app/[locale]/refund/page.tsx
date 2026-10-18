@@ -94,6 +94,11 @@ export default async function RefundPage({ params }: { params: Promise<{ locale:
                   ? "Кошти повертаються в той самий спосіб, яким була здійснена оплата, протягом 7 банківських днів після схвалення запиту."
                   : "Refunds are processed to the original payment method within 7 banking days after approval."}
               </li>
+              <li>
+                {l === "ua"
+                  ? "Зворотну доставку оплачує покупець. Якщо товар має брак або ми надіслали не той товар, зворотну доставку оплачуємо ми."
+                  : "Return shipping is paid by the customer. If the item is defective or we sent the wrong item, we pay for return shipping."}
+              </li>
             </ul>
           </section>
         </div>

@@ -5,7 +5,12 @@ import {
   buildMerchantFeedIds,
   buildMerchantFeedItemXml,
   escapeXml,
+  selectMerchantCoreProducts,
 } from "../../../src/lib/shopMerchantFeed";
+import {
+  SHOP_DIGITAL_IN_STOCK_SKUS,
+  SHOP_WAREHOUSE_IN_STOCK_SKUS,
+} from "../../../src/lib/shopWarehouseInventory";
 
 const rates = { EUR: 1, USD: 1.1, UAH: 45 };
 
@@ -84,7 +89,13 @@ test("backorder items carry the availability_date Merchant Center requires", () 
   );
   assert.match(madeToOrder, /<g:availability_date>2026-11-27T00:00:00Z<\/g:availability_date>/);
 
-  const inStock = buildMerchantFeedItemXml(makeProduct(), "ua", "UAH", rates, { now });
+  const inStock = buildMerchantFeedItemXml(
+    makeProduct({ sku: SHOP_WAREHOUSE_IN_STOCK_SKUS[0] }),
+    "ua",
+    "UAH",
+    rates,
+    { now }
+  );
   assert.equal(inStock.includes("availability_date"), false);
 });
 
@@ -162,5 +173,56 @@ test("feed titles match the product page title, in Ukrainian for the ua feed", (
   assert.match(
     buildMerchantFeedItemXml(product, "en", "EUR", rates),
     /<title>Sport Exhaust for VW Golf 7 Faclift AU Silencer \(956017 1500\) \| 2x 100mm Titanium Black Tips 1-950020-1002-30 \| Remus<\/title>/
+  );
+});
+
+test("only warehouse-confirmed items are in stock; supplier stock is a dated backorder", () => {
+  // The product page shows "В наявності" only for confirmed items, so the
+  // feed must not promise ready stock for supplier-reported "inStock" rows.
+  const supplierStock = buildMerchantFeedItemXml(
+    makeProduct({ stock: "inStock" }),
+    "ua",
+    "UAH",
+    rates,
+    { now: new Date("2026-10-18T00:00:00Z") }
+  );
+  assert.match(supplierStock, /<g:availability>backorder<\/g:availability>/);
+  assert.match(supplierStock, /<g:availability_date>2026-11-08T00:00:00Z<\/g:availability_date>/);
+
+  const confirmed = buildMerchantFeedItemXml(
+    makeProduct({
+      sku: SHOP_WAREHOUSE_IN_STOCK_SKUS[0],
+      slug: "eventuri-confirmed",
+      brand: "Eventuri",
+    }),
+    "ua",
+    "UAH",
+    rates
+  );
+  assert.match(confirmed, /<g:availability>in_stock<\/g:availability>/);
+  assert.doesNotMatch(confirmed, /availability_date/);
+});
+
+test("core feed: confirmed stock first, then curated brands in turn, up to the limit", () => {
+  const product = (brand: string, sku: string) =>
+    makeProduct({ brand, sku, slug: sku.toLowerCase() });
+  const catalogue = [
+    product("KW Suspensions", "KW-1"),
+    product("Remus", "REMUS-1"),
+    product("AKRAPOVIC", "AK-1"),
+    product("AKRAPOVIC", "AK-2"),
+    product("Akrapovič", "AK-3"),
+    product("Brabus", "BR-1"),
+    product("OHLINS", "OH-1"),
+    product("Eventuri", SHOP_WAREHOUSE_IN_STOCK_SKUS[0]),
+    product("BootMod3", SHOP_DIGITAL_IN_STOCK_SKUS[0]),
+  ];
+
+  const core = selectMerchantCoreProducts(catalogue, 5).map((item) => item.sku);
+  assert.deepEqual(core, [SHOP_WAREHOUSE_IN_STOCK_SKUS[0], "AK-1", "BR-1", "OH-1", "AK-2"]);
+  assert.equal(
+    selectMerchantCoreProducts(catalogue, 100).length,
+    6,
+    "KW, Remus and digital licences stay out"
   );
 });

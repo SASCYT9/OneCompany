@@ -19,6 +19,8 @@ import type { ShopResolvedPricing, ShopViewerPricingContext } from "@/lib/shopPr
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
+import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 
 type Props = {
   locale: string;
@@ -947,12 +949,19 @@ export function IpeShopProductDetailLayout({
               locale={locale}
               productName={productTitle}
             />
-            <ProductAiOpinionPanel
-              locale={locale as SupportedLocale}
-              product={product}
-              shape="pill"
-            />
           </div>
+          <ShopProductPurchaseFacts
+            locale={resolvedLocale}
+            availability={getShopConfirmedAvailability(
+              product.sku,
+              product.slug,
+              product.storefrontDisplay
+            )}
+            leadTime={product.leadTime}
+            productSlug={product.slug}
+            className="mt-4"
+          />
+          <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="pill" className="mt-4" />
           {currentVariant?.sku || product.sku ? (
             <div className="ipe-pdp__sku">
               {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}

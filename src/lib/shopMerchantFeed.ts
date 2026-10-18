@@ -6,7 +6,7 @@ import { expandShopPrices } from "@/lib/shopPriceConversion";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { isWheelForceWheel, wheelForceSetMoney } from "@/lib/wheelforceFamily";
 import { googleMerchantAvailability } from "@/lib/shopGoogleAvailability";
-import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
+import { isShopInStockProduct, SHOP_DIGITAL_IN_STOCK_SKUS } from "@/lib/shopWarehouseInventory";
 
 export type MerchantFeedCurrency = "EUR" | "USD" | "UAH";
 
@@ -126,12 +126,11 @@ export function buildMerchantFeedItemXml(
   const salePrice =
     compareValue && compareValue > priceValue ? formatPrice(priceValue, currency) : null;
   const listPrice = salePrice ? formatPrice(compareValue!, currency) : null;
-  const stock = resolveShopConfirmedStock(
-    product.sku,
-    product.slug,
-    product.stock,
-    product.storefrontDisplay
-  );
+  // In stock only when the warehouse confirms it, as on the product page.
+  // Supplier stock imported into the database ships on order, not today.
+  const stock = isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay)
+    ? "inStock"
+    : "preOrder";
   const { availability, availabilityDate } = googleMerchantAvailability(
     stock,
     product.availabilityDate,
@@ -169,4 +168,70 @@ export function buildMerchantFeedItemXml(
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/**
+ * Brands with their own storefront and curated product pages, in the order the
+ * core feed takes them. Mass-imported families (KW, Remus, BMC, RaceChip…) stay
+ * out: thousands of near-identical items are what pushed the account over its
+ * product limit.
+ */
+const MERCHANT_CORE_BRANDS = [
+  "eventuri",
+  "akrapovic",
+  "brabus",
+  "urban",
+  "ohlins",
+  "ipe",
+  "adro",
+  "csf",
+  "do88",
+  "girodisc",
+  "burger",
+  "ilmberger",
+] as const;
+
+export const MERCHANT_CORE_FEED_DEFAULT_LIMIT = 150;
+const DIGITAL_SKUS = new Set<string>(SHOP_DIGITAL_IN_STOCK_SKUS.map((sku) => sku.toUpperCase()));
+export const MERCHANT_CORE_FEED_MAX_LIMIT = 5000;
+
+function merchantBrandKey(brand: string | null | undefined) {
+  return (brand ?? "")
+    .normalize("NFD")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * A short feed that fits a small Merchant Center product limit: every
+ * warehouse-confirmed item first, then the curated brands in turn (one item
+ * each round) until `limit` items are picked.
+ */
+export function selectMerchantCoreProducts<
+  T extends Pick<ShopProduct, "sku" | "slug" | "brand" | "storefrontDisplay">,
+>(products: readonly T[], limit: number = MERCHANT_CORE_FEED_DEFAULT_LIMIT): T[] {
+  // Physical stock only: digital licences stay in the full feed, not the core.
+  const picked = new Set<T>(
+    products
+      .filter(
+        (product) =>
+          isShopInStockProduct(product.sku, product.slug, product.storefrontDisplay) &&
+          !DIGITAL_SKUS.has((product.sku ?? "").trim().toUpperCase())
+      )
+      .slice(0, limit)
+  );
+  const queues = MERCHANT_CORE_BRANDS.map((key) =>
+    products.filter(
+      (product) => !picked.has(product) && merchantBrandKey(product.brand).startsWith(key)
+    )
+  );
+  let cursor = 0;
+  while (picked.size < limit && queues.some((queue) => cursor < queue.length)) {
+    for (const queue of queues) {
+      if (picked.size >= limit) break;
+      if (cursor < queue.length) picked.add(queue[cursor]);
+    }
+    cursor += 1;
+  }
+  return [...picked];
 }

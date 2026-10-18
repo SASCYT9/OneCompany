@@ -10,6 +10,7 @@ import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
+import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
 import { requiresUrbanBodyKitQuote } from "@/lib/shopProductPurchasePolicy";
 import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
@@ -523,12 +524,6 @@ export function ShopProductVariantPurchaseSection({
       </div>
 
       {children}
-      {googleProductAvailability(product.stock, product.availabilityDate).availabilityDate && (
-        <p className="text-sm text-foreground/70">
-          {isUa ? "Очікувана дата відправлення: " : "Expected shipping date: "}
-          {product.availabilityDate?.slice(0, 10)}
-        </p>
-      )}
 
       <div
         className={
@@ -600,6 +595,17 @@ export function ShopProductVariantPurchaseSection({
         />
       </div>
 
+      <ShopProductPurchaseFacts
+        locale={locale}
+        availability={availability}
+        leadTime={product.leadTime}
+        productSlug={product.slug}
+        variantId={currentVariant?.id}
+        availabilityDate={
+          googleProductAvailability(product.stock, product.availabilityDate).availabilityDate
+        }
+        className="text-foreground"
+      />
       <ProductAiOpinionPanel locale={locale} product={product} shape="pill" />
 
       {!isDo88Product && (currentVariant?.sku || product.sku) ? (
