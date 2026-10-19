@@ -297,6 +297,8 @@ export async function runSupplierCopy({
       item.sourceText,
       item.allowedNumbers
     );
+  const hashSource = (item) =>
+    createHash("sha256").update(`${systemPrompt}\n${item.sourceText}`).digest("hex").slice(0, 16);
 
   if (validateOnly) {
     let withIssues = 0;
@@ -315,6 +317,8 @@ export async function runSupplierCopy({
         ...copy
       } = entry;
       entry.issues = validateWithOverrides(copy, item);
+      // Reviewed copy written before hashes existed: stamp the source it was approved against.
+      entry.sourceHash ??= hashSource(item);
       if (entry.issues.length) {
         withIssues += 1;
         console.log(`${item.id.padEnd(14)} ${entry.issues.join("; ")}`);
@@ -330,12 +334,10 @@ export async function runSupplierCopy({
   let cost = 0;
   const generate = async (item) => {
     const previous = existing.products[item.id];
-    const sourceHash = createHash("sha256")
-      .update(`${systemPrompt}\n${item.sourceText}`)
-      .digest("hex")
-      .slice(0, 16);
-    // Regenerate when the source or the prompt changed (e.g. variants regrouped), not only on issues.
-    const sameSource = !previous?.sourceHash || previous.sourceHash === sourceHash;
+    const sourceHash = hashSource(item);
+    // Regenerate when the source or the prompt changed (e.g. variants regrouped), not only on
+    // issues; an entry without a hash is stale (run --validate-only to stamp reviewed copy).
+    const sameSource = previous?.sourceHash === sourceHash;
     if (!force && previous && !previous.issues?.length && sameSource) return;
     const started = Date.now();
     let response;

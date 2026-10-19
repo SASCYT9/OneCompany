@@ -142,7 +142,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:51:41.265Z"
+   "generatedAt": "2026-10-19T16:51:41.265Z",
+   "sourceHash": "653f4fc89fc196fd"
   },
   "135-1000": {
    "titleEn": "Link Razor PDM Power Distribution Module",
@@ -276,7 +277,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:51:57.119Z"
+   "generatedAt": "2026-10-19T16:51:57.119Z",
+   "sourceHash": "e0a793ec60999a0c"
   },
   "229-4000": {
    "titleEn": "Link WRX9X Plug-In ECU for Subaru WRX / STI V7–V9",
@@ -437,7 +439,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:00:54.110Z"
+   "generatedAt": "2026-10-19T17:00:54.110Z",
+   "sourceHash": "f8c39ecc32ea5f4b"
   },
   "122-4000": {
    "titleEn": "Link G4X FuryX Wire-In ECU (up to 6 cylinders)",
@@ -567,7 +570,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:05:46.047Z"
+   "generatedAt": "2026-10-19T17:05:46.047Z",
+   "sourceHash": "289f63bd46d668e5"
   },
   "108-9000B": {
    "titleEn": "Link G4X StormX ECU Bundle for GM LS Gen 3/4 Cable Throttle Engines",
@@ -685,7 +689,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:49:45.455Z"
+   "generatedAt": "2026-10-19T16:49:45.455Z",
+   "sourceHash": "aef683e159efd95b"
   },
   "108-9005B": {
    "titleEn": "Link G4X StormX ECU Kit for GM LS Gen3 Cable Throttle Engines",
@@ -817,7 +822,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:50:02.870Z"
+   "generatedAt": "2026-10-19T16:50:02.870Z",
+   "sourceHash": "e7feddc04760290f"
   },
   "108-9010B": {
    "titleEn": "Link G4X StormX ECU Bundle for GM LS Gen3 Cable Throttle",
@@ -943,7 +949,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:50:19.178Z"
+   "generatedAt": "2026-10-19T16:50:19.178Z",
+   "sourceHash": "583ba43c03d8cdf4"
   },
   "109-9000B": {
    "titleEn": "Link G4X XtremeX ECU + Terminated LS Engine Harness DBW Bundle",
@@ -1061,7 +1068,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:50:34.102Z"
+   "generatedAt": "2026-10-19T16:50:34.102Z",
+   "sourceHash": "c5094ed9c9980012"
   },
   "109-9005B": {
    "titleEn": "Link G4X XtremeX ECU Bundle for GM LS Gen3 Drive-By-Wire",
@@ -1183,7 +1191,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:50:49.272Z"
+   "generatedAt": "2026-10-19T16:50:49.272Z",
+   "sourceHash": "f52f77e54558eaa1"
   },
   "109-9010B": {
    "titleEn": "Link G4X XtremeX ECU Bundle for GM LS Gen3 DBW",
@@ -1301,7 +1310,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:51:07.099Z"
+   "generatedAt": "2026-10-19T16:51:07.099Z",
+   "sourceHash": "493a8252987b4137"
   },
   "109-9020B": {
    "titleEn": "Link G4X XtremeX ECU Bundle for GM LS Gen 4 Drive-By-Wire",
@@ -1419,7 +1429,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:51:21.080Z"
+   "generatedAt": "2026-10-19T16:51:21.080Z",
+   "sourceHash": "4a99cc6096a76bc0"
   },
   "201-4000": {
    "titleEn": "Link E36X Plug-In ECU for BMW E36 (M50TUB25)",
@@ -1562,7 +1573,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:52:14.900Z"
+   "generatedAt": "2026-10-19T16:52:14.900Z",
+   "sourceHash": "e3cc36088ec19b84"
   },
   "202-4000": {
    "titleEn": "Link EVO3X Plug-In ECU for Mitsubishi Lancer Evolution I-III",
@@ -1745,7 +1757,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:52:30.773Z"
+   "generatedAt": "2026-10-19T16:52:30.773Z",
+   "sourceHash": "d27bcf24e07e21d3"
   },
   "203-4000": {
    "titleEn": "Link G4X EVO8X Plug-In ECU for Mitsubishi Lancer Evolution IV–VIII",
@@ -1950,7 +1963,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:52:53.071Z"
+   "generatedAt": "2026-10-19T16:52:53.071Z",
+   "sourceHash": "2432353f8d6cef58"
   },
   "204-4000": {
    "titleEn": "Link EVO9X Plug-In ECU for Mitsubishi Lancer Evolution IX (CT9A)",
@@ -2111,7 +2125,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:53:10.871Z"
+   "generatedAt": "2026-10-19T16:53:10.871Z",
+   "sourceHash": "4303ef8c300f5e99"
   },
   "205-4000": {
    "titleEn": "Link HC92X Plug-In ECU for Honda Civic Gen 5 & B-Series",
@@ -2330,7 +2345,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:53:31.291Z"
+   "generatedAt": "2026-10-19T16:53:31.291Z",
+   "sourceHash": "f7691240a204a315"
   },
   "206-4000": {
    "titleEn": "Link HC96X Plug-In ECU for Honda & Acura",
@@ -2511,7 +2527,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:53:50.886Z"
+   "generatedAt": "2026-10-19T16:53:50.886Z",
+   "sourceHash": "b56f85d5f9c6d26d"
   },
   "208-4000": {
    "titleEn": "Link TTX Plug-In ECU for Audi TT & VW 1.8L Turbo (PQ34)",
@@ -2730,7 +2747,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:54:14.741Z"
+   "generatedAt": "2026-10-19T16:54:14.741Z",
+   "sourceHash": "5da67a4e542c9552"
   },
   "209-4000": {
    "titleEn": "Link MINIX Plug-In ECU for MINI Cooper / Cooper S (R50–R53)",
@@ -2903,7 +2921,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:54:35.095Z"
+   "generatedAt": "2026-10-19T16:54:35.095Z",
+   "sourceHash": "7c09f43be9eb4fef"
   },
   "210-4000": {
    "titleEn": "Link N350X Plug-In ECU for Nissan 350Z / Skyline V35 / Infiniti G35 VQ35DE",
@@ -3086,7 +3105,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:54:54.799Z"
+   "generatedAt": "2026-10-19T16:54:54.799Z",
+   "sourceHash": "2f7d55163561bba4"
   },
   "211-4000": {
    "titleEn": "Link TS2JZX Plug-In ECU for Toyota Supra A80 (2JZ non-VVTi)",
@@ -3223,7 +3243,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:55:12.171Z"
+   "generatedAt": "2026-10-19T16:55:12.171Z",
+   "sourceHash": "5c1150e3ddd7d02a"
   },
   "212-4000": {
    "titleEn": "Link MX5NAX Plug-In ECU for Mazda MX-5 NA & 323 BG (1.6L & 1.8L)",
@@ -3400,7 +3421,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:55:28.649Z"
+   "generatedAt": "2026-10-19T16:55:28.649Z",
+   "sourceHash": "3966503d1f16f991"
   },
   "213-4000": {
    "titleEn": "Link N300X Plug-In ECU for Nissan 300ZX (Z32)",
@@ -3557,7 +3579,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:55:44.987Z"
+   "generatedAt": "2026-10-19T16:55:44.987Z",
+   "sourceHash": "ad4f311ff7163a9c"
   },
   "214-4100": {
    "titleEn": "Link NGTRX Plug-In ECU for Nissan Skyline GT-R & RB Engines",
@@ -3896,7 +3919,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:56:15.394Z"
+   "generatedAt": "2026-10-19T16:56:15.394Z",
+   "sourceHash": "ac89c1db93c589e0"
   },
   "215-4000": {
    "titleEn": "Link NGTTX Plug-In ECU for Nissan Skyline R34 NEO (RB25DET)",
@@ -4139,7 +4163,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:56:37.129Z"
+   "generatedAt": "2026-10-19T16:56:37.129Z",
+   "sourceHash": "63f8b2f0ea1f316f"
   },
   "216-4000": {
    "titleEn": "Link NS13X Plug-In ECU for Nissan S13 / S14 76-Pin",
@@ -4318,7 +4343,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:56:55.102Z"
+   "generatedAt": "2026-10-19T16:56:55.102Z",
+   "sourceHash": "ab1ce8cf2cc5bb02"
   },
   "217-4100": {
    "titleEn": "Link NS15X Plug-In ECU for Nissan S13–S15 SR20 & Pulsar",
@@ -4535,7 +4561,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:57:14.164Z"
+   "generatedAt": "2026-10-19T16:57:14.164Z",
+   "sourceHash": "7072a9409f3c02e3"
   },
   "218-4000": {
    "titleEn": "Link RX7S6X Plug-In ECU for Mazda RX-7 Series 6 (FD3S)",
@@ -4680,7 +4707,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:57:31.909Z"
+   "generatedAt": "2026-10-19T16:57:31.909Z",
+   "sourceHash": "1cd7090a5316addf"
   },
   "219-4000": {
    "titleEn": "Link RX7S7X Plug-In ECU for Mazda RX-7 Series 7–8 (FD3S)",
@@ -4837,7 +4865,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:57:49.652Z"
+   "generatedAt": "2026-10-19T16:57:49.652Z",
+   "sourceHash": "fba7481e3983fbe6"
   },
   "220-4000": {
    "titleEn": "Link TALTX Plug-In ECU for Toyota Altezza (SXE10 3S-GE)",
@@ -4976,7 +5005,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:58:06.799Z"
+   "generatedAt": "2026-10-19T16:58:06.799Z",
+   "sourceHash": "3693b83f58268d6e"
   },
   "221-4000": {
    "titleEn": "Link TST185X Plug-In ECU for Toyota MR2 SW20 & Celica ST185",
@@ -5155,7 +5185,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:58:25.469Z"
+   "generatedAt": "2026-10-19T16:58:25.469Z",
+   "sourceHash": "ab352fb42d4b01d0"
   },
   "222-4000": {
    "titleEn": "Link TST205X Plug-In ECU for Toyota MR2 Rev2–3 & Celica ST205",
@@ -5368,7 +5399,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:58:45.812Z"
+   "generatedAt": "2026-10-19T16:58:45.812Z",
+   "sourceHash": "fd91b37ec6021f32"
   },
   "223-4000": {
    "titleEn": "Link VR4X Plug-In ECU for Mitsubishi Galant VR-4 (4G63T)",
@@ -5563,7 +5595,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:59:04.136Z"
+   "generatedAt": "2026-10-19T16:59:04.136Z",
+   "sourceHash": "777f647150953e69"
   },
   "224-4000": {
    "titleEn": "Link WRX104X Plug-In ECU for Subaru WRX / STI V10 (EJ25, 2004–2006)",
@@ -5708,7 +5741,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:59:22.083Z"
+   "generatedAt": "2026-10-19T16:59:22.083Z",
+   "sourceHash": "90e45217e65f1faa"
   },
   "225-4000": {
    "titleEn": "Link WRX107X Plug-In ECU for Subaru WRX V10 (GD/GG EJ25)",
@@ -5855,7 +5889,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:59:41.117Z"
+   "generatedAt": "2026-10-19T16:59:41.117Z",
+   "sourceHash": "ab19ba42fffe112a"
   },
   "226-4000": {
    "titleEn": "Link WRX2X Plug-In ECU for Subaru WRX / STI V1–V2 (EJ20)",
@@ -6012,7 +6047,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T16:59:58.408Z"
+   "generatedAt": "2026-10-19T16:59:58.408Z",
+   "sourceHash": "23cb8f2bf04405d2"
   },
   "227-4000": {
    "titleEn": "Link WRX4X Plug-In ECU for Subaru WRX / STI V3-4 (GC8)",
@@ -6171,7 +6207,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:00:16.240Z"
+   "generatedAt": "2026-10-19T17:00:16.240Z",
+   "sourceHash": "029fc005513e4605"
   },
   "228-4000": {
    "titleEn": "Link WRX6X Plug-In ECU for Subaru WRX / STI V5-V6",
@@ -6330,7 +6367,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:00:35.270Z"
+   "generatedAt": "2026-10-19T17:00:35.270Z",
+   "sourceHash": "be02334c43f1285e"
   },
   "230-4000": {
    "titleEn": "Link TFZJ100X Plug-In ECU for Toyota Land Cruiser FZJ100",
@@ -6477,7 +6515,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:01:10.767Z"
+   "generatedAt": "2026-10-19T17:01:10.767Z",
+   "sourceHash": "d8714c3cfd9ce416"
   },
   "232-4000": {
    "titleEn": "Link JZX100X Plug-In ECU for Toyota JZX100 1JZ-GTE",
@@ -6656,7 +6695,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:01:30.372Z"
+   "generatedAt": "2026-10-19T17:01:30.372Z",
+   "sourceHash": "51534adc65de88c2"
   },
   "233-4000": {
    "titleEn": "Link S2000X Plug-In ECU for Honda S2000 (AP1/AP2)",
@@ -6811,7 +6851,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:01:49.266Z"
+   "generatedAt": "2026-10-19T17:01:49.266Z",
+   "sourceHash": "c37a4ab00ae08e28"
   },
   "235-4000": {
    "titleEn": "Link JZX90X Plug-In ECU for Toyota 1JZ-GTE non-VVT-i",
@@ -6992,7 +7033,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:02:10.549Z"
+   "generatedAt": "2026-10-19T17:02:10.549Z",
+   "sourceHash": "e0219dcdaaf8a304"
   },
   "237-4000": {
    "titleEn": "Link K20X Plug-In ECU for Honda DC5 / EP3 (K20, D17, K24)",
@@ -7203,7 +7245,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:02:32.907Z"
+   "generatedAt": "2026-10-19T17:02:32.907Z",
+   "sourceHash": "aca108e29b367c30"
   },
   "238-4000": {
    "titleEn": "Link WRX11X Plug-In ECU for Subaru WRX V11",
@@ -7472,7 +7515,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:02:55.576Z"
+   "generatedAt": "2026-10-19T17:02:55.576Z",
+   "sourceHash": "044538f8a5f139ff"
   },
   "239-4000": {
    "titleEn": "Link MX5NB2X Plug-In ECU for Mazda MX-5 NB2 Facelift",
@@ -7637,7 +7681,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:03:14.866Z"
+   "generatedAt": "2026-10-19T17:03:14.866Z",
+   "sourceHash": "b8f57a0e76962dc3"
   },
   "240-4000": {
    "titleEn": "Link MX5NB1X Plug-In ECU for Mazda MX-5 NB1 1.8L",
@@ -7788,7 +7833,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:03:30.280Z"
+   "generatedAt": "2026-10-19T17:03:30.280Z",
+   "sourceHash": "83e37188f60085b5"
   },
   "241-4000": {
    "titleEn": "Link TGT86 Plug-In ECU for Toyota 86 / GT86, BRZ, FR-S (RHD)",
@@ -7987,7 +8033,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:03:52.385Z"
+   "generatedAt": "2026-10-19T17:03:52.385Z",
+   "sourceHash": "ffc7a2e2d558cc51"
   },
   "241-4200": {
    "titleEn": "Link TGT86 Plug-In ECU for Toyota GT86 / Subaru BRZ (LHD)",
@@ -8184,7 +8231,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:04:12.942Z"
+   "generatedAt": "2026-10-19T17:04:12.942Z",
+   "sourceHash": "f9cde22110bc81b6"
   },
   "243-4000": {
    "titleEn": "Link USDM WRX11X Plug-In ECU for Subaru WRX / STI V11",
@@ -8361,7 +8409,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:04:31.182Z"
+   "generatedAt": "2026-10-19T17:04:31.182Z",
+   "sourceHash": "0335e046213448b2"
   },
   "246-5000": {
    "titleEn": "Link TB48 G5 Plug-In ECU for Nissan Patrol Y61 (TB48)",
@@ -8504,7 +8553,8 @@
    ],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:04:46.320Z"
+   "generatedAt": "2026-10-19T17:04:46.320Z",
+   "sourceHash": "568953368bdf7d4c"
   },
   "108-4000": {
    "titleEn": "Link G4X StormX Wire-In ECU (up to 8 cylinders)",
@@ -8622,7 +8672,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:05:01.501Z"
+   "generatedAt": "2026-10-19T17:05:01.501Z",
+   "sourceHash": "8577a8ab070f7684"
   },
   "109-4000": {
    "titleEn": "Link G4X XtremeX Wire-In ECU (up to 8 cylinders)",
@@ -8752,7 +8803,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:05:18.492Z"
+   "generatedAt": "2026-10-19T17:05:18.492Z",
+   "sourceHash": "6ea4e7523b181cd0"
   },
   "111-4000": {
    "titleEn": "Link G4X AtomX Wire-In ECU (up to 4 cylinders)",
@@ -8882,7 +8934,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:05:33.488Z"
+   "generatedAt": "2026-10-19T17:05:33.488Z",
+   "sourceHash": "868de1617530307f"
   },
   "127-4000": {
    "titleEn": "Link G4X MonsoonX Wire-In ECU (up to 4 cylinders)",
@@ -9010,7 +9063,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:06:01.642Z"
+   "generatedAt": "2026-10-19T17:06:01.642Z",
+   "sourceHash": "ff46d7c21fb81080"
   },
   "153-5000": {
    "titleEn": "Link G5 Voodoo Pro Wire-In ECU (up to 12 cylinders)",
@@ -9148,7 +9202,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:06:17.457Z"
+   "generatedAt": "2026-10-19T17:06:17.457Z",
+   "sourceHash": "23d9fd3dac613aaa"
   },
   "154-5000": {
    "titleEn": "Link G5 Voodoo Neo 4 Wire-In ECU (up to 6 cylinders)",
@@ -9294,7 +9349,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:06:36.201Z"
+   "generatedAt": "2026-10-19T17:06:36.201Z",
+   "sourceHash": "29c9a53223a76a1a"
   },
   "156-5000": {
    "titleEn": "Link G5 Voodoo Neo 6 Wire-In ECU (up to 8 cylinders)",
@@ -9434,7 +9490,8 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.8-flash",
-   "generatedAt": "2026-10-19T17:06:52.032Z"
+   "generatedAt": "2026-10-19T17:06:52.032Z",
+   "sourceHash": "40ebed8c6e503bec"
   }
  }
 }
