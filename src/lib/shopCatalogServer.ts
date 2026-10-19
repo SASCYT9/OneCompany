@@ -62,6 +62,7 @@ import { parseSupportedExternalVideo } from "@/lib/shopProductVideo";
 import { getShopCatalogFailureCode, isTransientShopCatalogError } from "@/lib/shopCatalogErrors";
 import { resolveShopProductBrand } from "@/lib/shopProductBrand";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
+import { stripStaleShopifyUuidSuffix } from "@/lib/shopifyCdnImage";
 import { projectShopRelatedProduct, type ShopRelatedProductRow } from "@/lib/shopRelatedProducts";
 import {
   EVENTURI_SHARED_V8_INTAKE_COPY,
@@ -1264,18 +1265,9 @@ function isUsableShopProductImage(value: string | null | undefined) {
   return Boolean(src && !SHOP_PRODUCT_PLACEHOLDER_IMAGES.has(src) && !isImageComingSoonAsset(src));
 }
 
-/**
- * Strip the `_<uuid>` suffix from Shopify CDN URLs that no longer resolve
- * (Shopify reuploads as the clean name; original UUID variant returns 404).
- * Scoped to `cdn.shopify.com` only so we don't accidentally rewrite other
- * hosts that legitimately carry GUIDs in filenames.
- */
-const SHOPIFY_STALE_UUID_PATTERN =
-  /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.(?:jpg|jpeg|png|webp|gif|avif))/i;
+/** Repairs stale Shopify CDN URLs (see stripStaleShopifyUuidSuffix). */
 function normalizeShopifyImageUrl(url: string | null | undefined): string {
-  const value = String(url ?? "");
-  if (!value || !/^https?:\/\/cdn\.shopify\.com\//i.test(value)) return value;
-  return value.replace(SHOPIFY_STALE_UUID_PATTERN, "$1");
+  return stripStaleShopifyUuidSuffix(String(url ?? ""));
 }
 
 function applyShopProductImageOverrides(product: ShopProduct): ShopProduct {

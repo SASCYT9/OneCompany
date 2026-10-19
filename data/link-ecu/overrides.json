@@ -1,0 +1,521 @@
+{
+ "208-4000": {
+  "vehicles": [
+   {
+    "make": "Audi",
+    "model": "TT",
+    "chassisCode": null,
+    "engine": "AJQ",
+    "yearFrom": 1999,
+    "yearTo": 2002,
+    "market": null,
+    "note": "1.8T"
+   },
+   {
+    "make": "Volkswagen",
+    "model": "New Beetle",
+    "chassisCode": null,
+    "engine": "AWU",
+    "yearFrom": 2005,
+    "yearTo": 2005,
+    "market": null,
+    "note": "1.8T"
+   },
+   {
+    "make": "Volkswagen",
+    "model": "Passat",
+    "chassisCode": null,
+    "engine": "1.8T",
+    "yearFrom": 2000,
+    "yearTo": 2000,
+    "market": null,
+    "note": null
+   },
+   {
+    "make": "Volkswagen",
+    "model": "Golf",
+    "chassisCode": null,
+    "engine": "AUM",
+    "yearFrom": 2001,
+    "yearTo": 2001,
+    "market": null,
+    "note": "1.8T"
+   }
+  ]
+ },
+ "229-4000": {
+  "vehicles": [
+   {
+    "make": "Subaru",
+    "model": "Impreza WRX",
+    "chassisCode": "GD/GG",
+    "engine": "EJ20",
+    "yearFrom": 2000,
+    "yearTo": 2002,
+    "market": null,
+    "note": "Version 7"
+   },
+   {
+    "make": "Subaru",
+    "model": "Impreza WRX",
+    "chassisCode": "GD/GG",
+    "engine": "EJ20",
+    "yearFrom": 2002,
+    "yearTo": 2004,
+    "market": null,
+    "note": "Version 8"
+   },
+   {
+    "make": "Subaru",
+    "model": "Impreza WRX",
+    "chassisCode": "GD/GG",
+    "engine": "EJ20",
+    "yearFrom": 2004,
+    "yearTo": 2005,
+    "market": null,
+    "note": "Version 9"
+   }
+  ]
+ },
+ "205-4000": {
+  "vehicles": [
+   {
+    "make": "Honda",
+    "model": "Civic",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1992,
+    "yearTo": 1995,
+    "market": null,
+    "note": "Gen 5 DX/LX/EX/Si"
+   },
+   {
+    "make": "Acura",
+    "model": "Integra",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1992,
+    "yearTo": 1995,
+    "market": null,
+    "note": "RS/LS/GS/GS-R"
+   },
+   {
+    "make": "Honda",
+    "model": "Accord",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1990,
+    "yearTo": 1995,
+    "market": null,
+    "note": "DX/LX/EX"
+   },
+   {
+    "make": "Honda",
+    "model": "Del Sol",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1993,
+    "yearTo": 1995,
+    "market": null,
+    "note": "S/Si"
+   },
+   {
+    "make": "Honda",
+    "model": "Del Sol",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1994,
+    "yearTo": 1995,
+    "market": null,
+    "note": "VTEC"
+   },
+   {
+    "make": "Honda",
+    "model": "Prelude",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1990,
+    "yearTo": 1991,
+    "market": null,
+    "note": "Si"
+   },
+   {
+    "make": "Honda",
+    "model": "Prelude",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": 1992,
+    "yearTo": 1995,
+    "market": null,
+    "note": "S/SE/Si/VTEC"
+   }
+  ]
+ },
+ "215-4000": {
+  "vehicles": [
+   {
+    "make": "Nissan",
+    "model": "Skyline",
+    "chassisCode": "R34",
+    "engine": "RB20DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Skyline",
+    "chassisCode": "R34",
+    "engine": "RB25DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Skyline",
+    "chassisCode": "R34",
+    "engine": "RB25DET NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Laurel",
+    "chassisCode": "C35",
+    "engine": "RB20DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Laurel",
+    "chassisCode": "C35",
+    "engine": "RB25DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Laurel",
+    "chassisCode": "C35",
+    "engine": "RB25DET NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Stagea",
+    "chassisCode": null,
+    "engine": "RB20DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Stagea",
+    "chassisCode": null,
+    "engine": "RB25DE NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Stagea",
+    "chassisCode": null,
+    "engine": "RB25DET NEO",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "grey NEO ECU header"
+   },
+   {
+    "make": "Nissan",
+    "model": "Stagea",
+    "chassisCode": null,
+    "engine": null,
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "non-NEO engines"
+   }
+  ]
+ },
+ "217-4100": {
+  "vehicles": [
+   {
+    "make": "Nissan",
+    "model": "Silvia",
+    "chassisCode": "S13",
+    "engine": "SR20DET",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "not CA18DET"
+   },
+   {
+    "make": "Nissan",
+    "model": "180SX",
+    "chassisCode": "S13",
+    "engine": "SR20DET",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "not CA18DET"
+   },
+   {
+    "make": "Nissan",
+    "model": "Silvia",
+    "chassisCode": "S14a",
+    "engine": "SR20DET",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "facelift"
+   },
+   {
+    "make": "Nissan",
+    "model": "Silvia",
+    "chassisCode": "S15",
+    "engine": "SR20DET",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": null
+   },
+   {
+    "make": "Nissan",
+    "model": "Silvia",
+    "chassisCode": "S15",
+    "engine": "SR20DE",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": null
+   },
+   {
+    "make": "Nissan",
+    "model": "Pulsar",
+    "chassisCode": "RNN14",
+    "engine": "SR20DET",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "GTI-R"
+   },
+   {
+    "make": "Nissan",
+    "model": "Pulsar",
+    "chassisCode": "N15",
+    "engine": "SR16VE",
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": null
+   },
+   {
+    "make": "Nissan",
+    "model": "Pulsar",
+    "chassisCode": "N14",
+    "engine": null,
+    "yearFrom": null,
+    "yearTo": null,
+    "market": null,
+    "note": "with distributor"
+   }
+  ]
+ },
+ "108-9000B": {
+  "titleUa": "Link G4X StormX + готовий джгут GM LS Gen3/4 — комплект для тросової заслінки",
+  "titleEn": "Link G4X StormX + Terminated GM LS Gen3/4 Harness Kit (Cable Throttle)",
+  "seoTitleUa": "Link G4X StormX + джгут GM LS, тросова заслінка",
+  "seoTitleEn": "Link G4X StormX + LS Harness Kit, Cable Throttle",
+  "imageAltUa": "Link G4X StormX + готовий джгут GM LS Gen3/4 — комплект для тросової заслінки",
+  "imageAltEn": "Link G4X StormX + Terminated GM LS Gen3/4 Harness Kit (Cable Throttle)"
+ },
+ "108-9005B": {
+  "titleUa": "Link G4X StormX — комплект для GM LS Gen3 з тросовою заслінкою",
+  "titleEn": "Link G4X StormX Kit for GM LS Gen3 (Cable Throttle)",
+  "seoTitleUa": "Link G4X StormX — комплект GM LS Gen3, тросова заслінка",
+  "seoTitleEn": "Link G4X StormX GM LS Gen3 Kit, Cable Throttle",
+  "imageAltUa": "Link G4X StormX — комплект для GM LS Gen3 з тросовою заслінкою",
+  "imageAltEn": "Link G4X StormX Kit for GM LS Gen3 (Cable Throttle)"
+ },
+ "108-9010B": {
+  "titleUa": "Link G4X StormX — комплект для GM LS Gen3 з тросовою заслінкою і блоком запобіжників",
+  "titleEn": "Link G4X StormX Kit for GM LS Gen3 Cable Throttle with Fuse Box",
+  "seoTitleUa": "Link G4X StormX — GM LS Gen3 з блоком запобіжників",
+  "seoTitleEn": "Link G4X StormX GM LS Gen3 Kit with Fuse Box",
+  "imageAltUa": "Link G4X StormX — комплект для GM LS Gen3 з тросовою заслінкою і блоком запобіжників",
+  "imageAltEn": "Link G4X StormX Kit for GM LS Gen3 Cable Throttle with Fuse Box"
+ },
+ "109-9000B": {
+  "titleUa": "Link G4X XtremeX + готовий джгут GM LS Gen3/4 — комплект для електронної заслінки",
+  "titleEn": "Link G4X XtremeX + Terminated GM LS Gen3/4 Harness Kit (Drive-by-Wire)",
+  "seoTitleUa": "Link G4X XtremeX + джгут GM LS, електронна заслінка",
+  "seoTitleEn": "Link G4X XtremeX + LS Harness Kit, Drive-by-Wire",
+  "imageAltUa": "Link G4X XtremeX + готовий джгут GM LS Gen3/4 — комплект для електронної заслінки",
+  "imageAltEn": "Link G4X XtremeX + Terminated GM LS Gen3/4 Harness Kit (Drive-by-Wire)"
+ },
+ "109-9005B": {
+  "titleUa": "Link G4X XtremeX — комплект для GM LS Gen3 з електронною заслінкою (DBW)",
+  "titleEn": "Link G4X XtremeX Kit for GM LS Gen3 (Drive-by-Wire)",
+  "seoTitleUa": "Link G4X XtremeX — комплект GM LS Gen3 DBW",
+  "seoTitleEn": "Link G4X XtremeX GM LS Gen3 Drive-by-Wire Kit",
+  "imageAltUa": "Link G4X XtremeX — комплект для GM LS Gen3 з електронною заслінкою (DBW)",
+  "imageAltEn": "Link G4X XtremeX Kit for GM LS Gen3 (Drive-by-Wire)"
+ },
+ "109-9010B": {
+  "titleUa": "Link G4X XtremeX — комплект для GM LS Gen3 DBW з блоком запобіжників",
+  "titleEn": "Link G4X XtremeX Kit for GM LS Gen3 Drive-by-Wire with Fuse Box",
+  "seoTitleUa": "Link G4X XtremeX — GM LS Gen3 DBW з запобіжниками",
+  "seoTitleEn": "Link G4X XtremeX GM LS Gen3 DBW Kit with Fuse Box",
+  "imageAltUa": "Link G4X XtremeX — комплект для GM LS Gen3 DBW з блоком запобіжників",
+  "imageAltEn": "Link G4X XtremeX Kit for GM LS Gen3 Drive-by-Wire with Fuse Box"
+ },
+ "109-9020B": {
+  "titleUa": "Link G4X XtremeX — комплект для GM LS Gen4 з електронною заслінкою (DBW)",
+  "titleEn": "Link G4X XtremeX Kit for GM LS Gen4 (Drive-by-Wire)",
+  "seoTitleUa": "Link G4X XtremeX — комплект GM LS Gen4 DBW",
+  "seoTitleEn": "Link G4X XtremeX GM LS Gen4 Drive-by-Wire Kit",
+  "imageAltUa": "Link G4X XtremeX — комплект для GM LS Gen4 з електронною заслінкою (DBW)",
+  "imageAltEn": "Link G4X XtremeX Kit for GM LS Gen4 (Drive-by-Wire)"
+ },
+ "109-9025B": {
+  "titleUa": "Link G4X XtremeX — комплект для GM LS Gen4 DBW з блоком запобіжників",
+  "titleEn": "Link G4X XtremeX Kit for GM LS Gen4 Drive-by-Wire with Fuse Box",
+  "seoTitleUa": "Link G4X XtremeX — GM LS Gen4 DBW з запобіжниками",
+  "seoTitleEn": "Link G4X XtremeX GM LS Gen4 DBW Kit with Fuse Box",
+  "imageAltUa": "Link G4X XtremeX — комплект для GM LS Gen4 DBW з блоком запобіжників",
+  "imageAltEn": "Link G4X XtremeX Kit for GM LS Gen4 Drive-by-Wire with Fuse Box"
+ },
+ "233-4000": {
+  "vehicles": [
+   {
+    "make": "Honda",
+    "model": "S2000",
+    "chassisCode": "AP1",
+    "engine": null,
+    "yearFrom": 1999,
+    "yearTo": 2004,
+    "market": null,
+    "note": null
+   },
+   {
+    "make": "Honda",
+    "model": "S2000",
+    "chassisCode": "AP2",
+    "engine": null,
+    "yearFrom": 2005,
+    "yearTo": null,
+    "market": null,
+    "note": "non E-throttle models only"
+   }
+  ]
+ },
+ "241-4000": {
+  "vehicles": [
+   {
+    "make": "Toyota",
+    "model": "86",
+    "chassisCode": "ZN6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2021,
+    "market": "RHD",
+    "note": null
+   },
+   {
+    "make": "Toyota",
+    "model": "GT86",
+    "chassisCode": "ZN6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2021,
+    "market": "RHD",
+    "note": null
+   },
+   {
+    "make": "Subaru",
+    "model": "BRZ",
+    "chassisCode": "ZC6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2020,
+    "market": "RHD",
+    "note": null
+   },
+   {
+    "make": "Scion",
+    "model": "FR-S",
+    "chassisCode": null,
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2016,
+    "market": "RHD",
+    "note": null
+   }
+  ]
+ },
+ "241-4200": {
+  "vehicles": [
+   {
+    "make": "Toyota",
+    "model": "86",
+    "chassisCode": "ZN6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2021,
+    "market": "LHD",
+    "note": null
+   },
+   {
+    "make": "Toyota",
+    "model": "GT86",
+    "chassisCode": "ZN6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2021,
+    "market": "LHD",
+    "note": null
+   },
+   {
+    "make": "Subaru",
+    "model": "BRZ",
+    "chassisCode": "ZC6",
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2020,
+    "market": "LHD",
+    "note": null
+   },
+   {
+    "make": "Scion",
+    "model": "FR-S",
+    "chassisCode": null,
+    "engine": "4U-GSE/FA20",
+    "yearFrom": 2012,
+    "yearTo": 2016,
+    "market": "LHD",
+    "note": null
+   }
+  ]
+ },
+ "153-5000": {
+  "seoTitleEn": "Link G5 Voodoo Pro Wire-In ECU (up to 12 cylinders)"
+ }
+}
