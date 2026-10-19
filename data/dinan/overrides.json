@@ -1,0 +1,251 @@
+{
+ "dinan:D290-0909-B": {
+  "specsEn": [
+   {
+    "label": "Product type",
+    "value": "Rear Big Brake Kit"
+   },
+   {
+    "label": "Caliper type",
+    "value": "4-piston aluminum with DINAN logo"
+   },
+   {
+    "label": "Rotor diameter",
+    "value": "345 mm (stock 336 mm)"
+   },
+   {
+    "label": "Available versions",
+    "value": "Black / Slotted, Black / Drilled, Red / Slotted, Red / Drilled"
+   },
+   {
+    "label": "Brake lines",
+    "value": "Goodridge stainless steel (DOT/TUV approved)"
+   },
+   {
+    "label": "Installation time",
+    "value": "3.9 hours"
+   }
+  ],
+  "specsUa": [
+   {
+    "label": "Тип продукту",
+    "value": "Задня гальмівна система Big Brake Kit"
+   },
+   {
+    "label": "Тип супортів",
+    "value": "4-поршневі алюмінієві з логотипом DINAN"
+   },
+   {
+    "label": "Діаметр гальмівного диска",
+    "value": "345 мм (штатний 336 мм)"
+   },
+   {
+    "label": "Конструкція диска",
+    "value": "Складові з алюмінієвою маточиною"
+   },
+   {
+    "label": "Доступні версії",
+    "value": "Black / Slotted, Black / Drilled, Red / Slotted, Red / Drilled"
+   },
+   {
+    "label": "Гальмівні шланги",
+    "value": "Goodridge з нержавіючої сталі (сертифікація DOT/TUV)"
+   },
+   {
+    "label": "Час встановлення",
+    "value": "3,9 години"
+   }
+  ]
+ },
+ "dinan:D650-0002": {
+  "importantUa": [
+   "Для двигунів M54: Залежно від дати випуску використовувалися типи котушок M або N. Автомобілі випуску до 09/2002 використовують тип M, а після 09/2002 — тип N. Обов'язково візуально перевірте форму котушки перед замовленням.",
+   "Для двигунів N63/S63: Чорна версія (D650-0002), придбана після 1 січня 2024 року, не вимагає доробок. Якщо котушки придбані раніше, деяким моделям (~MY2016+) може знадобитися видалення невеликого ребра під роз'ємом."
+  ]
+ },
+ "dinan:D701-DNBW2415-4C-BLK": {
+  "inBoxEn": [
+   "Front Dinan signature floor mats",
+   "Rear Dinan floor mats"
+  ],
+  "inBoxUa": [
+   "Передні килимки салону Dinan з логотипом",
+   "Задні килимки салону Dinan"
+  ]
+ },
+ "dinan:D701-DNBW2614-4C-BLK": {
+  "inBoxEn": [
+   "Front floor mats with embroidered DINAN logo",
+   "Rear floor mats"
+  ],
+  "inBoxUa": [
+   "Передні килимки салону з вишитим логотипом DINAN",
+   "Задні килимки салону"
+  ]
+ },
+ "dinan:D760-0067": {
+  "fitmentEn": [
+   "BMW 2 Series Gran Coupe M235i xDrive (F44, 2019–2024)",
+   "BMW X2 M35i (F39, 2019–2024)",
+   "MINI Cooper Clubman JCW (F54, 2020–2024)",
+   "MINI Cooper Countryman JCW (F60, 2020–2024)"
+  ],
+  "fitmentUa": [
+   "BMW 2 Series Gran Coupe M235i xDrive (F44, 2019–2024)",
+   "BMW X2 M35i (F39, 2019–2024)",
+   "MINI Cooper Clubman JCW (F54, 2020–2024)",
+   "MINI Cooper Countryman JCW (F60, 2020–2024)"
+  ],
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "M235i xDrive Gran Coupe",
+    "chassisCode": null,
+    "engine": "2.0L L4",
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": 2024
+   },
+   {
+    "make": "BMW",
+    "model": "X2",
+    "chassisCode": "F39",
+    "engine": "2.0L L4",
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": 2024
+   },
+   {
+    "make": "MINI",
+    "model": "Cooper Clubman",
+    "chassisCode": "F54",
+    "engine": "2.0L L4",
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": 2024
+   },
+   {
+    "make": "MINI",
+    "model": "Cooper Countryman",
+    "chassisCode": "F60",
+    "engine": "2.0L L4",
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": 2024
+   }
+  ]
+ },
+ "dinan:D780-0003": {
+  "fitmentEn": [
+   "BMW 230i / 230i xDrive / M240i / M240i xDrive (G42) (2022-2026)",
+   "BMW 330i / 330i xDrive / M340i / M340i xDrive (G20) (2019-2026)",
+   "BMW 430i / 430i xDrive / M440i / M440i xDrive Coupe & Convertible (G22/G23) (2021-2026)",
+   "BMW 430i / 430i xDrive / M440i / M440i xDrive Gran Coupe (G26) (2021-2026)",
+   "BMW Z4 (G29) (2019-2026)",
+   "Toyota GR Supra (A90/A91) (2020-2026)"
+  ],
+  "fitmentUa": [
+   "BMW 230i / 230i xDrive / M240i / M240i xDrive (G42) (2022-2026)",
+   "BMW 330i / 330i xDrive / M340i / M340i xDrive (G20) (2019-2026)",
+   "BMW 430i / 430i xDrive / M440i / M440i xDrive Coupe / Convertible (G22/G23) (2021-2026)",
+   "BMW 430i / 430i xDrive / M440i / M440i xDrive Gran Coupe (G26) (2021-2026)",
+   "BMW Z4 (G29) (2019-2026)",
+   "Toyota GR Supra (A90/A91) (2020-2026)"
+  ]
+ },
+ "dinan:R660-0001": {
+  "fitmentEn": [
+   "BMW 2 Series / M2 (F22, F44, F87, G42) 2014-2027",
+   "BMW 3 Series / M340i (F30, F34, G20) 2012-2027",
+   "BMW 4 Series / M440i (F32, F33, F36, G22, G26) 2014-2027",
+   "BMW 5 Series (G30) 2017-2024",
+   "BMW 6 Series GT (G32) 2018-2021",
+   "BMW 7 Series (G11, G12) 2016-2022",
+   "BMW 8 Series (G14, G15, G16) 2019-2026",
+   "BMW X1, X2, X3, X4, X5, X6, X7 (F/G Chassis)",
+   "BMW Z4 (G29) 2019-2026",
+   "MINI Cooper / Clubman / Countryman (F54, F55, F56, F57, F60)",
+   "Toyota GR Supra 2020-2026"
+  ],
+  "fitmentUa": [
+   "BMW 2 Series / M2 (F22, F44, F87, G42) 2014-2027",
+   "BMW 3 Series / M340i (F30, F34, G20) 2012-2027",
+   "BMW 4 Series / M440i (F32, F33, F36, G22, G26) 2014-2027",
+   "BMW 5 Series (G30) 2017-2024",
+   "BMW 6 Series GT (G32) 2018-2021",
+   "BMW 7 Series (G11, G12) 2016-2022",
+   "BMW 8 Series (G14, G15, G16) 2019-2026",
+   "BMW X1, X2, X3, X4, X5, X6, X7 (кузови F та G)",
+   "BMW Z4 (G29) 2019-2026",
+   "MINI Cooper / Clubman / Countryman (F54, F55, F56, F57, F60)",
+   "Toyota GR Supra 2020-2026"
+  ]
+ },
+ "dinan:D561-0002": {
+  "titleEn": "Dinan Double-Sided Power Steering & A/C Underdrive Pulley Belt for BMW M3 (E90/E92/E93, 2008–2013)",
+  "titleUa": "Dinan двосторонній ремінь шківа гідропідсилювача та кондиціонера для BMW M3 (E90/E92/E93, 2008–2013)",
+  "seoTitleEn": "Dinan Double-Sided PS & A/C Belt BMW M3 E90/E92/E93",
+  "seoTitleUa": "Dinan двосторонній ремінь ГПК та кондиціонера BMW M3 E9x"
+ },
+ "dinan:D561-0003": {
+  "titleEn": "Dinan Power Steering & A/C Pulley Belt 6PK1035 for BMW M3 (E90/E92/E93, 2008–2013)",
+  "titleUa": "Dinan ремінь шківа гідропідсилювача та кондиціонера 6PK1035 для BMW M3 (E90/E92/E93, 2008–2013)",
+  "seoTitleEn": "Dinan PS & A/C Belt 6PK1035 for BMW M3 E90/E92/E93",
+  "seoTitleUa": "Dinan ремінь ГПК та кондиціонера 6PK1035 BMW M3 E9x"
+ },
+ "dinan:D750-0074-GA1R-BLK": {
+  "inBoxEn": [
+   "Forgeline GA1R forged wheel set",
+   "Dinan center caps"
+  ],
+  "inBoxUa": [
+   "Комплект кованих дисків Forgeline GA1R",
+   "Ковпачки дисків Dinan"
+  ]
+ },
+ "dinan:D750-0080-GA1R-BLK": {
+  "inBoxEn": [
+   "Dinan Forgeline GA1R forged wheel set",
+   "Dinan center caps"
+  ],
+  "inBoxUa": [
+   "Комплект кованих дисків Dinan Forgeline GA1R",
+   "Ковпачки дисків Dinan"
+  ],
+  "seoTitleUa": "Dinan диски Forgeline GA1R для BMW 550i/640i/650i xDrive"
+ },
+ "dinan:D655-0001": {
+  "titleEn": "Dinan Ignition Service Kit for BMW 4-Cylinder B-Series Engines",
+  "titleUa": "Dinan сервісний комплект запалювання для 4-циліндрових двигунів BMW серії B",
+  "seoTitleEn": "Dinan Ignition Service Kit BMW 4-Cyl B-Series",
+  "seoTitleUa": "Dinan комплект запалювання BMW 4 цил. серії B"
+ },
+ "dinan:D655-0004": {
+  "titleEn": "Dinan Ignition Service Kit for BMW 6-Cylinder B-Series Engines",
+  "titleUa": "Dinan сервісний комплект запалювання для 6-циліндрових двигунів BMW серії B",
+  "seoTitleEn": "Dinan Ignition Service Kit BMW 6-Cyl B-Series",
+  "seoTitleUa": "Dinan комплект запалювання BMW 6 цил. серії B"
+ },
+ "dinan:D655-0007": {
+  "titleEn": "Dinan Ignition Service Kit for BMW 4-Cylinder N-Series Engines",
+  "titleUa": "Dinan сервісний комплект запалювання для 4-циліндрових двигунів BMW серії N",
+  "seoTitleEn": "Dinan Ignition Service Kit BMW 4-Cyl N-Series",
+  "seoTitleUa": "Dinan комплект запалювання BMW 4 цил. серії N"
+ },
+ "dinan:D655-0010": {
+  "titleEn": "Dinan Ignition Service Kit for BMW 6-Cylinder N-Series Engines",
+  "titleUa": "Dinan сервісний комплект запалювання для 6-циліндрових двигунів BMW серії N",
+  "seoTitleEn": "Dinan Ignition Service Kit BMW 6-Cyl N-Series",
+  "seoTitleUa": "Dinan комплект запалювання BMW 6 цил. серії N"
+ },
+ "dinan:D655-0013": {
+  "titleEn": "Dinan Ignition Service Kit for BMW 8-Cylinder N-Series Engines",
+  "titleUa": "Dinan сервісний комплект запалювання для 8-циліндрових двигунів BMW серії N",
+  "seoTitleEn": "Dinan Ignition Service Kit BMW 8-Cyl N-Series",
+  "seoTitleUa": "Dinan комплект запалювання BMW 8 цил. серії N"
+ }
+}

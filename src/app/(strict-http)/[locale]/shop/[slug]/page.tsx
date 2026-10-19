@@ -33,6 +33,8 @@ import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
+import { BrandLogoTile } from "@/components/shop/ShopBrandLogoTile";
+import { getBrandLogoPath } from "@/lib/shopBrandLogos";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
@@ -40,6 +42,7 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
+import { ShopVariantImageProvider } from "@/app/[locale]/shop/components/ShopVariantImageContext";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { isRevozportBrand } from "@/lib/revozportShipping";
 import {
@@ -208,97 +211,120 @@ export default async function ShopProductPage({ params }: Props) {
         ? productCategory
         : product.productType
     : null;
+  // Dinan / APR versions (caliper colour, tip finish, wheel colour) each have their own brand photo.
+  const showsVariantPhotos = ["dinan", "apr"].includes((product.brand || "").trim().toLowerCase());
+  // The catalogue's brand logo links to the brand's products; brands without one keep the text link.
+  const brandLogoPath = getBrandLogoPath(product.brand || "");
 
   return (
-    <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
-      <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
-      <ShopProductViewTracker
-        slug={product.slug}
-        name={productTitle}
-        priceEur={pricing.effectivePrice.eur}
-      />
+    <ShopVariantImageProvider key={product.slug} enabled={showsVariantPhotos}>
+      <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
+        <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
+        <ShopProductViewTracker
+          slug={product.slug}
+          name={productTitle}
+          priceEur={pricing.effectivePrice.eur}
+        />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
-        <Link
-          href={`/${resolvedLocale}/shop`}
-          className="inline-flex w-fit items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
-        >
-          ← {isUa ? "Назад до магазину" : "Back to shop"}
-        </Link>
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
+          <Link
+            href={`/${resolvedLocale}/shop`}
+            className="inline-flex w-fit items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
+          >
+            ← {isUa ? "Назад до магазину" : "Back to shop"}
+          </Link>
 
-        <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="min-w-0 lg:sticky lg:top-32">
-            <ShopProductGallery
-              images={safeGallery}
-              productTitle={productTitle}
-              category={productCategory}
-              isInStock={product.stock === "inStock"}
-              isUa={isUa}
-            />
-          </div>
+          <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="min-w-0 lg:sticky lg:top-32">
+              <ShopProductGallery
+                images={safeGallery}
+                productTitle={productTitle}
+                category={productCategory}
+                isInStock={product.stock === "inStock"}
+                isUa={isUa}
+              />
+            </div>
 
-          <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-3 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
-            <ShopBrandLink
-              brand={product.brand}
-              locale={resolvedLocale}
-              className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
-            />
-            <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
-              {productTitle}
-            </h1>
-
-            {descriptionHtml || shortDescription ? (
-              <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>
-                {descriptionHtml ? (
-                  <div
-                    className={`product-description ${product.brand.trim().toUpperCase() === "BMC" ? bmcDescriptionStyles.description : ""} max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:before:mt-[0.8em] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-current [&_li]:before:opacity-60 [&_ol]:space-y-2 [&_ul]:space-y-2`}
-                    dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-3 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
+              <ShopBrandLink
+                brand={product.brand}
+                locale={resolvedLocale}
+                className={
+                  brandLogoPath
+                    ? "inline-flex w-fit rounded-sm transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2"
+                    : "inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+                }
+              >
+                {brandLogoPath ? (
+                  <BrandLogoTile
+                    brandName={product.brand}
+                    logoPath={brandLogoPath}
+                    size="xl"
+                    decorative
                   />
-                ) : shortDescription ? (
-                  <p className="text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]">
-                    {shortDescription}
-                  </p>
-                ) : null}
-              </MobileProductDisclosure>
-            ) : null}
+                ) : undefined}
+              </ShopBrandLink>
+              <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
+                {productTitle}
+              </h1>
 
-            {product.externalVideos?.length ? (
-              <ShopProductVideos videos={product.externalVideos} title={productTitle} isUa={isUa} />
-            ) : null}
+              {descriptionHtml || shortDescription ? (
+                <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>
+                  {descriptionHtml ? (
+                    <div
+                      className={`product-description ${product.brand.trim().toUpperCase() === "BMC" ? bmcDescriptionStyles.description : ""} max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:before:mt-[0.8em] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-current [&_li]:before:opacity-60 [&_ol]:space-y-2 [&_ul]:space-y-2`}
+                      dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                    />
+                  ) : shortDescription ? (
+                    <p className="text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px]">
+                      {shortDescription}
+                    </p>
+                  ) : null}
+                </MobileProductDisclosure>
+              ) : null}
 
-            <ShopProductVariantPurchaseSection
+              {product.externalVideos?.length ? (
+                <ShopProductVideos
+                  videos={product.externalVideos}
+                  title={productTitle}
+                  isUa={isUa}
+                />
+              ) : null}
+
+              <ShopProductVariantPurchaseSection
+                product={product}
+                ssrViewerContext={viewerContext}
+                locale={resolvedLocale}
+                isUa={isUa}
+                productTitle={productTitle}
+                continueShoppingHref={`/${resolvedLocale}/shop`}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {productCollection ? (
+                    <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
+                      {productCollection}
+                    </span>
+                  ) : null}
+                  {localizedProductType ? (
+                    <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
+                      {localizedProductType}
+                    </span>
+                  ) : null}
+                </div>
+              </ShopProductVariantPurchaseSection>
+            </div>
+          </section>
+
+          <Suspense fallback={null}>
+            <RelatedProductsSection
               product={product}
-              ssrViewerContext={viewerContext}
               locale={resolvedLocale}
-              isUa={isUa}
-              productTitle={productTitle}
-              continueShoppingHref={`/${resolvedLocale}/shop`}
-            >
-              <div className="flex flex-wrap gap-2">
-                {productCollection ? (
-                  <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-primary/80">
-                    {productCollection}
-                  </span>
-                ) : null}
-                {localizedProductType ? (
-                  <span className="rounded-full border border-foreground/10 bg-foreground/[0.03] px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] text-foreground/65 dark:text-foreground/50">
-                    {localizedProductType}
-                  </span>
-                ) : null}
-              </div>
-            </ShopProductVariantPurchaseSection>
-          </div>
-        </section>
-
-        <Suspense fallback={null}>
-          <RelatedProductsSection
-            product={product}
-            locale={resolvedLocale}
-            viewerContext={viewerContext}
-          />
-        </Suspense>
+              viewerContext={viewerContext}
+            />
+          </Suspense>
+        </div>
       </div>
-    </div>
+    </ShopVariantImageProvider>
   );
 }
 async function RelatedProductsSection({

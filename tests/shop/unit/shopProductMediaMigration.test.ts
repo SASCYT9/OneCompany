@@ -38,6 +38,12 @@ test("Shopify stale UUID image URLs get a safe download fallback", () => {
   ]);
 });
 
+test("Shopify media-library file names are never shortened to another asset", () => {
+  const source =
+    "https://cdn.shopify.com/s/files/1/0680/9147/8067/files/media_d337c25e-d910-4b38-9c00-3394e200d1db.jpg";
+  assert.deepEqual(getShopProductMediaDownloadCandidates(source), [source]);
+});
+
 test("nested product galleries are collected and rewritten atomically", () => {
   const source = "https://img.example.com/a.jpg";
   const blob = "https://store.public.blob.vercel-storage.com/media/library/shop-products/a";

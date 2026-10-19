@@ -1,0 +1,80 @@
+{
+ "apr:CI100037": {
+  "titleEn": "APR Open Carbon Fiber Intake for Audi S4, S5, Q5 and SQ5 (B8)",
+  "titleUa": "APR відкрита система холодного впуску з карбону для Audi S4, S5, Q5 та SQ5 (B8)",
+  "fitmentEn": [
+   "Audi S4 3.0L V6 (B8, 2010–2016)",
+   "Audi S5 3.0L V6 (B8, 2010–2016)",
+   "Audi Q5 3.0L V6 (B8, 2013–2017)",
+   "Audi SQ5 3.0L V6 (B8, 2014–2017)"
+  ],
+  "fitmentUa": [
+   "Audi S4 3.0L V6 (B8, 2010–2016)",
+   "Audi S5 3.0L V6 (B8, 2010–2016)",
+   "Audi Q5 3.0L V6 (B8, 2013–2017)",
+   "Audi SQ5 3.0L V6 (B8, 2014–2017)"
+  ]
+ },
+ "apr:KT100004": {
+  "importantUa": [
+   "Затягніть колісні болти із заводським моментом затяжки та повторно перевірте затяжку після перших ~50 миль пробігу."
+  ]
+ },
+ "apr:KT100013": {
+  "importantUa": [
+   "Затягуйте колісні болти із зусиллям за заводськими специфікаціями.",
+   "Обов’язково перевірте та підтягніть болти після перших ~50 миль пробігу."
+  ]
+ },
+ "apr:KT100015": {
+  "importantUa": [
+   "Затягуйте колісні болти з рекомендованим заводським моментом затяжки.",
+   "Обов'язково перевірте момент затяжки болтів після перших ~50 миль пробігу."
+  ]
+ },
+ "apr:KT100023": {
+  "importantUa": [
+   "Затягуйте колісні болти за заводськими специфікаціями моменту затяжки.",
+   "Обов'язково перевірте момент затяжки після перших ~50 миль пробігу."
+  ]
+ },
+ "apr:MS100077": {
+  "seoTitleUa": "APR ПНВТ для Audi S5 4.2L V8 (після листопада 2008)",
+  "seoDescriptionUa": "Комплект ПНВТ APR для Audi S5 4.2L V8 випуску після листопада 2008. Збільшення подачі пального на 41% для стабільного тиску у високонавантажених режимах."
+ },
+ "apr:MS100221": {
+  "seoTitleEn": "APR Charge Pipes & Turbo Muffler Pipe for VW GTI",
+  "seoTitleUa": "APR патрубки наддуву для VW GTI (2.0T EA888.4)",
+  "imageAltEn": "APR charge pipes and turbo muffler pipe kit for VW GTI",
+  "imageAltUa": "Комплект патрубків наддуву та патрубок глушника турбіни APR для VW GTI"
+ },
+ "apr:MS100268": {
+  "shortDescUa": "Повний оригінальний OEM комплект із рідиною, зливною пробкою, кріпленням та ущільнювачами для муфт Gen 5 Haldex до квітня 2019.",
+  "keyPointsEn": [
+   "Complete package of genuine OEM components eliminates sourcing errors",
+   "OEM Gen 5 Haldex fluid ensures factory clutch engagement and predictable torque split",
+   "Includes fresh OEM drain plug, hardware, and gaskets to guarantee leak-free assembly",
+   "Specifically formulated for Gen 5 Haldex vehicles with pre-April 2019 build dates",
+   "Restores hydraulic pressure stability and protects the AWD pump from wear"
+  ],
+  "seoTitleEn": "APR Gen 5 Haldex Service Kit for VW & Audi (Pre-April 2019)",
+  "seoDescriptionUa": "Оригінальний комплект APR для обслуговування Gen 5 Haldex на VW та Audi (до квітня 2019). Оригінальна олива OEM, зливна пробка, ущільнювачі та кріплення."
+ },
+ "apr:MS100269": {
+  "titleEn": "APR Gen 6 Haldex Service Kit for VW and Audi (MQB, Post-April 2019)",
+  "titleUa": "APR сервісний комплект Haldex Gen 6 для VW та Audi (MQB, з квітня 2019)",
+  "seoDescriptionUa": "Оригінальний сервісний комплект APR для муфти Haldex Gen 6 на авто VW та Audi платформи MQB (з квітня 2019). Рідина, пробка та прокладки OEM."
+ },
+ "apr:T2100011": {
+  "titleEn": "APR K04-64 Turbocharger System for Audi and VW 2.0T EA113 (No Software)",
+  "titleUa": "APR турбо-кит K04-64 для Audi та VW 2.0T EA113 (без програмного забезпечення)",
+  "seoTitleEn": "APR K04-64 Turbo Kit 2.0T EA113 (No Software)",
+  "seoTitleUa": "APR турбо-кит K04-64 для 2.0T EA113 без ПЗ"
+ },
+ "apr:T2100012": {
+  "titleEn": "APR K04-64 Turbocharger System with Software for Audi and VW 2.0T EA113",
+  "titleUa": "APR турбо-кит K04-64 з програмним забезпеченням для Audi та VW 2.0T EA113",
+  "seoTitleEn": "APR K04-64 Turbo Kit with Software 2.0T EA113",
+  "seoTitleUa": "APR турбо-кит K04-64 з ПЗ для 2.0T EA113"
+ }
+}

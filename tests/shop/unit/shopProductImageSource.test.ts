@@ -100,3 +100,20 @@ test("srcset descriptors are positive, finite, unique and agree with URL widths"
     assert.equal(new URL(url).searchParams.get("width"), String(width));
   }
 });
+
+test("stale Shopify UUID suffixes are dropped, media-library names keep theirs", () => {
+  assert.equal(
+    resolveShopProductImageSrc(
+      "https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8_8d4a2c1b-606b-4f7e-9f00-5ee5de44561c.png",
+      320
+    ),
+    "https://cdn.shopify.com/s/files/1/0733/4058/4242/files/RSQ8.png?width=320"
+  );
+  assert.equal(
+    resolveShopProductImageSrc(
+      "https://cdn.shopify.com/s/files/1/0680/9147/8067/files/media_d337c25e-d910-4b38-9c00-3394e200d1db.jpg",
+      320
+    ),
+    "https://cdn.shopify.com/s/files/1/0680/9147/8067/files/media_d337c25e-d910-4b38-9c00-3394e200d1db.jpg?width=320"
+  );
+});

@@ -19,28 +19,14 @@ import {
   type UrbanCollectionMediaSet,
   type UrbanVisualIntent,
 } from "@/lib/urbanVisualIntent";
+import { stripStaleShopifyUuidSuffix } from "@/lib/shopifyCdnImage";
 
 const FALLBACK_URBAN_IMAGE =
   "/images/shop/urban/hero/models/defender2020Plus/2025Updates/hero-1-1920.jpg";
 
-/**
- * Shopify CDN sometimes serves a "clean" reupload of the same asset and 404s
- * the original `_<uuid>` filename. We've seen this with Urban Automotive:
- * `Studio-10_df5ca99f-8380-4135-933b-e97001d981ce.jpg` → 404, but
- * `Studio-10.jpg` → 200. Strip the UUID suffix before the extension so
- * DB-cached URLs keep resolving without a full re-scrape.
- *
- * Scope: only `cdn.shopify.com` URLs, only the canonical UUID pattern.
- */
-const SHOPIFY_UUID_SUFFIX_PATTERN =
-  /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.(?:jpg|jpeg|png|webp|gif|avif))/i;
-
+/** Repairs stale Urban Automotive Shopify URLs (see stripStaleShopifyUuidSuffix). */
 export function normalizeShopifyCdnUrl(url: string | null | undefined): string {
-  const value = String(url ?? "");
-  if (!value || !/^https?:\/\/cdn\.shopify\.com\//i.test(value)) {
-    return value;
-  }
-  return value.replace(SHOPIFY_UUID_SUFFIX_PATTERN, "$1");
+  return stripStaleShopifyUuidSuffix(String(url ?? ""));
 }
 const G_WAGON_COLLECTION_HANDLES = new Set([
   "mercedes-g-wagon-softkit",

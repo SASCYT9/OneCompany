@@ -78,6 +78,17 @@ const UA_OPTION_NAMES: Record<string, string> = {
   Configuration: "Конфігурація",
   Design: "Виконання",
   Option: "Опція",
+  "Tip Finish": "Оздоблення насадок",
+  Material: "Матеріал",
+  Length: "Довжина",
+  Diameter: "Діаметр",
+  Width: "Ширина",
+  Offset: "Виліт (ET)",
+  Thickness: "Товщина",
+  "Pad Type": "Тип колодок",
+  "Caliper Color": "Колір супортів",
+  "Rotor Type": "Тип дисків",
+  "Hardware Finish": "Оздоблення кріплення",
 };
 
 const EN_OPTION_VALUES: Array<[RegExp, string]> = [
@@ -122,7 +133,26 @@ const UA_OPTION_VALUES: Array<[RegExp, string]> = [
   [/^do88 v1$/i, "do88 V1"],
   [/^do88 y-pipe$/i, "Y-пайп do88"],
   [/^oem y-pipe$/i, "Y-пайп OE"],
+  [/^black ceramic coated$/i, "Чорне керамічне покриття"],
+  [/^polished$/i, "Поліроване"],
+  [/^brushed$/i, "Шліфоване"],
+  [/^polished silver$/i, "Поліроване сріблясте"],
+  [/^brushed silver$/i, "Шліфоване сріблясте"],
+  [/^gunmetal(?: gr[ae]y)?$/i, "Графітовий (Gunmetal)"],
+  [/^anthracite$/i, "Антрацит"],
+  [/^satin black$/i, "Сатиновий чорний"],
+  [/^bronze$/i, "Бронзовий"],
+  [/^gr[ae]y$/i, "Сірий"],
+  [/^slotted$/i, "З насічками"],
+  [/^(?:cross[- ])?drilled$/i, "Перфоровані"],
+  [/^plain$/i, "Гладкі"],
+  [/^carbon fiber$/i, "Карбон"],
+  [/^gloss twill carbon fiber$/i, "Глянцевий карбон (twill)"],
+  [/^matte twill carbon fiber$/i, "Матовий карбон (twill)"],
 ];
+
+/** Brand sizes such as "35 MM" or "19 IN". */
+const SIZE_OPTION_VALUE = /^(\d+(?:[.,]\d+)?)\s*(mm|in)$/i;
 
 function localizeOptionName(name: string, isUa: boolean) {
   const normalized = name.trim();
@@ -130,6 +160,12 @@ function localizeOptionName(name: string, isUa: boolean) {
 }
 
 function localizeOptionValue(value: string, isUa: boolean) {
+  const size = value.trim().match(SIZE_OPTION_VALUE);
+  if (size) {
+    const amount = isUa ? size[1].replace(".", ",") : size[1].replace(",", ".");
+    if (size[2].toLowerCase() === "in") return `${amount}"`;
+    return `${amount} ${isUa ? "мм" : "mm"}`;
+  }
   if (isUa) return UA_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
   return EN_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
 }

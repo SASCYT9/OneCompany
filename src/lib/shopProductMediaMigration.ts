@@ -1,11 +1,9 @@
 import { createHash } from "node:crypto";
 
 import { isBlobStorageUrl } from "@/lib/runtimeAssetPaths";
+import { stripStaleShopifyUuidSuffix } from "@/lib/shopifyCdnImage";
 
 export const SHOP_PRODUCT_MEDIA_BLOB_PREFIX = "media/library/shop-products/";
-
-const SHOPIFY_UUID_SUFFIX_PATTERN =
-  /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\.(?:jpg|jpeg|png|webp|gif|avif))/i;
 
 export function normalizeShopProductMediaSource(value: string | null | undefined) {
   const trimmed = String(value ?? "").trim();
@@ -26,7 +24,7 @@ export function getShopProductMediaDownloadCandidates(source: string) {
   try {
     const url = new URL(normalized);
     if (url.hostname.toLowerCase() === "cdn.shopify.com") {
-      const upgraded = normalized.replace(SHOPIFY_UUID_SUFFIX_PATTERN, "$1");
+      const upgraded = stripStaleShopifyUuidSuffix(normalized);
       if (upgraded !== normalized) candidates.push(upgraded);
     }
   } catch {

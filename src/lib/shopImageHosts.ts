@@ -36,4 +36,6 @@ export const SHOP_REMOTE_IMAGE_HOSTS = [
   "wheelforce.de",
   "ducatiomaha.com",
   "amsducati.com",
+  "images.dinancars.com",
+  "images.goapr.com",
 ];
