@@ -196,21 +196,37 @@ async function main() {
       if (activated % 100 === 0) process.stderr.write(`activated ${activated}\n`);
     }
 
-    // Publish the catalogue projections. A write conflict with another worker only
-    // reschedules that job (status RETRY), so it is counted and left for the next run.
+    // Publish the catalogue projections of CT Carbon jobs only: the activations and the
+    // older draft/media jobs of the same products (no-ops once a newer version is
+    // published, but they would otherwise queue ahead of other brands in the cron).
+    // A write conflict with another worker only reschedules a job (status RETRY), so it
+    // is counted and left for the next run.
+    const pendingJobs = await prisma.shopCatalogOutbox.findMany({
+      where: {
+        productId: { in: products.map((product) => product.id) },
+        status: { in: ["PENDING", "RETRY", "PROCESSING"] },
+      },
+      select: { id: true },
+    });
+    const jobIds = pendingJobs.map((job) => job.id);
     let publicationCompleted = 0;
     let publicationRetried = 0;
-    for (;;) {
-      const publication = await runShopCatalogOutboxRuntime({
-        workerId: `ct-carbon-activation-cli:${process.pid}`,
-        limit: 1,
-      });
-      publicationCompleted += publication.completed;
-      publicationRetried += publication.retried;
-      if (publication.deadLettered) {
-        throw new Error(`CT Carbon publication failed: ${JSON.stringify(publication)}`);
+    for (let offset = 0; offset < jobIds.length; offset += 500) {
+      const outboxIds = jobIds.slice(offset, offset + 500);
+      for (;;) {
+        const publication = await runShopCatalogOutboxRuntime({
+          workerId: `ct-carbon-activation-cli:${process.pid}`,
+          limit: 10,
+          outboxIds,
+        });
+        publicationCompleted += publication.completed;
+        publicationRetried += publication.retried;
+        if (publication.deadLettered) {
+          throw new Error(`CT Carbon publication failed: ${JSON.stringify(publication)}`);
+        }
+        if (!publication.claimed) break;
       }
-      if (!publication.claimed) break;
+      process.stderr.write(`published ${Math.min(offset + 500, jobIds.length)}/${jobIds.length}\n`);
     }
 
     process.stdout.write(

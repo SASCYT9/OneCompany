@@ -110,7 +110,7 @@ const PART_PATTERNS: Array<[RegExp, CtCarbonDeliveryClass]> = [
   [/\b(?:grilles?|kidneys?)\b/i, "medium"],
   [/\b(?:bonnet|hood) scoops?\b/i, "small"],
   [
-    /\b(?:trims?|inserts?|vents?|ducts?|canards?|flics|winglets?|risers?|badges?|emblems?|reflectors?|delete)\b/i,
+    /\b(?:trims?|inserts?|vents?|ducts?|canards?|flics|winglets?|risers?|badges?|emblems?|reflectors?|delete|handles?|plate holders?)\b/i,
     "small",
   ],
   // Long and heavy: packed like a pair of side skirts.

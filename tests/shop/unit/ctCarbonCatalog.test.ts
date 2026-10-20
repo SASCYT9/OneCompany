@@ -174,6 +174,21 @@ test("parts a kit says it does not include are not counted", () => {
   );
 });
 
+test("trim kits count handles and plate holders", () => {
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "Full black trim kit for Range Rover Vogue L405 replacing all original chrome.",
+      "Kit Includes:",
+      "Front Grille",
+      "Door Trims",
+      "Door handles",
+      "Number plate holder",
+      "Mirror covers",
+    ]),
+    ["medium", "small", "small", "small", "small"]
+  );
+});
+
 test("dress-up kits and 'composed of' lists count every piece", () => {
   const dressUp = ctCarbonDelivery({
     productType: "Accessories",
