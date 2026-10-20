@@ -106,21 +106,29 @@ const KIT_TYPES = new Set(["kit", "black pack", "front end pack"]);
  * and inserts come before the panels they sit on ("Wing/Fender Trims" is a small part).
  */
 const PART_PATTERNS: Array<[RegExp, CtCarbonDeliveryClass]> = [
-  [/\b(?:engine (?:cover|bay)|slam panel)\b/i, "medium"],
-  [/\b(?:grille|kidneys?)\b/i, "medium"],
+  [/\b(?:engine (?:cover|bay|dress[- ]up)|slam panel)\b/i, "medium"],
+  [/\b(?:grilles?|kidneys?)\b/i, "medium"],
+  [/\b(?:bonnet|hood) scoops?\b/i, "small"],
   [
-    /\b(?:trims?|inserts?|vents?|canards?|flics|winglets?|badges?|emblems?|reflectors?|delete)\b/i,
+    /\b(?:trims?|inserts?|vents?|ducts?|canards?|flics|winglets?|risers?|badges?|emblems?|reflectors?|delete)\b/i,
     "small",
   ],
+  // Long and heavy: packed like a pair of side skirts.
+  [/\b(?:side steps?|running boards?|roof rails?)\b/i, "sideSkirts"],
   [/\b(?:wide ?arch|arches|fenders?|wide ?body)\b/i, "panel"],
   [/\b(?:bonnet|hood|boot ?lid|trunk ?lid|roof scoop)\b/i, "panel"],
   [/\bside ?skirts?\b/i, "sideSkirts"],
   [/\bdiffuser\b/i, "diffuser"],
   [/\b(?:splitter|front lip|lip splitter|front spoiler)\b/i, "splitter"],
   [/\b(?:spoiler|wing|ducktail|lip spoiler|boot lip)\b/i, "spoiler"],
+  // About a metre long but light: packed like a spoiler.
+  [/\b(?:cross ?bars?|strut brace|roof light|light bar|snorkel)\b/i, "spoiler"],
   [/\bsteering wheel\b/i, "medium"],
-  [/\b(?:bumper corners?|rear corners?|door panels?)\b/i, "medium"],
-  [/\b(?:mirrors?|exhaust tips?|covers?)\b/i, "small"],
+  [
+    /\b(?:bumper (?:lower )?corners?|rear corners?|door panels?|seats? backs?|storage box(?:es)?|intakes?|exhaust tips?)\b/i,
+    "medium",
+  ],
+  [/\b(?:mirrors?|covers?)\b/i, "small"],
 ];
 
 function partClassOfLine(line: string): CtCarbonDeliveryClass | null {
@@ -128,6 +136,13 @@ function partClassOfLine(line: string): CtCarbonDeliveryClass | null {
     if (pattern.test(line)) return part;
   }
   return null;
+}
+
+/** A kit-list line that is a whole bumper ("Front Bumper", "Rear Bumpers"), not a trim on one. */
+const BUMPER_LINE = /^(?:(?:front|rear)\s+)?bumpers?(?:\s+replacements?)?(?:\s+v\d+)?$/i;
+
+function partClassOfListLine(line: string): CtCarbonDeliveryClass | null {
+  return partClassOfLine(line) ?? (BUMPER_LINE.test(line.trim()) ? "panel" : null);
 }
 
 function isKit(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
@@ -153,7 +168,7 @@ function partsFromShortLines(paragraphs: string[]): CtCarbonDeliveryClass[] {
   const parts: CtCarbonDeliveryClass[] = [];
   for (const line of paragraphs) {
     if (line.length > 70 || KIT_LIST_END.test(line) || KIT_LIST_EXCLUSION.test(line)) continue;
-    const part = partClassOfLine(line);
+    const part = partClassOfListLine(line);
     if (part) parts.push(part);
   }
   return parts;
@@ -175,8 +190,8 @@ export function parseCtCarbonKitList(paragraphs: string[]): CtCarbonDeliveryClas
   ];
   for (const line of lines) {
     if (KIT_LIST_EXCLUSION.test(line)) break;
-    if (KIT_LIST_END.test(line) && !partClassOfLine(line)) break;
-    const part = partClassOfLine(line);
+    if (KIT_LIST_END.test(line) && !partClassOfListLine(line)) break;
+    const part = partClassOfListLine(line);
     if (part) parts.push(part);
   }
   const stated = Number(paragraphs[start].match(/\((\d+)\s*(?:items?|pieces?|parts?)\)/i)?.[1]);
@@ -194,6 +209,10 @@ function partsFromTags(tags: string[]): CtCarbonDeliveryClass[] {
 }
 
 function partsFromKitTitle(title: string): CtCarbonDeliveryClass[] {
+  if (/\bbumper replacements\b|\bfront and rear bumpers\b/i.test(title)) return ["panel", "panel"];
+  // A trim pack is a box of small trims; moulding trims are long door claddings.
+  if (/\bmoulding trim (?:pack|set)\b/i.test(title)) return ["sideSkirts"];
+  if (/\btrim (?:pack|set)\b/i.test(title)) return ["medium"];
   if (/\brear end\b/i.test(title)) return ["diffuser", "spoiler"];
   if (/\bfront end\b/i.test(title)) return ["splitter", "medium"];
   if (/\bwide ?arch\b/i.test(title)) return ["panel", "splitter", "sideSkirts", "diffuser"];
@@ -221,7 +240,12 @@ export function ctCarbonDelivery(
     return total(partsFromKitTitle(product.title), "kit-title");
   }
   const byType = PART_TYPE_CLASS[product.productType.trim().toLowerCase()];
-  return total([byType ?? partClassOfLine(product.title) ?? "small"], "part");
+  const byTitle = partClassOfLine(product.title);
+  // Vents or trims listed under a panel's product type ("FENDER VENTS") are small parts.
+  if (byType === "panel" && byTitle === "small") return total(["small"], "part");
+  // A title without a part name: the description often names it ("CT Carbon diffuser made …").
+  const byDescription = partClassOfLine(product.bodyParagraphs[0] ?? "");
+  return total([byType ?? byTitle ?? byDescription ?? "small"], "part");
 }
 
 /**

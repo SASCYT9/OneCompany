@@ -172,6 +172,63 @@ test("kits without a list fall back to tags, then to what the title names", () =
   );
   assert.equal(rear.basis, "kit-title");
   assert.deepEqual(rear.parts, ["diffuser", "spoiler"]);
+  const kitTitle = (title: string) =>
+    ctCarbonDelivery(product({ title, tags: [], bodyParagraphs: [] })).parts;
+  const bumpers = ctCarbonDelivery(
+    product({
+      title: "BMW F87 M2 CARBON FIBRE BUMPER REPLACEMENTS",
+      tags: ["FRONT BUMPER", "REAR BUMPER"],
+      bodyParagraphs: [],
+      variants: [{ ...product().variants[0], priceExVatGbp: 2999.17 }],
+    })
+  );
+  assert.deepEqual(bumpers.parts, ["panel", "panel"]);
+  assert.equal(calculateCtCarbonPriceUsd(ctCarbonSitePriceGbp(2999.17), bumpers), 6700);
+  assert.deepEqual(kitTitle("LAND ROVER DEFENDER L663 110 GLOSS BLACK ANTI SCRATCH TRIM SET"), [
+    "medium",
+  ]);
+  assert.deepEqual(kitTitle("LAND ROVER DEFENDER L663 90 GLOSS BLACK MOULDING TRIM PACK"), [
+    "sideSkirts",
+  ]);
+});
+
+test("kit lists count whole bumpers, ducts and wing risers", () => {
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THE KIT:",
+      "Front Bumper",
+      "Grilles, Air Vents and Trims",
+      "Wide Arches",
+      "Exhaust Tips",
+      "Door Trims",
+      "Rear Bumpers",
+      "Please note that some parts will require to be painted to match the colour of the car.",
+    ]),
+    ["panel", "medium", "panel", "medium", "small", "panel"]
+  );
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "This Package Consists Of:",
+      "BMW Carbon Fibre Splitter - V3 By CT",
+      "BMW Carbon Fibre Ducts - MP Style",
+      "BMW Carbon Fibre Grille - CSL Style (Non-ACC)",
+    ]),
+    ["splitter", "small", "medium"]
+  );
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THIS KIT (7 ITEMS):",
+      "Splitter",
+      "Front Intake Panel",
+      "Side Skirts",
+      "Rear Bumper Trim",
+      "Diffuser",
+      "Wing",
+      "Wing Risers",
+      "The wing height with these risers is approximately 29 millimeters.",
+    ]),
+    ["splitter", "medium", "sideSkirts", "small", "diffuser", "spoiler", "small"]
+  );
 });
 
 test("part types without a bot quote use the closest size class", () => {
@@ -181,6 +238,39 @@ test("part types without a bot quote use the closest size class", () => {
   assert.deepEqual(part("Bonnet", "LAND ROVER DEFENDER CARBON FIBRE HOOD").parts, ["panel"]);
   assert.deepEqual(part("Accessories", "BMW M2 M3 M4 CARBON FIBRE HUD COVER").parts, ["small"]);
   assert.deepEqual(part("", "BMW G01 X3 LCI YELLOW ADAPTIVE DRL MODULE SET").parts, ["small"]);
+});
+
+test("long, bulky or panel-mounted accessories get their real size class", () => {
+  const cases: Array<[string, string, string]> = [
+    ["Accessories", "LAND ROVER DEFENDER L663 110 ELECTRIC FOLD OUT SIDE STEPS", "sideSkirts"],
+    ["Accessories", "DEFENDER 110 L663 2020+ GLOSS BLACK ROOF RAILS", "sideSkirts"],
+    ["Accessories", "DEFENDER 90 L663 2020+ GLOSS BLACK CROSS BARS", "spoiler"],
+    ["Accessories", "AUDI R8 COUPE 2015-2024 CARBON FIBRE STRUT BRACE", "spoiler"],
+    ["Accessories", "LAND ROVER DEFENDER L663 2019+ ROOF LIGHT - V1", "spoiler"],
+    ["Accessories", "LAND ROVER DEFENDER L663 110 & 90 SNORKEL", "spoiler"],
+    ["Accessories", "BMW GXX/F9X FULL CARBON FIBRE SEATS BACKS", "medium"],
+    ["Accessories", "LAND ROVER DEFENDER L663 90/110/130 CARBON FIBRE SIDE STORAGE BOX", "medium"],
+    ["Accessories", "BMW M2C/M3/M4 (F87C F80 F82 F83) CARBON FIBRE INTAKE", "medium"],
+    ["Accessories", "BMW M2 M3 & M4 G87/G80 CARBON FIBRE ENGINE DRESS UP KIT", "medium"],
+    ["Accessories", "BMW G01 X3 2017-2021 DOUBLE SLAT CARBON FIBRE GRILLES", "medium"],
+    ["Accessories", "AUDI R8 V10 GEN 2 2015-2019 CARBON FIBRE REAR BUMPER LOWER CORNERS", "medium"],
+    ["Accessories", "NISSAN GTR R35 CARBON FIBRE BONNET HOOD SCOOPS", "small"],
+    ["Fenders", "MCLAREN 750S 2017-2023+ DRY CARBON FIBRE FENDER VENTS", "small"],
+    ["Fenders", "BMW F87 M2/M2C CARBON FIBRE FENDERS - CT DESIGN", "panel"],
+  ];
+  for (const [productType, title, expected] of cases) {
+    assert.deepEqual(part(productType, title).parts, [expected], title);
+  }
+  // A title without a part name: the description names it.
+  const extension = ctCarbonDelivery({
+    productType: "Accessories",
+    title: "AUDI A3 S-LINE & S3 PRE-FACELIFT 8V SALOON CARBON FIBRE REAR BUMPER EXTENSION",
+    tags: [],
+    bodyParagraphs: [
+      "CT Carbon diffuser made from real carbon fibre to fit pre-facelift Audi A3 models",
+    ],
+  });
+  assert.deepEqual(extension.parts, ["diffuser"]);
 });
 
 test("estimated package: one part's box, or a kit's parts stacked", () => {
