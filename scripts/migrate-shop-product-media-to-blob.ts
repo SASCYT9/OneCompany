@@ -141,11 +141,7 @@ function parseCurlStatus(output: string) {
   };
 }
 
-async function curlJson(
-  method: "GET" | "POST",
-  pathname: string,
-  body?: unknown
-): Promise<any> {
+async function curlJson(method: "GET" | "POST", pathname: string, body?: unknown): Promise<any> {
   const token = blobToken();
   const args = [
     "--silent",
@@ -160,11 +156,7 @@ async function curlJson(
     "content-type: application/json",
   ];
   if (body !== undefined) args.push("--data-raw", JSON.stringify(body));
-  args.push(
-    "--write-out",
-    "\n__ONECOMPANY_STATUS__:%{http_code}",
-    `${BLOB_API_URL}${pathname}`
-  );
+  args.push("--write-out", "\n__ONECOMPANY_STATUS__:%{http_code}", `${BLOB_API_URL}${pathname}`);
 
   const result = await execFileAsync(curlExecutable, args, {
     encoding: "utf8",
@@ -172,7 +164,9 @@ async function curlJson(
   });
   const response = parseCurlStatus(String(result.stdout));
   if (response.status < 200 || response.status >= 300) {
-    throw new Error(`Blob API ${method} ${pathname} returned HTTP ${response.status}: ${response.body.slice(0, 240)}`);
+    throw new Error(
+      `Blob API ${method} ${pathname} returned HTTP ${response.status}: ${response.body.slice(0, 240)}`
+    );
   }
   return response.body ? JSON.parse(response.body) : null;
 }
@@ -241,7 +235,9 @@ async function downloadRemoteImage(source: string) {
       lastError = error;
     }
   }
-  throw lastError instanceof Error ? lastError : new Error(String(lastError ?? "source download failed"));
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(String(lastError ?? "source download failed"));
 }
 
 async function uploadPublicBlobViaCurl(pathname: string, buffer: Buffer, contentType: string) {
@@ -281,7 +277,9 @@ async function uploadPublicBlobViaCurl(pathname: string, buffer: Buffer, content
     );
     const response = parseCurlStatus(String(result.stdout));
     if (response.status < 200 || response.status >= 300) {
-      throw new Error(`Blob upload returned HTTP ${response.status}: ${response.body.slice(0, 240)}`);
+      throw new Error(
+        `Blob upload returned HTTP ${response.status}: ${response.body.slice(0, 240)}`
+      );
     }
     return JSON.parse(response.body) as { url: string; pathname: string };
   } finally {
@@ -315,12 +313,16 @@ async function retryTransient<T>(action: () => Promise<T>) {
       return await action();
     } catch (error) {
       const code =
-        typeof error === "object" && error !== null && "code" in error
-          ? String(error.code)
-        : "";
+        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
       const message = error instanceof Error ? error.message : String(error);
-      const transient = code === "P1017" || code === "P2024" || code === "P2028" ||
-        code === "P2034" || /40001|could not serialize|Catalog version conflict|Unable to start a transaction in the given time/u.test(message);
+      const transient =
+        code === "P1017" ||
+        code === "P2024" ||
+        code === "P2028" ||
+        code === "P2034" ||
+        /40001|could not serialize|Catalog version conflict|Unable to start a transaction in the given time/u.test(
+          message
+        );
       if (!transient || attempt === 5) {
         throw error;
       }
@@ -418,21 +420,32 @@ async function loadExistingBlobUrls(sources: string[]) {
       },
       select: { image: true },
     });
-    if (!sample?.image) throw new Error("No public Blob URL is available to identify the existing store");
+    if (!sample?.image)
+      throw new Error("No public Blob URL is available to identify the existing store");
     const origin = new URL(sample.image).origin;
     const existing = new Map<string, string>();
-    await runWithConcurrency(sources, async (source) => {
-      const pathname = buildShopProductMediaBlobPathname(source);
-      const url = `${origin}/${pathname}`;
-      try {
-        const response = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(15_000) });
-        if (response.ok && response.headers.get("content-type")?.toLowerCase().startsWith("image/")) {
-          existing.set(pathname, url);
+    await runWithConcurrency(
+      sources,
+      async (source) => {
+        const pathname = buildShopProductMediaBlobPathname(source);
+        const url = `${origin}/${pathname}`;
+        try {
+          const response = await fetch(url, {
+            method: "HEAD",
+            signal: AbortSignal.timeout(15_000),
+          });
+          if (
+            response.ok &&
+            response.headers.get("content-type")?.toLowerCase().startsWith("image/")
+          ) {
+            existing.set(pathname, url);
+          }
+        } catch {
+          // Missing Blob copies remain unresolved and are reported below.
         }
-      } catch {
-        // Missing Blob copies remain unresolved and are reported below.
-      }
-    }, concurrency);
+      },
+      concurrency
+    );
     return existing;
   }
   if (!isBlobStorageConfigured()) return new Map<string, string>();
@@ -464,7 +477,12 @@ async function resolveSources(sources: string[], existingBlobUrls: Map<string, s
     } else if (commit && !reusePublicBlobs) {
       missing.push(source);
     } else if (reusePublicBlobs) {
-      resolutions.set(source, { source, blobUrl: null, status: "failed", error: "No verified public Blob copy" });
+      resolutions.set(source, {
+        source,
+        blobUrl: null,
+        status: "failed",
+        error: "No verified public Blob copy",
+      });
     } else {
       resolutions.set(source, { source, blobUrl: null, status: "pending" });
     }
@@ -514,123 +532,123 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
   await runWithConcurrency(
     products,
     async (product) => {
-    const expectedSources = productSources(product);
-    if (!allowPartial && [...expectedSources].some((source) => !resolvedSources.has(source))) {
-      productsSkipped += 1;
-      return;
-    }
-
-    const primarySource = normalizeShopProductMediaSource(product.image);
-    const nextPrimary = primarySource ? resolvedSources.get(primarySource) : undefined;
-    const rewrittenGallery = rewriteShopProductMediaValue(product.gallery, resolvedSources);
-    const mediaUpdates = product.media
-      .map((media) => {
-        const source = normalizeShopProductMediaSource(media.src);
-        const next = source ? resolvedSources.get(source) : undefined;
-        return next ? { id: media.id, src: next } : null;
-      })
-      .filter((value): value is { id: string; src: string } => Boolean(value));
-    const variantUpdates = product.variants
-      .map((variant) => {
-        const source = normalizeShopProductMediaSource(variant.image);
-        const next = source ? resolvedSources.get(source) : undefined;
-        return next ? { id: variant.id, image: next } : null;
-      })
-      .filter((value): value is { id: string; image: string } => Boolean(value));
-    const metafieldUpdates = product.metafields.flatMap((metafield) => {
-      try {
-        const rewritten = rewriteShopProductMediaValue(
-          JSON.parse(metafield.value),
-          resolvedSources
-        );
-        return rewritten.replacements
-          ? [{ id: metafield.id, value: JSON.stringify(rewritten.value) }]
-          : [];
-      } catch {
-        return [];
+      const expectedSources = productSources(product);
+      if (!allowPartial && [...expectedSources].some((source) => !resolvedSources.has(source))) {
+        productsSkipped += 1;
+        return;
       }
-    });
 
-    const primaryChanged = Boolean(nextPrimary && nextPrimary !== product.image);
-    const hasChanges =
-      primaryChanged ||
-      rewrittenGallery.replacements > 0 ||
-      mediaUpdates.length > 0 ||
-      variantUpdates.length > 0 ||
-      metafieldUpdates.length > 0;
-    if (!hasChanges) return;
-
-    const mutation = await retryTransient(async () => {
-      const latest = await prisma.shopProduct.findUnique({
-        where: { id: product.id },
-        select: { catalogVersion: true },
+      const primarySource = normalizeShopProductMediaSource(product.image);
+      const nextPrimary = primarySource ? resolvedSources.get(primarySource) : undefined;
+      const rewrittenGallery = rewriteShopProductMediaValue(product.gallery, resolvedSources);
+      const mediaUpdates = product.media
+        .map((media) => {
+          const source = normalizeShopProductMediaSource(media.src);
+          const next = source ? resolvedSources.get(source) : undefined;
+          return next ? { id: media.id, src: next } : null;
+        })
+        .filter((value): value is { id: string; src: string } => Boolean(value));
+      const variantUpdates = product.variants
+        .map((variant) => {
+          const source = normalizeShopProductMediaSource(variant.image);
+          const next = source ? resolvedSources.get(source) : undefined;
+          return next ? { id: variant.id, image: next } : null;
+        })
+        .filter((value): value is { id: string; image: string } => Boolean(value));
+      const metafieldUpdates = product.metafields.flatMap((metafield) => {
+        try {
+          const rewritten = rewriteShopProductMediaValue(
+            JSON.parse(metafield.value),
+            resolvedSources
+          );
+          return rewritten.replacements
+            ? [{ id: metafield.id, value: JSON.stringify(rewritten.value) }]
+            : [];
+        } catch {
+          return [];
+        }
       });
-      if (!latest) throw new Error(`Missing product during media migration: ${product.id}`);
-      return coordinateShopCatalogProductMutationWithClient(prisma, {
-        productId: product.id,
-        expectedCatalogVersion: latest.catalogVersion.toString(),
-      changeDomains: ["MEDIA"],
-      transactionMaxWaitMs,
-        async mutateAndSnapshot(tx, nextCatalogVersion) {
-          const productData: Prisma.ShopProductUpdateInput = {};
-          if (primaryChanged && nextPrimary) productData.image = nextPrimary;
-          if (rewrittenGallery.replacements > 0) {
-            productData.gallery = rewrittenGallery.value as Prisma.InputJsonValue;
-          }
-          if (Object.keys(productData).length > 0) {
-            await tx.shopProduct.update({ where: { id: product.id }, data: productData });
-          }
-          for (const media of mediaUpdates) {
-            const updated = await tx.shopProductMedia.updateMany({
-              where: { id: media.id, productId: product.id },
-              data: { src: media.src },
-            });
-            if (updated.count !== 1) throw new Error(`Media ownership changed for ${media.id}`);
-          }
-          for (const variant of variantUpdates) {
-            const updated = await tx.shopProductVariant.updateMany({
-              where: { id: variant.id, productId: product.id },
-              data: { image: variant.image },
-            });
-            if (updated.count !== 1) throw new Error(`Media ownership changed for ${variant.id}`);
-          }
-          for (const metafield of metafieldUpdates) {
-            const updated = await tx.shopProductMetafield.updateMany({
-              where: {
-                id: metafield.id,
-                productId: product.id,
-                namespace: "wheelforce_import",
-                key: "accessory_options",
-              },
-              data: { value: metafield.value },
-            });
-            if (updated.count !== 1) {
-              throw new Error("Accessory media ownership changed for " + metafield.id);
+
+      const primaryChanged = Boolean(nextPrimary && nextPrimary !== product.image);
+      const hasChanges =
+        primaryChanged ||
+        rewrittenGallery.replacements > 0 ||
+        mediaUpdates.length > 0 ||
+        variantUpdates.length > 0 ||
+        metafieldUpdates.length > 0;
+      if (!hasChanges) return;
+
+      const mutation = await retryTransient(async () => {
+        const latest = await prisma.shopProduct.findUnique({
+          where: { id: product.id },
+          select: { catalogVersion: true },
+        });
+        if (!latest) throw new Error(`Missing product during media migration: ${product.id}`);
+        return coordinateShopCatalogProductMutationWithClient(prisma, {
+          productId: product.id,
+          expectedCatalogVersion: latest.catalogVersion.toString(),
+          changeDomains: ["MEDIA"],
+          transactionMaxWaitMs,
+          async mutateAndSnapshot(tx, nextCatalogVersion) {
+            const productData: Prisma.ShopProductUpdateInput = {};
+            if (primaryChanged && nextPrimary) productData.image = nextPrimary;
+            if (rewrittenGallery.replacements > 0) {
+              productData.gallery = rewrittenGallery.value as Prisma.InputJsonValue;
             }
-          }
-          return buildShopCatalogAdminSnapshot(tx, product.id, nextCatalogVersion, {
-            type: "IMPORT",
-            id: "shop-product-media-blob-migration@system.local",
-            reason: "shop.product-media.blob-migration",
-          });
-        },
+            if (Object.keys(productData).length > 0) {
+              await tx.shopProduct.update({ where: { id: product.id }, data: productData });
+            }
+            for (const media of mediaUpdates) {
+              const updated = await tx.shopProductMedia.updateMany({
+                where: { id: media.id, productId: product.id },
+                data: { src: media.src },
+              });
+              if (updated.count !== 1) throw new Error(`Media ownership changed for ${media.id}`);
+            }
+            for (const variant of variantUpdates) {
+              const updated = await tx.shopProductVariant.updateMany({
+                where: { id: variant.id, productId: product.id },
+                data: { image: variant.image },
+              });
+              if (updated.count !== 1) throw new Error(`Media ownership changed for ${variant.id}`);
+            }
+            for (const metafield of metafieldUpdates) {
+              const updated = await tx.shopProductMetafield.updateMany({
+                where: {
+                  id: metafield.id,
+                  productId: product.id,
+                  namespace: "wheelforce_import",
+                  key: "accessory_options",
+                },
+                data: { value: metafield.value },
+              });
+              if (updated.count !== 1) {
+                throw new Error("Accessory media ownership changed for " + metafield.id);
+              }
+            }
+            return buildShopCatalogAdminSnapshot(tx, product.id, nextCatalogVersion, {
+              type: "IMPORT",
+              id: "shop-product-media-blob-migration@system.local",
+              reason: "shop.product-media.blob-migration",
+            });
+          },
+        });
+      }).catch((error) => {
+        mutationFailures += 1;
+        console.error(
+          `Product mutation skipped for ${product.slug}: ${error instanceof Error ? error.message : String(error)}`
+        );
+        return null;
       });
-    }).catch((error) => {
-      mutationFailures += 1;
-      console.error(
-        `Product mutation skipped for ${product.slug}: ${error instanceof Error ? error.message : String(error)}`
-      );
-      return null;
-    });
 
-    if (!mutation) return;
+      if (!mutation) return;
 
-    catalogOutboxIds.push(mutation.outboxId);
-    if (primaryChanged) productPrimaryImages += 1;
-    if (rewrittenGallery.replacements > 0) productGalleries += 1;
-    productMedia += mediaUpdates.length;
-    variantImages += variantUpdates.length;
-    accessoryOptionImages += metafieldUpdates.length;
+      catalogOutboxIds.push(mutation.outboxId);
+      if (primaryChanged) productPrimaryImages += 1;
+      if (rewrittenGallery.replacements > 0) productGalleries += 1;
+      productMedia += mediaUpdates.length;
+      variantImages += variantUpdates.length;
+      accessoryOptionImages += metafieldUpdates.length;
     },
     rewriteConcurrency
   );
@@ -695,8 +713,12 @@ async function main() {
   console.log(`Mode: ${commit ? "COMMIT" : "DRY-RUN (pass --commit to apply)"}`);
   console.log(`Scope: ${brand ? `brand=${brand}` : slug ? `slug=${slug}` : "all products"}`);
   console.log(`Concurrency: ${concurrency}`);
-  console.log(`DB rewrite concurrency: ${rewriteConcurrency}; transaction max wait: ${transactionMaxWaitMs}ms`);
-  console.log(`Incomplete products: ${allowPartial ? "rewrite verified sources only" : "skip atomically"}`);
+  console.log(
+    `DB rewrite concurrency: ${rewriteConcurrency}; transaction max wait: ${transactionMaxWaitMs}ms`
+  );
+  console.log(
+    `Incomplete products: ${allowPartial ? "rewrite verified sources only" : "skip atomically"}`
+  );
 
   if (commit && !reusePublicBlobs && !isBlobStorageConfigured()) {
     throw new Error(
@@ -718,8 +740,12 @@ async function main() {
       .map(([source, resolution]) => [source, resolution.blobUrl!] as const)
   );
   const failed = [...resolutions.values()].filter((resolution) => resolution.status === "failed");
-  const existing = [...resolutions.values()].filter((resolution) => resolution.status === "existing");
-  const uploaded = [...resolutions.values()].filter((resolution) => resolution.status === "uploaded");
+  const existing = [...resolutions.values()].filter(
+    (resolution) => resolution.status === "existing"
+  );
+  const uploaded = [...resolutions.values()].filter(
+    (resolution) => resolution.status === "uploaded"
+  );
   const pending = [...resolutions.values()].filter((resolution) => resolution.status === "pending");
 
   console.log(`Products inspected: ${products.length}`);
