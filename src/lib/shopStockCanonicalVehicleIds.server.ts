@@ -115,12 +115,29 @@ export async function resolveCanonicalVehicleProductIds(input: {
   make: string;
   model: string;
   chassis: string;
+  /** Labels a supplier files the selected chassis under (KW: RS5 B9 as `B8`). */
+  chassisAlternates?: readonly string[] | null;
   year: number | null;
   engine: string | null;
   fuel: string | null;
   opfGpf: string | null;
   scope: ShopStockVehicleScope | null;
 }): Promise<string[] | null> {
+  const chassisAlternates = (input.chassisAlternates ?? []).filter(
+    (alternate) =>
+      vehicleChassisKey(alternate) &&
+      vehicleChassisKey(alternate) !== vehicleChassisKey(input.chassis)
+  );
+  if (input.chassis && chassisAlternates.length) {
+    // Either label matches; each one keeps the single-chassis query below.
+    const results = await Promise.all(
+      [input.chassis, ...new Set(chassisAlternates)].map((chassis) =>
+        resolveCanonicalVehicleProductIds({ ...input, chassis, chassisAlternates: null })
+      )
+    );
+    if (results.some((ids) => ids === null)) return null;
+    return [...new Set(results.flatMap((ids) => ids ?? []))];
+  }
   if (
     !input.make &&
     !input.model &&

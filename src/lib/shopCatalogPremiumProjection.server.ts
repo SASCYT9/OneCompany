@@ -150,6 +150,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
       : resolveLegacyVehicleProductTiers({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
+          generationAlternates: vehiclePlan.generationAlternates,
           brand: firstBrand(params),
         })
   );
@@ -200,6 +201,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     category: clean(params.get("category")),
     ...vehiclePlan.constraints,
     modelAlternates: vehiclePlan.modelAlternates,
+    generationAlternates: vehiclePlan.generationAlternates,
     minPrice,
     maxPrice,
     priceCurrency,
@@ -322,6 +324,7 @@ export async function queryPremiumCatalogProjection(params: URLSearchParams) {
     query.model = null;
     query.modelAlternates = null;
     query.generation = null;
+    query.generationAlternates = null;
     query.year = null;
   }
 

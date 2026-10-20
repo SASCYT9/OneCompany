@@ -87,6 +87,7 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     opfGpf: null,
     // G63 narrows the broad G-Class constraint for free-text matching (#124).
     modelAlternates: ["G63"],
+    generationAlternates: [],
   });
   assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("BMW M3 G80 Eventuri"), {
     make: "BMW",
@@ -97,6 +98,19 @@ test("structured vehicle suggestions reuse specific verified fitment constraints
     fuel: null,
     opfGpf: null,
     modelAlternates: [],
+    generationAlternates: [],
+  });
+  // KW files the RS5 B9 under A5 B8: the B9 suggestion accepts that label too.
+  assert.deepEqual(getShopCatalogSuggestionVehicleConstraints("Audi RS5 B9"), {
+    make: "Audi",
+    model: "A5",
+    generation: "B9",
+    year: null,
+    engine: null,
+    fuel: null,
+    opfGpf: null,
+    modelAlternates: ["RS5"],
+    generationAlternates: ["B8"],
   });
   assert.equal(getShopCatalogSuggestionVehicleConstraints("BMW G8X"), null);
   assert.equal(getShopCatalogSuggestionTextQuery("AMG G63 W465"), "G63 AMG");

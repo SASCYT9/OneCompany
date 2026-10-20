@@ -72,7 +72,11 @@ export function getShopCatalogSuggestionVehicleConstraints(query: string) {
   });
   const { make, model, generation } = plan.constraints;
   if (!make || (!model && !generation)) return null;
-  return { ...plan.constraints, modelAlternates: plan.modelAlternates };
+  return {
+    ...plan.constraints,
+    modelAlternates: plan.modelAlternates,
+    generationAlternates: plan.generationAlternates,
+  };
 }
 
 export function getShopCatalogSuggestionTextQuery(query: string) {
@@ -354,6 +358,7 @@ export async function queryShopCatalogSuggestions(
       ? await resolveLegacyVehicleProductIds({
           ...vehicleSearchPlan.constraints,
           modelAlternates: vehicleSearchPlan.modelAlternates,
+          generationAlternates: vehicleSearchPlan.generationAlternates,
         })
       : null;
   const productQuery = getShopCatalogSuggestionTextQuery(input.query);

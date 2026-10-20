@@ -40,6 +40,8 @@ type LegacyVehicleQuery = {
   model?: string | null;
   modelAlternates?: readonly string[] | null;
   generation?: string | null;
+  /** Labels a supplier files the selected generation under (KW: RS5 B9 as `B8`). */
+  generationAlternates?: readonly string[] | null;
   year?: number | null;
 };
 
@@ -596,7 +598,9 @@ async function getCachedVehicleEvidence(
   if (cached) sharedCache.evidence.delete(key);
   const pending = sharedCache.pendingEvidence.get(key);
   if (pending) return pending;
-  const generationFilters = generationValue ? generationStringFilters(generationValue, canonicalMake) : [];
+  const generationFilters = generationValue
+    ? generationStringFilters(generationValue, canonicalMake)
+    : [];
   const clauseAnd: Prisma.ShopCatalogProjectionClauseWhereInput[] = [
     ...(year
       ? [
@@ -971,10 +975,39 @@ async function resolveLegacyVehicleProductTiersUncached(
   return { ids: [...ids], exactIds: [...exactIds] };
 }
 
+/** The selected generation followed by its distinct alternate labels. */
+function selectedGenerations(input: LegacyVehicleQuery) {
+  if (!input.generation?.trim()) return [];
+  const seen = new Set<string>();
+  return [input.generation, ...(input.generationAlternates ?? [])]
+    .map((value) => value?.trim() ?? "")
+    .filter((value) => {
+      const key = vehicleChassisKey(value);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 export async function resolveLegacyVehicleProductTiers(
   input: LegacyVehicleQuery
 ): Promise<LegacyVehicleTiers | null> {
   if (!input.make && !input.model && !input.generation && !input.year) return null;
+
+  // A generation filed under another label matches either one. Each label is
+  // resolved (and cached) on its own; a product exact for either is exact.
+  const generations = selectedGenerations(input);
+  if (generations.length > 1) {
+    const tiers = await Promise.all(
+      generations.map((generation) =>
+        resolveLegacyVehicleProductTiers({ ...input, generation, generationAlternates: null })
+      )
+    );
+    return {
+      ids: [...new Set(tiers.flatMap((tier) => tier?.ids ?? []))],
+      exactIds: [...new Set(tiers.flatMap((tier) => tier?.exactIds ?? []))],
+    };
+  }
 
   const key = vehicleQueryCacheKey(input);
   const cached = sharedCache.resolvedVehicleIds.get(key);
