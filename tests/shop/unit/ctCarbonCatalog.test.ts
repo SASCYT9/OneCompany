@@ -229,6 +229,39 @@ test("kit lists count whole bumpers, ducts and wing risers", () => {
     ]),
     ["splitter", "medium", "sideSkirts", "small", "diffuser", "spoiler", "small"]
   );
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THE KIT (7 ITEMS)",
+      "Splitter",
+      "Front Bumper Trim",
+      "Arch Extensions",
+      "Side Skirts",
+      "Diffuser with tips",
+      "Middle Spoiler",
+      "Roof Spoiler",
+    ]),
+    ["splitter", "small", "panel", "sideSkirts", "diffuser", "spoiler", "spoiler"]
+  );
+});
+
+test("a title naming another part beats CT's product type, a small title does not", () => {
+  const cases: Array<[string, string, string]> = [
+    ["Splitter", "ROLLS ROYCE CULLINAN CARBON FIBRE SIDE SKIRTS - CT DESIGN", "sideSkirts"],
+    ["Splitter", "HYUNDAI i30N CARBON FIBRE DIFFUSER (PRE-FACELIFT) - CT DESIGN", "diffuser"],
+    ["Splitter", "BMW U11 X1 2023+ GLOSS BLACK SPOILER", "spoiler"],
+    ["Splitter", "ROLLS ROYCE CULLINAN CARBON FIBRE WHEEL ARCH EXTENSIONS - CT DESIGN", "panel"],
+    ["Spoiler", "AUDI TTRS QUATTRO MK3 2015-2020 CARBON FIBRE SPLITTER", "splitter"],
+    ["Side Skirts", "BMW G82 & G83 M4 2021+ GLOSS BLACK REAR BUMPER CORNERS", "medium"],
+    ["Bumper Trim", "PORSCHE 911 992.1 GT3 CARBON FIBRE FRONT INTAKE PANEL - CT DESIGN", "medium"],
+    // The title also names the typed part, or names only a small one: the type stays.
+    ["Splitter", "MERCEDES A-CLASS V177 & W177 GLOSS BLACK SPLITTER & CANARDS", "splitter"],
+    ["Spoiler", "PORSCHE 911 992.1 GT3 2022-2024 CARBON FIBRE WING WITH RISERS", "spoiler"],
+    ["Roof Scoop", "LAMBORGHINI REVUELTO CARBON FIBRE ENGINE COVER & ROOF SCOOP", "panel"],
+    ["Splitter", "FERRARI F8 2019-2023 FRONT BUMPER CARBON FIBRE TRIM", "splitter"],
+  ];
+  for (const [productType, title, expected] of cases) {
+    assert.deepEqual(part(productType, title).parts, [expected], title);
+  }
 });
 
 test("part types without a bot quote use the closest size class", () => {

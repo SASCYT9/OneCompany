@@ -115,7 +115,7 @@ const PART_PATTERNS: Array<[RegExp, CtCarbonDeliveryClass]> = [
   ],
   // Long and heavy: packed like a pair of side skirts.
   [/\b(?:side steps?|running boards?|roof rails?)\b/i, "sideSkirts"],
-  [/\b(?:wide ?arch|arches|fenders?|wide ?body)\b/i, "panel"],
+  [/\b(?:(?:wide ?)?arch(?:es)?|fenders?|wide ?body)\b/i, "panel"],
   [/\b(?:bonnet|hood|boot ?lid|trunk ?lid|roof scoop)\b/i, "panel"],
   [/\bside ?skirts?\b/i, "sideSkirts"],
   [/\bdiffuser\b/i, "diffuser"],
@@ -136,6 +136,10 @@ function partClassOfLine(line: string): CtCarbonDeliveryClass | null {
     if (pattern.test(line)) return part;
   }
   return null;
+}
+
+function lineNamesPartClass(line: string, part: CtCarbonDeliveryClass) {
+  return PART_PATTERNS.some(([pattern, patternPart]) => patternPart === part && pattern.test(line));
 }
 
 /** A kit-list line that is a whole bumper ("Front Bumper", "Rear Bumpers"), not a trim on one. */
@@ -243,6 +247,12 @@ export function ctCarbonDelivery(
   const byTitle = partClassOfLine(product.title);
   // Vents or trims listed under a panel's product type ("FENDER VENTS") are small parts.
   if (byType === "panel" && byTitle === "small") return total(["small"], "part");
+  // CT files some parts under another part's type ("ROLLS ROYCE CULLINAN … SIDE SKIRTS" is
+  // typed Splitter): a title that names a bigger part and never the typed one wins. Small
+  // titles keep the type, whose tags usually confirm it ("F8 FRONT BUMPER TRIM" is a splitter).
+  if (byType && byTitle && byTitle !== "small" && byTitle !== byType) {
+    if (!lineNamesPartClass(product.title, byType)) return total([byTitle], "part");
+  }
   // A title without a part name: the description often names it ("CT Carbon diffuser made …").
   const byDescription = partClassOfLine(product.bodyParagraphs[0] ?? "");
   return total([byType ?? byTitle ?? byDescription ?? "small"], "part");
