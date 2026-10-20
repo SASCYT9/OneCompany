@@ -125,7 +125,7 @@ const PART_PATTERNS: Array<[RegExp, CtCarbonDeliveryClass]> = [
   [/\b(?:cross ?bars?|strut brace|roof light|light bar|snorkel)\b/i, "spoiler"],
   [/\bsteering wheel\b/i, "medium"],
   [
-    /\b(?:bumper (?:lower )?corners?|rear corners?|door panels?|seats? backs?|storage box(?:es)?|intakes?|exhaust tips?)\b/i,
+    /\b(?:bumper (?:lower )?corners?|rear corners?|door panels?|seats? backs?|storage box(?:es)?|intakes?|exhaust tips?|tips)\b/i,
     "medium",
   ],
   [/\b(?:mirrors?|covers?)\b/i, "small"],
@@ -284,8 +284,11 @@ export function ctCarbonDelivery(
       ? parseCtCarbonKitList(["Kit includes:", ...product.bodyParagraphs.slice(comesWith + 1)])
       : [];
   if (included.length >= 2) return total(included, "kit-list");
-  if (KIT_TITLE.test(product.title) && /\s(?:&|and)\s/i.test(product.title)) {
-    const named = product.title
+  // Parts joined in the title ("DIFFUSER & EXHAUST TIPS", "SPLITTER AND CANARDS") all ship;
+  // what follows "with" describes the part ("STEERING WHEEL WITH HEATING & CARBON FIBRE TRIM").
+  const titleHead = product.title.split(/\swith\s/i)[0] ?? product.title;
+  if (/\s(?:&|and)\s/i.test(titleHead)) {
+    const named = titleHead
       .split(/\s(?:&|and)\s/i)
       .map((piece) => partClassOfLine(piece))
       .filter((part): part is CtCarbonDeliveryClass => part !== null);

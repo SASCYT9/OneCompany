@@ -188,6 +188,42 @@ test("a single listing that ships several parts adds them up", () => {
     ["small", "small", "medium"]
   );
   assert.deepEqual(listing("BMW G8X Steering Wheel & Paddles Pack"), ["medium", "small"]);
+  assert.deepEqual(
+    ctCarbonDelivery({
+      productType: "Diffuser",
+      title: "MERCEDES W205 C63 & C63S SALOON 4DR CARBON FIBRE DIFFUSER & EXHAUST TIPS",
+      tags: [],
+      bodyParagraphs: [],
+    }).parts,
+    ["diffuser", "medium"]
+  );
+  assert.deepEqual(
+    ctCarbonDelivery({
+      productType: "Splitter",
+      title: "ROLLS ROYCE CULLINAN CARBON FIBRE DIFFUSER AND TIPS - CT DESIGN",
+      tags: [],
+      bodyParagraphs: [],
+    }).parts,
+    ["diffuser", "medium"]
+  );
+  assert.deepEqual(
+    ctCarbonDelivery({
+      productType: "Splitter",
+      title: "MERCEDES A-CLASS V177 & W177 GLOSS BLACK SPLITTER & CANARDS",
+      tags: [],
+      bodyParagraphs: [],
+    }).parts,
+    ["splitter", "small"]
+  );
+  assert.deepEqual(
+    ctCarbonDelivery({
+      productType: "Roof Scoop",
+      title: "LAMBORGHINI REVUELTO CARBON FIBRE ENGINE COVER & ROOF SCOOP - CT DESIGN",
+      tags: [],
+      bodyParagraphs: [],
+    }).parts,
+    ["medium", "panel"]
+  );
   // The part named before "with" is what ships; its trim is part of it.
   assert.deepEqual(
     listing("BMW GXX ALCANTARA FLAT BOTTOM STEERING WHEEL WITH HEATING & CARBON FIBRE TRIM"),
@@ -378,9 +414,9 @@ test("a title naming another part beats CT's product type, of small titles only 
     ["Spoiler", "AUDI R8 V10 GEN 2.5 2020-2023 CARBON FIBRE FRONT CANARDS - V2", "small"],
     ["Spoiler", "PORSCHE 911 GT2 RS/GT3 RS WING RISERS - BLACK - CT DESIGN", "small"],
     // The title also names the typed part, or names only a small one: the type stays.
-    ["Splitter", "MERCEDES A-CLASS V177 & W177 GLOSS BLACK SPLITTER & CANARDS", "splitter"],
+    ["Splitter", "BMW M3/M4 (F80 F82 F83) CARBON FIBRE SPLITTER (NO CANARDS) - V6", "splitter"],
     ["Spoiler", "PORSCHE 911 992.1 GT3 2022-2024 CARBON FIBRE WING WITH RISERS", "spoiler"],
-    ["Roof Scoop", "LAMBORGHINI REVUELTO CARBON FIBRE ENGINE COVER & ROOF SCOOP", "panel"],
+    ["Roof Scoop", "MCLAREN 720S CARBON FIBRE ROOF SCOOP - CT DESIGN", "panel"],
     ["Splitter", "FERRARI F8 2019-2023 FRONT BUMPER CARBON FIBRE TRIM", "splitter"],
   ];
   for (const [productType, title, expected] of cases) {
