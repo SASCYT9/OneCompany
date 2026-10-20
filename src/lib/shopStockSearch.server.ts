@@ -1138,6 +1138,7 @@ export async function searchShopStock(request: { url: string }, options?: { anon
           : resolveCanonicalVehicleProductIds({
               make: resolvedVehicleMake,
               model: resolvedVehicleModel,
+              modelAlternates: queryVehiclePlan.modelAlternates,
               chassis: resolvedVehicleChassis,
               chassisAlternates: queryVehiclePlan.generationAlternates,
               year: resolvedVehicleYear,
