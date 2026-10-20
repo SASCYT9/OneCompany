@@ -167,14 +167,14 @@ function partClassOfListLine(line: string): CtCarbonDeliveryClass | null {
 function isKit(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
   return (
     KIT_TYPES.has(product.productType.trim().toLowerCase()) ||
-    /\b(?:full kit|carbon fibre kit|gloss black kit|black kit|full .*kit|rear end kit|front end (?:kit|pack)|package)\b/i.test(
+    /\b(?:full kit|carbon fibre kit|gloss black kit|black kit|full .*kit|rear end kit|front end (?:kit|pack)|dress[- ]up kit|package)\b/i.test(
       product.title
     )
   );
 }
 
 const KIT_LIST_HEADER =
-  /\b(?:included in (?:the|this) (?:kit|package|pack)|comprised of|consists of|kit includes|package includes|includes the following|the kit includes|this kit includes|kit features|what'?s included|in the box)\b/i;
+  /\b(?:included in (?:the|this) (?:kit|package|pack)|comprised of|composed of|consists of|kit includes|package includes|includes the following|featuring the following|the kit includes|this kit includes|kit features|what'?s included|in the box)\b/i;
 const KIT_LIST_END = /\b(?:designed in[- ]house|fitment|fits\b|made from)\b/i;
 /** "Please note … fitted to your bootlid …": a note ends the list whatever parts it names. */
 const KIT_LIST_NOTE = /\b(?:please note|note:)/i;
@@ -247,6 +247,7 @@ function partsFromKitTitle(title: string): CtCarbonDeliveryClass[] {
   // A trim pack is a box of small trims; moulding trims are long door claddings.
   if (/\bmoulding trim (?:pack|set)\b/i.test(title)) return ["sideSkirts"];
   if (/\btrim (?:pack|set)\b/i.test(title)) return ["medium"];
+  if (/\bdress[- ]up kit\b/i.test(title)) return ["medium"];
   if (/\brear end\b/i.test(title)) return ["diffuser", "spoiler"];
   if (/\bfront end\b/i.test(title)) return ["splitter", "medium"];
   if (/\bwide ?arch\b/i.test(title)) return ["panel", "splitter", "sideSkirts", "diffuser"];
@@ -382,8 +383,29 @@ export function isCtCarbonGlossBlack(product: Pick<CtCarbonSourceProduct, "vendo
   return /blak/i.test(product.vendor) || /\bgloss black\b/i.test(product.title);
 }
 
-export function ctCarbonProductType(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
+/** The part type for a product whose title corrected CT's product type (see ctCarbonDelivery). */
+const CORRECTED_PART_COPY: Partial<Record<CtCarbonDeliveryClass, keyof typeof PART_COPY>> = {
+  spoiler: "spoiler",
+  splitter: "splitter",
+  diffuser: "diffuser",
+  sideSkirts: "side skirts",
+};
+
+export function ctCarbonProductType(
+  product: Pick<CtCarbonSourceProduct, "productType" | "title" | "tags" | "bodyParagraphs">
+) {
   const key = product.productType.trim().toLowerCase();
+  const typed = PART_TYPE_CLASS[key];
+  const delivery = ctCarbonDelivery(product);
+  const part = delivery.basis === "part" ? delivery.parts[0] : undefined;
+  if (part && part !== typed && (typed || KIT_TYPES.has(key))) {
+    // CT typed it as another part ("FRONT CANARDS" typed Spoiler): the shop's own size
+    // class (Nova Poshta) reads the type, so the corrected part names it, or the title does.
+    const corrected = CORRECTED_PART_COPY[part];
+    if (corrected) return PART_COPY[corrected];
+    if (part === "panel" && /\barch/i.test(product.title)) return PART_COPY.arches;
+    return PART_COPY.accessories;
+  }
   if (PART_COPY[key]) return PART_COPY[key];
   if (/\bdrl\b/i.test(product.title)) return PART_COPY.drl;
   if (isKit(product)) return PART_COPY.kit;

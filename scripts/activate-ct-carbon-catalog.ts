@@ -64,6 +64,7 @@ async function main() {
     );
   }
   const expectedSkus = new Set(payloads.map((payload) => payload.sku));
+  const reviewed = new Map(payloads.map((payload) => [payload.sku, payload]));
 
   const prisma = new PrismaClient();
   try {
@@ -77,11 +78,12 @@ async function main() {
         isPublished: true,
         catalogVersion: true,
         stock: true,
+        titleEn: true,
         priceUsd: true,
         priceSourceCurrency: true,
         image: true,
         media: { where: { mediaType: "IMAGE" }, select: { src: true } },
-        variants: { select: { priceUsd: true } },
+        variants: { select: { sku: true, priceUsd: true } },
         metafields: {
           where: {
             OR: [
@@ -98,6 +100,25 @@ async function main() {
     const invalid = products.flatMap((product) => {
       const issues: string[] = [];
       if (!product.sku || !expectedSkus.has(product.sku)) issues.push("not in the reviewed source");
+      // The draft must be the reviewed payload as it stands now (re-import after any change).
+      const payload = reviewed.get(product.sku);
+      if (payload) {
+        const priceOf = (value: unknown) => Number(value ?? 0).toFixed(2);
+        const storedVariants = product.variants
+          .map((variant) => `${variant.sku}=${priceOf(variant.priceUsd)}`)
+          .sort();
+        const reviewedVariants = payload.variants
+          .map((variant) => `${variant.sku}=${priceOf(variant.priceUsd)}`)
+          .sort();
+        if (priceOf(product.priceUsd) !== priceOf(payload.priceUsd)) {
+          issues.push("price differs from the reviewed source");
+        }
+        if (storedVariants.join() !== reviewedVariants.join()) {
+          issues.push("variants differ from the reviewed source");
+        }
+        if (product.titleEn !== payload.titleEn)
+          issues.push("title differs from the reviewed source");
+      }
       const fitment = parseSupplierFitmentContract(
         product.metafields.find((item) => item.key === "supplier_fitment")?.value
       );

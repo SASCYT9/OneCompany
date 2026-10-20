@@ -8,6 +8,7 @@ import {
   ctCarbonCategory,
   ctCarbonDelivery,
   ctCarbonPackage,
+  ctCarbonProductType,
   ctCarbonSitePriceGbp,
   ctCarbonSku,
   normalizeCtCarbonOptionName,
@@ -171,6 +172,51 @@ test("parts a kit says it does not include are not counted", () => {
     ]),
     ["splitter", "medium"]
   );
+});
+
+test("dress-up kits and 'composed of' lists count every piece", () => {
+  const dressUp = ctCarbonDelivery({
+    productType: "Accessories",
+    title: "BMW M2 M3 & M4 G87/G80/G81/G82/G83 CARBON FIBRE ENGINE DRESS UP KIT - V2",
+    tags: [],
+    bodyParagraphs: [
+      "The CT Carbon engine bay dress-up kit, all made from high-quality genuine carbon fibre. Featuring the following pieces:",
+      "Carbon Fibre Strut Brace",
+      "Carbon Fibre Engine Cover",
+    ],
+  });
+  assert.deepEqual(dressUp.parts, ["spoiler", "medium"]);
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "CT Carbon full kit for the BMW G01 X3, made from ABS plastic & finished in GLOSS BLACK. Composed of the following:",
+      "Gloss Black Splitter",
+      "Gloss Black Side Skirts",
+      "Gloss Black Diffuser",
+      "Gloss Black Spoiler",
+      "Please Note: The Exhaust tips within this kit need to be welded onto your vehicle.",
+    ]),
+    ["splitter", "sideSkirts", "diffuser", "spoiler", "medium"]
+  );
+});
+
+test("the product type follows the corrected part, so Nova Poshta sizes it right", () => {
+  const typeOf = (productType: string, title: string) =>
+    ctCarbonProductType({ productType, title, tags: [], bodyParagraphs: [] }).productType;
+  assert.equal(
+    typeOf("Spoiler", "AUDI R8 V10 GEN 2.5 CARBON FIBRE FRONT CANARDS - V2"),
+    "Accessories"
+  );
+  assert.equal(typeOf("Splitter", "ROLLS ROYCE CULLINAN CARBON FIBRE SIDE SKIRTS"), "Side Skirts");
+  assert.equal(
+    typeOf("Splitter", "ROLLS ROYCE CULLINAN CARBON FIBRE WHEEL ARCH EXTENSIONS"),
+    "Fender Arches"
+  );
+  assert.equal(
+    typeOf("Front End Pack", "LAND ROVER DEFENDER L663 2020+ GLOSS BLACK FRONT BUMPER TRIM"),
+    "Accessories"
+  );
+  assert.equal(typeOf("Spoiler", "BMW G80 M3 CARBON FIBRE SPOILER - V12"), "Spoiler");
+  assert.equal(typeOf("Kit", "BMW G80 M3 FULL CARBON FIBRE KIT - V25"), "Body Kit");
 });
 
 test("a kit line is the part it names first, not the vents on it", () => {
