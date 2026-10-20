@@ -36,6 +36,7 @@ import {
   type SupplierCopy,
   type SupplierCopyOverride,
 } from "../src/lib/supplierCatalogCopy";
+import { ctCarbonCopySourceHash } from "./ct-carbon/ct-carbon-copy-source.mjs";
 
 const SOURCE_PATH = path.resolve("data/ct-carbon/source.json");
 const COPY_PATH = path.resolve("data/ct-carbon/copy.json");
@@ -53,7 +54,12 @@ const CHANGE_DOMAINS = [
 ] as const;
 
 type SourceFile = { schemaVersion: number; generatedAt: string; products: CtCarbonSourceProduct[] };
-type CopyEntry = SupplierCopy & { issues?: string[]; model?: string; generatedAt?: string };
+type CopyEntry = SupplierCopy & {
+  issues?: string[];
+  model?: string;
+  generatedAt?: string;
+  sourceHash?: string;
+};
 type CopyFile = { products: Record<string, CopyEntry> };
 
 async function retryTransient<T>(action: () => Promise<T>) {
@@ -89,6 +95,10 @@ export async function loadCtCarbonImport() {
     const productProblems: string[] = [];
     if (!entry) productProblems.push("no reviewed copy");
     else if (entry.issues?.length) productProblems.push(`copy issues ${entry.issues.join("; ")}`);
+    else if (entry.sourceHash !== ctCarbonCopySourceHash(product)) {
+      // The copy was written for an older SOURCE: regenerate or re-validate it first.
+      productProblems.push("copy is for an older source (run generate-ct-carbon-copy.mjs)");
+    }
     if (!product.images.length) productProblems.push("no photos");
     if (!product.variants.length) productProblems.push("no variant to sell");
     const slug = buildCtCarbonSlug(product);

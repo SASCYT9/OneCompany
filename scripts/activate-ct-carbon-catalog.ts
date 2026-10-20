@@ -228,6 +228,19 @@ async function main() {
       }
       process.stderr.write(`published ${Math.min(offset + 500, jobIds.length)}/${jobIds.length}\n`);
     }
+    // A rerun skips products that are already active, so a projection job that failed for
+    // good in an earlier run must still fail this one.
+    const deadLettered = await prisma.shopCatalogOutbox.count({
+      where: {
+        productId: { in: products.map((product) => product.id) },
+        status: "DEAD_LETTER",
+      },
+    });
+    if (deadLettered) {
+      throw new Error(
+        `CT Carbon publication: ${deadLettered} catalog job(s) are dead-lettered; repair them before treating the release as published`
+      );
+    }
 
     process.stdout.write(
       `${JSON.stringify(
