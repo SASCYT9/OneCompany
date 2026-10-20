@@ -143,6 +143,46 @@ test("parts a kit says it does not include are not counted", () => {
     ]),
     ["splitter", "sideSkirts"]
   );
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "Full CT Carbon kit designed in-house for the new Audi RS3 8Y Sportback. The kit features:",
+      "Ultra-aggressive 3-piece diffuser",
+      "Side skirt extensions",
+      "Aggressive 4-piece design splitter",
+      "THIS KIT DOES NOT COME WITH A SPOILER",
+    ]),
+    ["diffuser", "sideSkirts", "splitter"]
+  );
+  // A note ends the list even when it mentions parts of the car, unless they are in the kit.
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "This kit is comprised of the following parts",
+      "3-Piece Splitter",
+      "Spoiler",
+      "Please note that we will provide you with rubbers which need to be fitted to your bootlid to avoid it damaging the spoiler.",
+    ]),
+    ["splitter", "spoiler"]
+  );
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "CT Carbon full kit for the BMW G01 X3, the kit includes:",
+      "Gloss Black Splitter",
+      "Please Note: The Exhaust tips within this kit need to be welded onto your vehicle.",
+    ]),
+    ["splitter", "medium"]
+  );
+});
+
+test("a kit line is the part it names first, not the vents on it", () => {
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THE KIT (2 ITEMS)",
+      "Bonnet/Hood - replacing the OEM bonnet with a Carbon Fibre version which includes an air vent.",
+      "Front Fenders/Wings - replacing the OEM wing with an aggressive Carbon Fibre version which include air vents.",
+      "Designed in house by our team",
+    ]),
+    ["panel", "panel"]
+  );
 });
 
 test("a kit-type product whose title names one part is that part", () => {
@@ -244,7 +284,7 @@ test("kit lists count whole bumpers, ducts and wing risers", () => {
   );
 });
 
-test("a title naming another part beats CT's product type, a small title does not", () => {
+test("a title naming another part beats CT's product type, of small titles only add-ons", () => {
   const cases: Array<[string, string, string]> = [
     ["Splitter", "ROLLS ROYCE CULLINAN CARBON FIBRE SIDE SKIRTS - CT DESIGN", "sideSkirts"],
     ["Splitter", "HYUNDAI i30N CARBON FIBRE DIFFUSER (PRE-FACELIFT) - CT DESIGN", "diffuser"],
@@ -253,6 +293,8 @@ test("a title naming another part beats CT's product type, a small title does no
     ["Spoiler", "AUDI TTRS QUATTRO MK3 2015-2020 CARBON FIBRE SPLITTER", "splitter"],
     ["Side Skirts", "BMW G82 & G83 M4 2021+ GLOSS BLACK REAR BUMPER CORNERS", "medium"],
     ["Bumper Trim", "PORSCHE 911 992.1 GT3 CARBON FIBRE FRONT INTAKE PANEL - CT DESIGN", "medium"],
+    ["Spoiler", "AUDI R8 V10 GEN 2.5 2020-2023 CARBON FIBRE FRONT CANARDS - V2", "small"],
+    ["Spoiler", "PORSCHE 911 GT2 RS/GT3 RS WING RISERS - BLACK - CT DESIGN", "small"],
     // The title also names the typed part, or names only a small one: the type stays.
     ["Splitter", "MERCEDES A-CLASS V177 & W177 GLOSS BLACK SPLITTER & CANARDS", "splitter"],
     ["Spoiler", "PORSCHE 911 992.1 GT3 2022-2024 CARBON FIBRE WING WITH RISERS", "spoiler"],

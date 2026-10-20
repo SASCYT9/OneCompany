@@ -57,7 +57,12 @@ async function main() {
   const commit = process.argv.includes("--commit");
   const requireBlob = !process.argv.includes("--allow-remote-images");
   if (commit) assertActivationAuthorization();
-  const { payloads } = await loadCtCarbonImport();
+  const { payloads, problems } = await loadCtCarbonImport();
+  if (problems.length) {
+    throw new Error(
+      `CT Carbon source is not ready (${problems.length}):\n${problems.slice(0, 40).join("\n")}`
+    );
+  }
   const expectedSkus = new Set(payloads.map((payload) => payload.sku));
 
   const prisma = new PrismaClient();

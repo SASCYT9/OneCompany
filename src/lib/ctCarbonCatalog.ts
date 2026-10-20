@@ -142,11 +142,26 @@ function lineNamesPartClass(line: string, part: CtCarbonDeliveryClass) {
   return PART_PATTERNS.some(([pattern, patternPart]) => patternPart === part && pattern.test(line));
 }
 
+/** Small aero pieces that are never sold as the bigger part their name mentions. */
+const SMALL_AERO_ADD_ON = /\b(?:canards?|risers?)\b/i;
+/** "WING RISERS", "FRONT CANARDS": the word before the add-on only says where it goes. */
+const ADD_ON_MODIFIER =
+  /\b(?:wing|spoiler|splitter|diffuser|bumper)\s+(?=(?:canards?|risers?)\b)/gi;
+
 /** A kit-list line that is a whole bumper ("Front Bumper", "Rear Bumpers"), not a trim on one. */
 const BUMPER_LINE = /^(?:(?:front|rear)\s+)?bumpers?(?:\s+replacements?)?(?:\s+v\d+)?$/i;
 
+/**
+ * A kit-list line names its part before any description, and the description can name
+ * smaller parts on it: "Bonnet/Hood - replacing the OEM bonnet … which includes an air vent".
+ */
 function partClassOfListLine(line: string): CtCarbonDeliveryClass | null {
-  return partClassOfLine(line) ?? (BUMPER_LINE.test(line.trim()) ? "panel" : null);
+  const head = line.split(/\s[-–—]\s|\s\(|,\s|\s(?:with|which|replacing)\s/i)[0] ?? line;
+  return (
+    partClassOfLine(head) ??
+    partClassOfLine(line) ??
+    (BUMPER_LINE.test(line.trim()) ? "panel" : null)
+  );
 }
 
 function isKit(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
@@ -160,10 +175,13 @@ function isKit(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
 
 const KIT_LIST_HEADER =
   /\b(?:included in (?:the|this) (?:kit|package|pack)|comprised of|consists of|kit includes|package includes|includes the following|the kit includes|this kit includes|kit features|what'?s included|in the box)\b/i;
-const KIT_LIST_END = /\b(?:designed in[- ]house|please note|note:|fitment|fits\b|made from)\b/i;
+const KIT_LIST_END = /\b(?:designed in[- ]house|fitment|fits\b|made from)\b/i;
+/** "Please note … fitted to your bootlid …": a note ends the list whatever parts it names. */
+const KIT_LIST_NOTE = /\b(?:please note|note:)/i;
+const KIT_NOTE_IN_KIT = /\b(?:within|included in|supplied with) (?:this|the) kit\b/i;
 /** "This kit does not include the Middle Spoiler": the part it names is not in the kit. */
 const KIT_LIST_EXCLUSION =
-  /\b(?:does not include|doesn'?t include|not included|not part of|excluded|sold separately)\b/i;
+  /\b(?:does not include|doesn'?t include|does not come with|doesn'?t come with|not included|not part of|excluded|sold separately)\b/i;
 /** A title that names a set of parts rather than one part. */
 const KIT_TITLE = /\b(?:kits?|packs?|package|set)\b/i;
 
@@ -171,7 +189,13 @@ const KIT_TITLE = /\b(?:kits?|packs?|package|set)\b/i;
 function partsFromShortLines(paragraphs: string[]): CtCarbonDeliveryClass[] {
   const parts: CtCarbonDeliveryClass[] = [];
   for (const line of paragraphs) {
-    if (line.length > 70 || KIT_LIST_END.test(line) || KIT_LIST_EXCLUSION.test(line)) continue;
+    if (
+      line.length > 70 ||
+      KIT_LIST_END.test(line) ||
+      KIT_LIST_EXCLUSION.test(line) ||
+      KIT_LIST_NOTE.test(line)
+    )
+      continue;
     const part = partClassOfListLine(line);
     if (part) parts.push(part);
   }
@@ -194,6 +218,12 @@ export function parseCtCarbonKitList(paragraphs: string[]): CtCarbonDeliveryClas
   ];
   for (const line of lines) {
     if (KIT_LIST_EXCLUSION.test(line)) break;
+    if (KIT_LIST_NOTE.test(line)) {
+      // "Please note: the exhaust tips within this kit need to be welded" still lists a part.
+      const noted = KIT_NOTE_IN_KIT.test(line) ? partClassOfLine(line) : null;
+      if (noted) parts.push(noted);
+      break;
+    }
     if (KIT_LIST_END.test(line) && !partClassOfListLine(line)) break;
     const part = partClassOfListLine(line);
     if (part) parts.push(part);
@@ -248,10 +278,15 @@ export function ctCarbonDelivery(
   // Vents or trims listed under a panel's product type ("FENDER VENTS") are small parts.
   if (byType === "panel" && byTitle === "small") return total(["small"], "part");
   // CT files some parts under another part's type ("ROLLS ROYCE CULLINAN … SIDE SKIRTS" is
-  // typed Splitter): a title that names a bigger part and never the typed one wins. Small
-  // titles keep the type, whose tags usually confirm it ("F8 FRONT BUMPER TRIM" is a splitter).
-  if (byType && byTitle && byTitle !== "small" && byTitle !== byType) {
-    if (!lineNamesPartClass(product.title, byType)) return total([byTitle], "part");
+  // typed Splitter): a title that names a bigger part and never the typed one wins. Of the
+  // small titles only canards and wing risers do ("WING RISERS" names no wing to ship);
+  // trims keep the type, which CT's tags confirm ("F8 FRONT BUMPER TRIM" is a splitter).
+  if (byType && byTitle && byTitle !== byType) {
+    const addOn = byTitle === "small" && SMALL_AERO_ADD_ON.test(product.title);
+    const title = addOn ? product.title.replace(ADD_ON_MODIFIER, "") : product.title;
+    if ((byTitle !== "small" || addOn) && !lineNamesPartClass(title, byType)) {
+      return total([byTitle], "part");
+    }
   }
   // A title without a part name: the description often names it ("CT Carbon diffuser made …").
   const byDescription = partClassOfLine(product.bodyParagraphs[0] ?? "");
