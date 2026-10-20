@@ -142,19 +142,27 @@ function isKit(product: Pick<CtCarbonSourceProduct, "productType" | "title">) {
 const KIT_LIST_HEADER =
   /\b(?:included in (?:the|this) (?:kit|package|pack)|comprised of|consists of|kit includes|package includes|includes the following|the kit includes|this kit includes|kit features|what'?s included|in the box)\b/i;
 const KIT_LIST_END = /\b(?:designed in[- ]house|please note|note:|fitment|fits\b|made from)\b/i;
+/** "This kit does not include the Middle Spoiler": the part it names is not in the kit. */
+const KIT_LIST_EXCLUSION =
+  /\b(?:does not include|doesn'?t include|not included|not part of|excluded|sold separately)\b/i;
+/** A title that names a set of parts rather than one part. */
+const KIT_TITLE = /\b(?:kits?|packs?|package|set)\b/i;
 
 /** Short list-like lines that name a part, for kits that list their parts without a heading. */
 function partsFromShortLines(paragraphs: string[]): CtCarbonDeliveryClass[] {
   const parts: CtCarbonDeliveryClass[] = [];
   for (const line of paragraphs) {
-    if (line.length > 70 || KIT_LIST_END.test(line)) continue;
+    if (line.length > 70 || KIT_LIST_END.test(line) || KIT_LIST_EXCLUSION.test(line)) continue;
     const part = partClassOfLine(line);
     if (part) parts.push(part);
   }
   return parts;
 }
 
-/** The parts listed under "Included in the kit" (or a similar heading). */
+/**
+ * The parts listed under "Included in the kit" (or a similar heading), never more than
+ * the item count the heading states ("INCLUDED IN THE KIT (4 ITEMS)").
+ */
 export function parseCtCarbonKitList(paragraphs: string[]): CtCarbonDeliveryClass[] {
   const start = paragraphs.findIndex((line) => KIT_LIST_HEADER.test(line));
   if (start < 0) return partsFromShortLines(paragraphs);
@@ -166,11 +174,13 @@ export function parseCtCarbonKitList(paragraphs: string[]): CtCarbonDeliveryClas
     ...paragraphs.slice(start + 1),
   ];
   for (const line of lines) {
+    if (KIT_LIST_EXCLUSION.test(line)) break;
     if (KIT_LIST_END.test(line) && !partClassOfLine(line)) break;
     const part = partClassOfLine(line);
     if (part) parts.push(part);
   }
-  return parts;
+  const stated = Number(paragraphs[start].match(/\((\d+)\s*(?:items?|pieces?|parts?)\)/i)?.[1]);
+  return stated >= 2 && parts.length > stated ? parts.slice(0, stated) : parts;
 }
 
 function partsFromTags(tags: string[]): CtCarbonDeliveryClass[] {
@@ -203,6 +213,9 @@ export function ctCarbonDelivery(
   if (isKit(product)) {
     const listed = parseCtCarbonKitList(product.bodyParagraphs);
     if (listed.length >= 2) return total(listed, "kit-list");
+    // A "Front End Pack" titled "… FRONT BUMPER TRIM" is one part, not a kit.
+    const titlePart = partClassOfLine(product.title);
+    if (titlePart && !KIT_TITLE.test(product.title)) return total([titlePart], "part");
     const tagged = partsFromTags(product.tags);
     if (tagged.length >= 2) return total(tagged, "kit-tags");
     return total(partsFromKitTitle(product.title), "kit-title");

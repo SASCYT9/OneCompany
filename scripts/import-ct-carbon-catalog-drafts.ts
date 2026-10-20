@@ -112,7 +112,17 @@ export async function loadCtCarbonImport() {
 
 async function main() {
   const commit = process.argv.includes("--commit-draft");
-  const { source, payloads, problems } = await loadCtCarbonImport();
+  // --only=<sku>,<sku>: re-import just these products (for example after a price fix).
+  const only = process.argv
+    .find((arg) => arg.startsWith("--only="))
+    ?.slice(7)
+    .split(",")
+    .filter(Boolean);
+  const loaded = await loadCtCarbonImport();
+  const { source, problems } = loaded;
+  const payloads = only
+    ? loaded.payloads.filter((payload) => only.includes(payload.sku ?? ""))
+    : loaded.payloads;
   if (problems.length) {
     throw new Error(
       `CT Carbon source is not ready (${problems.length}):\n${problems.slice(0, 40).join("\n")}`

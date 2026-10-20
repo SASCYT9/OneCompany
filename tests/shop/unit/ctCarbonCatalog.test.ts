@@ -120,6 +120,46 @@ test("an inline list after the heading is read, trims are small parts", () => {
   assert.equal(calculateCtCarbonPriceUsd(7799, urus), 13120);
 });
 
+test("parts a kit says it does not include are not counted", () => {
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THIS KIT (4 ITEMS):",
+      "Splitter",
+      "Side Skirts",
+      "Diffuser",
+      "Roof Spoiler",
+      "This kit does not include the Middle Spoiler.",
+      "Designed by our in-house team",
+    ]),
+    ["splitter", "sideSkirts", "diffuser", "spoiler"]
+  );
+  // Never more parts than the heading states.
+  assert.deepEqual(
+    parseCtCarbonKitList([
+      "INCLUDED IN THE KIT (2 ITEMS)",
+      "Front Splitter",
+      "Side Skirts",
+      "Rear Spoiler (sold as an option)",
+    ]),
+    ["splitter", "sideSkirts"]
+  );
+});
+
+test("a kit-type product whose title names one part is that part", () => {
+  const trim = ctCarbonDelivery(
+    product({
+      productType: "Front End Pack",
+      title: "LAND ROVER DEFENDER L663 2020+ GLOSS BLACK FRONT BUMPER TRIM",
+      tags: [],
+      bodyParagraphs: [
+        "BLAK by CT Carbon brings you this high-quality, gloss black front bumper trim for the 2020+ Land Rover Defender 90 & 110, made from high-quality ABS plastic and finished in gloss black.",
+      ],
+    })
+  );
+  assert.equal(trim.basis, "part");
+  assert.deepEqual(trim.parts, ["small"]);
+});
+
 test("kits without a list fall back to tags, then to what the title names", () => {
   assert.deepEqual(ctCarbonDelivery(product({ bodyParagraphs: ["A full kit."] })).parts, [
     "splitter",

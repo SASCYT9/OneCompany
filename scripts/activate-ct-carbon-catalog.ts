@@ -5,7 +5,7 @@
  *   CT_CARBON_CATALOG_ACTIVATION_ACK=1 npx tsx --conditions=react-server scripts/activate-ct-carbon-catalog.ts --commit
  *
  * Photos must already be copied to Vercel Blob (scripts/migrate-shop-product-media-to-blob.ts
- * --brand="CT Carbon" --allow-partial); --allow-remote-images skips that check.
+ * --brand="CT Carbon" --allow-partial --commit); --allow-remote-images skips that check.
  */
 import { Prisma, PrismaClient } from "@prisma/client";
 
