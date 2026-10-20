@@ -75,6 +75,24 @@ export function collectRemoteShopProductMediaSources(
   return output;
 }
 
+/**
+ * Only image media rows are files the migration can mirror. Video rows
+ * (YouTube `EXTERNAL_VIDEO` embeds, hosted `VIDEO` files) stay as stored.
+ */
+export function isShopProductImageMedia(media: { mediaType: string }) {
+  return media.mediaType === "IMAGE";
+}
+
+export function collectRemoteShopProductImageMediaSources(
+  media: ReadonlyArray<{ mediaType: string; src: string | null }>,
+  output = new Set<string>()
+): Set<string> {
+  for (const row of media) {
+    if (isShopProductImageMedia(row)) collectRemoteShopProductMediaSources(row.src, output);
+  }
+  return output;
+}
+
 export function rewriteShopProductMediaValue<T>(
   value: T,
   resolvedSources: ReadonlyMap<string, string>
@@ -82,9 +100,7 @@ export function rewriteShopProductMediaValue<T>(
   if (typeof value === "string") {
     const source = normalizeShopProductMediaSource(value);
     const replacement = source ? resolvedSources.get(source) : undefined;
-    return replacement
-      ? { value: replacement as T, replacements: 1 }
-      : { value, replacements: 0 };
+    return replacement ? { value: replacement as T, replacements: 1 } : { value, replacements: 0 };
   }
 
   if (Array.isArray(value)) {

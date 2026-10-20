@@ -1133,11 +1133,14 @@ export async function searchShopStock(request: { url: string }, options?: { anon
           ? resolveLegacyVehicleProductTiers({
               ...queryVehiclePlan.constraints,
               modelAlternates: queryVehiclePlan.modelAlternates,
+              generationAlternates: queryVehiclePlan.generationAlternates,
             })
           : resolveCanonicalVehicleProductIds({
               make: resolvedVehicleMake,
               model: resolvedVehicleModel,
+              modelAlternates: queryVehiclePlan.modelAlternates,
               chassis: resolvedVehicleChassis,
+              chassisAlternates: queryVehiclePlan.generationAlternates,
               year: resolvedVehicleYear,
               engine: requestedEngine,
               fuel: requestedFuel,

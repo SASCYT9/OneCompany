@@ -443,9 +443,30 @@ test("a yearless fitment stays eligible for a year request but is never exact", 
   assert.ok(!tiers?.exactIds.includes("fitment-id"));
 });
 
+test("a generation alternate adds products filed under that label and keeps their tier", async () => {
+  const { resolveLegacyVehicleProductTiers } = await modulePromise;
+  const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
+  mock.reset();
+  // Evidence is filed on `G90` only, the way KW files the RS5 B9 under `B8`.
+  const selected = { make: "BMW", model: "M5", generation: "F90", year: 2023 };
+  const selectedOnly = await resolveLegacyVehicleProductTiers(selected);
+  assert.ok(!selectedOnly?.ids.includes("application-id"));
+  assert.ok(!selectedOnly?.ids.includes("projection-id"));
+
+  const input = { ...selected, generationAlternates: ["G90", "g90", "F90"] };
+  const tiers = await resolveLegacyVehicleProductTiers(input);
+  assert.deepEqual(new Set(tiers?.ids), new Set(["fitment-id", "application-id", "projection-id"]));
+  assert.deepEqual(new Set(tiers?.exactIds), new Set(tiers?.ids));
+  // Each label is resolved and cached once; duplicates of a label are ignored.
+  assert.equal(mock.state.applicationCalls, 2);
+  assert.match(JSON.stringify(mock.state.applicationArgs[0].where.OR), /"equals":"F90"/);
+  assert.match(JSON.stringify(mock.state.applicationArgs[1].where.OR), /"equals":"G90"/);
+  assert.deepEqual(await resolveLegacyVehicleProductTiers(input), tiers);
+  assert.equal(mock.state.applicationCalls, 2);
+});
+
 test("a stored platform label stands for its member chassis in options and matching", async () => {
-  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } =
-    await modulePromise;
+  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
   mock.reset();
   mock.state.platformFamilies = { G8X: ["G80", "G81", "G82"] };
@@ -466,8 +487,7 @@ test("a stored platform label stands for its member chassis in options and match
 });
 
 test("an importer's Golf type code is offered and matched as its generation", async () => {
-  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } =
-    await modulePromise;
+  const { listLegacyVehicleChassisOptions, resolveLegacyVehicleProductTiers } = await modulePromise;
   const mock = await import("./fixtures/legacy-vehicle-ids-mocks.mjs");
   mock.reset();
   mock.state.vwSubcodes = { BQ1: "MK7", BE1: "MK7" };

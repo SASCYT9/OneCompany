@@ -114,13 +114,32 @@ export function isMissingStrictCatalogSchema(error: unknown) {
 export async function resolveCanonicalVehicleProductIds(input: {
   make: string;
   model: string;
+  /** Specific trims matched next to the model family (RS5 next to A5). */
+  modelAlternates?: readonly string[] | null;
   chassis: string;
+  /** Labels a supplier files the selected chassis under (KW: RS5 B9 as `B8`). */
+  chassisAlternates?: readonly string[] | null;
   year: number | null;
   engine: string | null;
   fuel: string | null;
   opfGpf: string | null;
   scope: ShopStockVehicleScope | null;
 }): Promise<string[] | null> {
+  const chassisAlternates = (input.chassisAlternates ?? []).filter(
+    (alternate) =>
+      vehicleChassisKey(alternate) &&
+      vehicleChassisKey(alternate) !== vehicleChassisKey(input.chassis)
+  );
+  if (input.chassis && chassisAlternates.length) {
+    // Either label matches; each one keeps the single-chassis query below.
+    const results = await Promise.all(
+      [input.chassis, ...new Set(chassisAlternates)].map((chassis) =>
+        resolveCanonicalVehicleProductIds({ ...input, chassis, chassisAlternates: null })
+      )
+    );
+    if (results.some((ids) => ids === null)) return null;
+    return [...new Set(results.flatMap((ids) => ids ?? []))];
+  }
   if (
     !input.make &&
     !input.model &&
@@ -153,22 +172,33 @@ export async function resolveCanonicalVehicleProductIds(input: {
         mode: "insensitive" as const,
       },
     });
+    // The selected model and its specific trim alternates (the plan resolves
+    // RS5 to its A5 family and keeps RS5 as an alternate) match together.
+    const models = input.model
+      ? [
+          ...new Set(
+            [input.model, ...(input.modelAlternates ?? [])]
+              .map((model) => model.trim())
+              .filter(Boolean)
+          ),
+        ]
+      : [];
     // Model and chassis alias discovery is independent; overlap both scans so
     // a cold request pays the slower query once instead of their sum.
     const [dynamicModelAliases, dynamicChassisAliases] = await Promise.all([
-      input.model ? getDynamicModelAliases(input.make, input.model) : Promise.resolve<string[]>([]),
+      Promise.all(models.map((model) => getDynamicModelAliases(input.make, model))),
       input.chassis ? getDynamicChassisAliases(input.chassis) : Promise.resolve<string[]>([]),
     ]);
     // A base model includes its trims (`911` -> `911 Carrera`), as in the
     // listing's own vehicle matching.
-    const modelAliases = input.model
-      ? [
-          ...vehicleModelScope(input.make, input.model).exact.flatMap((model) =>
-            vehicleModelAliases(input.make, model)
-          ),
-          ...dynamicModelAliases,
-        ]
-      : [];
+    const modelAliases = [
+      ...models.flatMap((model) =>
+        vehicleModelScope(input.make, model).exact.flatMap((scoped) =>
+          vehicleModelAliases(input.make, scoped)
+        )
+      ),
+      ...dynamicModelAliases.flat(),
+    ];
     const uniqueModelAliases = [...new Set(modelAliases)];
     const chassisAliases = input.chassis ? [input.chassis, ...dynamicChassisAliases] : [];
     const uniqueChassisAliases = [...new Set(chassisAliases)];

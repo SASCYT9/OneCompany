@@ -64,6 +64,8 @@ export type ShopCatalogProjectionQueryInput = {
   model?: string | null;
   modelAlternates?: readonly string[] | null;
   generation?: string | null;
+  /** Labels a supplier files the selected generation under (KW: RS5 B9 as `B8`). */
+  generationAlternates?: readonly string[] | null;
   year?: number | null;
   engine?: string | null;
   fuel?: string | null;
@@ -393,6 +395,21 @@ export function normalizeShopCatalogProjectionQuery(
       "generation",
       SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
     ),
+    generationAlternates: [
+      ...new Set(
+        (input.generationAlternates ?? [])
+          .map((value) =>
+            optionalBounded(
+              value,
+              "generationAlternates",
+              SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet
+            )
+          )
+          .filter((value): value is string =>
+            Boolean(value && value.toLowerCase() !== input.generation?.trim().toLowerCase())
+          )
+      ),
+    ],
     year: input.year ?? null,
     engine: optionalBounded(input.engine, "engine", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
     fuel: optionalBounded(input.fuel, "fuel", SHOP_CATALOG_PROJECTION_QUERY_LIMITS.facet),
@@ -489,7 +506,8 @@ function textConstraint(
   dimension: ShopCatalogCompatibilityDimension,
   value: string,
   make?: string | null,
-  modelAlternates?: readonly string[] | null
+  modelAlternates?: readonly string[] | null,
+  valueAlternates: readonly string[] = []
 ): Prisma.ShopCatalogProjectionConstraintWhereInput {
   const modelValues = make
     ? [
@@ -512,7 +530,7 @@ function textConstraint(
               ? modelValues
               : dimension === ShopCatalogCompatibilityDimension.MAKE
                 ? vehicleMakeAliases(value)
-                : [value],
+                : [value, ...valueAlternates],
           mode: "insensitive",
         },
       },
@@ -860,6 +878,31 @@ function projectionFacetBaseConditions(
   return conditions;
 }
 
+/**
+ * One selected vehicle field as a clause predicate. A generation that a
+ * supplier files under another label (KW: RS5 B9 as `B8`) matches either.
+ */
+function selectedVehicleFieldSql(
+  input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
+  field: VehicleDimension,
+  value: string,
+  lowerTier?: boolean
+) {
+  const alternates = field === "generation" ? (input.generationAlternates ?? []) : [];
+  const predicates = [value, ...alternates].map((candidate) =>
+    correlatedTextConstraintSql(
+      VEHICLE_DIMENSIONS[field],
+      candidate,
+      input.make,
+      input.modelAlternates,
+      lowerTier
+    )
+  );
+  return predicates.length === 1
+    ? predicates[0]!
+    : Prisma.sql`(${Prisma.join(predicates, " OR ")})`;
+}
+
 /** All selected dimensions must be satisfied by the same version of one clause. */
 function selectedVehicleCondition(
   input: ReturnType<typeof normalizeShopCatalogProjectionQuery>,
@@ -868,16 +911,7 @@ function selectedVehicleCondition(
   const constraints: Prisma.Sql[] = [];
   for (const field of Object.keys(VEHICLE_DIMENSIONS) as VehicleDimension[]) {
     const value = input[field];
-    if (value)
-      constraints.push(
-        correlatedTextConstraintSql(
-          VEHICLE_DIMENSIONS[field],
-          value,
-          input.make,
-          input.modelAlternates,
-          lowerTier
-        )
-      );
+    if (value) constraints.push(selectedVehicleFieldSql(input, field, value, lowerTier));
   }
   if (input.year != null) constraints.push(correlatedYearConstraintSql(input.year));
   if (!constraints.length) return null;
@@ -911,7 +945,14 @@ export function shopCatalogProjectionVehicleLowerTierApplies(raw: ShopCatalogPro
 
 function vehicleLowerTierApplies(input: ReturnType<typeof normalizeShopCatalogProjectionQuery>) {
   if (!input.vehicleLowerTier) return false;
-  if (input.generation && vehicleChassisSelfAndAncestors(input.generation).length > 1) return true;
+  if (
+    input.generation &&
+    [input.generation, ...(input.generationAlternates ?? [])].some(
+      (generation) => vehicleChassisSelfAndAncestors(generation).length > 1
+    )
+  ) {
+    return true;
+  }
   if (!input.make) return false;
   return [input.model, ...(input.modelAlternates ?? [])].some((model) => {
     if (!model) return false;
@@ -979,15 +1020,7 @@ function selectedVehicleFacetConstraints(
     }
     const value = input[field];
     if (value)
-      constraints.push(
-        correlatedTextConstraintSql(
-          VEHICLE_DIMENSIONS[field],
-          value,
-          input.make,
-          input.modelAlternates,
-          input.vehicleLowerTier
-        )
-      );
+      constraints.push(selectedVehicleFieldSql(input, field, value, input.vehicleLowerTier));
   }
   return constraints;
 }
@@ -1484,7 +1517,13 @@ export function buildShopCatalogProjectionWhere(
     const value = input[field];
     if (value)
       constraints.push(
-        textConstraint(VEHICLE_DIMENSIONS[field], value, input.make, input.modelAlternates)
+        textConstraint(
+          VEHICLE_DIMENSIONS[field],
+          value,
+          input.make,
+          input.modelAlternates,
+          field === "generation" ? (input.generationAlternates ?? []) : []
+        )
       );
   }
   if (input.year != null) constraints.push(yearConstraint(input.year));

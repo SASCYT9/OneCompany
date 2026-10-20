@@ -87,17 +87,17 @@ export function buildShopCatalogVehicleSearchPlan(
     vehicleModelKey(modelFilter.model) !== vehicleModelKey(requestedModel)
       ? [requestedModel]
       : [];
-  const requestedGeneration =
-    clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
-  // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53.
-  // Keep the RS5 qualifier and translate only that explicitly selected pair.
-  const generation =
+  const generation = clean(params.get("chassis") ?? params.get("generation")) ?? inferredGeneration;
+  // KW's Audi catalog labels the RS5 (B9) application under A5 type B8/F53,
+  // while other suppliers tag it RS5 B9. Keep the selected generation and
+  // accept KW's label as an alternate for that explicitly selected pair only.
+  const generationAlternates =
     make?.toLowerCase().replace(/[^a-z]/g, "") === "audi" &&
     requestedModel &&
     vehicleModelKey(requestedModel) === "rs5" &&
-    requestedGeneration?.toUpperCase() === "B9"
-      ? "B8"
-      : requestedGeneration;
+    generation?.toUpperCase() === "B9"
+      ? ["B8"]
+      : [];
   const yearText = params.get("year")?.trim() ?? "";
   const parsedYear = /^\d{4}$/.test(yearText) ? Number(yearText) : null;
   const constraints = {
@@ -124,6 +124,7 @@ export function buildShopCatalogVehicleSearchPlan(
     constraints,
     qualifierTerms: modelFilter?.qualifierTerms ?? [],
     modelAlternates,
+    generationAlternates,
     canonical,
     reader,
   };

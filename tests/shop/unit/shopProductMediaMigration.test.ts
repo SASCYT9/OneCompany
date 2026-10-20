@@ -3,9 +3,11 @@ import test from "node:test";
 
 import {
   buildShopProductMediaBlobPathname,
+  collectRemoteShopProductImageMediaSources,
   collectRemoteShopProductMediaSources,
   getShopProductMediaDownloadCandidates,
   isRemoteShopProductMediaSource,
+  isShopProductImageMedia,
   rewriteShopProductMediaValue,
   SHOP_PRODUCT_MEDIA_BLOB_PREFIX,
 } from "../../../src/lib/shopProductMediaMigration";
@@ -47,7 +49,10 @@ test("Shopify media-library file names are never shortened to another asset", ()
 test("nested product galleries are collected and rewritten atomically", () => {
   const source = "https://img.example.com/a.jpg";
   const blob = "https://store.public.blob.vercel-storage.com/media/library/shop-products/a";
-  const value = { gallery: ["//img.example.com/a.jpg", { src: source }], local: "/media/local.jpg" };
+  const value = {
+    gallery: ["//img.example.com/a.jpg", { src: source }],
+    local: "/media/local.jpg",
+  };
   const sources = collectRemoteShopProductMediaSources(value);
   const rewritten = rewriteShopProductMediaValue(value, new Map([[source, blob]]));
 
@@ -57,4 +62,25 @@ test("nested product galleries are collected and rewritten atomically", () => {
     gallery: [blob, { src: blob }],
     local: "/media/local.jpg",
   });
+});
+
+test("only image media rows are migrated; video embeds stay as stored", () => {
+  const gallerySource = "https://img.example.com/gallery.jpg";
+  const imageSource = "https://images.goapr.com/products/cbk0037.jpg";
+  const media = [
+    { id: "image", mediaType: "IMAGE", src: imageSource },
+    // Dinan/APR galleries carry YouTube embeds; they are pages, not images.
+    { id: "youtube", mediaType: "EXTERNAL_VIDEO", src: "https://www.youtube.com/embed/abc123" },
+    { id: "video", mediaType: "VIDEO", src: "https://cdn.example.com/clip.mp4" },
+  ];
+  assert.deepEqual([...collectRemoteShopProductImageMediaSources(media)], [imageSource]);
+  assert.deepEqual(
+    media.filter(isShopProductImageMedia).map((row) => row.id),
+    ["image"]
+  );
+
+  // The product's shared source set keeps its other sources.
+  const sources = new Set([gallerySource]);
+  collectRemoteShopProductImageMediaSources(media, sources);
+  assert.deepEqual([...sources], [gallerySource, imageSource]);
 });

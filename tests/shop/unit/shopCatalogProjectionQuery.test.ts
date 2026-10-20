@@ -544,6 +544,45 @@ test("native vehicle SQL selects a model family and a generation with its faceli
   assert.match(condition.sql, /"dimension" IN \('GENERATION', 'CHASSIS'\)/);
 });
 
+test("a generation alternate matches either label in SQL, facets and the ORM filter", async () => {
+  const {
+    buildShopCatalogProjectionVehicleCondition,
+    buildShopCatalogProjectionFacetQuerySql,
+    buildShopCatalogProjectionWhere,
+  } = await queryModule;
+  // KW files the Audi RS5 B9 under A5 B8; the B9 selection accepts that label too.
+  const selection = {
+    locale: "ua" as const,
+    make: "Audi",
+    model: "A5",
+    modelAlternates: ["RS5"],
+    generation: "B9",
+  };
+  const single = buildShopCatalogProjectionVehicleCondition(selection);
+  assert.ok(single);
+  assert.ok(single.values.includes("b9.%"));
+  assert.ok(!single.values.includes("b8.%"));
+
+  const repeated = buildShopCatalogProjectionVehicleCondition({
+    ...selection,
+    generationAlternates: ["b9", " "],
+  });
+  assert.deepEqual(repeated?.values, single.values);
+
+  const withAlternate = { ...selection, generationAlternates: ["B8", "B8", "B9"] };
+  const condition = buildShopCatalogProjectionVehicleCondition(withAlternate);
+  assert.ok(condition);
+  assert.ok(condition.values.includes("b9.%"));
+  assert.ok(condition.values.includes("b8.%"));
+  assert.equal(condition.values.filter((value) => value === "b8.%").length, 1);
+  // Facet candidates after the generation level keep the same predicate.
+  const facets = buildShopCatalogProjectionFacetQuerySql(withAlternate);
+  assert.ok(facets.values.includes("b9.%"));
+  assert.ok(facets.values.includes("b8.%"));
+  const where = JSON.stringify(buildShopCatalogProjectionWhere(withAlternate));
+  assert.match(where, /"in":\["B9","B8"\]/);
+});
+
 test("lower tier adds broader labels and ranks exact matches first in SQL", async () => {
   const {
     buildShopCatalogProjectionVehicleCondition,

@@ -148,6 +148,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       : resolveLegacyVehicleProductTiers({
           ...vehiclePlan.constraints,
           modelAlternates: vehiclePlan.modelAlternates,
+          generationAlternates: vehiclePlan.generationAlternates,
         });
     const warehouseProductsPromise: Promise<
       Array<{ id: string; sku: string | null; slug: string }>
@@ -202,6 +203,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       ...query,
       ...vehiclePlan.constraints,
       modelAlternates: vehiclePlan.modelAlternates,
+      generationAlternates: vehiclePlan.generationAlternates,
       // The established catalog treats auto as the default unpartitioned tab;
       // only moto is a strict projection scope.
       scope: query.scope === "moto" ? "moto" : null,
@@ -251,6 +253,7 @@ export default async function CatalogPage({ params, searchParams }: Props) {
       projectionQuery.model = null;
       projectionQuery.modelAlternates = [];
       projectionQuery.generation = null;
+      projectionQuery.generationAlternates = [];
       projectionQuery.year = null;
     }
     // Native reader: the SQL admits broader labels and ranks exact matches

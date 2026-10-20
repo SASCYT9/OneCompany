@@ -107,6 +107,44 @@ test("Mercedes G63 generation queries infer one canonical make and preserve expl
   assert.deepEqual(selectorPlan.modelAlternates, ["AMG G 63"]);
 });
 
+test("Audi RS5 B9 keeps the selected generation and accepts KW's B8 label as an alternate", () => {
+  for (const query of ["make=Audi&model=RS5&chassis=B9", "make=audi&model=rs5&generation=b9"]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams(query));
+    // Products tagged RS5 B9 (APR CBK0037) must match; KW files the same car
+    // under A5 B8/F53, so B8 is accepted next to it rather than instead of it.
+    assert.equal(plan.constraints.generation?.toUpperCase(), "B9", query);
+    assert.deepEqual(plan.generationAlternates, ["B8"], query);
+    assert.equal(plan.constraints.model, "A5", query);
+    assert.deepEqual(
+      plan.modelAlternates.map((model) => model.toUpperCase()),
+      ["RS5"],
+      query
+    );
+    assert.deepEqual(plan.qualifierTerms, ["RS5"], query);
+  }
+
+  const typed = buildShopCatalogVehicleSearchPlan(new URLSearchParams("q=Audi%20RS5%20B9"), {
+    readerMode: "projection",
+  });
+  assert.equal(typed.constraints.generation, "B9");
+  assert.deepEqual(typed.generationAlternates, ["B8"]);
+});
+
+test("other vehicle selections never acquire the KW RS5 generation alternate", () => {
+  for (const query of [
+    "make=Audi&model=RS5",
+    "make=Audi&model=RS5&chassis=B8",
+    "make=Audi&model=RS5&chassis=B9.5",
+    "make=Audi&model=RS4&chassis=B9",
+    "make=Audi&model=A5&chassis=B9",
+    "make=BMW&model=M5&chassis=G90",
+  ]) {
+    const plan = buildShopCatalogVehicleSearchPlan(new URLSearchParams(query));
+    assert.deepEqual(plan.generationAlternates, [], query);
+    assert.equal(plan.constraints.generation, new URLSearchParams(query).get("chassis"), query);
+  }
+});
+
 test("generic G-Class selection does not acquire the AMG G 63 model alternate", () => {
   const plan = buildShopCatalogVehicleSearchPlan(
     new URLSearchParams("make=Mercedes-Benz&model=G-Class&chassis=W465")
