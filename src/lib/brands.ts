@@ -1052,7 +1052,7 @@ export const brandsEurope: LocalBrand[] = [
       "British carbon fiber specialists creating high-quality aerodynamic components with exceptional fitment and finish quality.",
     descriptionUA:
       "Британські спеціалісти з карбону, що створюють високоякісні аеродинамічні компоненти з винятковою посадкою та якістю покриття.",
-    website: "https://www.ct-carbon.co.uk",
+    website: "https://www.ctcarbon.co",
   },
   {
     name: "Dahler",

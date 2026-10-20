@@ -848,6 +848,7 @@ const BRAND_FALLBACK_GROUP: Record<string, ShopStockCategoryGroupId> = {
   "mst performance": "performance",
   adro: "carbonAero",
   revozport: "carbonAero",
+  "ct carbon": "carbonAero",
   wheelforce: "wheels",
   brabus: "accessories",
   "burger motorsports": "accessories",

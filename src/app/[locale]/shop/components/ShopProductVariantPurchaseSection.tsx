@@ -89,6 +89,9 @@ const UA_OPTION_NAMES: Record<string, string> = {
   "Caliper Color": "Колір супортів",
   "Rotor Type": "Тип дисків",
   "Hardware Finish": "Оздоблення кріплення",
+  "Engine Type": "Тип двигуна",
+  "Factory Aero Pack": "Заводський аеропакет",
+  Fitting: "Монтаж",
 };
 
 const EN_OPTION_VALUES: Array<[RegExp, string]> = [
@@ -103,6 +106,13 @@ const EN_OPTION_VALUES: Array<[RegExp, string]> = [
 ];
 
 const UA_OPTION_VALUES: Array<[RegExp, string]> = [
+  [/^gloss carbon(?: fibre)?$/i, "Глянцевий карбон"],
+  [/^matte carbon(?: fibre)?$/i, "Матовий карбон"],
+  [/^matte$/i, "Матовий"],
+  [/^hybrid defender$/i, "Defender з гібридним двигуном"],
+  [/^non-hybrid defender$/i, "Defender без гібрида"],
+  [/^yes$/i, "Так"],
+  [/^no$/i, "Ні"],
   [/^black$/i, "Чорний"],
   [/^silver$/i, "Сріблястий"],
   [/^blue$/i, "Синій"],

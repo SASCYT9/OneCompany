@@ -49,6 +49,13 @@ test("product types map to the expected size class", () => {
     ["Hoods", "oversize"],
     ["Пороги", "oversize"],
     ["Wheel Sets", "oversize"],
+    // CT Carbon part types: trims, vents and DRL modules are small; a steering wheel
+    // or bumper corners are not a set of wheels or a whole bumper; a bootlid is a panel.
+    ["Bumper Trim", "small"],
+    ["DRL", "small"],
+    ["Steering Wheel", "medium"],
+    ["Bumper Corners", "medium"],
+    ["Bootlid", "oversize"],
   ];
   for (const [productType, expected] of cases) {
     assert.equal(resolveShopShippingClass(item(productType)), expected, productType);
