@@ -110,7 +110,7 @@ const PART_PATTERNS: Array<[RegExp, CtCarbonDeliveryClass]> = [
   [/\b(?:grilles?|kidneys?)\b/i, "medium"],
   [/\b(?:bonnet|hood) scoops?\b/i, "small"],
   [
-    /\b(?:trims?|inserts?|vents?|ducts?|canards?|flics|winglets?|risers?|badges?|emblems?|reflectors?|delete|handles?|plate holders?)\b/i,
+    /\b(?:trims?|inserts?|vents?|ducts?|canards?|flics|winglets?|risers?|badges?|emblems?|reflectors?|delete|handles?|plate holders?|surrounds?|paddles?)\b/i,
     "small",
   ],
   // Long and heavy: packed like a pair of side skirts.
@@ -184,6 +184,8 @@ const KIT_LIST_EXCLUSION =
   /\b(?:does not include|doesn'?t include|does not come with|doesn'?t come with|not included|not part of|excluded|sold separately)\b/i;
 /** A title that names a set of parts rather than one part. */
 const KIT_TITLE = /\b(?:kits?|packs?|package|set)\b/i;
+/** A single listing's own parts list: a line that is only "Comes with:" or "Kit includes:". */
+const PART_LIST_HEADER = /^\s*(?:comes with|kit includes|includes|in the box)\s*:?\s*$/i;
 
 /** Short list-like lines that name a part, for kits that list their parts without a heading. */
 function partsFromShortLines(paragraphs: string[]): CtCarbonDeliveryClass[] {
@@ -274,8 +276,25 @@ export function ctCarbonDelivery(
     if (tagged.length >= 2) return total(tagged, "kit-tags");
     return total(partsFromKitTitle(product.title), "kit-title");
   }
+  // A single listing that ships several parts: "Comes with:" and a list, or a pack named
+  // after two parts ("Steering Wheel & Paddles Pack").
+  const comesWith = product.bodyParagraphs.findIndex((line) => PART_LIST_HEADER.test(line));
+  const included =
+    comesWith >= 0
+      ? parseCtCarbonKitList(["Kit includes:", ...product.bodyParagraphs.slice(comesWith + 1)])
+      : [];
+  if (included.length >= 2) return total(included, "kit-list");
+  if (KIT_TITLE.test(product.title) && /\s(?:&|and)\s/i.test(product.title)) {
+    const named = product.title
+      .split(/\s(?:&|and)\s/i)
+      .map((piece) => partClassOfLine(piece))
+      .filter((part): part is CtCarbonDeliveryClass => part !== null);
+    if (named.length >= 2) return total(named, "kit-title");
+  }
   const byType = PART_TYPE_CLASS[product.productType.trim().toLowerCase()];
-  const byTitle = partClassOfLine(product.title);
+  // The part the title names before "with" ("STEERING WHEEL WITH HEATING & CARBON FIBRE TRIM").
+  const byTitle =
+    partClassOfLine(product.title.split(/\swith\s/i)[0] ?? "") ?? partClassOfLine(product.title);
   // Vents or trims listed under a panel's product type ("FENDER VENTS") are small parts.
   if (byType === "panel" && byTitle === "small") return total(["small"], "part");
   // CT files some parts under another part's type ("ROLLS ROYCE CULLINAN … SIDE SKIRTS" is

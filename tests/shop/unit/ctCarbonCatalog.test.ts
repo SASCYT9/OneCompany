@@ -174,6 +174,27 @@ test("parts a kit says it does not include are not counted", () => {
   );
 });
 
+test("a single listing that ships several parts adds them up", () => {
+  const listing = (title: string, bodyParagraphs: string[] = []) =>
+    ctCarbonDelivery({ productType: "Accessories", title, tags: [], bodyParagraphs }).parts;
+  assert.deepEqual(
+    listing("MINI COOPER S / JCW F56 GLOSS BLACK REPLACEMENT TRIM", [
+      "CT Carbon GLOSS BLACK trim pack made from ABS plastic and made to fit the F56 Mini Cooper S and JCW.",
+      "Comes with:",
+      "Headlight surrounds",
+      "Rear light surrounds",
+      "Front grille surrounds",
+    ]),
+    ["small", "small", "medium"]
+  );
+  assert.deepEqual(listing("BMW G8X Steering Wheel & Paddles Pack"), ["medium", "small"]);
+  // The part named before "with" is what ships; its trim is part of it.
+  assert.deepEqual(
+    listing("BMW GXX ALCANTARA FLAT BOTTOM STEERING WHEEL WITH HEATING & CARBON FIBRE TRIM"),
+    ["medium"]
+  );
+});
+
 test("trim kits count handles and plate holders", () => {
   assert.deepEqual(
     parseCtCarbonKitList([
