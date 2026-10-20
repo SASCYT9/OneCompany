@@ -4,7 +4,8 @@
  *
  * The default mode is a read-only plan. --commit uploads first and only then
  * rewrites a product when every remote media source referenced by that product
- * has a successful Blob mapping. This prevents partial galleries.
+ * has a successful Blob mapping. This prevents partial galleries. Video media
+ * rows (YouTube embeds) are not image files and stay as stored.
  *
  * Usage:
  *   npm run shop:media:blob:dry
@@ -28,8 +29,10 @@ import { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.se
 import { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
 import {
   buildShopProductMediaBlobPathname,
+  collectRemoteShopProductImageMediaSources,
   collectRemoteShopProductMediaSources,
   getShopProductMediaDownloadCandidates,
+  isShopProductImageMedia,
   normalizeShopProductMediaSource,
   rewriteShopProductMediaValue,
 } from "@/lib/shopProductMediaMigration";
@@ -67,7 +70,7 @@ const PRODUCT_SELECT = {
   gallery: true,
   catalogVersion: true,
   media: {
-    select: { id: true, src: true },
+    select: { id: true, src: true, mediaType: true },
     orderBy: [{ position: "asc" as const }, { createdAt: "asc" as const }],
   },
   variants: {
@@ -352,7 +355,7 @@ function productSources(product: ProductRow) {
   const sources = new Set<string>();
   collectRemoteShopProductMediaSources(product.image, sources);
   collectRemoteShopProductMediaSources(product.gallery, sources);
-  collectRemoteShopProductMediaSources(product.media, sources);
+  collectRemoteShopProductImageMediaSources(product.media, sources);
   collectRemoteShopProductMediaSources(product.variants, sources);
   for (const metafield of product.metafields) {
     try {
@@ -542,6 +545,7 @@ async function rewriteProducts(products: ProductRow[], resolvedSources: Map<stri
       const nextPrimary = primarySource ? resolvedSources.get(primarySource) : undefined;
       const rewrittenGallery = rewriteShopProductMediaValue(product.gallery, resolvedSources);
       const mediaUpdates = product.media
+        .filter(isShopProductImageMedia)
         .map((media) => {
           const source = normalizeShopProductMediaSource(media.src);
           const next = source ? resolvedSources.get(source) : undefined;
