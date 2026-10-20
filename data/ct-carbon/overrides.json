@@ -1,0 +1,553 @@
+{
+ "15649581793661": {
+  "titleEn": "CT Carbon BMW X5 G05 Carbon Rear Bumper Corners",
+  "titleUa": "CT Carbon — карбонові накладки кутів заднього бампера для BMW X5 G05",
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "X5",
+    "chassisCode": "G05",
+    "engine": null,
+    "market": null,
+    "note": "Pre-LCI M Sport",
+    "yearFrom": 2019,
+    "yearTo": null
+   }
+  ]
+ },
+ "15790274085245": {
+  "titleEn": "CT Carbon BMW M4 G83 Carbon Fibre Full Kit V4",
+  "titleUa": "CT Carbon — карбоновий повний обвіс для BMW M4 G83, V4",
+  "fitmentEn": [
+   "BMW M4 Convertible G83"
+  ],
+  "fitmentUa": [
+   "BMW M4 Convertible G83"
+  ],
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "M4",
+    "chassisCode": "G83",
+    "engine": null,
+    "market": null,
+    "note": "Convertible",
+    "yearFrom": null,
+    "yearTo": null
+   }
+  ]
+ },
+ "15792532357501": {
+  "titleEn": "CT Carbon BMW M4 G83 Carbon Fibre Full Kit V7",
+  "titleUa": "CT Carbon — карбоновий повний обвіс для BMW M4 G83, V7",
+  "fitmentEn": [
+   "BMW M4 G83 Convertible"
+  ],
+  "fitmentUa": [
+   "BMW M4 G83 Convertible"
+  ],
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "M4",
+    "chassisCode": "G83",
+    "engine": null,
+    "market": null,
+    "note": "Convertible",
+    "yearFrom": null,
+    "yearTo": null
+   }
+  ]
+ },
+ "15808216957309": {
+  "inBoxEn": [
+   "Carbon Fibre Bonnet/Hood with air vent",
+   "Pair of Carbon Fibre Front Fenders/Wings with air vents"
+  ],
+  "inBoxUa": [
+   "Карбоновий капот із повітрозабірником",
+   "Пара карбонових передніх крил із повітрозабірниками"
+  ]
+ },
+ "8019109019818": {
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "1 Series",
+    "chassisCode": "F40",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "2 Series",
+    "chassisCode": "F44",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "3 Series",
+    "chassisCode": "G20",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "3 Series",
+    "chassisCode": "G21",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M3",
+    "chassisCode": "G80",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": null,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M3",
+    "chassisCode": "G81",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": null,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "4 Series",
+    "chassisCode": "G22",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "4 Series",
+    "chassisCode": "G26",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M4",
+    "chassisCode": "G82",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M4",
+    "chassisCode": "G83",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "5 Series",
+    "chassisCode": "G30",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "5 Series",
+    "chassisCode": "G31",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M5",
+    "chassisCode": "F90",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "7 Series",
+    "chassisCode": "G11",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2015,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "7 Series",
+    "chassisCode": "G12",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2015,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "8 Series",
+    "chassisCode": "G14",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "8 Series",
+    "chassisCode": "G15",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "8 Series",
+    "chassisCode": "G16",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M8",
+    "chassisCode": "F91",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M8",
+    "chassisCode": "F92",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "M8",
+    "chassisCode": "F93",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X3",
+    "chassisCode": "G01",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X3 M",
+    "chassisCode": "F97",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X4",
+    "chassisCode": "G02",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X4 M",
+    "chassisCode": "F98",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2018,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X5",
+    "chassisCode": "G05",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X5 M",
+    "chassisCode": "F95",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X6",
+    "chassisCode": "G06",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": null
+   },
+   {
+    "make": "BMW",
+    "model": "X6 M",
+    "chassisCode": "F96",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2019,
+    "yearTo": null
+   }
+  ]
+ },
+ "7705522569386": {
+  "titleEn": "CT Carbon BMW M4 G83 Carbon Fibre Full Kit V2",
+  "titleUa": "CT Carbon — карбоновий повний обвіс для BMW M4 G83, V2",
+  "fitmentEn": [
+   "BMW M4 G83 Convertible"
+  ],
+  "fitmentUa": [
+   "BMW M4 G83 Кабріолет"
+  ],
+  "vehicles": [
+   {
+    "make": "BMW",
+    "model": "M4",
+    "chassisCode": "G83",
+    "engine": null,
+    "market": null,
+    "note": "Convertible",
+    "yearFrom": null,
+    "yearTo": null
+   }
+  ]
+ },
+ "7872681771178": {
+  "fitmentEn": [
+   "Hyundai i30N (Facelift)"
+  ],
+  "fitmentUa": [
+   "Hyundai i30N (рестайлінг)"
+  ],
+  "vehicles": [
+   {
+    "make": "Hyundai",
+    "model": "i30N",
+    "chassisCode": null,
+    "engine": null,
+    "market": null,
+    "note": "Facelift",
+    "yearFrom": null,
+    "yearTo": null
+   }
+  ]
+ },
+ "7872675578026": {
+  "titleUa": "CT Carbon — карбоновий передній спліттер для Hyundai i30N",
+  "fitmentEn": [
+   "Hyundai i30N Pre-facelift"
+  ],
+  "fitmentUa": [
+   "Hyundai i30N дорестайлінг"
+  ],
+  "seoTitleUa": "CT Carbon — передній спліттер Hyundai i30N",
+  "seoDescriptionEn": "Buy CT Carbon front splitter for Hyundai i30N Pre-facelift. Crafted from genuine high-gloss carbon fibre in CT Carbon's in-house design.",
+  "seoDescriptionUa": "Купити карбоновий передній спліттер CT Carbon для Hyundai i30N дорестайлінг. Справжній глянцевий карбон, ексклюзивний дизайн CT Design.",
+  "vehicles": [
+   {
+    "make": "Hyundai",
+    "model": "i30N",
+    "chassisCode": null,
+    "engine": null,
+    "market": null,
+    "note": "Pre-facelift",
+    "yearFrom": 2017,
+    "yearTo": null
+   }
+  ]
+ },
+ "15756979503485": {
+  "titleEn": "CT Carbon Mercedes AMG G63 (2018-2024) Carbon Bumper Vents",
+  "fitmentEn": [
+   "Mercedes-Benz AMG G63 (2018-2024)"
+  ],
+  "fitmentUa": [
+   "Mercedes-Benz AMG G63 (2018-2024)"
+  ],
+  "seoTitleEn": "CT Carbon Mercedes G63 Carbon Front Bumper Vents",
+  "seoTitleUa": "CT Carbon — карбонові повітрозабірники для Mercedes G63",
+  "seoDescriptionEn": "Buy CT Carbon dry carbon fibre front bumper vents for Mercedes-Benz AMG G63 (2018-2024). Premium high gloss finish and custom design.",
+  "seoDescriptionUa": "Карбонові повітрозабірники бампера CT Carbon для Mercedes-Benz AMG G63 (2018-2024). Препрег-карбон, глянцеве покриття, фірмовий дизайн."
+ },
+ "15756595036541": {
+  "titleEn": "CT Carbon Mercedes-Benz G-Class G63 (2018-2024) Carbon Fibre Wide Arches",
+  "titleUa": "CT Carbon — карбонові розширювачі арок для Mercedes-Benz G-Class G63 (2018-2024)",
+  "keyPointsEn": [
+   "In-house CT Carbon design",
+   "Made from pre-preg dry carbon fibre",
+   "High-gloss finish",
+   "Designed specifically for Mercedes G63"
+  ],
+  "keyPointsUa": [
+   "Власний дизайн CT Carbon",
+   "Виготовлено з препрег-карбону (dry carbon)",
+   "Глянцеве покриття",
+   "Створено спеціально для Mercedes G63"
+  ],
+  "fitmentEn": [
+   "Mercedes-Benz G63 AMG (2018-2024)"
+  ],
+  "fitmentUa": [
+   "Mercedes-Benz G63 AMG (2018-2024)"
+  ],
+  "seoTitleEn": "CT Carbon Mercedes G63 Carbon Fibre Wide Arches",
+  "seoTitleUa": "CT Carbon — карбонові розширювачі арок Mercedes G63",
+  "seoDescriptionEn": "Buy CT Carbon pre-preg carbon fibre wide arches for Mercedes-Benz G63 AMG (2018-2024). In-house design with high gloss finish.",
+  "seoDescriptionUa": "Карбонові розширювачі арок від CT Carbon для Mercedes-Benz G63 AMG (2018-2024). Високоякісний сухий препрег-карбон та глянцеве покриття.",
+  "imageAltEn": "CT Carbon Mercedes G63 AMG carbon fibre wide arches",
+  "imageAltUa": "Карбонові розширювачі арок CT Carbon для Mercedes G63 AMG"
+ },
+ "15756569543037": {
+  "titleEn": "CT Carbon Mercedes G63 (2018-2024) Carbon Splitter",
+  "titleUa": "CT Carbon — карбоновий спліттер для Mercedes G63 (2018–2024)",
+  "fitmentEn": [
+   "Mercedes-Benz G63 AMG (2018-2024 Pre-Facelift)"
+  ],
+  "fitmentUa": [
+   "Mercedes-Benz G63 AMG (2018–2024 дорестайлінг)"
+  ]
+ },
+ "15757011124605": {
+  "titleEn": "CT Carbon Mercedes G63 (2025+) Pre-Preg Carbon Fibre Bonnet",
+  "titleUa": "CT Carbon — карбоновий капот для Mercedes G63 (2025+)"
+ },
+ "15433988833661": {
+  "fitmentEn": [
+   "Tesla Model 3 MK1",
+   "Tesla Model Y MK1 (2020-2025)"
+  ],
+  "fitmentUa": [
+   "Tesla Model 3 MK1",
+   "Tesla Model Y MK1 (2020–2025)"
+  ],
+  "seoDescriptionEn": "Buy CT Carbon dry carbon fibre door A-pillar trim covers for Tesla Model 3 and Tesla Model Y (2020-2025) in high gloss finish.",
+  "seoDescriptionUa": "Глянцеві карбонові накладки передніх стійок кузова (A-pillar) від CT Carbon для Tesla Model 3 та Tesla Model Y (2020-2025). Препрег-карбон.",
+  "vehicles": [
+   {
+    "make": "Tesla",
+    "model": "Model 3",
+    "chassisCode": "MK1",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "Tesla",
+    "model": "Model Y",
+    "chassisCode": "MK1",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": 2025
+   }
+  ]
+ },
+ "15433716072829": {
+  "fitmentEn": [
+   "Tesla Model 3 MK1",
+   "Tesla Model Y MK1 (2020-2025)"
+  ],
+  "fitmentUa": [
+   "Tesla Model 3 MK1",
+   "Tesla Model Y MK1 (2020-2025)"
+  ],
+  "vehicles": [
+   {
+    "make": "Tesla",
+    "model": "Model 3",
+    "chassisCode": "MK1",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2017,
+    "yearTo": null
+   },
+   {
+    "make": "Tesla",
+    "model": "Model Y",
+    "chassisCode": "MK1",
+    "engine": null,
+    "market": null,
+    "note": null,
+    "yearFrom": 2020,
+    "yearTo": 2025
+   }
+  ]
+ }
+}

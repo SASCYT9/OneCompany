@@ -42,6 +42,7 @@ export const getBrandLogoPath = (brandName: string): string | null => {
   if (b.includes("dinan")) return "/logos/dinan.avif";
   if (b === "apr" || b === "apr performance") return "/logos/apr-performance-white.png";
   if (b.includes("link ecu")) return "/logos/link-ecu.svg";
+  if (b.includes("ct carbon")) return "/logos/ct-carbon-white.png";
   return null;
 };
 
@@ -58,6 +59,7 @@ export const getBrandLightLogoPath = (brandName: string, fallback: string): stri
   if (b.includes("eventuri")) return "/brands/eventuri-logo-email.png";
   if (b.includes("dinan")) return "/logos/dinan-black.png";
   if (b === "apr" || b === "apr performance") return "/logos/apr-performance-black.png";
+  if (b.includes("ct carbon")) return "/logos/ct-carbon-black.png";
   return fallback;
 };
 

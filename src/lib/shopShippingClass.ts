@@ -25,12 +25,22 @@ const SHIPPING_CLASS_RULES: ReadonlyArray<readonly [RegExp, ShopShippingClass]> 
     /chip.?tuning|чип.?тюн|racechip|\bjb4\b|\btuners?\b|тюнер|licen[cs]e|ліценз|\bflash|прошив|\bobd\b|sensor|датчик|spark plug|свіч(?:к|ок)|spacer|проставк|wheel accessor|\blug\b|wheel (?:nut|bolt|lock)|емблем|emblem|badge|sticker|наклейк|decal|brake pads?|колодк|blow.?off|\bbov\b|flex.?fuel|methanol|метанол|top mount|опор[аи]|powerxtra|чохол для ключ|key (?:case|cover|fob)/iu,
     "small",
   ],
+  // Trims, vents and DRL modules that sit on a bumper ship in a small box.
+  [
+    /\bdrl\b|daytime running|ходов\S* вогн|bumper (?:trims?|vents?|inserts?)|(?:fender|wing|door|window|pillar|bonnet|hood|engine bay(?: upper)?|middle) (?:trims?|vents?)|canards?|канард|headlight covers?|повітрозабірник\S* (?:\S+ )?бампер/iu,
+    "small",
+  ],
   [
     /exhaust tips?|насадк|tail ?pipes?|аксесуари вихлопної|exhaust accessor|clamp|хомут|gasket|прокладк|накладк\S* радіатор|radiator cover/iu,
     "medium",
   ],
+  // A steering wheel or bumper corners are not a set of wheels or a whole bumper.
   [
-    /body.?kit|обвіс|bumper|бампер|\bhoods?\b|bonnet|капот|spoiler|спойлер|антикрил|\bwing\b(?!\s*mirror)|side skirt|side step|підніжк|поріг|пороги|\bsills?\b|wide.?body|\barch(?:es)?\b|(?<![а-яіїєґ])арк[иа](?![а-яіїєґ])|fender|крил[оа]|wheel ?sets?|комплект\S* (?:колісних )?дисків|\bwheels\b|\broof\b|(?<![а-яіїєґ])дах(?![а-яіїєґ])/iu,
+    /steering wheel|(?<![а-яіїєґ])керм[оа](?![а-яіїєґ])|bumper corners?|(?<![а-яіїєґ])кут\S* (?:\S+ )?бампер|door panels?/iu,
+    "medium",
+  ],
+  [
+    /body.?kit|обвіс|bumper|бампер|\bhoods?\b|bonnet|капот|boot ?lid|trunk ?lid|кришк\S* багажник|spoiler|спойлер|антикрил|\bwing\b(?!\s*mirror)|side skirt|side step|підніжк|поріг|пороги|\bsills?\b|wide.?body|\barch(?:es)?\b|(?<![а-яіїєґ])арк[иа](?![а-яіїєґ])|fender|крил[оа]|wheel ?sets?|комплект\S* (?:колісних )?дисків|\bwheels\b|\broof\b|(?<![а-яіїєґ])дах(?![а-яіїєґ])/iu,
     "oversize",
   ],
   [

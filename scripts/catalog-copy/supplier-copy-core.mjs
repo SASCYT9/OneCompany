@@ -262,6 +262,7 @@ export function parseCopyArgs(argv = process.argv.slice(2)) {
     only: args.get("only") ? new Set(args.get("only").split(",")) : null,
     force: args.has("force"),
     validateOnly: args.has("validate-only"),
+    acceptValid: args.has("accept-valid"),
     concurrency: Math.max(1, Number(args.get("concurrency") ?? 1) || 1),
   };
 }
@@ -276,10 +277,10 @@ export async function runSupplierCopy({
   outputPath,
   overridesPath,
   systemPrompt,
-  model = process.env.SUPPLIER_COPY_MODEL?.trim() || "gemini-3.8-flash",
+  model = process.env.SUPPLIER_COPY_MODEL?.trim() || "gemini-3.5-flash",
   argv,
 }) {
-  const { only, force, validateOnly, concurrency } = parseCopyArgs(argv);
+  const { only, force, validateOnly, acceptValid, concurrency } = parseCopyArgs(argv);
   const overrides = JSON.parse(await readFile(overridesPath, "utf8").catch(() => "{}"));
   let existing = { schemaVersion: 1, model, products: {} };
   try {
@@ -291,12 +292,14 @@ export async function runSupplierCopy({
   let saving = Promise.resolve();
   const save = () =>
     (saving = saving.then(() => writeFile(outputPath, `${JSON.stringify(existing, null, 1)}\n`)));
-  const validateWithOverrides = (copy, item) =>
-    validateSupplierCopy(
-      { ...copy, ...(overrides[item.id] ?? {}) },
-      item.sourceText,
-      item.allowedNumbers
-    );
+  // `item.check(copy)` adds brand-specific issues (for example kit part versions).
+  const validateWithOverrides = (copy, item) => {
+    const merged = { ...copy, ...(overrides[item.id] ?? {}) };
+    return [
+      ...validateSupplierCopy(merged, item.sourceText, item.allowedNumbers),
+      ...(item.check?.(merged) ?? []),
+    ];
+  };
   const hashSource = (item) =>
     createHash("sha256").update(`${systemPrompt}\n${item.sourceText}`).digest("hex").slice(0, 16);
 
@@ -319,6 +322,8 @@ export async function runSupplierCopy({
       entry.issues = validateWithOverrides(copy, item);
       // Reviewed copy written before hashes existed: stamp the source it was approved against.
       entry.sourceHash ??= hashSource(item);
+      // --accept-valid: copy that still passes against a changed SOURCE is kept, not regenerated.
+      if (acceptValid && !entry.issues.length) entry.sourceHash = hashSource(item);
       if (entry.issues.length) {
         withIssues += 1;
         console.log(`${item.id.padEnd(14)} ${entry.issues.join("; ")}`);
@@ -351,7 +356,12 @@ export async function runSupplierCopy({
             systemInstruction: systemPrompt,
             responseMimeType: "application/json",
             responseSchema: RESPONSE_SCHEMA,
-            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+            // SUPPLIER_COPY_THINKING picks the thinking level (LOW by default; thinking is billed as output).
+            thinkingConfig: {
+              thinkingLevel:
+                ThinkingLevel[process.env.SUPPLIER_COPY_THINKING?.trim().toUpperCase() ?? ""] ??
+                ThinkingLevel.LOW,
+            },
             maxOutputTokens: 16384,
           },
         });
