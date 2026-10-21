@@ -102,6 +102,8 @@ export async function sendOpsTelegramNotification(input: {
   text: string;
   replyToMessageId?: number | null;
   replyMarkup?: OpsTelegramReplyMarkup;
+  /** HTML texts are built within Telegram's limit by their builder and never cut here. */
+  parseMode?: "HTML";
   token?: string | null;
   fetchImpl?: typeof fetch;
 }) {
@@ -125,7 +127,8 @@ export async function sendOpsTelegramNotification(input: {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         chat_id: input.chatId.toString(),
-        text: input.text.slice(0, 4_000),
+        text: input.parseMode ? input.text : input.text.slice(0, 4_000),
+        ...(input.parseMode ? { parse_mode: input.parseMode } : {}),
         disable_web_page_preview: true,
         ...(input.replyToMessageId
           ? {

@@ -7,6 +7,7 @@ import {
 } from "@/lib/operations/media";
 import { opsRolesAllowNotification } from "@/lib/operations/notificationAccess";
 import { enqueueOpsOwnerReports } from "@/lib/operations/ownerReports";
+import { enqueuePriceWatchNotifications, isPriceWatchEnabled } from "@/lib/operations/priceWatch";
 import { spawnOpsRecurringTasks } from "@/lib/operations/recurrence";
 import { enqueueOpsMemberReminders } from "@/lib/operations/reminders";
 import { syncOpsShopOrderTasks } from "@/lib/operations/shopOrderTasks";
@@ -43,6 +44,8 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     reviews: 0,
     summaries: 0,
     alerts: 0,
+    priceDigests: 0,
+    priceReminders: 0,
     pausedRecipients: paused.size,
   };
   for (const profile of candidateProfiles) {
@@ -70,6 +73,20 @@ export async function enqueueOpsInternalNotifications(input: { client: PrismaCli
     });
     totals.summaries += ownerReports.summaries;
     totals.alerts += ownerReports.alerts;
+    if (isPriceWatchEnabled()) {
+      // Price news must never hold up task reminders, e.g. before its tables exist.
+      const prices = await enqueuePriceWatchNotifications({
+        client: input.client,
+        now: input.now,
+        member,
+        lastLoginAt: profile.adminUser.lastLoginAt ?? null,
+      }).catch((error) => {
+        console.error("[operations.watchdog] price watch notifications failed", error);
+        return { digests: 0, reminders: 0 };
+      });
+      totals.priceDigests += prices.digests;
+      totals.priceReminders += prices.reminders;
+    }
   }
   return totals;
 }

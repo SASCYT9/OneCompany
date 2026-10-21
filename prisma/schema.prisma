@@ -3172,6 +3172,109 @@ model OpsUsageBucket {
   @@index([month])
 }
 
+/// Supplier price watch: the state of one price source. What a source is
+/// (brand, site, formula, cadence) lives in code, src/lib/operations/priceWatchSources.ts;
+/// this row only keeps progress, the last supplier prices and price-list dates.
+model OpsPriceWatchSource {
+  id             String             @id @default(cuid())
+  key            String             @unique
+  /// Progress of a check that spans several cron runs (page sources).
+  state          Json?
+  leaseUntil     DateTime?
+  lastStartedAt  DateTime?
+  lastFinishedAt DateTime?
+  lastStatus     String?
+  lastError      String?
+  /// Supplier prices from the last finished check, for "changed since last time".
+  snapshot       Json?
+  /// Date of the price list the site prices were calculated from (price-list sources).
+  priceListDate  DateTime?
+  nextReminderAt DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  runs           OpsPriceWatchRun[]
+}
+
+/// One finished check of a price source. Only differences are stored, never
+/// every price, so a check costs one row however big the catalog is.
+model OpsPriceWatchRun {
+  id            String              @id @default(cuid())
+  sourceId      String
+  status        String
+  startedAt     DateTime
+  finishedAt    DateTime            @default(now())
+  checked       Int                 @default(0)
+  findingsCount Int                 @default(0)
+  newFindings   Int                 @default(0)
+  summary       Json                @default("{}")
+  findings      Json                @default("[]")
+  source        OpsPriceWatchSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, finishedAt])
+  @@index([finishedAt])
+}
+
+/// What a supplier or competitor shows for one item at the last check: price,
+/// stock and weight. Internal only, never shown to customers. Rows without a
+/// product are supplier items we do not sell (new products at the supplier).
+model OpsSupplierItem {
+  id           String   @id @default(cuid())
+  sourceKey    String
+  supplierKey  String
+  productId    String?
+  variantId    String?
+  sku          String?
+  supplierSku  String?
+  title        String
+  url          String?
+  price        Decimal? @db.Decimal(12, 2)
+  currency     String?
+  available    Boolean?
+  availability String?
+  weightKg     Decimal? @db.Decimal(10, 3)
+  lengthCm     Decimal? @db.Decimal(8, 1)
+  widthCm      Decimal? @db.Decimal(8, 1)
+  heightCm     Decimal? @db.Decimal(8, 1)
+  firstSeenAt  DateTime @default(now())
+  lastSeenAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([sourceKey, supplierKey])
+  @@index([sku])
+  @@index([productId])
+  @@index([sourceKey, firstSeenAt])
+}
+
+/// A price change asked for in Telegram by an owner: previewed first, applied
+/// only after confirmation (in the background when big) and undoable for 30 minutes.
+model OpsPriceChange {
+  id                String    @id @default(cuid())
+  status            String
+  origin            String
+  title             String
+  requestedById     String
+  items             Json      @default("[]")
+  itemCount         Int       @default(0)
+  bigChanges        Int       @default(0)
+  appliedCount      Int       @default(0)
+  failedCount       Int       @default(0)
+  cursor            Int       @default(0)
+  telegramChatId    BigInt?
+  undoOfId          String?
+  error             String?
+  /// A price list's dates before this change marked it current; undo puts them back.
+  previousPriceList Json?
+  createdAt         DateTime  @default(now())
+  expiresAt         DateTime
+  confirmedAt       DateTime?
+  appliedAt         DateTime?
+  undoUntil         DateTime?
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([requestedById, createdAt])
+}
+
 // -----------------------------------------------------------------------------
 // Catalog V2 canonical foundation. These tables are additive shadow structures;
 // legacy catalog and Knowledge V2 readers remain the source of truth until

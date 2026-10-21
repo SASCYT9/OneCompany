@@ -119,6 +119,13 @@ export const ADMIN_NAV_SECTIONS: AdminNavSectionDefinition[] = [
         requiredPermissions: [ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ],
       },
       {
+        href: "/admin/operations/prices",
+        label: "Цены",
+        description: "Цены поставщиков: что изменилось и когда обновлять прайсы.",
+        icon: "pricing",
+        requiredPermissions: [ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ],
+      },
+      {
         href: "/admin/operations/knowledge",
         label: "БАЗА",
         description: "Обучение, инструкции и процессы для команды.",

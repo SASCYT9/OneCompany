@@ -13,6 +13,9 @@ const OPS_MEDIA_UPLOAD_FEATURE = "media_upload";
 const OPS_MEDIA_RETAINED_FEATURE = "media_retained";
 const OPS_MEDIA_RETAINED_BUCKET_MONTH = new Date("1970-01-01T00:00:00.000Z");
 
+export const OPS_XLSX_MIME_TYPE =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 const ALLOWED_MIME_TYPES = new Set([
   "audio/aac",
   "audio/flac",
@@ -30,6 +33,9 @@ const ALLOWED_MIME_TYPES = new Set([
   "video/mp4",
   "application/pdf",
   "text/plain",
+  // Supplier price lists sent to the bot; macro-enabled workbooks stay rejected.
+  OPS_XLSX_MIME_TYPE,
+  "text/csv",
 ]);
 
 const REJECTED_FILE_EXTENSIONS = new Set([
@@ -99,15 +105,19 @@ function sanitizeFileName(fileName: string | null, kind: string, mimeType: strin
   const fallbackExtension =
     mimeType === "application/pdf"
       ? "pdf"
-      : mimeType === "text/plain"
-        ? "txt"
-        : mimeType.startsWith("image/")
-          ? mimeType.slice("image/".length).replace("jpeg", "jpg")
-          : mimeType.startsWith("video/")
-            ? "mp4"
-            : mimeType.includes("ogg")
-              ? "ogg"
-              : "bin";
+      : mimeType === OPS_XLSX_MIME_TYPE
+        ? "xlsx"
+        : mimeType === "text/csv"
+          ? "csv"
+          : mimeType === "text/plain"
+            ? "txt"
+            : mimeType.startsWith("image/")
+              ? mimeType.slice("image/".length).replace("jpeg", "jpg")
+              : mimeType.startsWith("video/")
+                ? "mp4"
+                : mimeType.includes("ogg")
+                  ? "ogg"
+                  : "bin";
   const sanitized = String(fileName ?? "")
     .normalize("NFKC")
     .replace(/[^\p{Letter}\p{Number}._ -]+/gu, "_")
@@ -115,6 +125,27 @@ function sanitizeFileName(fileName: string | null, kind: string, mimeType: strin
     .trim()
     .slice(0, 160);
   return sanitized || `${kind}.${fallbackExtension}`;
+}
+
+const LOOSE_CSV_MIME_TYPES = new Set([
+  "text/plain",
+  "text/comma-separated-values",
+  "text/x-csv",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "application/octet-stream",
+]);
+const LOOSE_XLSX_MIME_TYPES = new Set([
+  "application/octet-stream",
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
+/** Phones and Windows label spreadsheets loosely; the bytes are still checked after download. */
+function spreadsheetMimeType(fileExtension: string | undefined, mimeType: string) {
+  if (fileExtension === "csv" && LOOSE_CSV_MIME_TYPES.has(mimeType)) return "text/csv";
+  if (fileExtension === "xlsx" && LOOSE_XLSX_MIME_TYPES.has(mimeType)) return OPS_XLSX_MIME_TYPE;
+  return mimeType;
 }
 
 export function validateOpsTelegramMedia(media: OpsTelegramMediaDescriptor): ValidatedOpsMedia {
@@ -145,9 +176,12 @@ export function validateOpsTelegramMedia(media: OpsTelegramMediaDescriptor): Val
     );
   }
 
-  const mimeType = String(media.mimeType ?? "")
-    .trim()
-    .toLocaleLowerCase("en-US");
+  const mimeType = spreadsheetMimeType(
+    fileExtension,
+    String(media.mimeType ?? "")
+      .trim()
+      .toLocaleLowerCase("en-US")
+  );
   if (!mimeType || !ALLOWED_MIME_TYPES.has(mimeType)) {
     throw new OpsMediaError(
       "ATTACHMENT_MIME_REJECTED",
@@ -194,8 +228,11 @@ export function assertOpsMediaMagicBytes(body: Uint8Array, mimeType: string) {
     valid = asciiAt(body, "RIFF") && asciiAt(body, "WEBP", 8);
   } else if (mime === "application/pdf") {
     valid = asciiAt(body, "%PDF-");
-  } else if (mime === "text/plain") {
+  } else if (mime === "text/plain" || mime === "text/csv") {
     valid = !body.includes(0);
+  } else if (mime === OPS_XLSX_MIME_TYPE) {
+    // An .xlsx is a zip archive; its sheets are read by priceListFile.ts.
+    valid = startsWithBytes(body, [0x50, 0x4b, 0x03, 0x04]);
   } else if (mime === "audio/ogg" || mime === "audio/opus") {
     valid = asciiAt(body, "OggS");
   } else if (mime === "audio/flac") {

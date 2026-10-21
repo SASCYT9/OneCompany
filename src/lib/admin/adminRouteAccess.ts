@@ -84,6 +84,12 @@ export const ADMIN_ROUTE_POLICY: readonly AdminRoutePolicyRule[] = [
     permission: ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ,
   },
   {
+    id: "ops-price-pages",
+    pattern: "/admin/operations/prices/**",
+    methods: READ,
+    permission: ADMIN_PERMISSIONS.OPS_KNOWLEDGE_READ,
+  },
+  {
     id: "ops-approval-pages",
     pattern: "/admin/operations/approvals/**",
     methods: READ,
