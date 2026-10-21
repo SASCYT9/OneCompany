@@ -53,6 +53,10 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "path": "/api/cron/price-watch",
+      "schedule": "25 * * * *"
+    },
+    {
       "path": "/api/cron/shop-ai-retention",
       "schedule": "17 3 * * *"
     },

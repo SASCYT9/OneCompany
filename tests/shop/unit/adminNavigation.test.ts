@@ -59,8 +59,8 @@ test("task-based groups keep every page from the previous navigation", () => {
   const hrefs = ADMIN_NAV_SECTIONS.flatMap((section) => section.items.map((item) => item.href));
   assert.equal(new Set(hrefs).size, hrefs.length, "no page is listed twice");
   // 37 before Operations «Проекты» and «Согласования» were hidden (2026-10-13);
-  // +1 for «B2B-знижки» under Клієнти.
-  assert.equal(hrefs.length, 36);
+  // +1 for «B2B-знижки» under Клієнти, +1 for «Цены» under Работа.
+  assert.equal(hrefs.length, 37);
   assert.deepEqual(hrefsOf("customers"), [
     "/admin/shop/customers",
     "/admin/shop/customers/b2b-pricing",

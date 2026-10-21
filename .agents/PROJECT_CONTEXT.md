@@ -34,7 +34,7 @@ Production URL: <https://onecompany.global>. Git remote:
 | Admin auth    | Custom HMAC-signed cookie plus current DB user/role resolution             |
 | Media         | Tracked `public/` assets and Vercel Blob for runtime uploads               |
 | Tests         | Node test runner through `tsx --test`; Playwright in opt-in E2E files      |
-| Hosting       | Vercel, region `fra1`; four Vercel cron routes                             |
+| Hosting       | Vercel, region `fra1`; eight Vercel cron routes                            |
 
 Do not copy old claims that this repo uses Tailwind 3, React Query, Supabase,
 `src/middleware.ts`, or a shared `ADMIN_SECRET` login. Those do not describe
@@ -145,6 +145,22 @@ is forbidden.
 - Domain: `src/lib/operations/`.
 - Feature flags: `OPS_UI_ENABLED`, Telegram/notification/auto-create/job/
   automation flags; production behavior fails closed.
+- Supplier price watch: sources and formulas in
+  `src/lib/operations/priceWatchSources.ts`, hourly checks via
+  `src/app/api/cron/price-watch/route.ts` (state in `OpsPriceWatchSource`/
+  `OpsPriceWatchRun`; supplier stock, weight and box size per item in
+  `OpsSupplierItem`, internal only; the checks never write prices), owner
+  digest and price-list reminders through the ops bot, page
+  `/admin/operations/prices`; `OPS_PRICE_WATCH_ENABLED=false` switches the
+  checks off. Local preview: `scripts/operations/price-watch-dry-run.ts` +
+  `OPS_LOCAL_DEMO_MODE=true`.
+- Price changes from Telegram (`src/lib/operations/priceChanges.ts`, owners
+  only): «цена SKU …», «цена Brand +5%», «… по формуле», the product card, and
+  price-list files (`priceListFile.ts`: Dinan/APR dealer sheets by
+  `decideHolleyPriceUsd`, other SKU + price sheets by the brand's
+  `priceList.file` rule or a caption markup). Every change is an
+  `OpsPriceChange` proposal applied through the catalog mutation coordinator
+  after «Применить», audited as `pricing.telegram`, undoable for 30 minutes.
 - Release procedure: `docs/operations/production-rollout-runbook.md`.
 
 Ops Telegram credentials and private media storage are separate from the legacy
@@ -226,7 +242,7 @@ Vercel uses `DIRECT_URL` as the effective build catalog connection through
 `scripts/build-site.mjs`, one build CPU to limit DB connection pressure, and fails
 the production build if the catalog snapshot or One AI release guard is invalid.
 
-`vercel.json` deploys in `fra1`, runs four crons, and ignores automatic builds
+`vercel.json` deploys in `fra1`, runs eight crons, and ignores automatic builds
 for non-`master` branches. A Preview must therefore be created manually unless
 that configuration is changed.
 

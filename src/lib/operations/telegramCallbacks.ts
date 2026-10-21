@@ -17,6 +17,21 @@ import {
 import { opsAttachmentRetentionAt } from "@/lib/operations/media";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
 import {
+  cancelPriceChange,
+  confirmPriceChange,
+  proposeFormulaForProduct,
+  proposeFormulaForSource,
+  undoPriceChange,
+  type PriceButtonFactory,
+  type PriceReply,
+} from "@/lib/operations/priceChanges";
+import {
+  acknowledgePriceList,
+  createPriceListTask,
+  createPriceWatchDigestTask,
+  snoozePriceList,
+} from "@/lib/operations/priceWatch";
+import {
   opsRepeatLabel,
   opsRepeatRuleFromTags,
   withOpsRepeatRule,
@@ -42,7 +57,32 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "take",
   "assign_to",
   "merge_into",
+  "price_digest_task",
+  "price_ack",
+  "price_snooze",
+  "price_list_task",
+  "price_formula",
+  "price_apply",
+  "price_apply_big",
+  "price_cancel",
+  "price_undo",
+  "price_card_formula",
 ] as const;
+
+/** Price watch buttons: the resource is a price source, or the digest job for a task. */
+const PRICE_SOURCE_ACTIONS: readonly OpsTelegramCallbackAction[] = [
+  "price_ack",
+  "price_snooze",
+  "price_list_task",
+  "price_formula",
+];
+/** Price change buttons: the resource is the change shown in the preview. */
+const PRICE_CHANGE_ACTIONS: readonly OpsTelegramCallbackAction[] = [
+  "price_apply",
+  "price_apply_big",
+  "price_cancel",
+  "price_undo",
+];
 
 export type OpsTelegramCallbackAction = (typeof OPS_TELEGRAM_CALLBACK_ACTIONS)[number];
 
@@ -114,7 +154,15 @@ export async function createOpsTelegramCallbackState(input: {
           ? "ops.inbox"
           : input.action === "undo_task_update"
             ? "ops.task_event"
-            : "ops.task",
+            : input.action === "price_digest_task"
+              ? "ops.job"
+              : PRICE_SOURCE_ACTIONS.includes(input.action)
+                ? "ops.price_source"
+                : PRICE_CHANGE_ACTIONS.includes(input.action)
+                  ? "ops.price_change"
+                  : input.action === "price_card_formula"
+                    ? "shop.product"
+                    : "ops.task",
       resourceId: input.resourceId,
       expiresAt: new Date(Date.now() + Math.max(60_000, input.ttlMs ?? 24 * 60 * 60 * 1000)),
     },
@@ -1462,6 +1510,67 @@ export function opsTaskActionErrorMessage(error: unknown) {
   return null;
 }
 
+/** Buttons of a price change that create the next buttons (apply → undo). */
+async function executePriceChangeCallback(input: {
+  client: PrismaClient;
+  actor: TelegramActor;
+  action: OpsTelegramCallbackAction;
+  resourceId: string;
+}): Promise<{ message: string; link: string | null; reply?: PriceReply }> {
+  const actor = {
+    id: input.actor.id,
+    email: input.actor.email,
+    name: input.actor.name,
+    permissions: input.actor.permissions,
+    roleKeys: input.actor.roleKeys,
+  };
+  const button: PriceButtonFactory = async (action, resourceId, label, style) => {
+    const callbackData = await createOpsTelegramCallbackState({
+      client: input.client,
+      action,
+      resourceId,
+      actorAdminUserId: actor.id,
+      ttlMs: 24 * 60 * 60 * 1000,
+    });
+    return callbackData
+      ? { text: label, callback_data: callbackData, ...(style ? { style } : {}) }
+      : null;
+  };
+  switch (input.action) {
+    case "price_formula":
+      return proposeFormulaForSource({
+        client: input.client,
+        actor,
+        sourceId: input.resourceId,
+        telegramChatId: null,
+        button,
+      });
+    case "price_card_formula":
+      return proposeFormulaForProduct({
+        client: input.client,
+        actor,
+        productId: input.resourceId,
+        telegramChatId: null,
+        button,
+      });
+    case "price_apply":
+    case "price_apply_big":
+      return confirmPriceChange({
+        client: input.client,
+        actor,
+        changeId: input.resourceId,
+        confirmedBig: input.action === "price_apply_big",
+        button,
+      });
+    case "price_cancel":
+      return cancelPriceChange({ client: input.client, actor, changeId: input.resourceId });
+    case "price_undo":
+      return undoPriceChange({ client: input.client, actor, changeId: input.resourceId, button });
+    default:
+      throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+  }
+}
+
 export async function executeOpsTelegramCallback(input: {
   client: PrismaClient;
   actorAdminUserId: string;
@@ -1540,6 +1649,41 @@ export async function executeOpsTelegramCallback(input: {
         actor,
         duplicateId: claimed.state.resourceId,
         targetId: claimed.state.value,
+      });
+    } else if (claimed.state.action === "price_ack") {
+      result = await acknowledgePriceList({
+        client: input.client,
+        actor,
+        sourceId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "price_snooze") {
+      result = await snoozePriceList({
+        client: input.client,
+        actor,
+        sourceId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "price_list_task") {
+      result = await createPriceListTask({
+        client: input.client,
+        actor,
+        sourceId: claimed.state.resourceId,
+      });
+    } else if (claimed.state.action === "price_digest_task") {
+      result = await createPriceWatchDigestTask({
+        client: input.client,
+        actor,
+        jobId: claimed.state.resourceId,
+      });
+    } else if (
+      claimed.state.action === "price_formula" ||
+      claimed.state.action === "price_card_formula" ||
+      PRICE_CHANGE_ACTIONS.includes(claimed.state.action)
+    ) {
+      result = await executePriceChangeCallback({
+        client: input.client,
+        actor,
+        action: claimed.state.action,
+        resourceId: claimed.state.resourceId,
       });
     } else {
       requirePermission(actor, ADMIN_PERMISSIONS.OPS_TASKS_READ);

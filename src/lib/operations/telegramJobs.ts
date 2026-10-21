@@ -41,6 +41,22 @@ import {
   opsRolesAreOwner,
 } from "@/lib/operations/ownerReports";
 import {
+  canChangePrices,
+  handlePriceMessage,
+  PRICE_CHANGE_JOB_TYPE,
+  priceChangeDoneReply,
+  runPriceChangeJob,
+  type PriceButtonFactory,
+} from "@/lib/operations/priceChanges";
+import {
+  handlePriceListFile,
+  isPriceListMime,
+  PriceListFileError,
+  priceListSheetsText,
+  readPriceListFile,
+} from "@/lib/operations/priceListFile";
+import { buildPriceWatchNotification } from "@/lib/operations/priceWatch";
+import {
   createOpsTelegramCallbackState,
   executeOpsTelegramCallback,
   finalizeTelegramCallbackInbox,
@@ -159,8 +175,8 @@ export type TelegramJobPayload = {
   callbackResponse?: string;
   callbackLink?: string | null;
   taskUpdateEventId?: string | null;
-  /** A ready answer (knowledge-base question) sent as-is at NOTIFY. */
-  commandReply?: { text: string; replyMarkup?: OpsTelegramReplyMarkup } | null;
+  /** A ready answer (knowledge-base question, price command) sent as-is at NOTIFY. */
+  commandReply?: { text: string; replyMarkup?: OpsTelegramReplyMarkup; parseMode?: "HTML" } | null;
   /** An older open task that looks like the one just created. */
   duplicateOfTaskId?: string | null;
   autoApplied?: boolean;
@@ -431,7 +447,11 @@ export function asPayload(job: OpsJob): TelegramJobPayload {
       payload.commandReply &&
       typeof payload.commandReply === "object" &&
       typeof (payload.commandReply as Record<string, unknown>).text === "string"
-        ? (payload.commandReply as { text: string; replyMarkup?: OpsTelegramReplyMarkup })
+        ? (payload.commandReply as {
+            text: string;
+            replyMarkup?: OpsTelegramReplyMarkup;
+            parseMode?: "HTML";
+          })
         : null,
     duplicateOfTaskId: payload.duplicateOfTaskId ? String(payload.duplicateOfTaskId) : null,
     autoApplied: payload.autoApplied === true,
@@ -2082,6 +2102,14 @@ async function executeTelegramBatchMediaStages(input: {
             .replace(/\u0000/g, "")
             .trim()
             .slice(0, 30_000);
+        } else if (isPriceListMime(item.mimeType)) {
+          // A spreadsheet among forwarded messages is read as text; price lists are sent on their own.
+          try {
+            extracted = priceListSheetsText(readPriceListFile(body, item.mimeType));
+          } catch (error) {
+            if (!(error instanceof PriceListFileError)) throw error;
+            extracted = `Таблица не прочитана: ${error.message}.`;
+          }
         } else {
           if (isTelegramAudioMedia(item.media) && item.transcription) {
             extracted = item.transcription;
@@ -2304,6 +2332,8 @@ async function executeTelegramIntakeStage(input: {
             ...payload,
             callbackResponse: callback.message,
             callbackLink: "link" in callback ? callback.link : null,
+            // Price changes answer with their own message and buttons (preview, undo).
+            ...("reply" in callback && callback.reply ? { commandReply: callback.reply } : {}),
           },
         };
       } catch (error) {
@@ -2340,6 +2370,35 @@ async function executeTelegramIntakeStage(input: {
         }
         throw error;
       }
+    }
+    // «цена …», «наличие …» or a bare SKU: price commands and the product card.
+    const priceReply =
+      !payload.media && !payload.batchId && !payload.isUntrustedForward && payload.text
+        ? await handlePriceMessage({
+            client: input.client,
+            actorAdminUserId: payload.actorAdminUserId,
+            text: payload.text,
+            telegramChatId: null,
+            button: priceButtons(input.client, payload.actorAdminUserId),
+          })
+        : null;
+    if (priceReply) {
+      await input.client.opsInboxItem.update({
+        where: { id: input.job.inboxItemId },
+        data: {
+          extractionStatus: OpsInboxExtractionStatus.READY,
+          reviewStatus: OpsInboxReviewStatus.IGNORED,
+          summary: `Цены: ${String(payload.text ?? "").slice(0, 200)}`,
+          processedAt: new Date(),
+          reviewedAt: new Date(),
+        },
+      });
+      return {
+        outcome: "advance" as const,
+        stage: OpsJobStage.NOTIFY,
+        payload: { ...payload, commandReply: priceReply },
+        result: { priceCommand: true },
+      };
     }
     const question =
       !payload.media && !payload.batchId && !payload.isUntrustedForward
@@ -2542,6 +2601,73 @@ async function executeTelegramIntakeStage(input: {
     }
     const store = input.dependencies.mediaStore ?? createConfiguredOpsMediaStore();
     const body = await store.get(payload.storageKey);
+    if (isPriceListMime(payload.attachmentMimeType)) {
+      // «Прайс файлом у бот»: an owner's price list gets a preview with «Применить».
+      const priceList = await handlePriceListFile({
+        client: input.client,
+        actorAdminUserId: payload.actorAdminUserId,
+        body,
+        mimeType: payload.attachmentMimeType,
+        fileName: payload.media.fileName,
+        caption: payload.text ?? null,
+        telegramChatId: null,
+        button: priceButtons(input.client, payload.actorAdminUserId),
+      });
+      if (priceList?.kind === "reply") {
+        await input.client.opsInboxItem.update({
+          where: { id: input.job.inboxItemId },
+          data: {
+            extractionStatus: OpsInboxExtractionStatus.READY,
+            reviewStatus: OpsInboxReviewStatus.IGNORED,
+            summary: priceList.summary.slice(0, 300),
+            processedAt: new Date(),
+            reviewedAt: new Date(),
+          },
+        });
+        return {
+          outcome: "advance" as const,
+          stage: OpsJobStage.NOTIFY,
+          payload: { ...payload, commandReply: priceList.reply },
+          result: { priceList: true },
+        };
+      }
+      if (priceList?.kind === "not_owner") {
+        // Someone else's price list stays in the inbox for an owner, without guessing tasks from it.
+        const extraction: OpsExtraction = {
+          intent: "note",
+          summary: priceList.summary,
+          project_candidates: [],
+          order_candidates: [],
+          tasks: [],
+          confidence: "1.00",
+          ambiguities: [],
+          requires_approval: false,
+        };
+        return {
+          outcome: "advance" as const,
+          stage: OpsJobStage.RESOLVE_CONTEXT,
+          payload: { ...payload, extraction },
+          result: { priceList: "not_owner" },
+        };
+      }
+      // Not a price list: the sheet is read as text, like a .txt document.
+      const sheetText = priceListSheetsText(readPriceListFile(body, payload.attachmentMimeType));
+      if (!sheetText) throw new Error("OPS_DOCUMENT_TEXT_EMPTY");
+      await input.client.opsInboxItem.update({
+        where: { id: input.job.inboxItemId },
+        data: { transcription: null },
+      });
+      return {
+        outcome: "advance" as const,
+        stage: OpsJobStage.EXTRACT,
+        payload: {
+          ...payload,
+          transcription: undefined,
+          extractionText: [payload.text, sheetText].filter(Boolean).join("\n\n"),
+        },
+        result: { transcriptionModel: "deterministic_sheet" },
+      };
+    }
     if (payload.attachmentMimeType === "text/plain") {
       const documentText = new TextDecoder("utf-8", { fatal: false })
         .decode(body)
@@ -2789,6 +2915,7 @@ async function executeTelegramIntakeStage(input: {
           text: payload.commandReply.text,
           replyToMessageId: inbox.telegramUpdate.messageId,
           replyMarkup: payload.commandReply.replyMarkup,
+          parseMode: payload.commandReply.parseMode,
           fetchImpl: input.dependencies.fetchImpl,
         });
         return {
@@ -3664,7 +3791,10 @@ async function executeInternalNotificationJob(input: {
   };
   const mine = opsAssignedTo(profile.adminUserId);
   const now = new Date();
-  let gentle: { text: string; replyMarkup?: OpsTelegramReplyMarkup } | null | undefined;
+  let gentle:
+    | { text: string; replyMarkup?: OpsTelegramReplyMarkup; parseMode?: "HTML" }
+    | null
+    | undefined;
   if (input.job.type === "telegram_task_reminder" && payload.reminderKind === "due_today") {
     const [task] = await loadOpsReminderTasks(input.client, [payload.taskId], mine);
     const taskUrl = task ? opsAdminLink(`/admin/operations/tasks/${task.id}`) : null;
@@ -3737,6 +3867,36 @@ async function executeInternalNotificationJob(input: {
       tasksUrl: opsAdminLink("/admin/operations/tasks"),
       button: reminderButton,
     });
+  } else if (
+    input.job.type === "telegram_internal_report" &&
+    (payload.reportPeriod === "price_watch" || payload.reportPeriod === "price_list_reminder")
+  ) {
+    // Supplier prices are owner reports too: the role is re-checked at send time.
+    gentle = opsRolesAreOwner(profile.adminUser.roles)
+      ? await buildPriceWatchNotification({
+          client: input.client,
+          jobId: input.job.id,
+          payload,
+          now,
+          timeZone: profile.timezone,
+          canChangePrices: canChangePrices({
+            permissions: profile.adminUser.roles.flatMap(({ role }) => role.permissions),
+            roleKeys: profile.adminUser.roles.map(({ role }) => role.key),
+          }),
+          button: async (action, resourceId, label, style) => {
+            const callbackData = await createOpsTelegramCallbackState({
+              client: input.client,
+              action,
+              resourceId,
+              actorAdminUserId: profile.adminUserId,
+              ttlMs: 14 * 24 * 60 * 60 * 1000,
+            });
+            return callbackData
+              ? { text: label, callback_data: callbackData, ...(style ? { style } : {}) }
+              : null;
+          },
+        })
+      : null;
   }
   if (gentle === null) {
     return {
@@ -3747,9 +3907,11 @@ async function executeInternalNotificationJob(input: {
 
   let text: string;
   let replyMarkup: OpsTelegramReplyMarkup | undefined;
+  let parseMode: "HTML" | undefined;
   if (gentle) {
     text = gentle.text;
     replyMarkup = gentle.replyMarkup;
+    parseMode = gentle.parseMode;
   } else if (input.job.type === "telegram_task_assigned") {
     const title = String(payload.title ?? "Задача").slice(0, 500);
     const recipientName = String(profile.adminUser.name ?? "").trim() || "Вы";
@@ -3867,6 +4029,7 @@ async function executeInternalNotificationJob(input: {
       chatId: telegramUserId,
       text,
       replyMarkup,
+      parseMode,
       fetchImpl: input.fetchImpl,
     });
     if (input.job.taskId) {
@@ -3912,6 +4075,83 @@ async function executeInternalNotificationJob(input: {
   }
 }
 
+/** Buttons under price messages; each press is checked against the same person. */
+function priceButtons(client: PrismaClient, actorAdminUserId: string): PriceButtonFactory {
+  return async (action, resourceId, label, style) => {
+    const callbackData = await createOpsTelegramCallbackState({
+      client,
+      action,
+      resourceId,
+      actorAdminUserId,
+      ttlMs: 24 * 60 * 60 * 1000,
+    });
+    return callbackData
+      ? { text: label, callback_data: callbackData, ...(style ? { style } : {}) }
+      : null;
+  };
+}
+
+/**
+ * A big price change (a whole brand) goes 25 products per stage, so the
+ * catalog and the database are never flooded; the owner hears when it is done.
+ */
+async function executePriceChangeJob(input: {
+  client: PrismaClient;
+  job: OpsJob;
+  fetchImpl?: typeof fetch;
+}) {
+  const payload = asPayloadRecord(input.job.payload);
+  const changeId = String(payload.changeId ?? "");
+  const result = await runPriceChangeJob({
+    client: input.client,
+    changeId,
+    deadline: Date.now() + 40_000,
+  });
+  if (!result.done) {
+    return { outcome: "advance" as const, stage: OpsJobStage.EXECUTE_AUTOMATIONS, payload };
+  }
+  const change = result.change;
+  if (!change) return { outcome: "succeeded" as const, result: { priceChange: "missing" } };
+  const profile = await input.client.opsMemberProfile.findFirst({
+    where: {
+      adminUserId: change.requestedById,
+      telegramEnabled: true,
+      telegramUserId: { not: null },
+    },
+    select: { telegramUserId: true },
+  });
+  if (profile?.telegramUserId) {
+    const reply = await priceChangeDoneReply(
+      change,
+      priceButtons(input.client, change.requestedById)
+    );
+    try {
+      await sendOpsTelegramNotification({
+        chatId: profile.telegramUserId,
+        text: reply.text,
+        replyMarkup: reply.replyMarkup,
+        parseMode: reply.parseMode,
+        fetchImpl: input.fetchImpl,
+      });
+    } catch (error) {
+      // The prices are applied; a lost «готово» message must not repeat the job.
+      console.error("[operations.price-change] done message failed", error);
+    }
+  }
+  return {
+    outcome: "succeeded" as const,
+    result: {
+      priceChange: change.status,
+      applied: change.appliedCount,
+      failed: change.failedCount,
+    },
+  };
+}
+
+function asPayloadRecord(value: unknown) {
+  return (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+}
+
 export function createOpsJobStageExecutor(input: {
   client: PrismaClient;
   dependencies?: OpsTelegramJobDependencies;
@@ -3936,6 +4176,13 @@ export function createOpsJobStageExecutor(input: {
     }
     if (job.type.startsWith("automation:") && job.stage === OpsJobStage.EXECUTE_AUTOMATIONS) {
       return executeAutomationJob(input.client, job);
+    }
+    if (job.type === PRICE_CHANGE_JOB_TYPE && job.stage === OpsJobStage.EXECUTE_AUTOMATIONS) {
+      return executePriceChangeJob({
+        client: input.client,
+        job,
+        fetchImpl: input.dependencies?.fetchImpl,
+      });
     }
     if (
       (job.type === "telegram_task_assigned" ||
