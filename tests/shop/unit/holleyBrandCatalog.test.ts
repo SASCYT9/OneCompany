@@ -101,12 +101,32 @@ const copy: SupplierCopy = {
   ],
 };
 
-test("Dinan/APR formula is MSRP × 1.15 + $12 per kg of price-list pounds, up to $1", () => {
+test("Dinan/APR formula is base price × 1.15 + $12 per kg of price-list pounds, up to $1", () => {
   // 3037.95 × 1.15 + 12 × 63 lb × 0.45359237 = 3836.56
   assert.equal(calculateHolleyFormulaUsd(3037.95, 63), 3837);
   assert.equal(calculateHolleyFormulaUsd(956.95, 21), 1215);
   assert.equal(calculateHolleyFormulaUsd(23.93, 0), 28);
   assert.throws(() => calculateHolleyFormulaUsd(0, 1));
+});
+
+test("Dinan/APR price starts from MAP; MSRP only when the price list has no MAP", () => {
+  // Ігор, 21.10.2026: APR CI100059, MAP 2999.95, Retail 3374.95, 12 lb
+  // 2999.95 × 1.15 + 12 × 12 × 0.45359237 = 3515.26
+  const map = decideHolleyPriceUsd({
+    retailUsd: 3374.95,
+    mapUsd: 2999.95,
+    weightLb: 12,
+    competitorUsd: [],
+  });
+  assert.equal(map.priceUsd, 3516);
+  const noMap = decideHolleyPriceUsd({
+    retailUsd: 3374.95,
+    mapUsd: null,
+    weightLb: 12,
+    competitorUsd: [],
+  });
+  assert.equal(noMap.priceUsd, 3947);
+  assert.equal(noMap.floorUsd, null);
 });
 
 test("competitor prices cap the formula but never go under MAP plus shipping", () => {
@@ -117,7 +137,7 @@ test("competitor prices cap the formula but never go under MAP plus shipping", (
     competitorUsd: [],
   });
   assert.equal(formula.rule, "formula");
-  assert.equal(formula.priceUsd, 2476);
+  assert.equal(formula.priceUsd, 2210);
 
   const capped = decideHolleyPriceUsd({
     retailUsd: 2081.95,
@@ -442,7 +462,7 @@ test("payloads are USD-priced drafts with variants, photos, videos and fitment",
   assert.equal(payload.status, "DRAFT");
   assert.equal(payload.isPublished, false);
   assert.equal(payload.priceSourceCurrency, "USD");
-  assert.equal(payload.priceUsd, 3837);
+  assert.equal(payload.priceUsd, 3218);
   assert.equal(payload.brand, "Dinan");
   assert.equal(payload.categoryEn, "Exhaust Systems");
   assert.equal(payload.slug, "dinan-free-flow-axle-back-exhaust-2018-2023-bmw-m5-d660-0079-blk");
@@ -457,8 +477,8 @@ test("payloads are USD-priced drafts with variants, photos, videos and fitment",
       variant.isDefault,
     ]),
     [
-      ["D660-0079-BLK", "Black Ceramic Coated", 3837, true],
-      ["D660-0079", "Polished", 3487, false],
+      ["D660-0079-BLK", "Black Ceramic Coated", 3218, true],
+      ["D660-0079", "Polished", 2931, false],
     ]
   );
   assert.equal(payload.weight, 28.58);

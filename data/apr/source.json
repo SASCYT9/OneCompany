@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-10-19T20:35:08.998Z",
+ "generatedAt": "2026-10-21T13:21:29.512Z",
  "brand": "apr",
  "priceListFile": "APR Retail 9-28-26.xlsx",
  "usdUah": 45.986,
@@ -185,10 +185,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 297,
+      "formulaUsd": 137,
       "floorUsd": 120,
       "competitorUsd": null,
-      "priceUsd": 297,
+      "priceUsd": 137,
       "rule": "formula"
      }
     }
@@ -343,10 +343,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 296,
+      "formulaUsd": 136,
       "floorUsd": 119,
       "competitorUsd": null,
-      "priceUsd": 296,
+      "priceUsd": 136,
       "rule": "formula"
      }
     }
@@ -525,10 +525,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3772,
+      "formulaUsd": 2203,
       "floorUsd": 1969,
       "competitorUsd": null,
-      "priceUsd": 3772,
+      "priceUsd": 2203,
       "rule": "formula"
      }
     }
@@ -729,10 +729,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2271,
+      "formulaUsd": 1451,
       "floorUsd": 1304,
       "competitorUsd": null,
-      "priceUsd": 2271,
+      "priceUsd": 1451,
       "rule": "formula"
      }
     }
@@ -925,10 +925,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 38,
+      "formulaUsd": 19,
       "floorUsd": 17,
       "competitorUsd": null,
-      "priceUsd": 38,
+      "priceUsd": 19,
       "rule": "formula"
      }
     }
@@ -1083,10 +1083,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 475,
+      "formulaUsd": 327,
       "floorUsd": 287,
       "competitorUsd": null,
-      "priceUsd": 475,
+      "priceUsd": 327,
       "rule": "formula"
      }
     }
@@ -1208,10 +1208,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 293,
+      "formulaUsd": 138,
       "floorUsd": 122,
       "competitorUsd": null,
-      "priceUsd": 293,
+      "priceUsd": 138,
       "rule": "formula"
      }
     }
@@ -1335,10 +1335,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 457,
+      "formulaUsd": 243,
       "floorUsd": 217,
       "competitorUsd": null,
-      "priceUsd": 457,
+      "priceUsd": 243,
       "rule": "formula"
      }
     }
@@ -1459,10 +1459,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 147,
+      "formulaUsd": 101,
       "floorUsd": 94,
       "competitorUsd": null,
-      "priceUsd": 147,
+      "priceUsd": 101,
       "rule": "formula"
      }
     }
@@ -1581,10 +1581,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 64,
+      "formulaUsd": 35,
       "floorUsd": 32,
       "competitorUsd": null,
-      "priceUsd": 64,
+      "priceUsd": 35,
       "rule": "formula"
      }
     }
@@ -1703,10 +1703,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 73,
+      "formulaUsd": 39,
       "floorUsd": 35,
       "competitorUsd": null,
-      "priceUsd": 73,
+      "priceUsd": 39,
       "rule": "formula"
      }
     }
@@ -1824,10 +1824,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 66,
+      "formulaUsd": 35,
       "floorUsd": 32,
       "competitorUsd": null,
-      "priceUsd": 66,
+      "priceUsd": 35,
       "rule": "formula"
      }
     }
@@ -1945,10 +1945,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 32,
+      "formulaUsd": 21,
       "floorUsd": 19,
       "competitorUsd": null,
-      "priceUsd": 32,
+      "priceUsd": 21,
       "rule": "formula"
      }
     }
@@ -2116,10 +2116,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2001,
+      "formulaUsd": 1112,
       "floorUsd": 975,
       "competitorUsd": null,
-      "priceUsd": 2001,
+      "priceUsd": 1112,
       "rule": "formula"
      }
     }
@@ -2293,10 +2293,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 992,
+      "formulaUsd": 614,
       "floorUsd": 537,
       "competitorUsd": null,
-      "priceUsd": 992,
+      "priceUsd": 614,
       "rule": "formula"
      }
     }
@@ -2465,10 +2465,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2229,
+      "formulaUsd": 1495,
       "floorUsd": 1304,
       "competitorUsd": null,
-      "priceUsd": 2229,
+      "priceUsd": 1495,
       "rule": "formula"
      }
     }
@@ -2639,10 +2639,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2001,
+      "formulaUsd": 1325,
       "floorUsd": 1160,
       "competitorUsd": null,
-      "priceUsd": 2001,
+      "priceUsd": 1325,
       "rule": "formula"
      }
     }
@@ -2789,10 +2789,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 378,
+      "formulaUsd": 255,
       "floorUsd": 228,
       "competitorUsd": null,
-      "priceUsd": 378,
+      "priceUsd": 255,
       "rule": "formula"
      }
     }
@@ -2944,10 +2944,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 649,
+      "formulaUsd": 325,
       "floorUsd": 291,
       "competitorUsd": null,
-      "priceUsd": 649,
+      "priceUsd": 325,
       "rule": "formula"
      }
     }
@@ -3099,10 +3099,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 607,
+      "formulaUsd": 302,
       "floorUsd": 270,
       "competitorUsd": null,
-      "priceUsd": 607,
+      "priceUsd": 302,
       "rule": "formula"
      }
     }
@@ -3254,10 +3254,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 572,
+      "formulaUsd": 319,
       "floorUsd": 285,
       "competitorUsd": null,
-      "priceUsd": 572,
+      "priceUsd": 319,
       "rule": "formula"
      }
     }
@@ -3409,10 +3409,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 400,
+      "formulaUsd": 239,
       "floorUsd": 215,
       "competitorUsd": null,
-      "priceUsd": 400,
+      "priceUsd": 239,
       "rule": "formula"
      }
     }
@@ -3565,10 +3565,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 508,
+      "formulaUsd": 256,
       "floorUsd": 230,
       "competitorUsd": null,
-      "priceUsd": 508,
+      "priceUsd": 256,
       "rule": "formula"
      }
     }
@@ -3720,10 +3720,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 508,
+      "formulaUsd": 256,
       "floorUsd": 230,
       "competitorUsd": null,
-      "priceUsd": 508,
+      "priceUsd": 256,
       "rule": "formula"
      }
     }
@@ -3895,10 +3895,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 84,
+      "formulaUsd": 65,
       "floorUsd": 57,
       "competitorUsd": null,
-      "priceUsd": 84,
+      "priceUsd": 65,
       "rule": "formula"
      }
     }
@@ -4058,10 +4058,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 45,
       "floorUsd": 40,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 45,
       "rule": "formula"
      }
     }
@@ -4217,10 +4217,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 84,
+      "formulaUsd": 41,
       "floorUsd": 37,
       "competitorUsd": null,
-      "priceUsd": 84,
+      "priceUsd": 41,
       "rule": "formula"
      }
     }
@@ -4372,10 +4372,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 32,
       "floorUsd": 29,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 32,
       "rule": "formula"
      }
     }
@@ -4584,10 +4584,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 475,
+      "formulaUsd": 302,
       "floorUsd": 271,
       "competitorUsd": null,
-      "priceUsd": 475,
+      "priceUsd": 302,
       "rule": "formula"
      }
     }
@@ -4800,10 +4800,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 479,
+      "formulaUsd": 379,
       "floorUsd": 338,
       "competitorUsd": null,
-      "priceUsd": 479,
+      "priceUsd": 379,
       "rule": "formula"
      }
     }
@@ -5012,10 +5012,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 422,
+      "formulaUsd": 330,
       "floorUsd": 293,
       "competitorUsd": null,
-      "priceUsd": 422,
+      "priceUsd": 330,
       "rule": "formula"
      }
     }
@@ -5216,10 +5216,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 307,
+      "formulaUsd": 145,
       "floorUsd": 128,
       "competitorUsd": null,
-      "priceUsd": 307,
+      "priceUsd": 145,
       "rule": "formula"
      }
     }
@@ -5414,10 +5414,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 226,
+      "formulaUsd": 117,
       "floorUsd": 103,
       "competitorUsd": null,
-      "priceUsd": 226,
+      "priceUsd": 117,
       "rule": "formula"
      }
     }
@@ -5614,10 +5614,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 364,
+      "formulaUsd": 325,
       "floorUsd": 285,
       "competitorUsd": null,
-      "priceUsd": 364,
+      "priceUsd": 325,
       "rule": "formula"
      }
     }
@@ -5813,10 +5813,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 395,
+      "formulaUsd": 353,
       "floorUsd": 309,
       "competitorUsd": null,
-      "priceUsd": 395,
+      "priceUsd": 353,
       "rule": "formula"
      }
     }
@@ -5989,10 +5989,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 181,
+      "formulaUsd": 163,
       "floorUsd": 144,
       "competitorUsd": null,
-      "priceUsd": 181,
+      "priceUsd": 163,
       "rule": "formula"
      }
     }
@@ -6165,10 +6165,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 239,
+      "formulaUsd": 214,
       "floorUsd": 188,
       "competitorUsd": null,
-      "priceUsd": 239,
+      "priceUsd": 214,
       "rule": "formula"
      }
     }
@@ -6341,10 +6341,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 307,
+      "formulaUsd": 275,
       "floorUsd": 241,
       "competitorUsd": null,
-      "priceUsd": 307,
+      "priceUsd": 275,
       "rule": "formula"
      }
     }
@@ -6517,10 +6517,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 307,
+      "formulaUsd": 275,
       "floorUsd": 241,
       "competitorUsd": null,
-      "priceUsd": 307,
+      "priceUsd": 275,
       "rule": "formula"
      }
     }
@@ -6880,10 +6880,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 632,
+      "formulaUsd": 517,
       "floorUsd": 465,
       "competitorUsd": null,
-      "priceUsd": 632,
+      "priceUsd": 517,
       "rule": "formula"
      }
     },
@@ -7228,10 +7228,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 610,
+      "formulaUsd": 510,
       "floorUsd": 461,
       "competitorUsd": null,
-      "priceUsd": 610,
+      "priceUsd": 510,
       "rule": "formula"
      }
     },
@@ -7589,10 +7589,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 654,
+      "formulaUsd": 597,
       "floorUsd": 537,
       "competitorUsd": null,
-      "priceUsd": 654,
+      "priceUsd": 597,
       "rule": "formula"
      }
     },
@@ -7945,10 +7945,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 687,
+      "formulaUsd": 625,
       "floorUsd": 562,
       "competitorUsd": null,
-      "priceUsd": 687,
+      "priceUsd": 625,
       "rule": "formula"
      }
     },
@@ -8305,10 +8305,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 734,
+      "formulaUsd": 668,
       "floorUsd": 601,
       "competitorUsd": null,
-      "priceUsd": 734,
+      "priceUsd": 668,
       "rule": "formula"
      }
     },
@@ -8653,10 +8653,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 591,
+      "formulaUsd": 537,
       "floorUsd": 481,
       "competitorUsd": null,
-      "priceUsd": 591,
+      "priceUsd": 537,
       "rule": "formula"
      }
     },
@@ -9001,10 +9001,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 584,
+      "formulaUsd": 530,
       "floorUsd": 474,
       "competitorUsd": null,
-      "priceUsd": 584,
+      "priceUsd": 530,
       "rule": "formula"
      }
     },
@@ -9349,10 +9349,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 605,
+      "formulaUsd": 551,
       "floorUsd": 496,
       "competitorUsd": null,
-      "priceUsd": 605,
+      "priceUsd": 551,
       "rule": "formula"
      }
     },
@@ -9699,10 +9699,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 714,
+      "formulaUsd": 649,
       "floorUsd": 581,
       "competitorUsd": null,
-      "priceUsd": 714,
+      "priceUsd": 649,
       "rule": "formula"
      }
     }
@@ -10057,10 +10057,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 610,
+      "formulaUsd": 509,
       "floorUsd": 460,
       "competitorUsd": null,
-      "priceUsd": 610,
+      "priceUsd": 509,
       "rule": "formula"
      }
     },
@@ -10404,10 +10404,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 610,
+      "formulaUsd": 509,
       "floorUsd": 460,
       "competitorUsd": null,
-      "priceUsd": 610,
+      "priceUsd": 509,
       "rule": "formula"
      }
     },
@@ -10751,10 +10751,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 631,
+      "formulaUsd": 516,
       "floorUsd": 463,
       "competitorUsd": null,
-      "priceUsd": 631,
+      "priceUsd": 516,
       "rule": "formula"
      }
     },
@@ -11098,10 +11098,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 647,
+      "formulaUsd": 590,
       "floorUsd": 530,
       "competitorUsd": null,
-      "priceUsd": 647,
+      "priceUsd": 590,
       "rule": "formula"
      }
     },
@@ -11445,10 +11445,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 710,
+      "formulaUsd": 644,
       "floorUsd": 577,
       "competitorUsd": null,
-      "priceUsd": 710,
+      "priceUsd": 644,
       "rule": "formula"
      }
     },
@@ -11792,10 +11792,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 710,
+      "formulaUsd": 644,
       "floorUsd": 577,
       "competitorUsd": null,
-      "priceUsd": 710,
+      "priceUsd": 644,
       "rule": "formula"
      }
     },
@@ -12139,10 +12139,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 610,
+      "formulaUsd": 555,
       "floorUsd": 500,
       "competitorUsd": null,
-      "priceUsd": 610,
+      "priceUsd": 555,
       "rule": "formula"
      }
     },
@@ -12486,10 +12486,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 647,
+      "formulaUsd": 590,
       "floorUsd": 530,
       "competitorUsd": null,
-      "priceUsd": 647,
+      "priceUsd": 590,
       "rule": "formula"
      }
     },
@@ -12833,10 +12833,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 711,
+      "formulaUsd": 646,
       "floorUsd": 578,
       "competitorUsd": null,
-      "priceUsd": 711,
+      "priceUsd": 646,
       "rule": "formula"
      }
     },
@@ -13180,10 +13180,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 600,
+      "formulaUsd": 546,
       "floorUsd": 490,
       "competitorUsd": null,
-      "priceUsd": 600,
+      "priceUsd": 546,
       "rule": "formula"
      }
     },
@@ -13527,10 +13527,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 647,
+      "formulaUsd": 590,
       "floorUsd": 530,
       "competitorUsd": null,
-      "priceUsd": 647,
+      "priceUsd": 590,
       "rule": "formula"
      }
     },
@@ -13874,10 +13874,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 711,
+      "formulaUsd": 645,
       "floorUsd": 578,
       "competitorUsd": null,
-      "priceUsd": 711,
+      "priceUsd": 645,
       "rule": "formula"
      }
     }
@@ -14190,10 +14190,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 78,
+      "formulaUsd": 36,
       "floorUsd": 31,
       "competitorUsd": null,
-      "priceUsd": 78,
+      "priceUsd": 36,
       "rule": "formula"
      }
     }
@@ -14506,10 +14506,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 78,
+      "formulaUsd": 36,
       "floorUsd": 31,
       "competitorUsd": null,
-      "priceUsd": 78,
+      "priceUsd": 36,
       "rule": "formula"
      }
     }
@@ -14823,10 +14823,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 78,
+      "formulaUsd": 36,
       "floorUsd": 31,
       "competitorUsd": null,
-      "priceUsd": 78,
+      "priceUsd": 36,
       "rule": "formula"
      }
     }
@@ -14947,10 +14947,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 46,
+      "formulaUsd": 27,
       "floorUsd": 25,
       "competitorUsd": null,
-      "priceUsd": 46,
+      "priceUsd": 27,
       "rule": "formula"
      }
     }
@@ -15261,10 +15261,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 28,
       "floorUsd": 25,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 28,
       "rule": "formula"
      }
     }
@@ -15575,10 +15575,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 48,
+      "formulaUsd": 22,
       "floorUsd": 20,
       "competitorUsd": null,
-      "priceUsd": 48,
+      "priceUsd": 22,
       "rule": "formula"
      }
     }
@@ -15727,10 +15727,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 632,
+      "formulaUsd": 563,
       "floorUsd": 492,
       "competitorUsd": null,
-      "priceUsd": 632,
+      "priceUsd": 563,
       "rule": "formula"
      }
     },
@@ -15909,10 +15909,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1142,
+      "formulaUsd": 1019,
       "floorUsd": 892,
       "competitorUsd": null,
-      "priceUsd": 1142,
+      "priceUsd": 1019,
       "rule": "formula"
      }
     }
@@ -16107,10 +16107,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1932,
+      "formulaUsd": 1745,
       "floorUsd": 1550,
       "competitorUsd": null,
-      "priceUsd": 1932,
+      "priceUsd": 1745,
       "rule": "formula"
      }
     }
@@ -16274,10 +16274,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2919,
+      "formulaUsd": 2623,
       "floorUsd": 2316,
       "competitorUsd": null,
-      "priceUsd": 2919,
+      "priceUsd": 2623,
       "rule": "formula"
      }
     }
@@ -16517,10 +16517,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 406,
+      "formulaUsd": 364,
       "floorUsd": 320,
       "competitorUsd": null,
-      "priceUsd": 406,
+      "priceUsd": 364,
       "rule": "formula"
      }
     }
@@ -16747,10 +16747,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 414,
+      "formulaUsd": 372,
       "floorUsd": 328,
       "competitorUsd": null,
-      "priceUsd": 414,
+      "priceUsd": 372,
       "rule": "formula"
      }
     }
@@ -16988,10 +16988,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 340,
+      "formulaUsd": 303,
       "floorUsd": 266,
       "competitorUsd": null,
-      "priceUsd": 340,
+      "priceUsd": 303,
       "rule": "formula"
      }
     }
@@ -17212,10 +17212,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 396,
+      "formulaUsd": 353,
       "floorUsd": 310,
       "competitorUsd": null,
-      "priceUsd": 396,
+      "priceUsd": 353,
       "rule": "formula"
      }
     }
@@ -17397,10 +17397,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 197,
+      "formulaUsd": 175,
       "floorUsd": 153,
       "competitorUsd": null,
-      "priceUsd": 197,
+      "priceUsd": 175,
       "rule": "formula"
      }
     }
@@ -17578,10 +17578,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 297,
+      "formulaUsd": 263,
       "floorUsd": 230,
       "competitorUsd": null,
-      "priceUsd": 297,
+      "priceUsd": 263,
       "rule": "formula"
      }
     }
@@ -17761,10 +17761,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 198,
+      "formulaUsd": 176,
       "floorUsd": 153,
       "competitorUsd": null,
-      "priceUsd": 198,
+      "priceUsd": 176,
       "rule": "formula"
      }
     }
@@ -17944,10 +17944,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 198,
+      "formulaUsd": 176,
       "floorUsd": 153,
       "competitorUsd": null,
-      "priceUsd": 198,
+      "priceUsd": 176,
       "rule": "formula"
      }
     }
@@ -18199,10 +18199,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5794,
+      "formulaUsd": 5175,
       "floorUsd": 4529,
       "competitorUsd": null,
-      "priceUsd": 5794,
+      "priceUsd": 5175,
       "rule": "formula"
      }
     },
@@ -18444,10 +18444,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5795,
+      "formulaUsd": 5175,
       "floorUsd": 4529,
       "competitorUsd": null,
-      "priceUsd": 5795,
+      "priceUsd": 5175,
       "rule": "formula"
      }
     }
@@ -18692,10 +18692,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5794,
+      "formulaUsd": 5175,
       "floorUsd": 4529,
       "competitorUsd": null,
-      "priceUsd": 5794,
+      "priceUsd": 5175,
       "rule": "formula"
      }
     },
@@ -18930,10 +18930,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5795,
+      "formulaUsd": 5175,
       "floorUsd": 4529,
       "competitorUsd": null,
-      "priceUsd": 5795,
+      "priceUsd": 5175,
       "rule": "formula"
      }
     }
@@ -19164,10 +19164,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5801,
+      "formulaUsd": 5181,
       "floorUsd": 4535,
       "competitorUsd": null,
-      "priceUsd": 5801,
+      "priceUsd": 5181,
       "rule": "formula"
      }
     },
@@ -19388,10 +19388,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5801,
+      "formulaUsd": 5181,
       "floorUsd": 4535,
       "competitorUsd": null,
-      "priceUsd": 5801,
+      "priceUsd": 5181,
       "rule": "formula"
      }
     }
@@ -19623,10 +19623,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5802,
+      "formulaUsd": 5183,
       "floorUsd": 4537,
       "competitorUsd": null,
-      "priceUsd": 5802,
+      "priceUsd": 5183,
       "rule": "formula"
      }
     },
@@ -19848,10 +19848,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 6035,
+      "formulaUsd": 5415,
       "floorUsd": 4769,
       "competitorUsd": null,
-      "priceUsd": 6035,
+      "priceUsd": 5415,
       "rule": "formula"
      }
     }
@@ -20087,10 +20087,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 6020,
+      "formulaUsd": 5400,
       "floorUsd": 4754,
       "competitorUsd": null,
-      "priceUsd": 6020,
+      "priceUsd": 5400,
       "rule": "formula"
      }
     },
@@ -20321,10 +20321,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 6022,
+      "formulaUsd": 5402,
       "floorUsd": 4757,
       "competitorUsd": null,
-      "priceUsd": 6022,
+      "priceUsd": 5402,
       "rule": "formula"
      }
     }
@@ -20597,10 +20597,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2204,
+      "formulaUsd": 1995,
       "floorUsd": 1777,
       "competitorUsd": null,
-      "priceUsd": 2204,
+      "priceUsd": 1995,
       "rule": "formula"
      }
     }
@@ -20840,10 +20840,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4150,
+      "formulaUsd": 3733,
       "floorUsd": 3298,
       "competitorUsd": null,
-      "priceUsd": 4150,
+      "priceUsd": 3733,
       "rule": "formula"
      }
     }
@@ -21089,10 +21089,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3945,
+      "formulaUsd": 3547,
       "floorUsd": 3132,
       "competitorUsd": null,
-      "priceUsd": 3945,
+      "priceUsd": 3547,
       "rule": "formula"
      }
     }
@@ -21325,10 +21325,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 513,
+      "formulaUsd": 463,
       "floorUsd": 410,
       "competitorUsd": null,
-      "priceUsd": 513,
+      "priceUsd": 463,
       "rule": "formula"
      }
     }
@@ -21602,10 +21602,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2268,
+      "formulaUsd": 2052,
       "floorUsd": 1827,
       "competitorUsd": null,
-      "priceUsd": 2268,
+      "priceUsd": 2052,
       "rule": "formula"
      }
     }
@@ -21868,10 +21868,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2527,
+      "formulaUsd": 2282,
       "floorUsd": 2027,
       "competitorUsd": null,
-      "priceUsd": 2527,
+      "priceUsd": 2282,
       "rule": "formula"
      }
     }
@@ -22143,10 +22143,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2463,
+      "formulaUsd": 2225,
       "floorUsd": 1977,
       "competitorUsd": null,
-      "priceUsd": 2463,
+      "priceUsd": 2225,
       "rule": "formula"
      }
     }
@@ -22349,10 +22349,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3191,
+      "formulaUsd": 2881,
       "floorUsd": 2559,
       "competitorUsd": null,
-      "priceUsd": 3191,
+      "priceUsd": 2881,
       "rule": "formula"
      }
     }
@@ -22573,10 +22573,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2204,
+      "formulaUsd": 1995,
       "floorUsd": 1777,
       "competitorUsd": null,
-      "priceUsd": 2204,
+      "priceUsd": 1995,
       "rule": "formula"
      }
     }
@@ -22820,10 +22820,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4128,
+      "formulaUsd": 3711,
       "floorUsd": 3276,
       "competitorUsd": null,
-      "priceUsd": 4128,
+      "priceUsd": 3711,
       "rule": "formula"
      }
     }
@@ -23069,10 +23069,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4123,
+      "formulaUsd": 3706,
       "floorUsd": 3271,
       "competitorUsd": null,
-      "priceUsd": 4123,
+      "priceUsd": 3706,
       "rule": "formula"
      }
     }
@@ -23278,10 +23278,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1463,
+      "formulaUsd": 1319,
       "floorUsd": 1169,
       "competitorUsd": null,
-      "priceUsd": 1463,
+      "priceUsd": 1319,
       "rule": "formula"
      }
     }
@@ -23527,10 +23527,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2951,
+      "formulaUsd": 2642,
       "floorUsd": 2319,
       "competitorUsd": null,
-      "priceUsd": 2951,
+      "priceUsd": 2642,
       "rule": "formula"
      }
     }
@@ -23714,10 +23714,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 439,
+      "formulaUsd": 396,
       "floorUsd": 352,
       "competitorUsd": null,
-      "priceUsd": 439,
+      "priceUsd": 396,
       "rule": "formula"
      }
     }
@@ -23936,10 +23936,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 802,
+      "formulaUsd": 717,
       "floorUsd": 629,
       "competitorUsd": null,
-      "priceUsd": 802,
+      "priceUsd": 717,
       "rule": "formula"
      }
     }
@@ -24158,10 +24158,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 802,
+      "formulaUsd": 717,
       "floorUsd": 629,
       "competitorUsd": null,
-      "priceUsd": 802,
+      "priceUsd": 717,
       "rule": "formula"
      }
     }
@@ -24350,10 +24350,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 611,
+      "formulaUsd": 545,
       "floorUsd": 478,
       "competitorUsd": null,
-      "priceUsd": 611,
+      "priceUsd": 545,
       "rule": "formula"
      }
     }
@@ -24623,10 +24623,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2204,
+      "formulaUsd": 1995,
       "floorUsd": 1777,
       "competitorUsd": null,
-      "priceUsd": 2204,
+      "priceUsd": 1995,
       "rule": "formula"
      }
     }
@@ -24898,10 +24898,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2463,
+      "formulaUsd": 2225,
       "floorUsd": 1977,
       "competitorUsd": null,
-      "priceUsd": 2463,
+      "priceUsd": 2225,
       "rule": "formula"
      }
     }
@@ -25107,10 +25107,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2495,
+      "formulaUsd": 2257,
       "floorUsd": 2010,
       "competitorUsd": null,
-      "priceUsd": 2495,
+      "priceUsd": 2257,
       "rule": "formula"
      }
     }
@@ -25306,10 +25306,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3304,
+      "formulaUsd": 2980,
       "floorUsd": 2642,
       "competitorUsd": null,
-      "priceUsd": 3304,
+      "priceUsd": 2980,
       "rule": "formula"
      }
     }
@@ -25506,10 +25506,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3261,
+      "formulaUsd": 2937,
       "floorUsd": 2598,
       "competitorUsd": null,
-      "priceUsd": 3261,
+      "priceUsd": 2937,
       "rule": "formula"
      }
     }
@@ -25709,10 +25709,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 497,
+      "formulaUsd": 449,
       "floorUsd": 399,
       "competitorUsd": null,
-      "priceUsd": 497,
+      "priceUsd": 449,
       "rule": "formula"
      }
     }
@@ -25886,10 +25886,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1792,
+      "formulaUsd": 1620,
       "floorUsd": 1440,
       "competitorUsd": null,
-      "priceUsd": 1792,
+      "priceUsd": 1620,
       "rule": "formula"
      }
     }
@@ -26072,10 +26072,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1880,
+      "formulaUsd": 1707,
       "floorUsd": 1527,
       "competitorUsd": null,
-      "priceUsd": 1880,
+      "priceUsd": 1707,
       "rule": "formula"
      }
     }
@@ -26283,10 +26283,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1771,
+      "formulaUsd": 1598,
       "floorUsd": 1418,
       "competitorUsd": null,
-      "priceUsd": 1771,
+      "priceUsd": 1598,
       "rule": "formula"
      }
     }
@@ -26441,10 +26441,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4338,
+      "formulaUsd": 3892,
       "floorUsd": 3427,
       "competitorUsd": null,
-      "priceUsd": 4338,
+      "priceUsd": 3892,
       "rule": "formula"
      }
     }
@@ -26633,10 +26633,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5606,
+      "formulaUsd": 5023,
       "floorUsd": 4415,
       "competitorUsd": null,
-      "priceUsd": 5606,
+      "priceUsd": 5023,
       "rule": "formula"
      }
     }
@@ -26825,10 +26825,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2571,
+      "formulaUsd": 2326,
       "floorUsd": 2071,
       "competitorUsd": null,
-      "priceUsd": 2571,
+      "priceUsd": 2326,
       "rule": "formula"
      }
     }
@@ -27022,10 +27022,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3288,
+      "formulaUsd": 2964,
       "floorUsd": 2626,
       "competitorUsd": null,
-      "priceUsd": 3288,
+      "priceUsd": 2964,
       "rule": "formula"
      }
     }
@@ -27223,10 +27223,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4730,
+      "formulaUsd": 4219,
       "floorUsd": 3687,
       "competitorUsd": null,
-      "priceUsd": 4730,
+      "priceUsd": 4219,
       "rule": "formula"
      }
     }
@@ -27423,10 +27423,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1749,
+      "formulaUsd": 1576,
       "floorUsd": 1396,
       "competitorUsd": null,
-      "priceUsd": 1749,
+      "priceUsd": 1576,
       "rule": "formula"
      }
     }
@@ -27619,10 +27619,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4730,
+      "formulaUsd": 4219,
       "floorUsd": 3687,
       "competitorUsd": null,
-      "priceUsd": 4730,
+      "priceUsd": 4219,
       "rule": "formula"
      }
     }
@@ -27796,10 +27796,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 33,
+      "formulaUsd": 30,
       "floorUsd": 26,
       "competitorUsd": null,
-      "priceUsd": 33,
+      "priceUsd": 30,
       "rule": "formula"
      }
     }
@@ -27925,10 +27925,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 109,
+      "formulaUsd": 98,
       "floorUsd": 86,
       "competitorUsd": null,
-      "priceUsd": 109,
+      "priceUsd": 98,
       "rule": "formula"
      }
     }
@@ -28054,10 +28054,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 52,
+      "formulaUsd": 47,
       "floorUsd": 42,
       "competitorUsd": null,
-      "priceUsd": 52,
+      "priceUsd": 47,
       "rule": "formula"
      }
     }
@@ -28216,10 +28216,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 64,
+      "formulaUsd": 57,
       "floorUsd": 49,
       "competitorUsd": null,
-      "priceUsd": 64,
+      "priceUsd": 57,
       "rule": "formula"
      }
     }
@@ -28346,10 +28346,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 315,
+      "formulaUsd": 281,
       "floorUsd": 246,
       "competitorUsd": null,
-      "priceUsd": 315,
+      "priceUsd": 281,
       "rule": "formula"
      }
     }
@@ -28572,10 +28572,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 773,
+      "formulaUsd": 689,
       "floorUsd": 602,
       "competitorUsd": null,
-      "priceUsd": 773,
+      "priceUsd": 689,
       "rule": "formula"
      }
     },
@@ -28780,10 +28780,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 411,
+      "formulaUsd": 367,
       "floorUsd": 322,
       "competitorUsd": null,
-      "priceUsd": 411,
+      "priceUsd": 367,
       "rule": "formula"
      }
     }
@@ -28960,10 +28960,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 514,
+      "formulaUsd": 458,
       "floorUsd": 401,
       "competitorUsd": null,
-      "priceUsd": 514,
+      "priceUsd": 458,
       "rule": "formula"
      }
     },
@@ -29127,10 +29127,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 242,
+      "formulaUsd": 217,
       "floorUsd": 191,
       "competitorUsd": null,
-      "priceUsd": 242,
+      "priceUsd": 217,
       "rule": "formula"
      }
     }
@@ -29254,10 +29254,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 40,
+      "formulaUsd": 36,
       "floorUsd": 32,
       "competitorUsd": null,
-      "priceUsd": 40,
+      "priceUsd": 36,
       "rule": "formula"
      }
     }
@@ -29476,10 +29476,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1572,
+      "formulaUsd": 1403,
       "floorUsd": 1227,
       "competitorUsd": null,
-      "priceUsd": 1572,
+      "priceUsd": 1403,
       "rule": "formula"
      }
     },
@@ -29687,10 +29687,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 667,
+      "formulaUsd": 599,
       "floorUsd": 529,
       "competitorUsd": null,
-      "priceUsd": 667,
+      "priceUsd": 599,
       "rule": "formula"
      }
     }
@@ -29901,10 +29901,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 773,
+      "formulaUsd": 689,
       "floorUsd": 602,
       "competitorUsd": null,
-      "priceUsd": 773,
+      "priceUsd": 689,
       "rule": "formula"
      }
     }
@@ -30063,10 +30063,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 499,
+      "formulaUsd": 445,
       "floorUsd": 389,
       "competitorUsd": null,
-      "priceUsd": 499,
+      "priceUsd": 445,
       "rule": "formula"
      }
     }
@@ -30300,10 +30300,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1514,
+      "formulaUsd": 1352,
       "floorUsd": 1183,
       "competitorUsd": null,
-      "priceUsd": 1514,
+      "priceUsd": 1352,
       "rule": "formula"
      }
     }
@@ -30500,10 +30500,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 781,
+      "formulaUsd": 697,
       "floorUsd": 610,
       "competitorUsd": null,
-      "priceUsd": 781,
+      "priceUsd": 697,
       "rule": "formula"
      }
     }
@@ -30682,10 +30682,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 540,
+      "formulaUsd": 482,
       "floorUsd": 422,
       "competitorUsd": null,
-      "priceUsd": 540,
+      "priceUsd": 482,
       "rule": "formula"
      }
     }
@@ -30866,10 +30866,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1196,
+      "formulaUsd": 1066,
       "floorUsd": 931,
       "competitorUsd": null,
-      "priceUsd": 1196,
+      "priceUsd": 1066,
       "rule": "formula"
      }
     }
@@ -31047,10 +31047,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 38,
+      "formulaUsd": 35,
       "floorUsd": 31,
       "competitorUsd": null,
-      "priceUsd": 38,
+      "priceUsd": 35,
       "rule": "formula"
      }
     }
@@ -31227,10 +31227,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 39,
+      "formulaUsd": 35,
       "floorUsd": 32,
       "competitorUsd": null,
-      "priceUsd": 39,
+      "priceUsd": 35,
       "rule": "formula"
      }
     }
@@ -31408,10 +31408,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 118,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 118,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -31585,10 +31585,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 121,
+      "formulaUsd": 108,
       "floorUsd": 95,
       "competitorUsd": null,
-      "priceUsd": 121,
+      "priceUsd": 108,
       "rule": "formula"
      }
     }
@@ -31822,10 +31822,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 795,
+      "formulaUsd": 711,
       "floorUsd": 624,
       "competitorUsd": null,
-      "priceUsd": 795,
+      "priceUsd": 711,
       "rule": "formula"
      }
     },
@@ -32054,10 +32054,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 561,
+      "formulaUsd": 504,
       "floorUsd": 444,
       "competitorUsd": null,
-      "priceUsd": 561,
+      "priceUsd": 504,
       "rule": "formula"
      }
     }
@@ -32286,10 +32286,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2122,
+      "formulaUsd": 1892,
       "floorUsd": 1652,
       "competitorUsd": null,
-      "priceUsd": 2122,
+      "priceUsd": 1892,
       "rule": "formula"
      }
     },
@@ -32533,10 +32533,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1166,
+      "formulaUsd": 1043,
       "floorUsd": 916,
       "competitorUsd": null,
-      "priceUsd": 1166,
+      "priceUsd": 1043,
       "rule": "formula"
      }
     }
@@ -32764,10 +32764,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1930,
+      "formulaUsd": 1721,
       "floorUsd": 1503,
       "competitorUsd": null,
-      "priceUsd": 1930,
+      "priceUsd": 1721,
       "rule": "formula"
      }
     },
@@ -32995,10 +32995,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 849,
+      "formulaUsd": 765,
       "floorUsd": 678,
       "competitorUsd": null,
-      "priceUsd": 849,
+      "priceUsd": 765,
       "rule": "formula"
      }
     }
@@ -33200,10 +33200,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1575,
+      "formulaUsd": 1406,
       "floorUsd": 1230,
       "competitorUsd": null,
-      "priceUsd": 1575,
+      "priceUsd": 1406,
       "rule": "formula"
      }
     }
@@ -33412,10 +33412,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1571,
+      "formulaUsd": 1402,
       "floorUsd": 1226,
       "competitorUsd": null,
-      "priceUsd": 1571,
+      "priceUsd": 1402,
       "rule": "formula"
      }
     }
@@ -33640,10 +33640,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2303,
+      "formulaUsd": 2051,
       "floorUsd": 1789,
       "competitorUsd": null,
-      "priceUsd": 2303,
+      "priceUsd": 2051,
       "rule": "formula"
      }
     }
@@ -33884,10 +33884,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 571,
+      "formulaUsd": 514,
       "floorUsd": 454,
       "competitorUsd": null,
-      "priceUsd": 571,
+      "priceUsd": 514,
       "rule": "formula"
      }
     }
@@ -34058,10 +34058,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 174,
+      "formulaUsd": 157,
       "floorUsd": 139,
       "competitorUsd": null,
-      "priceUsd": 174,
+      "priceUsd": 157,
       "rule": "formula"
      }
     }
@@ -34231,10 +34231,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 600,
+      "formulaUsd": 534,
       "floorUsd": 467,
       "competitorUsd": null,
-      "priceUsd": 600,
+      "priceUsd": 534,
       "rule": "formula"
      }
     }
@@ -34405,10 +34405,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 625,
+      "formulaUsd": 557,
       "floorUsd": 487,
       "competitorUsd": null,
-      "priceUsd": 625,
+      "priceUsd": 557,
       "rule": "formula"
      }
     }
@@ -34528,10 +34528,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 66,
+      "formulaUsd": 59,
       "floorUsd": 52,
       "competitorUsd": null,
-      "priceUsd": 66,
+      "priceUsd": 59,
       "rule": "formula"
      }
     }
@@ -34699,10 +34699,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 38,
+      "formulaUsd": 34,
       "floorUsd": 30,
       "competitorUsd": null,
-      "priceUsd": 38,
+      "priceUsd": 34,
       "rule": "formula"
      }
     }
@@ -34955,10 +34955,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 637,
+      "formulaUsd": 571,
       "floorUsd": 504,
       "competitorUsd": null,
-      "priceUsd": 637,
+      "priceUsd": 571,
       "rule": "formula"
      }
     }
@@ -35078,10 +35078,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 66,
+      "formulaUsd": 59,
       "floorUsd": 52,
       "competitorUsd": null,
-      "priceUsd": 66,
+      "priceUsd": 59,
       "rule": "formula"
      }
     }
@@ -35204,10 +35204,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 178,
+      "formulaUsd": 161,
       "floorUsd": 144,
       "competitorUsd": null,
-      "priceUsd": 178,
+      "priceUsd": 161,
       "rule": "formula"
      }
     }
@@ -35327,10 +35327,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 56,
+      "formulaUsd": 51,
       "floorUsd": 47,
       "competitorUsd": null,
-      "priceUsd": 56,
+      "priceUsd": 51,
       "rule": "formula"
      }
     }
@@ -35515,10 +35515,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 444,
+      "formulaUsd": 400,
       "floorUsd": 355,
       "competitorUsd": null,
-      "priceUsd": 444,
+      "priceUsd": 400,
       "rule": "formula"
      }
     }
@@ -35716,10 +35716,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 832,
+      "formulaUsd": 746,
       "floorUsd": 656,
       "competitorUsd": null,
-      "priceUsd": 832,
+      "priceUsd": 746,
       "rule": "formula"
      }
     }
@@ -35937,10 +35937,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1440,
+      "formulaUsd": 1286,
       "floorUsd": 1126,
       "competitorUsd": null,
-      "priceUsd": 1440,
+      "priceUsd": 1286,
       "rule": "formula"
      }
     }
@@ -36126,10 +36126,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1028,
+      "formulaUsd": 920,
       "floorUsd": 808,
       "competitorUsd": null,
-      "priceUsd": 1028,
+      "priceUsd": 920,
       "rule": "formula"
      }
     }
@@ -36321,10 +36321,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3947,
+      "formulaUsd": 3516,
       "floorUsd": 3066,
       "competitorUsd": null,
-      "priceUsd": 3947,
+      "priceUsd": 3516,
       "rule": "formula"
      }
     }
@@ -36488,10 +36488,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 858,
+      "formulaUsd": 772,
       "floorUsd": 682,
       "competitorUsd": null,
-      "priceUsd": 858,
+      "priceUsd": 772,
       "rule": "formula"
      }
     }
@@ -36692,10 +36692,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 497,
+      "formulaUsd": 446,
       "floorUsd": 394,
       "competitorUsd": null,
-      "priceUsd": 497,
+      "priceUsd": 446,
       "rule": "formula"
      }
     }
@@ -36895,10 +36895,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 497,
+      "formulaUsd": 446,
       "floorUsd": 394,
       "competitorUsd": null,
-      "priceUsd": 497,
+      "priceUsd": 446,
       "rule": "formula"
      }
     }
@@ -37048,10 +37048,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 475,
+      "formulaUsd": 425,
       "floorUsd": 372,
       "competitorUsd": null,
-      "priceUsd": 475,
+      "priceUsd": 425,
       "rule": "formula"
      }
     }
@@ -37211,10 +37211,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 762,
+      "formulaUsd": 686,
       "floorUsd": 607,
       "competitorUsd": null,
-      "priceUsd": 762,
+      "priceUsd": 686,
       "rule": "formula"
      }
     }
@@ -37342,10 +37342,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1220,
+      "formulaUsd": 1090,
       "floorUsd": 955,
       "competitorUsd": null,
-      "priceUsd": 1220,
+      "priceUsd": 1090,
       "rule": "formula"
      }
     }
@@ -37520,10 +37520,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 578,
+      "formulaUsd": 520,
       "floorUsd": 460,
       "competitorUsd": null,
-      "priceUsd": 578,
+      "priceUsd": 520,
       "rule": "formula"
      }
     }
@@ -37645,10 +37645,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 71,
+      "formulaUsd": 63,
       "floorUsd": 56,
       "competitorUsd": null,
-      "priceUsd": 71,
+      "priceUsd": 63,
       "rule": "formula"
      }
     }
@@ -37872,10 +37872,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 384,
+      "formulaUsd": 342,
       "floorUsd": 298,
       "competitorUsd": null,
-      "priceUsd": 384,
+      "priceUsd": 342,
       "rule": "formula"
      }
     }
@@ -38117,10 +38117,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 395,
+      "formulaUsd": 351,
       "floorUsd": 306,
       "competitorUsd": null,
-      "priceUsd": 395,
+      "priceUsd": 351,
       "rule": "formula"
      }
     }
@@ -38261,10 +38261,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 151,
+      "formulaUsd": 135,
       "floorUsd": 118,
       "competitorUsd": null,
-      "priceUsd": 151,
+      "priceUsd": 135,
       "rule": "formula"
      }
     }
@@ -38383,10 +38383,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 49,
       "floorUsd": 44,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 49,
       "rule": "formula"
      }
     }
@@ -38505,10 +38505,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 76,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 76,
       "rule": "formula"
      }
     }
@@ -38628,10 +38628,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 90,
+      "formulaUsd": 83,
       "floorUsd": 76,
       "competitorUsd": null,
-      "priceUsd": 90,
+      "priceUsd": 83,
       "rule": "formula"
      }
     }
@@ -38750,10 +38750,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 73,
+      "formulaUsd": 67,
       "floorUsd": 59,
       "competitorUsd": null,
-      "priceUsd": 73,
+      "priceUsd": 67,
       "rule": "formula"
      }
     }
@@ -38874,10 +38874,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 101,
+      "formulaUsd": 91,
       "floorUsd": 80,
       "competitorUsd": null,
-      "priceUsd": 101,
+      "priceUsd": 91,
       "rule": "formula"
      }
     }
@@ -39024,10 +39024,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 189,
+      "formulaUsd": 172,
       "floorUsd": 155,
       "competitorUsd": null,
-      "priceUsd": 189,
+      "priceUsd": 172,
       "rule": "formula"
      }
     }
@@ -39154,10 +39154,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 363,
+      "formulaUsd": 326,
       "floorUsd": 289,
       "competitorUsd": null,
-      "priceUsd": 363,
+      "priceUsd": 326,
       "rule": "formula"
      }
     }
@@ -39356,10 +39356,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2209,
+      "formulaUsd": 1986,
       "floorUsd": 1753,
       "competitorUsd": null,
-      "priceUsd": 2209,
+      "priceUsd": 1986,
       "rule": "formula"
      }
     }
@@ -39575,10 +39575,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1874,
+      "formulaUsd": 1687,
       "floorUsd": 1492,
       "competitorUsd": null,
-      "priceUsd": 1874,
+      "priceUsd": 1687,
       "rule": "formula"
      }
     }
@@ -39766,10 +39766,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2208,
+      "formulaUsd": 1985,
       "floorUsd": 1752,
       "competitorUsd": null,
-      "priceUsd": 2208,
+      "priceUsd": 1985,
       "rule": "formula"
      }
     }
@@ -39987,10 +39987,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1565,
+      "formulaUsd": 1411,
       "floorUsd": 1251,
       "competitorUsd": null,
-      "priceUsd": 1565,
+      "priceUsd": 1411,
       "rule": "formula"
      }
     }
@@ -40208,10 +40208,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2165,
+      "formulaUsd": 1949,
       "floorUsd": 1724,
       "competitorUsd": null,
-      "priceUsd": 2165,
+      "priceUsd": 1949,
       "rule": "formula"
      }
     }
@@ -40419,10 +40419,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2165,
+      "formulaUsd": 1949,
       "floorUsd": 1724,
       "competitorUsd": null,
-      "priceUsd": 2165,
+      "priceUsd": 1949,
       "rule": "formula"
      }
     }
@@ -40615,10 +40615,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2188,
+      "formulaUsd": 1965,
       "floorUsd": 1733,
       "competitorUsd": null,
-      "priceUsd": 2188,
+      "priceUsd": 1965,
       "rule": "formula"
      }
     }
@@ -40807,10 +40807,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2182,
+      "formulaUsd": 1958,
       "floorUsd": 1726,
       "competitorUsd": null,
-      "priceUsd": 2182,
+      "priceUsd": 1958,
       "rule": "formula"
      }
     }
@@ -41017,10 +41017,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2165,
+      "formulaUsd": 1949,
       "floorUsd": 1724,
       "competitorUsd": null,
-      "priceUsd": 2165,
+      "priceUsd": 1949,
       "rule": "formula"
      }
     }
@@ -41198,10 +41198,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3188,
+      "formulaUsd": 2850,
       "floorUsd": 2497,
       "competitorUsd": null,
-      "priceUsd": 3188,
+      "priceUsd": 2850,
       "rule": "formula"
      }
     }
@@ -41409,10 +41409,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1564,
+      "formulaUsd": 1409,
       "floorUsd": 1250,
       "competitorUsd": null,
-      "priceUsd": 1564,
+      "priceUsd": 1409,
       "rule": "formula"
      }
     }
@@ -41567,10 +41567,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 993,
+      "formulaUsd": 884,
       "floorUsd": 772,
       "competitorUsd": null,
-      "priceUsd": 993,
+      "priceUsd": 884,
       "rule": "formula"
      }
     }
@@ -41721,10 +41721,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 148,
+      "formulaUsd": 135,
       "floorUsd": 120,
       "competitorUsd": null,
-      "priceUsd": 148,
+      "priceUsd": 135,
       "rule": "formula"
      }
     }
@@ -41875,10 +41875,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 141,
       "floorUsd": 125,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 141,
       "rule": "formula"
      }
     }
@@ -42029,10 +42029,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 159,
+      "formulaUsd": 146,
       "floorUsd": 129,
       "competitorUsd": null,
-      "priceUsd": 159,
+      "priceUsd": 146,
       "rule": "formula"
      }
     }
@@ -42183,10 +42183,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 163,
+      "formulaUsd": 149,
       "floorUsd": 132,
       "competitorUsd": null,
-      "priceUsd": 163,
+      "priceUsd": 149,
       "rule": "formula"
      }
     }
@@ -42337,10 +42337,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 184,
+      "formulaUsd": 167,
       "floorUsd": 148,
       "competitorUsd": null,
-      "priceUsd": 184,
+      "priceUsd": 167,
       "rule": "formula"
      }
     }
@@ -42491,10 +42491,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 195,
+      "formulaUsd": 179,
       "floorUsd": 158,
       "competitorUsd": null,
-      "priceUsd": 195,
+      "priceUsd": 179,
       "rule": "formula"
      }
     }
@@ -42640,10 +42640,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 202,
+      "formulaUsd": 184,
       "floorUsd": 163,
       "competitorUsd": null,
-      "priceUsd": 202,
+      "priceUsd": 184,
       "rule": "formula"
      }
     }
@@ -42794,10 +42794,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 234,
+      "formulaUsd": 214,
       "floorUsd": 189,
       "competitorUsd": null,
-      "priceUsd": 234,
+      "priceUsd": 214,
       "rule": "formula"
      }
     }
@@ -42948,10 +42948,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 234,
+      "formulaUsd": 214,
       "floorUsd": 189,
       "competitorUsd": null,
-      "priceUsd": 234,
+      "priceUsd": 214,
       "rule": "formula"
      }
     }
@@ -43102,10 +43102,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 243,
+      "formulaUsd": 223,
       "floorUsd": 198,
       "competitorUsd": null,
-      "priceUsd": 243,
+      "priceUsd": 223,
       "rule": "formula"
      }
     }
@@ -43256,10 +43256,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 240,
+      "formulaUsd": 221,
       "floorUsd": 196,
       "competitorUsd": null,
-      "priceUsd": 240,
+      "priceUsd": 221,
       "rule": "formula"
      }
     }
@@ -43410,10 +43410,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 259,
+      "formulaUsd": 237,
       "floorUsd": 210,
       "competitorUsd": null,
-      "priceUsd": 259,
+      "priceUsd": 237,
       "rule": "formula"
      }
     }
@@ -43564,10 +43564,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 148,
+      "formulaUsd": 135,
       "floorUsd": 120,
       "competitorUsd": null,
-      "priceUsd": 148,
+      "priceUsd": 135,
       "rule": "formula"
      }
     }
@@ -43718,10 +43718,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 141,
       "floorUsd": 125,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 141,
       "rule": "formula"
      }
     }
@@ -43872,10 +43872,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 159,
+      "formulaUsd": 146,
       "floorUsd": 129,
       "competitorUsd": null,
-      "priceUsd": 159,
+      "priceUsd": 146,
       "rule": "formula"
      }
     }
@@ -44026,10 +44026,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 165,
+      "formulaUsd": 151,
       "floorUsd": 134,
       "competitorUsd": null,
-      "priceUsd": 165,
+      "priceUsd": 151,
       "rule": "formula"
      }
     }
@@ -44180,10 +44180,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 184,
+      "formulaUsd": 167,
       "floorUsd": 148,
       "competitorUsd": null,
-      "priceUsd": 184,
+      "priceUsd": 167,
       "rule": "formula"
      }
     }
@@ -44334,10 +44334,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 195,
+      "formulaUsd": 179,
       "floorUsd": 158,
       "competitorUsd": null,
-      "priceUsd": 195,
+      "priceUsd": 179,
       "rule": "formula"
      }
     }
@@ -44488,10 +44488,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 202,
+      "formulaUsd": 184,
       "floorUsd": 163,
       "competitorUsd": null,
-      "priceUsd": 202,
+      "priceUsd": 184,
       "rule": "formula"
      }
     }
@@ -44642,10 +44642,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 230,
+      "formulaUsd": 211,
       "floorUsd": 186,
       "competitorUsd": null,
-      "priceUsd": 230,
+      "priceUsd": 211,
       "rule": "formula"
      }
     }
@@ -44796,10 +44796,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 230,
+      "formulaUsd": 211,
       "floorUsd": 186,
       "competitorUsd": null,
-      "priceUsd": 230,
+      "priceUsd": 211,
       "rule": "formula"
      }
     }
@@ -44950,10 +44950,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 240,
+      "formulaUsd": 221,
       "floorUsd": 196,
       "competitorUsd": null,
-      "priceUsd": 240,
+      "priceUsd": 221,
       "rule": "formula"
      }
     }
@@ -45104,10 +45104,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 243,
+      "formulaUsd": 223,
       "floorUsd": 198,
       "competitorUsd": null,
-      "priceUsd": 243,
+      "priceUsd": 223,
       "rule": "formula"
      }
     }
@@ -45258,10 +45258,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 259,
+      "formulaUsd": 237,
       "floorUsd": 210,
       "competitorUsd": null,
-      "priceUsd": 259,
+      "priceUsd": 237,
       "rule": "formula"
      }
     }
@@ -45439,10 +45439,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 407,
+      "formulaUsd": 371,
       "floorUsd": 326,
       "competitorUsd": null,
-      "priceUsd": 407,
+      "priceUsd": 371,
       "rule": "formula"
      }
     },
@@ -45611,10 +45611,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 407,
+      "formulaUsd": 371,
       "floorUsd": 326,
       "competitorUsd": null,
-      "priceUsd": 407,
+      "priceUsd": 371,
       "rule": "formula"
      }
     },
@@ -45781,10 +45781,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 407,
+      "formulaUsd": 371,
       "floorUsd": 326,
       "competitorUsd": null,
-      "priceUsd": 407,
+      "priceUsd": 371,
       "rule": "formula"
      }
     }
@@ -45963,10 +45963,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 509,
+      "formulaUsd": 464,
       "floorUsd": 407,
       "competitorUsd": null,
-      "priceUsd": 509,
+      "priceUsd": 464,
       "rule": "formula"
      }
     },
@@ -46134,10 +46134,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 509,
+      "formulaUsd": 464,
       "floorUsd": 407,
       "competitorUsd": null,
-      "priceUsd": 509,
+      "priceUsd": 464,
       "rule": "formula"
      }
     },
@@ -46304,10 +46304,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 509,
+      "formulaUsd": 464,
       "floorUsd": 407,
       "competitorUsd": null,
-      "priceUsd": 509,
+      "priceUsd": 464,
       "rule": "formula"
      }
     }
@@ -46485,10 +46485,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 574,
+      "formulaUsd": 523,
       "floorUsd": 459,
       "competitorUsd": null,
-      "priceUsd": 574,
+      "priceUsd": 523,
       "rule": "formula"
      }
     },
@@ -46656,10 +46656,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 574,
+      "formulaUsd": 523,
       "floorUsd": 459,
       "competitorUsd": null,
-      "priceUsd": 574,
+      "priceUsd": 523,
       "rule": "formula"
      }
     },
@@ -46825,10 +46825,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 574,
+      "formulaUsd": 523,
       "floorUsd": 459,
       "competitorUsd": null,
-      "priceUsd": 574,
+      "priceUsd": 523,
       "rule": "formula"
      }
     }
@@ -47006,10 +47006,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 764,
+      "formulaUsd": 697,
       "floorUsd": 611,
       "competitorUsd": null,
-      "priceUsd": 764,
+      "priceUsd": 697,
       "rule": "formula"
      }
     },
@@ -47177,10 +47177,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 764,
+      "formulaUsd": 697,
       "floorUsd": 611,
       "competitorUsd": null,
-      "priceUsd": 764,
+      "priceUsd": 697,
       "rule": "formula"
      }
     },
@@ -47347,10 +47347,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 764,
+      "formulaUsd": 697,
       "floorUsd": 611,
       "competitorUsd": null,
-      "priceUsd": 764,
+      "priceUsd": 697,
       "rule": "formula"
      }
     }
@@ -47515,10 +47515,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 384,
+      "formulaUsd": 351,
       "floorUsd": 308,
       "competitorUsd": null,
-      "priceUsd": 384,
+      "priceUsd": 351,
       "rule": "formula"
      }
     }
@@ -47684,10 +47684,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 392,
+      "formulaUsd": 359,
       "floorUsd": 316,
       "competitorUsd": null,
-      "priceUsd": 392,
+      "priceUsd": 359,
       "rule": "formula"
      }
     }
@@ -47852,10 +47852,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 810,
+      "formulaUsd": 739,
       "floorUsd": 647,
       "competitorUsd": null,
-      "priceUsd": 810,
+      "priceUsd": 739,
       "rule": "formula"
      }
     }
@@ -48028,10 +48028,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 289,
+      "formulaUsd": 263,
       "floorUsd": 232,
       "competitorUsd": null,
-      "priceUsd": 289,
+      "priceUsd": 263,
       "rule": "formula"
      }
     },
@@ -48194,10 +48194,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 289,
+      "formulaUsd": 263,
       "floorUsd": 232,
       "competitorUsd": null,
-      "priceUsd": 289,
+      "priceUsd": 263,
       "rule": "formula"
      }
     },
@@ -48360,10 +48360,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 289,
+      "formulaUsd": 263,
       "floorUsd": 232,
       "competitorUsd": null,
-      "priceUsd": 289,
+      "priceUsd": 263,
       "rule": "formula"
      }
     }
@@ -48535,10 +48535,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 430,
+      "formulaUsd": 393,
       "floorUsd": 346,
       "competitorUsd": null,
-      "priceUsd": 430,
+      "priceUsd": 393,
       "rule": "formula"
      }
     },
@@ -48701,10 +48701,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 430,
+      "formulaUsd": 393,
       "floorUsd": 346,
       "competitorUsd": null,
-      "priceUsd": 430,
+      "priceUsd": 393,
       "rule": "formula"
      }
     },
@@ -48868,10 +48868,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 430,
+      "formulaUsd": 393,
       "floorUsd": 346,
       "competitorUsd": null,
-      "priceUsd": 430,
+      "priceUsd": 393,
       "rule": "formula"
      }
     }
@@ -49062,10 +49062,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1022,
+      "formulaUsd": 928,
       "floorUsd": 830,
       "competitorUsd": null,
-      "priceUsd": 1022,
+      "priceUsd": 928,
       "rule": "formula"
      }
     }
@@ -49256,10 +49256,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1956,
+      "formulaUsd": 1740,
       "floorUsd": 1515,
       "competitorUsd": null,
-      "priceUsd": 1956,
+      "priceUsd": 1740,
       "rule": "formula"
      }
     }
@@ -49451,10 +49451,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1180,
+      "formulaUsd": 1050,
       "floorUsd": 915,
       "competitorUsd": null,
-      "priceUsd": 1180,
+      "priceUsd": 1050,
       "rule": "formula"
      }
     }
@@ -49605,10 +49605,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 497,
+      "formulaUsd": 446,
       "floorUsd": 394,
       "competitorUsd": null,
-      "priceUsd": 497,
+      "priceUsd": 446,
       "rule": "formula"
      }
     }
@@ -49813,10 +49813,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 118,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 118,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -50018,10 +50018,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 99,
+      "formulaUsd": 88,
       "floorUsd": 78,
       "competitorUsd": null,
-      "priceUsd": 99,
+      "priceUsd": 88,
       "rule": "formula"
      }
     }
@@ -50185,10 +50185,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1817,
+      "formulaUsd": 1616,
       "floorUsd": 1406,
       "competitorUsd": null,
-      "priceUsd": 1817,
+      "priceUsd": 1616,
       "rule": "formula"
      }
     }
@@ -50331,10 +50331,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1180,
+      "formulaUsd": 1050,
       "floorUsd": 915,
       "competitorUsd": null,
-      "priceUsd": 1180,
+      "priceUsd": 1050,
       "rule": "formula"
      }
     }
@@ -50517,10 +50517,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3768,
+      "formulaUsd": 3350,
       "floorUsd": 2915,
       "competitorUsd": null,
-      "priceUsd": 3768,
+      "priceUsd": 3350,
       "rule": "formula"
      }
     }
@@ -50711,10 +50711,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2668,
+      "formulaUsd": 2372,
       "floorUsd": 2065,
       "competitorUsd": null,
-      "priceUsd": 2668,
+      "priceUsd": 2372,
       "rule": "formula"
      }
     }
@@ -50900,10 +50900,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3925,
+      "formulaUsd": 3494,
       "floorUsd": 3044,
       "competitorUsd": null,
-      "priceUsd": 3925,
+      "priceUsd": 3494,
       "rule": "formula"
      }
     }
@@ -51089,10 +51089,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4497,
+      "formulaUsd": 4001,
       "floorUsd": 3483,
       "competitorUsd": null,
-      "priceUsd": 4497,
+      "priceUsd": 4001,
       "rule": "formula"
      }
     }
@@ -51257,10 +51257,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1204,
+      "formulaUsd": 1074,
       "floorUsd": 939,
       "competitorUsd": null,
-      "priceUsd": 1204,
+      "priceUsd": 1074,
       "rule": "formula"
      }
     }
@@ -51431,10 +51431,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 300,
+      "formulaUsd": 268,
       "floorUsd": 234,
       "competitorUsd": null,
-      "priceUsd": 300,
+      "priceUsd": 268,
       "rule": "formula"
      }
     }
@@ -51703,10 +51703,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 137,
       "floorUsd": 119,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 137,
       "rule": "formula"
      }
     }
@@ -51879,10 +51879,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 820,
+      "formulaUsd": 732,
       "floorUsd": 640,
       "competitorUsd": null,
-      "priceUsd": 820,
+      "priceUsd": 732,
       "rule": "formula"
      }
     }
@@ -52105,10 +52105,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 119,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 119,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -52293,10 +52293,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 534,
+      "formulaUsd": 477,
       "floorUsd": 417,
       "competitorUsd": null,
-      "priceUsd": 534,
+      "priceUsd": 477,
       "rule": "formula"
      }
     }
@@ -52513,10 +52513,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 486,
+      "formulaUsd": 434,
       "floorUsd": 380,
       "competitorUsd": null,
-      "priceUsd": 486,
+      "priceUsd": 434,
       "rule": "formula"
      }
     }
@@ -52740,10 +52740,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 64,
+      "formulaUsd": 58,
       "floorUsd": 50,
       "competitorUsd": null,
-      "priceUsd": 64,
+      "priceUsd": 58,
       "rule": "formula"
      }
     }
@@ -52913,10 +52913,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2356,
+      "formulaUsd": 2098,
       "floorUsd": 1828,
       "competitorUsd": null,
-      "priceUsd": 2356,
+      "priceUsd": 2098,
       "rule": "formula"
      }
     }
@@ -53146,10 +53146,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 66,
+      "formulaUsd": 59,
       "floorUsd": 52,
       "competitorUsd": null,
-      "priceUsd": 66,
+      "priceUsd": 59,
       "rule": "formula"
      }
     }
@@ -53378,10 +53378,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 76,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 76,
       "rule": "formula"
      }
     }
@@ -53610,10 +53610,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 304,
+      "formulaUsd": 272,
       "floorUsd": 239,
       "competitorUsd": null,
-      "priceUsd": 304,
+      "priceUsd": 272,
       "rule": "formula"
      }
     }
@@ -53860,10 +53860,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 481,
+      "formulaUsd": 430,
       "floorUsd": 378,
       "competitorUsd": null,
-      "priceUsd": 481,
+      "priceUsd": 430,
       "rule": "formula"
      }
     }
@@ -54030,10 +54030,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 390,
+      "formulaUsd": 347,
       "floorUsd": 303,
       "competitorUsd": null,
-      "priceUsd": 390,
+      "priceUsd": 347,
       "rule": "formula"
      }
     }
@@ -54198,10 +54198,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 232,
+      "formulaUsd": 207,
       "floorUsd": 181,
       "competitorUsd": null,
-      "priceUsd": 232,
+      "priceUsd": 207,
       "rule": "formula"
      }
     }
@@ -54380,10 +54380,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 819,
+      "formulaUsd": 731,
       "floorUsd": 638,
       "competitorUsd": null,
-      "priceUsd": 819,
+      "priceUsd": 731,
       "rule": "formula"
      }
     }
@@ -54565,10 +54565,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 820,
+      "formulaUsd": 731,
       "floorUsd": 639,
       "competitorUsd": null,
-      "priceUsd": 820,
+      "priceUsd": 731,
       "rule": "formula"
      }
     }
@@ -54724,10 +54724,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 499,
+      "formulaUsd": 445,
       "floorUsd": 389,
       "competitorUsd": null,
-      "priceUsd": 499,
+      "priceUsd": 445,
       "rule": "formula"
      }
     }
@@ -54911,10 +54911,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1055,
+      "formulaUsd": 940,
       "floorUsd": 820,
       "competitorUsd": null,
-      "priceUsd": 1055,
+      "priceUsd": 940,
       "rule": "formula"
      }
     }
@@ -55195,10 +55195,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 529,
+      "formulaUsd": 471,
       "floorUsd": 411,
       "competitorUsd": null,
-      "priceUsd": 529,
+      "priceUsd": 471,
       "rule": "formula"
      }
     }
@@ -55359,10 +55359,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 227,
+      "formulaUsd": 201,
       "floorUsd": 176,
       "competitorUsd": null,
-      "priceUsd": 227,
+      "priceUsd": 201,
       "rule": "formula"
      }
     }
@@ -55531,10 +55531,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2147,
+      "formulaUsd": 1917,
       "floorUsd": 1677,
       "competitorUsd": null,
-      "priceUsd": 2147,
+      "priceUsd": 1917,
       "rule": "formula"
      }
     }
@@ -55728,10 +55728,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1273,
+      "formulaUsd": 1136,
       "floorUsd": 993,
       "competitorUsd": null,
-      "priceUsd": 1273,
+      "priceUsd": 1136,
       "rule": "formula"
      }
     }
@@ -55923,10 +55923,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1279,
+      "formulaUsd": 1142,
       "floorUsd": 1000,
       "competitorUsd": null,
-      "priceUsd": 1279,
+      "priceUsd": 1142,
       "rule": "formula"
      }
     }
@@ -56117,10 +56117,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1276,
+      "formulaUsd": 1139,
       "floorUsd": 997,
       "competitorUsd": null,
-      "priceUsd": 1276,
+      "priceUsd": 1139,
       "rule": "formula"
      }
     }
@@ -56312,10 +56312,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 475,
+      "formulaUsd": 424,
       "floorUsd": 372,
       "competitorUsd": null,
-      "priceUsd": 475,
+      "priceUsd": 424,
       "rule": "formula"
      }
     }
@@ -56506,10 +56506,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 293,
+      "formulaUsd": 261,
       "floorUsd": 227,
       "competitorUsd": null,
-      "priceUsd": 293,
+      "priceUsd": 261,
       "rule": "formula"
      }
     }
@@ -56653,10 +56653,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 118,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 118,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -56844,10 +56844,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 300,
+      "formulaUsd": 268,
       "floorUsd": 234,
       "competitorUsd": null,
-      "priceUsd": 300,
+      "priceUsd": 268,
       "rule": "formula"
      }
     }
@@ -57027,10 +57027,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 295,
+      "formulaUsd": 262,
       "floorUsd": 229,
       "competitorUsd": null,
-      "priceUsd": 295,
+      "priceUsd": 262,
       "rule": "formula"
      }
     }
@@ -57238,10 +57238,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 486,
+      "formulaUsd": 434,
       "floorUsd": 380,
       "competitorUsd": null,
-      "priceUsd": 486,
+      "priceUsd": 434,
       "rule": "formula"
      }
     }
@@ -57431,10 +57431,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 119,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 119,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -57626,10 +57626,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 119,
+      "formulaUsd": 106,
       "floorUsd": 93,
       "competitorUsd": null,
-      "priceUsd": 119,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -57833,10 +57833,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 777,
+      "formulaUsd": 691,
       "floorUsd": 604,
       "competitorUsd": null,
-      "priceUsd": 777,
+      "priceUsd": 691,
       "rule": "formula"
      }
     }
@@ -58039,10 +58039,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1378,
+      "formulaUsd": 1226,
       "floorUsd": 1069,
       "competitorUsd": null,
-      "priceUsd": 1378,
+      "priceUsd": 1226,
       "rule": "formula"
      }
     }
@@ -58291,10 +58291,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 241,
+      "formulaUsd": 215,
       "floorUsd": 188,
       "competitorUsd": null,
-      "priceUsd": 241,
+      "priceUsd": 215,
       "rule": "formula"
      }
     }
@@ -58459,10 +58459,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 387,
+      "formulaUsd": 344,
       "floorUsd": 300,
       "competitorUsd": null,
-      "priceUsd": 387,
+      "priceUsd": 344,
       "rule": "formula"
      }
     }
@@ -58776,10 +58776,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 114,
+      "formulaUsd": 104,
       "floorUsd": 94,
       "competitorUsd": null,
-      "priceUsd": 114,
+      "priceUsd": 104,
       "rule": "formula"
      }
     }
@@ -59092,10 +59092,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 121,
+      "formulaUsd": 110,
       "floorUsd": 99,
       "competitorUsd": null,
-      "priceUsd": 121,
+      "priceUsd": 110,
       "rule": "formula"
      }
     }
@@ -59408,10 +59408,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 128,
+      "formulaUsd": 116,
       "floorUsd": 105,
       "competitorUsd": null,
-      "priceUsd": 128,
+      "priceUsd": 116,
       "rule": "formula"
      }
     }
@@ -59724,10 +59724,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 131,
+      "formulaUsd": 120,
       "floorUsd": 108,
       "competitorUsd": null,
-      "priceUsd": 131,
+      "priceUsd": 120,
       "rule": "formula"
      }
     }
@@ -60040,10 +60040,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 140,
+      "formulaUsd": 128,
       "floorUsd": 115,
       "competitorUsd": null,
-      "priceUsd": 140,
+      "priceUsd": 128,
       "rule": "formula"
      }
     }
@@ -60356,10 +60356,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 147,
+      "formulaUsd": 134,
       "floorUsd": 120,
       "competitorUsd": null,
-      "priceUsd": 147,
+      "priceUsd": 134,
       "rule": "formula"
      }
     }
@@ -60672,10 +60672,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 140,
       "floorUsd": 125,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 140,
       "rule": "formula"
      }
     }
@@ -60988,10 +60988,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 192,
+      "formulaUsd": 174,
       "floorUsd": 155,
       "competitorUsd": null,
-      "priceUsd": 192,
+      "priceUsd": 174,
       "rule": "formula"
      }
     }
@@ -61304,10 +61304,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 192,
+      "formulaUsd": 174,
       "floorUsd": 155,
       "competitorUsd": null,
-      "priceUsd": 192,
+      "priceUsd": 174,
       "rule": "formula"
      }
     }
@@ -61620,10 +61620,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 200,
+      "formulaUsd": 181,
       "floorUsd": 161,
       "competitorUsd": null,
-      "priceUsd": 200,
+      "priceUsd": 181,
       "rule": "formula"
      }
     }
@@ -61922,10 +61922,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 88,
+      "formulaUsd": 78,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 88,
+      "priceUsd": 78,
       "rule": "formula"
      }
     }
@@ -62223,10 +62223,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 121,
+      "formulaUsd": 110,
       "floorUsd": 99,
       "competitorUsd": null,
-      "priceUsd": 121,
+      "priceUsd": 110,
       "rule": "formula"
      }
     }
@@ -62524,10 +62524,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 128,
+      "formulaUsd": 116,
       "floorUsd": 105,
       "competitorUsd": null,
-      "priceUsd": 128,
+      "priceUsd": 116,
       "rule": "formula"
      }
     }
@@ -62825,10 +62825,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 135,
+      "formulaUsd": 122,
       "floorUsd": 110,
       "competitorUsd": null,
-      "priceUsd": 135,
+      "priceUsd": 122,
       "rule": "formula"
      }
     }
@@ -63126,10 +63126,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 140,
+      "formulaUsd": 128,
       "floorUsd": 115,
       "competitorUsd": null,
-      "priceUsd": 140,
+      "priceUsd": 128,
       "rule": "formula"
      }
     }
@@ -63427,10 +63427,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 147,
+      "formulaUsd": 134,
       "floorUsd": 120,
       "competitorUsd": null,
-      "priceUsd": 147,
+      "priceUsd": 134,
       "rule": "formula"
      }
     }
@@ -63728,10 +63728,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 140,
       "floorUsd": 125,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 140,
       "rule": "formula"
      }
     }
@@ -64029,10 +64029,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 188,
+      "formulaUsd": 169,
       "floorUsd": 151,
       "competitorUsd": null,
-      "priceUsd": 188,
+      "priceUsd": 169,
       "rule": "formula"
      }
     }
@@ -64330,10 +64330,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 188,
+      "formulaUsd": 169,
       "floorUsd": 151,
       "competitorUsd": null,
-      "priceUsd": 188,
+      "priceUsd": 169,
       "rule": "formula"
      }
     }
@@ -64631,10 +64631,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 197,
+      "formulaUsd": 177,
       "floorUsd": 158,
       "competitorUsd": null,
-      "priceUsd": 197,
+      "priceUsd": 177,
       "rule": "formula"
      }
     }
@@ -64780,10 +64780,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 406,
+      "formulaUsd": 363,
       "floorUsd": 320,
       "competitorUsd": null,
-      "priceUsd": 406,
+      "priceUsd": 363,
       "rule": "formula"
      }
     }
@@ -64968,10 +64968,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 79,
+      "formulaUsd": 72,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 79,
+      "priceUsd": 72,
       "rule": "formula"
      }
     }
@@ -65156,10 +65156,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 79,
+      "formulaUsd": 72,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 79,
+      "priceUsd": 72,
       "rule": "formula"
      }
     }
@@ -65344,10 +65344,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 79,
+      "formulaUsd": 72,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 79,
+      "priceUsd": 72,
       "rule": "formula"
      }
     }
@@ -65532,10 +65532,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 94,
+      "formulaUsd": 85,
       "floorUsd": 76,
       "competitorUsd": null,
-      "priceUsd": 94,
+      "priceUsd": 85,
       "rule": "formula"
      }
     }
@@ -65720,10 +65720,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 94,
+      "formulaUsd": 85,
       "floorUsd": 76,
       "competitorUsd": null,
-      "priceUsd": 94,
+      "priceUsd": 85,
       "rule": "formula"
      }
     }
@@ -65908,10 +65908,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 94,
+      "formulaUsd": 85,
       "floorUsd": 76,
       "competitorUsd": null,
-      "priceUsd": 94,
+      "priceUsd": 85,
       "rule": "formula"
      }
     }
@@ -66096,10 +66096,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 90,
+      "formulaUsd": 82,
       "floorUsd": 73,
       "competitorUsd": null,
-      "priceUsd": 90,
+      "priceUsd": 82,
       "rule": "formula"
      }
     }
@@ -66411,10 +66411,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 27,
+      "formulaUsd": 24,
       "floorUsd": 22,
       "competitorUsd": null,
-      "priceUsd": 27,
+      "priceUsd": 24,
       "rule": "formula"
      }
     },
@@ -66716,10 +66716,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 21,
+      "formulaUsd": 19,
       "floorUsd": 17,
       "competitorUsd": null,
-      "priceUsd": 21,
+      "priceUsd": 19,
       "rule": "formula"
      }
     },
@@ -67021,10 +67021,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 27,
+      "formulaUsd": 24,
       "floorUsd": 22,
       "competitorUsd": null,
-      "priceUsd": 27,
+      "priceUsd": 24,
       "rule": "formula"
      }
     }
@@ -67229,10 +67229,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 486,
+      "formulaUsd": 434,
       "floorUsd": 380,
       "competitorUsd": null,
-      "priceUsd": 486,
+      "priceUsd": 434,
       "rule": "formula"
      }
     }
@@ -67431,10 +67431,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 586,
+      "formulaUsd": 522,
       "floorUsd": 457,
       "competitorUsd": null,
-      "priceUsd": 586,
+      "priceUsd": 522,
       "rule": "formula"
      }
     }
@@ -67647,10 +67647,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 524,
+      "formulaUsd": 467,
       "floorUsd": 409,
       "competitorUsd": null,
-      "priceUsd": 524,
+      "priceUsd": 467,
       "rule": "formula"
      }
     }
@@ -67863,10 +67863,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 459,
+      "formulaUsd": 410,
       "floorUsd": 359,
       "competitorUsd": null,
-      "priceUsd": 459,
+      "priceUsd": 410,
       "rule": "formula"
      }
     }
@@ -68077,10 +68077,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 869,
+      "formulaUsd": 774,
       "floorUsd": 677,
       "competitorUsd": null,
-      "priceUsd": 869,
+      "priceUsd": 774,
       "rule": "formula"
      }
     }
@@ -68281,10 +68281,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 835,
+      "formulaUsd": 745,
       "floorUsd": 652,
       "competitorUsd": null,
-      "priceUsd": 835,
+      "priceUsd": 745,
       "rule": "formula"
      }
     }
@@ -68469,10 +68469,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 94,
+      "formulaUsd": 85,
       "floorUsd": 76,
       "competitorUsd": null,
-      "priceUsd": 94,
+      "priceUsd": 85,
       "rule": "formula"
      }
     }
@@ -68633,10 +68633,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 491,
+      "formulaUsd": 437,
       "floorUsd": 381,
       "competitorUsd": null,
-      "priceUsd": 491,
+      "priceUsd": 437,
       "rule": "formula"
      }
     }
@@ -68949,10 +68949,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 197,
+      "formulaUsd": 177,
       "floorUsd": 158,
       "competitorUsd": null,
-      "priceUsd": 197,
+      "priceUsd": 177,
       "rule": "formula"
      }
     }
@@ -69265,10 +69265,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 213,
+      "formulaUsd": 192,
       "floorUsd": 171,
       "competitorUsd": null,
-      "priceUsd": 213,
+      "priceUsd": 192,
       "rule": "formula"
      }
     }
@@ -69566,10 +69566,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 200,
+      "formulaUsd": 181,
       "floorUsd": 161,
       "competitorUsd": null,
-      "priceUsd": 200,
+      "priceUsd": 181,
       "rule": "formula"
      }
     }
@@ -69867,10 +69867,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 213,
+      "formulaUsd": 192,
       "floorUsd": 171,
       "competitorUsd": null,
-      "priceUsd": 213,
+      "priceUsd": 192,
       "rule": "formula"
      }
     }
@@ -70142,10 +70142,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 75,
+      "formulaUsd": 67,
       "floorUsd": 59,
       "competitorUsd": null,
-      "priceUsd": 75,
+      "priceUsd": 67,
       "rule": "formula"
      }
     },
@@ -70405,10 +70405,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 75,
+      "formulaUsd": 67,
       "floorUsd": 59,
       "competitorUsd": null,
-      "priceUsd": 75,
+      "priceUsd": 67,
       "rule": "formula"
      }
     },
@@ -70669,10 +70669,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 75,
+      "formulaUsd": 67,
       "floorUsd": 59,
       "competitorUsd": null,
-      "priceUsd": 75,
+      "priceUsd": 67,
       "rule": "formula"
      }
     }
@@ -70907,10 +70907,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 352,
+      "formulaUsd": 315,
       "floorUsd": 278,
       "competitorUsd": null,
-      "priceUsd": 352,
+      "priceUsd": 315,
       "rule": "formula"
      }
     }
@@ -71143,10 +71143,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 245,
+      "formulaUsd": 220,
       "floorUsd": 194,
       "competitorUsd": null,
-      "priceUsd": 245,
+      "priceUsd": 220,
       "rule": "formula"
      }
     }
@@ -71302,10 +71302,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 170,
+      "formulaUsd": 152,
       "floorUsd": 133,
       "competitorUsd": null,
-      "priceUsd": 170,
+      "priceUsd": 152,
       "rule": "formula"
      }
     }
@@ -71550,10 +71550,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 554,
+      "formulaUsd": 497,
       "floorUsd": 437,
       "competitorUsd": null,
-      "priceUsd": 554,
+      "priceUsd": 497,
       "rule": "formula"
      }
     }
@@ -71722,10 +71722,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1360,
+      "formulaUsd": 1216,
       "floorUsd": 1066,
       "competitorUsd": null,
-      "priceUsd": 1360,
+      "priceUsd": 1216,
       "rule": "formula"
      }
     }
@@ -71846,10 +71846,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 63,
+      "formulaUsd": 58,
       "floorUsd": 53,
       "competitorUsd": null,
-      "priceUsd": 63,
+      "priceUsd": 58,
       "rule": "formula"
      }
     }
@@ -72065,10 +72065,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1071,
+      "formulaUsd": 956,
       "floorUsd": 836,
       "competitorUsd": null,
-      "priceUsd": 1071,
+      "priceUsd": 956,
       "rule": "formula"
      }
     }
@@ -72217,10 +72217,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 154,
+      "formulaUsd": 137,
       "floorUsd": 121,
       "competitorUsd": null,
-      "priceUsd": 154,
+      "priceUsd": 137,
       "rule": "formula"
      }
     }
@@ -72412,10 +72412,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1267,
+      "formulaUsd": 1130,
       "floorUsd": 987,
       "competitorUsd": null,
-      "priceUsd": 1267,
+      "priceUsd": 1130,
       "rule": "formula"
      }
     }
@@ -72608,10 +72608,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1334,
+      "formulaUsd": 1190,
       "floorUsd": 1040,
       "competitorUsd": null,
-      "priceUsd": 1334,
+      "priceUsd": 1190,
       "rule": "formula"
      }
     }
@@ -72822,10 +72822,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1959,
+      "formulaUsd": 1742,
       "floorUsd": 1517,
       "competitorUsd": null,
-      "priceUsd": 1959,
+      "priceUsd": 1742,
       "rule": "formula"
      }
     }
@@ -73076,10 +73076,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     },
@@ -73322,10 +73322,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     },
@@ -73567,10 +73567,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     }
@@ -73778,10 +73778,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 864,
+      "formulaUsd": 770,
       "floorUsd": 672,
       "competitorUsd": null,
-      "priceUsd": 864,
+      "priceUsd": 770,
       "rule": "formula"
      }
     }
@@ -74009,10 +74009,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 124,
+      "formulaUsd": 111,
       "floorUsd": 99,
       "competitorUsd": null,
-      "priceUsd": 124,
+      "priceUsd": 111,
       "rule": "formula"
      }
     }
@@ -74240,10 +74240,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 129,
+      "formulaUsd": 117,
       "floorUsd": 104,
       "competitorUsd": null,
-      "priceUsd": 129,
+      "priceUsd": 117,
       "rule": "formula"
      }
     }
@@ -74477,10 +74477,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 321,
+      "formulaUsd": 287,
       "floorUsd": 254,
       "competitorUsd": null,
-      "priceUsd": 321,
+      "priceUsd": 287,
       "rule": "formula"
      }
     }
@@ -74678,10 +74678,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 664,
+      "formulaUsd": 592,
       "floorUsd": 517,
       "competitorUsd": null,
-      "priceUsd": 664,
+      "priceUsd": 592,
       "rule": "formula"
      }
     }
@@ -74961,10 +74961,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 316,
+      "formulaUsd": 282,
       "floorUsd": 246,
       "competitorUsd": null,
-      "priceUsd": 316,
+      "priceUsd": 282,
       "rule": "formula"
      }
     }
@@ -75131,10 +75131,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 75,
+      "formulaUsd": 67,
       "floorUsd": 59,
       "competitorUsd": null,
-      "priceUsd": 75,
+      "priceUsd": 67,
       "rule": "formula"
      }
     }
@@ -75389,10 +75389,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 990,
+      "formulaUsd": 886,
       "floorUsd": 778,
       "competitorUsd": null,
-      "priceUsd": 990,
+      "priceUsd": 886,
       "rule": "formula"
      }
     }
@@ -75644,10 +75644,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1160,
+      "formulaUsd": 1036,
       "floorUsd": 909,
       "competitorUsd": null,
-      "priceUsd": 1160,
+      "priceUsd": 1036,
       "rule": "formula"
      }
     }
@@ -75859,10 +75859,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 312,
+      "formulaUsd": 279,
       "floorUsd": 245,
       "competitorUsd": null,
-      "priceUsd": 312,
+      "priceUsd": 279,
       "rule": "formula"
      }
     }
@@ -76071,10 +76071,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 237,
+      "formulaUsd": 212,
       "floorUsd": 186,
       "competitorUsd": null,
-      "priceUsd": 237,
+      "priceUsd": 212,
       "rule": "formula"
      }
     }
@@ -76284,10 +76284,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 76,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 76,
       "rule": "formula"
      }
     }
@@ -76493,10 +76493,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 76,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 76,
       "rule": "formula"
      }
     }
@@ -76705,10 +76705,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 318,
+      "formulaUsd": 286,
       "floorUsd": 252,
       "competitorUsd": null,
-      "priceUsd": 318,
+      "priceUsd": 286,
       "rule": "formula"
      }
     }
@@ -76931,10 +76931,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 298,
+      "formulaUsd": 266,
       "floorUsd": 232,
       "competitorUsd": null,
-      "priceUsd": 298,
+      "priceUsd": 266,
       "rule": "formula"
      }
     }
@@ -77146,10 +77146,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 258,
+      "formulaUsd": 230,
       "floorUsd": 203,
       "competitorUsd": null,
-      "priceUsd": 258,
+      "priceUsd": 230,
       "rule": "formula"
      }
     }
@@ -77316,10 +77316,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1969,
+      "formulaUsd": 1753,
       "floorUsd": 1528,
       "competitorUsd": null,
-      "priceUsd": 1969,
+      "priceUsd": 1753,
       "rule": "formula"
      }
     }
@@ -77495,10 +77495,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 642,
+      "formulaUsd": 574,
       "floorUsd": 504,
       "competitorUsd": null,
-      "priceUsd": 642,
+      "priceUsd": 574,
       "rule": "formula"
      }
     },
@@ -77667,10 +77667,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 839,
+      "formulaUsd": 749,
       "floorUsd": 656,
       "competitorUsd": null,
-      "priceUsd": 839,
+      "priceUsd": 749,
       "rule": "formula"
      }
     }
@@ -77843,10 +77843,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 772,
+      "formulaUsd": 689,
       "floorUsd": 604,
       "competitorUsd": null,
-      "priceUsd": 772,
+      "priceUsd": 689,
       "rule": "formula"
      }
     },
@@ -78009,10 +78009,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 904,
+      "formulaUsd": 807,
       "floorUsd": 707,
       "competitorUsd": null,
-      "priceUsd": 904,
+      "priceUsd": 807,
       "rule": "formula"
      }
     }
@@ -78205,10 +78205,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     }
@@ -78366,10 +78366,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 73,
+      "formulaUsd": 65,
       "floorUsd": 57,
       "competitorUsd": null,
-      "priceUsd": 73,
+      "priceUsd": 65,
       "rule": "formula"
      }
     }
@@ -78541,10 +78541,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 73,
+      "formulaUsd": 65,
       "floorUsd": 57,
       "competitorUsd": null,
-      "priceUsd": 73,
+      "priceUsd": 65,
       "rule": "formula"
      }
     }
@@ -78694,10 +78694,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1276,
+      "formulaUsd": 1139,
       "floorUsd": 997,
       "competitorUsd": null,
-      "priceUsd": 1276,
+      "priceUsd": 1139,
       "rule": "formula"
      }
     }
@@ -78866,10 +78866,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 772,
+      "formulaUsd": 690,
       "floorUsd": 604,
       "competitorUsd": null,
-      "priceUsd": 772,
+      "priceUsd": 690,
       "rule": "formula"
      }
     }
@@ -79023,10 +79023,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1276,
+      "formulaUsd": 1139,
       "floorUsd": 997,
       "competitorUsd": null,
-      "priceUsd": 1276,
+      "priceUsd": 1139,
       "rule": "formula"
      }
     }
@@ -79214,10 +79214,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2183,
+      "formulaUsd": 1944,
       "floorUsd": 1697,
       "competitorUsd": null,
-      "priceUsd": 2183,
+      "priceUsd": 1944,
       "rule": "formula"
      }
     },
@@ -79395,10 +79395,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 2309,
+      "formulaUsd": 2058,
       "floorUsd": 1795,
       "competitorUsd": null,
-      "priceUsd": 2309,
+      "priceUsd": 2058,
       "rule": "formula"
      }
     }
@@ -79638,10 +79638,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 84,
+      "formulaUsd": 74,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 84,
+      "priceUsd": 74,
       "rule": "formula"
      }
     }
@@ -79820,10 +79820,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 58,
+      "formulaUsd": 53,
       "floorUsd": 47,
       "competitorUsd": null,
-      "priceUsd": 58,
+      "priceUsd": 53,
       "rule": "formula"
      }
     }
@@ -79971,10 +79971,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 470,
+      "formulaUsd": 419,
       "floorUsd": 367,
       "competitorUsd": null,
-      "priceUsd": 470,
+      "priceUsd": 419,
       "rule": "formula"
      }
     }
@@ -80102,10 +80102,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 43,
+      "formulaUsd": 38,
       "floorUsd": 34,
       "competitorUsd": null,
-      "priceUsd": 43,
+      "priceUsd": 38,
       "rule": "formula"
      }
     }
@@ -80220,10 +80220,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 194,
+      "formulaUsd": 173,
       "floorUsd": 151,
       "competitorUsd": null,
-      "priceUsd": 194,
+      "priceUsd": 173,
       "rule": "formula"
      }
     }
@@ -80335,10 +80335,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 276,
+      "formulaUsd": 247,
       "floorUsd": 217,
       "competitorUsd": null,
-      "priceUsd": 276,
+      "priceUsd": 247,
       "rule": "formula"
      }
     }
@@ -80449,10 +80449,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 159,
+      "formulaUsd": 143,
       "floorUsd": 127,
       "competitorUsd": null,
-      "priceUsd": 159,
+      "priceUsd": 143,
       "rule": "formula"
      }
     }
@@ -80604,10 +80604,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 548,
+      "formulaUsd": 493,
       "floorUsd": 436,
       "competitorUsd": null,
-      "priceUsd": 548,
+      "priceUsd": 493,
       "rule": "formula"
      }
     }
@@ -80759,10 +80759,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 548,
+      "formulaUsd": 494,
       "floorUsd": 438,
       "competitorUsd": null,
-      "priceUsd": 548,
+      "priceUsd": 494,
       "rule": "formula"
      }
     }
@@ -80934,10 +80934,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 106,
+      "formulaUsd": 96,
       "floorUsd": 86,
       "competitorUsd": null,
-      "priceUsd": 106,
+      "priceUsd": 96,
       "rule": "formula"
      }
     }
@@ -81086,10 +81086,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 122,
+      "formulaUsd": 109,
       "floorUsd": 96,
       "competitorUsd": null,
-      "priceUsd": 122,
+      "priceUsd": 109,
       "rule": "formula"
      }
     }
@@ -81241,10 +81241,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 119,
+      "formulaUsd": 106,
       "floorUsd": 94,
       "competitorUsd": null,
-      "priceUsd": 119,
+      "priceUsd": 106,
       "rule": "formula"
      }
     }
@@ -81363,10 +81363,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 47,
+      "formulaUsd": 43,
       "floorUsd": 39,
       "competitorUsd": null,
-      "priceUsd": 47,
+      "priceUsd": 43,
       "rule": "formula"
      }
     }
@@ -81539,10 +81539,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 119,
+      "formulaUsd": 107,
       "floorUsd": 94,
       "competitorUsd": null,
-      "priceUsd": 119,
+      "priceUsd": 107,
       "rule": "formula"
      }
     }
@@ -81683,10 +81683,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 167,
+      "formulaUsd": 150,
       "floorUsd": 133,
       "competitorUsd": null,
-      "priceUsd": 167,
+      "priceUsd": 150,
       "rule": "formula"
      }
     }
@@ -81828,10 +81828,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 214,
+      "formulaUsd": 191,
       "floorUsd": 167,
       "competitorUsd": null,
-      "priceUsd": 214,
+      "priceUsd": 191,
       "rule": "formula"
      }
     }
@@ -81995,10 +81995,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 88,
+      "formulaUsd": 79,
       "floorUsd": 70,
       "competitorUsd": null,
-      "priceUsd": 88,
+      "priceUsd": 79,
       "rule": "formula"
      }
     }
@@ -82144,10 +82144,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 105,
+      "formulaUsd": 95,
       "floorUsd": 85,
       "competitorUsd": null,
-      "priceUsd": 105,
+      "priceUsd": 95,
       "rule": "formula"
      }
     }
@@ -82337,10 +82337,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 357,
+      "formulaUsd": 321,
       "floorUsd": 283,
       "competitorUsd": null,
-      "priceUsd": 357,
+      "priceUsd": 321,
       "rule": "formula"
      }
     }
@@ -82486,10 +82486,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 299,
+      "formulaUsd": 266,
       "floorUsd": 233,
       "competitorUsd": null,
-      "priceUsd": 299,
+      "priceUsd": 266,
       "rule": "formula"
      }
     }
@@ -82651,10 +82651,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 86,
+      "formulaUsd": 77,
       "floorUsd": 68,
       "competitorUsd": null,
-      "priceUsd": 86,
+      "priceUsd": 77,
       "rule": "formula"
      }
     }
@@ -82811,10 +82811,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 84,
+      "formulaUsd": 75,
       "floorUsd": 66,
       "competitorUsd": null,
-      "priceUsd": 84,
+      "priceUsd": 75,
       "rule": "formula"
      }
     }
@@ -82983,10 +82983,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 83,
+      "formulaUsd": 74,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 83,
+      "priceUsd": 74,
       "rule": "formula"
      }
     }
@@ -83155,10 +83155,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 85,
+      "formulaUsd": 76,
       "floorUsd": 67,
       "competitorUsd": null,
-      "priceUsd": 85,
+      "priceUsd": 76,
       "rule": "formula"
      }
     }
@@ -83305,10 +83305,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 162,
+      "formulaUsd": 144,
       "floorUsd": 127,
       "competitorUsd": null,
-      "priceUsd": 162,
+      "priceUsd": 144,
       "rule": "formula"
      }
     }
@@ -83456,10 +83456,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 145,
+      "formulaUsd": 130,
       "floorUsd": 115,
       "competitorUsd": null,
-      "priceUsd": 145,
+      "priceUsd": 130,
       "rule": "formula"
      }
     }
@@ -83607,10 +83607,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 84,
+      "formulaUsd": 75,
       "floorUsd": 66,
       "competitorUsd": null,
-      "priceUsd": 84,
+      "priceUsd": 75,
       "rule": "formula"
      }
     }
@@ -83762,10 +83762,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     }
@@ -83917,10 +83917,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     }
@@ -84059,10 +84059,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 79,
+      "formulaUsd": 72,
       "floorUsd": 65,
       "competitorUsd": null,
-      "priceUsd": 79,
+      "priceUsd": 72,
       "rule": "formula"
      }
     }
@@ -84183,10 +84183,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 66,
+      "formulaUsd": 60,
       "floorUsd": 53,
       "competitorUsd": null,
-      "priceUsd": 66,
+      "priceUsd": 60,
       "rule": "formula"
      }
     }
@@ -84384,10 +84384,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 519,
+      "formulaUsd": 477,
       "floorUsd": 433,
       "competitorUsd": null,
-      "priceUsd": 519,
+      "priceUsd": 477,
       "rule": "formula"
      }
     }
@@ -84569,10 +84569,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 510,
+      "formulaUsd": 468,
       "floorUsd": 424,
       "competitorUsd": null,
-      "priceUsd": 510,
+      "priceUsd": 468,
       "rule": "formula"
      }
     }
@@ -84754,10 +84754,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 510,
+      "formulaUsd": 468,
       "floorUsd": 424,
       "competitorUsd": null,
-      "priceUsd": 510,
+      "priceUsd": 468,
       "rule": "formula"
      }
     }
@@ -84939,10 +84939,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1969,
+      "formulaUsd": 1753,
       "floorUsd": 1528,
       "competitorUsd": null,
-      "priceUsd": 1969,
+      "priceUsd": 1753,
       "rule": "formula"
      }
     }
@@ -85125,10 +85125,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1969,
+      "formulaUsd": 1753,
       "floorUsd": 1528,
       "competitorUsd": null,
-      "priceUsd": 1969,
+      "priceUsd": 1753,
       "rule": "formula"
      }
     }
@@ -85312,10 +85312,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 510,
+      "formulaUsd": 467,
       "floorUsd": 424,
       "competitorUsd": null,
-      "priceUsd": 510,
+      "priceUsd": 467,
       "rule": "formula"
      }
     }
@@ -85471,10 +85471,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 88,
+      "formulaUsd": 79,
       "floorUsd": 70,
       "competitorUsd": null,
-      "priceUsd": 88,
+      "priceUsd": 79,
       "rule": "formula"
      }
     }
@@ -85674,10 +85674,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 1801,
+      "formulaUsd": 1632,
       "floorUsd": 1457,
       "competitorUsd": null,
-      "priceUsd": 1801,
+      "priceUsd": 1632,
       "rule": "formula"
      }
     }
@@ -85839,10 +85839,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 495,
+      "formulaUsd": 444,
       "floorUsd": 392,
       "competitorUsd": null,
-      "priceUsd": 495,
+      "priceUsd": 444,
       "rule": "formula"
      }
     }
@@ -86049,10 +86049,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 422,
+      "formulaUsd": 379,
       "floorUsd": 336,
       "competitorUsd": null,
-      "priceUsd": 422,
+      "priceUsd": 379,
       "rule": "formula"
      }
     }
@@ -86250,10 +86250,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 422,
+      "formulaUsd": 380,
       "floorUsd": 336,
       "competitorUsd": null,
-      "priceUsd": 422,
+      "priceUsd": 380,
       "rule": "formula"
      }
     }
@@ -86425,10 +86425,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4094,
+      "formulaUsd": 3648,
       "floorUsd": 3183,
       "competitorUsd": null,
-      "priceUsd": 4094,
+      "priceUsd": 3648,
       "rule": "formula"
      }
     }
@@ -86588,10 +86588,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3819,
+      "formulaUsd": 3402,
       "floorUsd": 2967,
       "competitorUsd": null,
-      "priceUsd": 3819,
+      "priceUsd": 3402,
       "rule": "formula"
      }
     }
@@ -86784,10 +86784,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5536,
+      "formulaUsd": 4939,
       "floorUsd": 4317,
       "competitorUsd": null,
-      "priceUsd": 5536,
+      "priceUsd": 4939,
       "rule": "formula"
      }
     }
@@ -86980,10 +86980,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5281,
+      "formulaUsd": 4713,
       "floorUsd": 4121,
       "competitorUsd": null,
-      "priceUsd": 5281,
+      "priceUsd": 4713,
       "rule": "formula"
      }
     }
@@ -87182,10 +87182,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5281,
+      "formulaUsd": 4713,
       "floorUsd": 4121,
       "competitorUsd": null,
-      "priceUsd": 5281,
+      "priceUsd": 4713,
       "rule": "formula"
      }
     }
@@ -87388,10 +87388,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5281,
+      "formulaUsd": 4713,
       "floorUsd": 4120,
       "competitorUsd": null,
-      "priceUsd": 5281,
+      "priceUsd": 4713,
       "rule": "formula"
      }
     }
@@ -87599,10 +87599,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4635,
+      "formulaUsd": 4138,
       "floorUsd": 3621,
       "competitorUsd": null,
-      "priceUsd": 4635,
+      "priceUsd": 4138,
       "rule": "formula"
      }
     }
@@ -87737,10 +87737,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 4175,
+      "formulaUsd": 3729,
       "floorUsd": 3264,
       "competitorUsd": null,
-      "priceUsd": 4175,
+      "priceUsd": 3729,
       "rule": "formula"
      }
     }
@@ -87894,10 +87894,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 10670,
+      "formulaUsd": 9505,
       "floorUsd": 8290,
       "competitorUsd": null,
-      "priceUsd": 10670,
+      "priceUsd": 9505,
       "rule": "formula"
      }
     }
@@ -88061,10 +88061,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 3388,
+      "formulaUsd": 3028,
       "floorUsd": 2653,
       "competitorUsd": null,
-      "priceUsd": 3388,
+      "priceUsd": 3028,
       "rule": "formula"
      }
     }
@@ -88237,10 +88237,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 5091,
+      "formulaUsd": 4545,
       "floorUsd": 3975,
       "competitorUsd": null,
-      "priceUsd": 5091,
+      "priceUsd": 4545,
       "rule": "formula"
      }
     }
@@ -88553,10 +88553,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 78,
+      "formulaUsd": 69,
       "floorUsd": 60,
       "competitorUsd": null,
-      "priceUsd": 78,
+      "priceUsd": 69,
       "rule": "formula"
      }
     }
@@ -88706,10 +88706,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 170,
+      "formulaUsd": 152,
       "floorUsd": 133,
       "competitorUsd": null,
-      "priceUsd": 170,
+      "priceUsd": 152,
       "rule": "formula"
      }
     }
@@ -88874,10 +88874,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 459,
+      "formulaUsd": 408,
       "floorUsd": 356,
       "competitorUsd": null,
-      "priceUsd": 459,
+      "priceUsd": 408,
       "rule": "formula"
      }
     }
@@ -89037,10 +89037,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 68,
+      "formulaUsd": 61,
       "floorUsd": 54,
       "competitorUsd": null,
-      "priceUsd": 68,
+      "priceUsd": 61,
       "rule": "formula"
      }
     }
@@ -89260,10 +89260,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 46,
+      "formulaUsd": 42,
       "floorUsd": 37,
       "competitorUsd": null,
-      "priceUsd": 46,
+      "priceUsd": 42,
       "rule": "formula"
      }
     }
@@ -89429,10 +89429,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 181,
+      "formulaUsd": 161,
       "floorUsd": 141,
       "competitorUsd": null,
-      "priceUsd": 181,
+      "priceUsd": 161,
       "rule": "formula"
      }
     }
@@ -89650,10 +89650,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 42,
+      "formulaUsd": 38,
       "floorUsd": 33,
       "competitorUsd": null,
-      "priceUsd": 42,
+      "priceUsd": 38,
       "rule": "formula"
      }
     }
@@ -89858,10 +89858,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 29,
+      "formulaUsd": 26,
       "floorUsd": 23,
       "competitorUsd": null,
-      "priceUsd": 29,
+      "priceUsd": 26,
       "rule": "formula"
      }
     }
@@ -89990,10 +89990,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 34,
+      "formulaUsd": 31,
       "floorUsd": 28,
       "competitorUsd": null,
-      "priceUsd": 34,
+      "priceUsd": 31,
       "rule": "formula"
      }
     }
@@ -90115,10 +90115,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 27,
+      "formulaUsd": 24,
       "floorUsd": 22,
       "competitorUsd": null,
-      "priceUsd": 27,
+      "priceUsd": 24,
       "rule": "formula"
      }
     }
@@ -90238,10 +90238,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 54,
+      "formulaUsd": 48,
       "floorUsd": 43,
       "competitorUsd": null,
-      "priceUsd": 54,
+      "priceUsd": 48,
       "rule": "formula"
      }
     }
@@ -90552,10 +90552,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 49,
+      "formulaUsd": 43,
       "floorUsd": 38,
       "competitorUsd": null,
-      "priceUsd": 49,
+      "priceUsd": 43,
       "rule": "formula"
      }
     }
@@ -90675,10 +90675,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 46,
+      "formulaUsd": 42,
       "floorUsd": 38,
       "competitorUsd": null,
-      "priceUsd": 46,
+      "priceUsd": 42,
       "rule": "formula"
      }
     }
@@ -90797,10 +90797,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 32,
+      "formulaUsd": 30,
       "floorUsd": 27,
       "competitorUsd": null,
-      "priceUsd": 32,
+      "priceUsd": 30,
       "rule": "formula"
      }
     }
@@ -91011,10 +91011,10 @@
      },
      "competitor": null,
      "price": {
-      "formulaUsd": 36,
+      "formulaUsd": 32,
       "floorUsd": 28,
       "competitorUsd": null,
-      "priceUsd": 36,
+      "priceUsd": 32,
       "rule": "formula"
      }
     }
