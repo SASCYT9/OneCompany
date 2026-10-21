@@ -19,11 +19,12 @@ import {
  * Dinan and APR (Holley brands): dealer price list + official product pages
  * (dinancars.com / goapr.com share one platform) → One Company products.
  *
- * Price (Ігор, 17.10.2026): MSRP ("Retail" column) × 1.15 + $12 per kg of the
- * price-list weight, which is in POUNDS and is already the boxed weight.
+ * Price (Ігор, 21.10.2026): MAP (the price-list "MAP" column, the brand's
+ * advertised price) × 1.15 + $12 per kg of the price-list weight, which is in
+ * POUNDS and is already the boxed weight. MSRP ("Retail") is used only when a
+ * SKU has no MAP. Never a sale price shown on the brand's website.
  * Owner, 19.10.2026: the final price must not be higher than competitors' and
- * not lower than MAP + $12/kg. MSRP is the brand's regular list price, never a
- * sale price shown on its website.
+ * not lower than MAP + $12/kg.
  */
 export const HOLLEY_BRAND_MARKUP = 1.15;
 export const HOLLEY_BRAND_USD_PER_KG = 12;
@@ -85,14 +86,14 @@ export type HolleyPriceDecision = {
   rule: "formula" | "competitor" | "floor";
 };
 
-/** MSRP × 1.15 + $12/kg (price-list pounds → kg), rounded up to a whole dollar. */
-export function calculateHolleyFormulaUsd(retailUsd: number, weightLb: number) {
-  if (!Number.isFinite(retailUsd) || retailUsd <= 0) {
-    throw new Error("MSRP must be a positive number");
+/** Base price × 1.15 + $12/kg (price-list pounds → kg), rounded up to a whole dollar. */
+export function calculateHolleyFormulaUsd(baseUsd: number, weightLb: number) {
+  if (!Number.isFinite(baseUsd) || baseUsd <= 0) {
+    throw new Error("Base price must be a positive number");
   }
   const weight = Number.isFinite(weightLb) && weightLb > 0 ? weightLb : 0;
   const cents = Math.round(
-    (retailUsd * HOLLEY_BRAND_MARKUP + HOLLEY_BRAND_USD_PER_KG * weight * POUND_KG) * 100
+    (baseUsd * HOLLEY_BRAND_MARKUP + HOLLEY_BRAND_USD_PER_KG * weight * POUND_KG) * 100
   );
   return Math.ceil(cents / 100);
 }
@@ -108,9 +109,13 @@ export function decideHolleyPriceUsd(input: {
   weightLb: number;
   competitorUsd: number[];
 }): HolleyPriceDecision {
-  const formulaUsd = calculateHolleyFormulaUsd(input.retailUsd, input.weightLb);
+  const hasMap = input.mapUsd !== null && input.mapUsd > 0;
+  const formulaUsd = calculateHolleyFormulaUsd(
+    hasMap ? input.mapUsd! : input.retailUsd,
+    input.weightLb
+  );
   const shippingUsd = HOLLEY_BRAND_USD_PER_KG * Math.max(0, input.weightLb || 0) * POUND_KG;
-  const floorUsd = input.mapUsd && input.mapUsd > 0 ? Math.ceil(input.mapUsd + shippingUsd) : null;
+  const floorUsd = hasMap ? Math.ceil(input.mapUsd! + shippingUsd) : null;
   const competitors = input.competitorUsd.filter((value) => Number.isFinite(value) && value > 0);
   const competitorUsd = competitors.length ? Math.min(...competitors) : null;
   if (competitorUsd === null || competitorUsd >= formulaUsd) {
@@ -838,7 +843,7 @@ export function buildHolleyProductPayload(
         namespace: meta.namespace,
         key: "price_formula",
         value:
-          "MSRP × 1.15 + $12/kg (price-list pounds), rounded up to $1; not above the cheapest competitor, not below MAP + $12/kg",
+          "MAP × 1.15 + $12/kg (price-list pounds; MSRP when there is no MAP), rounded up to $1; not above the cheapest competitor, not below MAP + $12/kg",
         valueType: "single_line_text_field",
       },
       ...(docs.length
