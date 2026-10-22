@@ -183,6 +183,8 @@ export type TelegramJobPayload = {
     parseMode?: "HTML";
     /** With a photo, the text is its caption (the text alone when Telegram cannot fetch it). */
     photoUrl?: string;
+    /** A prompt answered by replying to it («🚚 Доставка в город»). */
+    forceReply?: { placeholder: string };
   } | null;
   /** An older open task that looks like the one just created. */
   duplicateOfTaskId?: string | null;
@@ -459,6 +461,7 @@ export function asPayload(job: OpsJob): TelegramJobPayload {
             replyMarkup?: OpsTelegramReplyMarkup;
             parseMode?: "HTML";
             photoUrl?: string;
+            forceReply?: { placeholder: string };
           })
         : null,
     duplicateOfTaskId: payload.duplicateOfTaskId ? String(payload.duplicateOfTaskId) : null,
@@ -2921,7 +2924,9 @@ async function executeTelegramIntakeStage(input: {
       const message = {
         chatId: inbox.telegramUpdate.chatId,
         replyToMessageId: inbox.telegramUpdate.messageId,
-        replyMarkup: reply.replyMarkup,
+        replyMarkup: reply.forceReply
+          ? { force_reply: true as const, input_field_placeholder: reply.forceReply.placeholder }
+          : reply.replyMarkup,
         parseMode: reply.parseMode,
         fetchImpl: input.dependencies.fetchImpl,
       };

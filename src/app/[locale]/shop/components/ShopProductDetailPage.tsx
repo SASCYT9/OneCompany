@@ -617,29 +617,11 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
       (spec) => !/^(артикул|sku|part number)$/i.test(spec.label.trim())
     );
   }
-  pushFallbackSpec(isUa ? "Артикул" : "Part number", primaryPartNumber);
+  // The part number already sits under the title (it follows the variant), so
+  // the specs panel does not repeat it.
   pushFallbackSpec(isUa ? "Термін постачання" : "Lead time", leadTime);
-  // Do88 dimensions/weight are unreliable — supplier feed returns packing-box
-  // sizes for unrelated SKUs (e.g. a 60kg intake listed as 81×38×22 mm /
-  // 2.6 kg). Hide the spec rows for Do88 until the source data is fixed,
-  // rather than misleading customers. Other brands still expose them.
-  const hideDimensionsAndWeight = isDo88Mode;
-  if (
-    !hideDimensionsAndWeight &&
-    (product.length != null || product.width != null || product.height != null)
-  ) {
-    const dimensionsValue = [
-      product.length != null ? `${product.length} mm` : null,
-      product.width != null ? `${product.width} mm` : null,
-      product.height != null ? `${product.height} mm` : null,
-    ]
-      .filter((value): value is string => Boolean(value))
-      .join(" × ");
-    pushFallbackSpec(isUa ? "Габарити" : "Dimensions", dimensionsValue);
-  }
-  if (!hideDimensionsAndWeight && product.weightKg != null) {
-    pushFallbackSpec(isUa ? "Вага" : "Weight", `${product.weightKg} kg`);
-  }
+  // The card's weight and box describe the shipping package; they serve
+  // delivery and the ops bot, not the customer, so the page leaves them out.
   // Patch UA spec values that retained English fragments from supplier copy
   if (resolvedLocale === "ua" && productBrandLc === "do88") {
     descriptionSections.specs = descriptionSections.specs.map((s) => ({
@@ -676,8 +658,8 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   // Drop malformed key-spec values that came through corrupted from the
   // supplier feed (e.g. a leading number stripped to `0"`). Also strip any
-  // dimension/weight rows that came through the description parser — same
-  // reason as the fallback guards above (unreliable Do88 supplier data).
+  // dimension/weight rows that came through the description parser: the
+  // Do88 feed gives packing-box sizes for unrelated SKUs.
   if (productBrandLc === "do88") {
     descriptionSections.specs = descriptionSections.specs.filter((s) => {
       const value = s.value.trim();
@@ -688,7 +670,14 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     });
   }
   const detailSpecs = [...descriptionSections.specs].filter((spec) => {
-    if (isDo88Mode && primaryPartNumber && isPartNumberSpecLabel(spec.label)) return false;
+    if (
+      primaryPartNumber &&
+      isPartNumberSpecLabel(spec.label) &&
+      (isDo88Mode ||
+        normalizeSpecComparable(spec.value) === normalizeSpecComparable(primaryPartNumber))
+    ) {
+      return false;
+    }
     if (/^категорія$|^category$/i.test(spec.label) && /[>›→]/.test(spec.value)) {
       return false;
     }
@@ -707,20 +696,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     )
   );
   fallbackSpecs.forEach((spec) => {
-    if (isDo88Mode && primaryPartNumber && isPartNumberSpecLabel(spec.label)) return;
-    const normalizedSpecValue = normalizeSpecComparable(spec.value);
-    if (
-      isPartNumberSpecLabel(spec.label) &&
-      detailSpecs.some(
-        (existing) =>
-          isPartNumberSpecLabel(existing.label) &&
-          normalizeSpecComparable(existing.value) === normalizedSpecValue
-      )
-    ) {
-      return;
-    }
-
-    const key = `${normalizeSpecComparable(spec.label)}::${normalizedSpecValue}`;
+    const key = `${normalizeSpecComparable(spec.label)}::${normalizeSpecComparable(spec.value)}`;
     if (existingSpecKeys.has(key)) {
       return;
     }

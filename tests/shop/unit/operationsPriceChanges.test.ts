@@ -675,7 +675,8 @@ test("«📝 Текст для клиента»: the customer's facts in Ukraini
   assert.match(text, /Артикул: EVE-G8XMV2-CF-INT/);
   assert.match(text, /Ціна: [\d\s]+₴/);
   assert.match(text, /Наявність: є на складі — відправимо в день замовлення або наступного дня/);
-  assert.match(text, /Доставка по Україні: Нова Пошта, ≈ 800\s₴, 1–2 дні в дорозі/);
+  assert.match(text, /Доставка по Україні: Нова Пошта, 1–2 дні в дорозі/);
+  assert.doesNotMatch(text, /≈ 800/, "customers are not told delivery prices");
   assert.match(text, /https:\/\/onecompany\.global\/ua\/shop\/\S*eve-g8xmv2-cf-int/);
   const usual = await clientTextForProduct({
     client: intake({ metafields: onOrder }),

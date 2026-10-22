@@ -21,9 +21,21 @@ import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
+import {
+  findNovaPoshtaCity,
+  NP_COUNTRYWIDE_CITY_REF,
+  NP_OTHER_CARRIERS_NOTE,
+  novaPoshtaCardLine,
+  novaPoshtaDeliveryDay,
+  novaPoshtaPriceText,
+  quoteNovaPoshta,
+  type NovaPoshtaSeat,
+} from "@/lib/operations/novaPoshta";
 import { buildOrderCard } from "@/lib/operations/orderCard";
 import {
+  deliveryPromptFor,
   looksLikeSku,
+  parseDeliveryCommand,
   parseOrderCommand,
   parsePriceCommand,
   parseProductLink,
@@ -707,6 +719,7 @@ export type PriceButtonFactory = (
     | "price_formula"
     | "price_card_formula"
     | "price_card_client_text"
+    | "price_card_delivery"
     | "price_card_open"
     | "price_lead_undo"
     | "order_client_text"
@@ -724,6 +737,8 @@ export type PriceReply = {
   parseMode: "HTML";
   /** Sent as a photo with the text as its caption; the text alone when Telegram cannot. */
   photoUrl?: string;
+  /** A prompt: Telegram opens a reply to it, and the answer comes back as a command. */
+  forceReply?: { placeholder: string };
 };
 
 function itemsOf(change: Pick<OpsPriceChange, "items">): PriceChangeItem[] {
@@ -1494,20 +1509,25 @@ function pricingLines(input: {
   return { lines, showsSupplierPrice };
 }
 
+type SupplierMeasures = {
+  weightKg: Prisma.Decimal | number | null;
+  lengthCm: Prisma.Decimal | number | null;
+  widthCm: Prisma.Decimal | number | null;
+  heightCm: Prisma.Decimal | number | null;
+};
+
+const kilograms = (value: number) => formatPriceWatchNumber(value, value < 1 ? 2 : 1);
+
 /**
  * Weight and box, each from the supplier when it publishes them, otherwise from
- * our own product card (marked when the card's size is an estimate).
+ * our own product card (marked when the card's size is an estimate) — and the
+ * box Nova Poshta can price: a real weight, never an estimate.
  */
-function shippingLine(
-  supplierFacts: ReadonlyArray<{
-    weightKg: Prisma.Decimal | number | null;
-    lengthCm: Prisma.Decimal | number | null;
-    widthCm: Prisma.Decimal | number | null;
-    heightCm: Prisma.Decimal | number | null;
-  }>,
+function cardShipping(
+  supplierFacts: readonly SupplierMeasures[],
   variant: Measures | null,
   product: Measures | null
-) {
+): { line: string; seat: NovaPoshtaSeat | null } {
   const supplierWeight = supplierFacts.find((fact) => measured(fact.weightKg)) ?? null;
   const supplierBox =
     supplierFacts.find(
@@ -1526,14 +1546,23 @@ function shippingLine(
       ? [cardBox.length, cardBox.width, cardBox.height]
       : null;
   if (!measured(weight) && !box) {
-    return "Вес и коробка: нет ни у поставщика, ни в карточке.";
+    return { line: "Вес и коробка: нет ни у поставщика, ни в карточке.", seat: null };
   }
+  const exactWeight =
+    measured(weight) && Boolean(supplierWeight || !cardWeight?.isDimensionsEstimated);
+  const exactBox = box && (supplierBox || !cardBox?.isDimensionsEstimated) ? box : null;
+  const seat: NovaPoshtaSeat | null = exactWeight
+    ? {
+        weightKg: Number(weight),
+        box: exactBox ? [Number(exactBox[0]), Number(exactBox[1]), Number(exactBox[2])] : null,
+      }
+    : null;
   const fromCard = (entry: Measures | null) =>
     `из карточки${entry?.isDimensionsEstimated ? ", оценка" : ""}`;
   const parts = [
     measured(weight)
       ? {
-          text: `${formatPriceWatchNumber(Number(weight), 1)} кг`,
+          text: `${kilograms(Number(weight))} кг`,
           from: supplierWeight ? "у поставщика" : fromCard(cardWeight),
         }
       : null,
@@ -1545,9 +1574,13 @@ function shippingLine(
       : null,
   ].filter((part): part is { text: string; from: string } => Boolean(part));
   const sources = new Set(parts.map((part) => part.from));
-  return sources.size === 1
-    ? `Вес и коробка: ${parts.map((part) => part.text).join(" · ")} (${parts[0].from})`
-    : `Вес и коробка: ${parts.map((part) => `${part.text} (${part.from})`).join(" · ")}`;
+  return {
+    line:
+      sources.size === 1
+        ? `Вес и коробка: ${parts.map((part) => part.text).join(" · ")} (${parts[0].from})`
+        : `Вес и коробка: ${parts.map((part) => `${part.text} (${part.from})`).join(" · ")}`,
+    seat,
+  };
 }
 
 const SHIPPING_CLASS_LABEL: Readonly<Record<ShopShippingClass, string>> = {
@@ -1621,7 +1654,8 @@ type StorefrontFacts = ReturnType<typeof storefrontFacts>;
 
 const USUAL_LEAD_WEEKS = Math.round(DEFAULT_BACKORDER_LEAD_DAYS / 7);
 
-function customerLines(facts: StorefrontFacts) {
+/** The stock, and the delivery: Nova Poshta's own price when the card has a real weight. */
+function customerLines(facts: StorefrontFacts, novaPoshtaLine: string | null) {
   return [
     facts.availability === "inStock"
       ? "Наличие у нас: на складе — отправим в день заказа или на следующий"
@@ -1636,10 +1670,11 @@ function customerLines(facts: StorefrontFacts) {
                     : `≈ ${USUAL_LEAD_WEEKS} недели (обычный срок)`
                 }`
           }`,
-    `Доставка по Украине: Нова Пошта ≈ ${formatPriceWatchMoney(
-      SHOP_SHIPPING_CLASS_PRICE_UAH[facts.shippingClass],
-      "UAH"
-    )} (${SHIPPING_CLASS_LABEL[facts.shippingClass]}), 1–2 дня в пути`,
+    novaPoshtaLine ??
+      `Доставка по Украине: Нова Пошта ≈ ${formatPriceWatchMoney(
+        SHOP_SHIPPING_CLASS_PRICE_UAH[facts.shippingClass],
+        "UAH"
+      )} (${SHIPPING_CLASS_LABEL[facts.shippingClass]}), 1–2 дня в пути`,
   ];
 }
 
@@ -1667,10 +1702,8 @@ function clientTextLines(input: {
     `Артикул: ${input.sku}`,
     ...(input.uah ? [`Ціна: ${formatPriceWatchMoney(input.uah, "UAH")}`] : []),
     `Наявність: ${stock}`,
-    `Доставка по Україні: Нова Пошта, ≈ ${formatPriceWatchMoney(
-      SHOP_SHIPPING_CLASS_PRICE_UAH[facts.shippingClass],
-      "UAH"
-    )}, 1–2 дні в дорозі`,
+    // Customers are not told delivery prices (owner, 2026-10-22).
+    "Доставка по Україні: Нова Пошта, 1–2 дні в дорозі",
     ...(input.url ? [input.url] : []),
   ];
 }
@@ -1745,6 +1778,7 @@ export async function buildProductCard(input: {
   variantId?: string | null;
   actor: PriceChangeActor | null;
   button: PriceButtonFactory;
+  fetchImpl?: typeof fetch;
 }): Promise<PriceReply | null> {
   const found =
     input.productId || input.slug
@@ -1857,6 +1891,22 @@ export async function buildProductCard(input: {
             supplier.availability
           )} · проверено ${day(supplier.lastSeenAt)}`,
         ];
+  const shipping = cardShipping(supplierFacts, measures?.variants[0] ?? null, measures);
+  // Nova Poshta's own price for a real box; the size class's estimate when there is none.
+  const novaPoshta = shipping.seat
+    ? await quoteNovaPoshta({
+        cityRef: NP_COUNTRYWIDE_CITY_REF,
+        seats: [shipping.seat],
+        declaredUah: uah,
+        fetchImpl: input.fetchImpl,
+      }).catch((error) => {
+        console.warn(
+          "[operations.product-card] Nova Poshta price failed",
+          error instanceof Error ? error.message : error
+        );
+        return null;
+      })
+    : null;
   const lines = [
     `🔎 <b>${escapeTelegramHtml(sku)}</b> · ${escapeTelegramHtml(product.brand ?? "")}`,
     escapeTelegramHtml((product.titleEn || product.titleUa).slice(0, 160)),
@@ -1871,10 +1921,11 @@ export async function buildProductCard(input: {
         slug: product.slug,
         title: { ua: product.titleUa, en: product.titleEn },
         details: measures,
-      })
+      }),
+      novaPoshta ? novaPoshtaCardLine(novaPoshta) : null
     ),
     ...supplierLines,
-    shippingLine(supplierFacts, measures?.variants[0] ?? null, measures),
+    shipping.line,
     ...(rivalFacts.length
       ? rivalFacts.map((fact) => {
           const theirs = Number(fact.price);
@@ -1909,7 +1960,19 @@ export async function buildProductCard(input: {
     undefined,
     variant?.id
   );
-  if (clientText) rows.push([clientText]);
+  const delivery = shipping.seat
+    ? await input.button(
+        "price_card_delivery",
+        product.id,
+        "🚚 Доставка в город",
+        undefined,
+        variant?.id
+      )
+    : null;
+  const actions = [clientText, delivery].filter((button): button is OpsTelegramInlineButton =>
+    Boolean(button)
+  );
+  if (actions.length) rows.push(actions);
   if (formula && isOwner) {
     const fix = await input.button(
       "price_card_formula",
@@ -1971,6 +2034,137 @@ export async function clientTextForProduct(input: {
   };
 }
 
+/** «🚚 Доставка в город» under the card: a prompt the city is read from. */
+export async function deliveryPromptForProduct(input: {
+  client: Pick<PrismaClient, "shopProduct">;
+  productId: string;
+  variantId: string | null;
+}) {
+  const product = await input.client.shopProduct.findFirst({
+    where: { id: input.productId, status: ShopCatalogStatus.ACTIVE },
+    select: { sku: true, slug: true, variants: { select: { id: true, sku: true } } },
+  });
+  if (!product) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+  const variant =
+    product.variants.find((entry) => entry.id === input.variantId) ??
+    (product.variants.length === 1 ? product.variants[0] : null);
+  const sku = variant?.sku ?? product.sku ?? product.slug;
+  return {
+    message: "Напишите город ответом.",
+    link: null,
+    reply: {
+      text: escapeTelegramHtml(
+        `${deliveryPromptFor(sku)}.\nНапример: «Одесса». Посчитаю Новую почту до отделения и до дверей.`
+      ),
+      parseMode: "HTML",
+      forceReply: { placeholder: "Город" },
+    } satisfies PriceReply,
+  };
+}
+
+const NOVA_POSHTA_DOWN: PriceReply = {
+  text: "🚚 Новая почта сейчас не отвечает — попробуйте через минуту.",
+  parseMode: "HTML",
+};
+
+/**
+ * «доставка 1021000B Одесса»: Nova Poshta from Kyiv to the city — to a branch
+ * and to the door, insured for our price — and when it arrives; without a city,
+ * across Ukraine. Null when the first word is not a SKU: an ordinary message.
+ */
+async function deliveryReply(input: {
+  client: Pick<PrismaClient, "shopProduct" | "shopSettings" | "opsSupplierItem">;
+  query: string;
+  fetchImpl?: typeof fetch;
+}): Promise<PriceReply | null> {
+  const words = input.query.split(" ");
+  if (!looksLikeSku(words[0])) return null;
+  // A SKU may hold spaces («0006 55SR»): the longest start that is one of ours.
+  let found: Awaited<ReturnType<typeof findItemBySku>> = null;
+  let city = "";
+  for (let take = Math.min(words.length, 4); take >= 1 && !found; take -= 1) {
+    found = await findItemBySku(input.client, words.slice(0, take).join(" "));
+    if (found) city = words.slice(take).join(" ").trim();
+  }
+  if (!found) {
+    return {
+      text: `Не нашёл товар «${escapeTelegramHtml(words[0])}». Пришлите артикул и город: «доставка 1021000B Одесса».`,
+      parseMode: "HTML",
+    };
+  }
+  const { product, variant } = found;
+  const sku = variant?.sku ?? product.sku ?? product.slug;
+  const [facts, measures, rates] = await Promise.all([
+    input.client.opsSupplierItem.findMany({
+      where: {
+        productId: product.id,
+        ...(variant ? { OR: [{ variantId: variant.id }, { variantId: null }] } : {}),
+      },
+      orderBy: { lastSeenAt: "desc" },
+      take: 12,
+    }),
+    input.client.shopProduct.findUnique({
+      where: { id: product.id },
+      select: {
+        ...MEASURE_SELECT,
+        variants: { where: { id: variant?.id ?? "" }, select: MEASURE_SELECT },
+      },
+    }),
+    loadRates(input.client),
+  ]);
+  const shipping = cardShipping(
+    facts.filter((fact) => findPriceWatchSource(fact.sourceKey)?.kind !== "competitor"),
+    measures?.variants[0] ?? null,
+    measures
+  );
+  const title = `🚚 <b>${escapeTelegramHtml(sku)}</b>`;
+  if (!shipping.seat) {
+    return {
+      text: `${title}: в карточке нет точного веса — Новая почта не посчитает. Впишите вес и коробку в админке.`,
+      parseMode: "HTML",
+    };
+  }
+  let target: { ref: string; name: string } | null = {
+    ref: NP_COUNTRYWIDE_CITY_REF,
+    name: "по Украине",
+  };
+  if (city) {
+    try {
+      target = await findNovaPoshtaCity(city, input.fetchImpl);
+    } catch {
+      return NOVA_POSHTA_DOWN;
+    }
+    if (!target) {
+      return {
+        text: `🚚 Не нашёл «${escapeTelegramHtml(city)}» среди городов Украины. Доставку за границу (DHL) посчитаю, когда будет доступ к API DHL Express.`,
+        parseMode: "HTML",
+      };
+    }
+  }
+  const quote = await quoteNovaPoshta({
+    cityRef: target.ref,
+    seats: [shipping.seat],
+    declaredUah: uahPrice(priceOwner(product, variant), rates),
+    doors: Boolean(city),
+    fetchImpl: input.fetchImpl,
+  }).catch(() => null);
+  if (!quote) return NOVA_POSHTA_DOWN;
+  const { box } = shipping.seat;
+  return {
+    text: [
+      `${title} → ${escapeTelegramHtml(target.name)}`,
+      `Новая почта из Киева · ${kilograms(shipping.seat.weightKg)} кг${
+        box ? ` · коробка ${box.map(centimetres).join(" × ")} см` : ""
+      }:`,
+      `• ${novaPoshtaPriceText(quote)}`,
+      ...(quote.doors ? [`• до дверей — ${formatPriceWatchMoney(quote.doors, "UAH")}`] : []),
+      ...(quote.deliveryDate ? [`Доставка: ${novaPoshtaDeliveryDay(quote.deliveryDate)}`] : []),
+      NP_OTHER_CARRIERS_NOTE,
+    ].join("\n"),
+    parseMode: "HTML",
+  };
+}
+
 /** «товар Akrapovic M3»: the card when one product fits, buttons to pick from when several do. */
 async function productSearchReply(input: {
   client: Pick<
@@ -1980,6 +2174,7 @@ async function productSearchReply(input: {
   query: string;
   actor: PriceChangeActor;
   button: PriceButtonFactory;
+  fetchImpl?: typeof fetch;
 }): Promise<PriceReply> {
   const query = escapeTelegramHtml(input.query.slice(0, 80));
   const notFound: PriceReply = {
@@ -1995,6 +2190,7 @@ async function productSearchReply(input: {
         productId: found.items[0].productId,
         actor: input.actor,
         button: input.button,
+        fetchImpl: input.fetchImpl,
       })) ?? notFound
     );
   }
@@ -2031,15 +2227,22 @@ export async function handlePriceMessage(input: {
   text: string;
   telegramChatId: bigint | null;
   button: PriceButtonFactory;
+  /** Nova Poshta's API; tests replace it. */
+  fetchImpl?: typeof fetch;
 }): Promise<PriceReply | null> {
   const orderNumber = parseOrderCommand(input.text);
   const linkSlug = orderNumber ? null : parseProductLink(input.text);
   const command = orderNumber || linkSlug ? null : parsePriceCommand(input.text);
   const bareSku =
     !orderNumber && !linkSlug && !command && looksLikeSku(input.text) ? input.text.trim() : null;
-  if (!orderNumber && !linkSlug && !command && !bareSku) return null;
+  const delivery =
+    !orderNumber && !linkSlug && !command && !bareSku ? parseDeliveryCommand(input.text) : null;
+  if (!orderNumber && !linkSlug && !command && !bareSku && !delivery) return null;
   const actor = await loadPriceChangeActor(input.client, input.actorAdminUserId);
   if (!actor) return null;
+  if (delivery) {
+    return deliveryReply({ client: input.client, query: delivery, fetchImpl: input.fetchImpl });
+  }
   if (orderNumber) {
     return (
       (await buildOrderCard({
@@ -2047,6 +2250,7 @@ export async function handlePriceMessage(input: {
         orderNumber,
         actor,
         button: input.button,
+        fetchImpl: input.fetchImpl,
       })) ?? { text: `Не нашёл заказ «${escapeTelegramHtml(orderNumber)}».`, parseMode: "HTML" }
     );
   }
@@ -2057,6 +2261,7 @@ export async function handlePriceMessage(input: {
         slug: linkSlug,
         actor,
         button: input.button,
+        fetchImpl: input.fetchImpl,
       })) ?? {
         text: "Не нашёл этот товар в каталоге — возможно, его сняли с продажи.",
         parseMode: "HTML",
@@ -2069,6 +2274,7 @@ export async function handlePriceMessage(input: {
       sku: bareSku ?? command!.target,
       actor,
       button: input.button,
+      fetchImpl: input.fetchImpl,
     });
     if (card) return card;
     // A bare word that is not one of our SKUs stays a normal message for the team.
@@ -2078,6 +2284,7 @@ export async function handlePriceMessage(input: {
       query: command!.target,
       actor,
       button: input.button,
+      fetchImpl: input.fetchImpl,
     });
   }
   if (!canChangePrices(actor)) {

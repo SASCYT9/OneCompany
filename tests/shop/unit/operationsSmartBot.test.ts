@@ -660,16 +660,17 @@ test("menu commands answer from the webhook; strangers get silence", async () =>
   assert.doesNotMatch(body.text, /@/, "no inline mode / @-mentions any more");
   assert.equal(
     body.reply_markup.keyboard.length,
-    4,
-    "today/mine, new/ask, product/order/prices, «Мой день»"
+    5,
+    "today/mine, new/ask, product/order, delivery/prices, «Мой день»"
   );
+  assert.deepEqual(body.reply_markup.keyboard[2], [{ text: "🔎 Товар" }, { text: "📦 Заказ" }]);
   assert.deepEqual(
-    body.reply_markup.keyboard[2],
-    [{ text: "🔎 Товар" }, { text: "📦 Заказ" }, { text: "💰 Цены" }],
+    body.reply_markup.keyboard[3],
+    [{ text: "🚚 Доставка" }, { text: "💰 Цены" }],
     "the owner also gets «💰 Цены»"
   );
   assert.deepEqual(
-    body.reply_markup.keyboard[3],
+    body.reply_markup.keyboard[4],
     [{ text: "📱 Мой день" }],
     "keyboard web apps get no signed init data, so this is a plain button"
   );

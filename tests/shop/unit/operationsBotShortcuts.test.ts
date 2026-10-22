@@ -162,9 +162,23 @@ test("visible buttons, the «/» list and the help: product and order for all, p
     { text: "🔎 Товар" },
     { text: "📦 Заказ" },
   ]);
-  assert.equal(buildOpsBotKeyboard(null, true).keyboard[2].length, 3);
+  assert.deepEqual(buildOpsBotKeyboard(null).keyboard[3], [{ text: "🚚 Доставка" }]);
+  assert.deepEqual(buildOpsBotKeyboard(null, true).keyboard[3], [
+    { text: "🚚 Доставка" },
+    { text: "💰 Цены" },
+  ]);
   const team = opsBotCommandList(false).map((entry) => entry.command);
-  assert.deepEqual(team, ["today", "my", "new", "product", "order", "ask", "app", "help"]);
+  assert.deepEqual(team, [
+    "today",
+    "my",
+    "new",
+    "product",
+    "order",
+    "delivery",
+    "ask",
+    "app",
+    "help",
+  ]);
   assert.ok(opsBotCommandList(true).some((entry) => entry.command === "prices"));
   for (const entry of opsBotCommandList(true)) {
     assert.match(entry.command, /^[a-z_]{1,32}$/, "Telegram command names");

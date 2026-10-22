@@ -64,25 +64,57 @@ export function looksLikeSku(text: string) {
 }
 
 /**
- * «🔎 Товар» and «📦 Заказ» ask with a reply prompt; the answer to it is read
- * as «товар …» / «заказ …». The prompts start with these words.
+ * «🔎 Товар», «📦 Заказ» and «🚚 Доставка» ask with a reply prompt; the answer
+ * to it is read as «товар …» / «заказ …» / «доставка …». The prompts start
+ * with these words.
  */
 export const OPS_PRODUCT_PROMPT = "🔎 Пришлите артикул, название или ссылку на товар";
 export const OPS_ORDER_PROMPT = "📦 Пришлите номер заказа";
+export const OPS_DELIVERY_PROMPT = "🚚 Пришлите артикул и город";
+
+/** «🚚 Доставка в город» under a product card: the answer is the city. */
+export function deliveryPromptFor(sku: string) {
+  return `🚚 Доставка ${sku} — пришлите город`;
+}
+
+const DELIVERY_FOR_SKU = /^🚚 Доставка (.+?) — пришлите город/;
 
 /** A reply to one of the bot's prompts, as the command it answers. */
 export function promptedCommandText(replyToText: string | null | undefined, text: string) {
   const prompt = String(replyToText ?? "");
   if (prompt.startsWith(OPS_PRODUCT_PROMPT)) return `товар ${text}`;
   if (prompt.startsWith(OPS_ORDER_PROMPT)) return `заказ ${text}`;
+  if (prompt.startsWith(OPS_DELIVERY_PROMPT)) return `доставка ${text}`;
+  const forSku = DELIVERY_FOR_SKU.exec(prompt);
+  if (forSku) return `доставка ${forSku[1]} ${text}`;
   return text;
 }
 
-/** «/product Akrapovic M3», «/order OC-2026-00033»: the same as «товар …», «заказ …». */
+const SLASH_WORDS: Record<string, string> = {
+  product: "товар",
+  find: "товар",
+  order: "заказ",
+  delivery: "доставка",
+};
+
+/** «/product Akrapovic M3», «/order OC-2026-00033», «/delivery 1021000B Одесса». */
 export function slashCommandText(text: string) {
-  const match = text.match(/^\/(product|find|order)(?:@[A-Za-z0-9_]+)?\s+(\S[\s\S]*)$/i);
+  const match = text.match(/^\/(product|find|order|delivery)(?:@[A-Za-z0-9_]+)?\s+(\S[\s\S]*)$/i);
   if (!match) return text;
-  return `${match[1].toLowerCase() === "order" ? "заказ" : "товар"} ${match[2].trim()}`;
+  return `${SLASH_WORDS[match[1].toLowerCase()]} ${match[2].trim()}`;
+}
+
+/**
+ * «доставка 1021000B Одесса»: Nova Poshta's price for a product to a city (the
+ * city may be left out). The words after «доставка»; the SKU is found among
+ * them against the catalog.
+ */
+export function parseDeliveryCommand(text: string | null | undefined) {
+  const match = String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .match(/^(?:доставка|delivery)\s+(\S.{0,120})$/i);
+  return match ? match[1].trim() : null;
 }
 
 /**
@@ -118,6 +150,8 @@ export function parseProductLink(text: string | null | undefined) {
  */
 export function priceMessageAck(text: string | null | undefined) {
   if (parseOrderCommand(text)) return "📦 Смотрю заказ…";
+  const delivery = parseDeliveryCommand(text);
+  if (delivery && looksLikeSku(delivery.split(" ")[0])) return "🚚 Считаю доставку…";
   if (parseProductLink(text)) return "🔎 Смотрю товар…";
   const command = parsePriceCommand(String(text ?? ""));
   if (command && command.kind !== "lookup") return "✏️ Считаю, что изменится…";
