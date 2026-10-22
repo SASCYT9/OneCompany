@@ -180,21 +180,22 @@ async function ask(client: PrismaClient, text: string, fetchImpl: typeof fetch) 
 }
 
 test("Nova Poshta prices our box from Kyiv: branch, door, insured, and when", async () => {
-  const { quoteNovaPoshta, findNovaPoshtaCity, exactSeat, novaPoshtaCardLine } =
+  const { quoteNovaPoshta, findNovaPoshtaCity, cardSeat, novaPoshtaCardLine } =
     await novaPoshtaModule;
   const api = novaPoshta();
   const city = await findNovaPoshtaCity("Одесса", api.fetchImpl);
   assert.deepEqual(city, { ref: ODESA.ref, name: ODESA.present }, "Russian names find the city");
   assert.equal(await findNovaPoshtaCity("Варшава", api.fetchImpl), null);
 
-  const seat = exactSeat(KW_BOX);
+  const seat = cardSeat(KW_BOX);
   assert.deepEqual(seat, { weightKg: 24.45, box: [74.9, 44.7, 15] });
-  assert.equal(
-    exactSeat({ ...KW_BOX, isDimensionsEstimated: true }),
-    null,
-    "an estimate prices nothing"
+  assert.deepEqual(
+    cardSeat({ ...KW_BOX, isDimensionsEstimated: true }),
+    { weightKg: 24.45, box: [74.9, 44.7, 15], estimated: true },
+    "an estimate is priced too, and marked"
   );
-  assert.deepEqual(exactSeat({ ...KW_BOX, height: null }), { weightKg: 24.45, box: null });
+  assert.deepEqual(cardSeat({ ...KW_BOX, height: null }), { weightKg: 24.45, box: null });
+  assert.equal(cardSeat({ ...KW_BOX, weight: null }), null);
 
   const quote = await quoteNovaPoshta({
     cityRef: ODESA.ref,
@@ -281,7 +282,7 @@ test("«доставка …», the «🚚 Доставка» prompts and «/del
   assert.equal(parseOpsBotCommand("/delivery"), "delivery");
 });
 
-test("the bot prices delivery for a SKU and a city; never from an estimate", async () => {
+test("the bot prices delivery for a SKU and a city; an estimate is marked", async () => {
   const kw = product("1021000B");
   const client = shopClient({ products: [kw], measures: KW_BOX });
   const api = novaPoshta();
@@ -315,7 +316,15 @@ test("the bot prices delivery for a SKU and a city; never from an estimate", asy
     measures: { ...KW_BOX, isDimensionsEstimated: true },
   });
   const guess = await ask(estimated, "доставка 1021000B Одесса", novaPoshta().fetchImpl);
-  assert.match(String(guess?.text), /в карточке нет точного веса — Новая почта не посчитает/);
+  assert.match(
+    String(guess?.text),
+    /Новая почта из Киева · 24,5 кг · коробка 74,9 × 44,7 × 15 см \(≈ оценка\):/
+  );
+  assert.match(String(guess?.text), /• 200\s₴ до отделения/);
+
+  const weightless = shopClient({ products: [kw], measures: { ...KW_BOX, weight: null } });
+  const none = await ask(weightless, "доставка 1021000B Одесса", novaPoshta().fetchImpl);
+  assert.match(String(none?.text), /в карточке нет веса — Новая почта не посчитает/);
 
   const down = await ask(client, "доставка 1021000B Одесса", novaPoshta({ down: true }).fetchImpl);
   assert.match(String(down?.text), /Новая почта сейчас не отвечает/);
@@ -362,20 +371,66 @@ test("the product card shows Nova Poshta's own price and offers «🚚 Дост�
   assert.match(prompt.reply.text, /^🚚 Доставка 1021000B — пришлите город\./);
   assert.equal(promptedCommandText(prompt.reply.text, "Одесса"), "доставка 1021000B Одесса");
 
-  // An estimated box: the size class as before, no Nova Poshta request, no button.
-  const quiet = novaPoshta();
+  // An estimated box is priced too, marked «≈ оценка», and still offers the city prompt.
   const estimated = await buildProductCard({
     client: shopClient({ products: [kw], measures: { ...KW_BOX, isDimensionsEstimated: true } }),
     sku: "1021000B",
     actor: null,
     button: buttons as never,
+    fetchImpl: novaPoshta().fetchImpl,
+  });
+  assert.match(
+    String(estimated?.text),
+    /🚚 Новая почта по Украине \(≈ оценка\): 200\s₴ до отделения/
+  );
+  assert.match(String(estimated?.text), /\(из карточки, оценка\)/);
+  assert.ok(
+    estimated?.replyMarkup?.inline_keyboard
+      .flat()
+      .some((button) => button.text === "🚚 Доставка в город")
+  );
+
+  // Oversize on an estimate: quoted by hand — no Nova Poshta request, no button.
+  const handQuoted = novaPoshta();
+  const bodyKit = await buildProductCard({
+    client: shopClient({
+      products: [kw],
+      measures: { ...KW_BOX, isDimensionsEstimated: true, productType: "Body kit" },
+    }),
+    sku: "1021000B",
+    actor: null,
+    button: buttons as never,
+    fetchImpl: handQuoted.fetchImpl,
+  });
+  assert.match(String(bodyKit?.text), /🚚 Негабарит — цену доставки уточните у перевозчика\./);
+  assert.equal(handQuoted.requests.length, 0);
+  assert.ok(
+    !bodyKit?.replyMarkup?.inline_keyboard.flat().some((button) => button.text.startsWith("🚚"))
+  );
+  const askedKit = await ask(
+    shopClient({
+      products: [kw],
+      measures: { ...KW_BOX, isDimensionsEstimated: true, productType: "Body kit" },
+    }),
+    "доставка 1021000B Одесса",
+    novaPoshta().fetchImpl
+  );
+  assert.match(String(askedKit?.text), /Негабарит — цену доставки уточните у перевозчика/);
+
+  // No weight at all: the size class, no Nova Poshta request, no button.
+  const quiet = novaPoshta();
+  const weightless = await buildProductCard({
+    client: shopClient({ products: [kw], measures: { ...KW_BOX, weight: null, length: null } }),
+    sku: "1021000B",
+    actor: null,
+    button: buttons as never,
     fetchImpl: quiet.fetchImpl,
   });
-  assert.match(String(estimated?.text), /Доставка по Украине: Нова Пошта ≈ [\d\s]+₴/);
+  assert.match(String(weightless?.text), /Доставка по Украине: Нова Пошта ≈ [\d\s]+₴/);
   assert.equal(quiet.requests.length, 0);
   assert.ok(
-    !estimated?.replyMarkup?.inline_keyboard.flat().some((button) => button.text.startsWith("🚚")),
-    "no city prompt without a real weight"
+    !weightless?.replyMarkup?.inline_keyboard.flat().some((button) => button.text.startsWith("🚚")),
+    "no city prompt without a weight"
   );
 
   // Nova Poshta down: the card still opens, with the estimate.

@@ -24,6 +24,7 @@ import type {
 import {
   findNovaPoshtaCity,
   NP_COUNTRYWIDE_CITY_REF,
+  NP_ESTIMATE_MARK,
   NP_OTHER_CARRIERS_NOTE,
   novaPoshtaCardLine,
   novaPoshtaDeliveryDay,
@@ -1548,17 +1549,21 @@ function cardShipping(
   if (!measured(weight) && !box) {
     return { line: "Вес и коробка: нет ни у поставщика, ни в карточке.", seat: null };
   }
-  const exactWeight =
-    measured(weight) && Boolean(supplierWeight || !cardWeight?.isDimensionsEstimated);
-  const exactBox = box && (supplierBox || !cardBox?.isDimensionsEstimated) ? box : null;
-  const seat: NovaPoshtaSeat | null = exactWeight
+  // A card value is an estimate when its entry says so, or the product does (an
+  // import may flag only the product while its variant carries the same numbers).
+  const estimatedOf = (entry: Measures | null) =>
+    Boolean(entry?.isDimensionsEstimated || product?.isDimensionsEstimated);
+  const seat: NovaPoshtaSeat | null = measured(weight)
     ? {
         weightKg: Number(weight),
-        box: exactBox ? [Number(exactBox[0]), Number(exactBox[1]), Number(exactBox[2])] : null,
+        box: box ? [Number(box[0]), Number(box[1]), Number(box[2])] : null,
+        ...((!supplierWeight && estimatedOf(cardWeight)) ||
+        (box && !supplierBox && estimatedOf(cardBox))
+          ? { estimated: true }
+          : {}),
       }
     : null;
-  const fromCard = (entry: Measures | null) =>
-    `из карточки${entry?.isDimensionsEstimated ? ", оценка" : ""}`;
+  const fromCard = (entry: Measures | null) => `из карточки${estimatedOf(entry) ? ", оценка" : ""}`;
   const parts = [
     measured(weight)
       ? {
@@ -1892,21 +1897,31 @@ export async function buildProductCard(input: {
           )} · проверено ${day(supplier.lastSeenAt)}`,
         ];
   const shipping = cardShipping(supplierFacts, measures?.variants[0] ?? null, measures);
-  // Nova Poshta's own price for a real box; the size class's estimate when there is none.
-  const novaPoshta = shipping.seat
-    ? await quoteNovaPoshta({
-        cityRef: NP_COUNTRYWIDE_CITY_REF,
-        seats: [shipping.seat],
-        declaredUah: uah,
-        fetchImpl: input.fetchImpl,
-      }).catch((error) => {
-        console.warn(
-          "[operations.product-card] Nova Poshta price failed",
-          error instanceof Error ? error.message : error
-        );
-        return null;
-      })
-    : null;
+  const storefront = storefrontFacts({
+    sku,
+    slug: product.slug,
+    title: { ua: product.titleUa, en: product.titleEn },
+    details: measures,
+  });
+  // Oversize goods without a real weight are quoted by hand: an estimate there
+  // can cost more than the margin (owner, 2026-10-23).
+  const oversize = isHandQuoted(storefront, shipping.seat);
+  // Nova Poshta's own price for the box; the size class's estimate when there is none.
+  const novaPoshta =
+    shipping.seat && !oversize
+      ? await quoteNovaPoshta({
+          cityRef: NP_COUNTRYWIDE_CITY_REF,
+          seats: [shipping.seat],
+          declaredUah: uah,
+          fetchImpl: input.fetchImpl,
+        }).catch((error) => {
+          console.warn(
+            "[operations.product-card] Nova Poshta price failed",
+            error instanceof Error ? error.message : error
+          );
+          return null;
+        })
+      : null;
   const lines = [
     `🔎 <b>${escapeTelegramHtml(sku)}</b> · ${escapeTelegramHtml(product.brand ?? "")}`,
     escapeTelegramHtml((product.titleEn || product.titleUa).slice(0, 160)),
@@ -1916,13 +1931,12 @@ export async function buildProductCard(input: {
     }`,
     ...(pricing?.lines ?? []),
     ...customerLines(
-      storefrontFacts({
-        sku,
-        slug: product.slug,
-        title: { ua: product.titleUa, en: product.titleEn },
-        details: measures,
-      }),
-      novaPoshta ? novaPoshtaCardLine(novaPoshta) : null
+      storefront,
+      oversize
+        ? NP_OVERSIZE_LINE
+        : novaPoshta
+          ? novaPoshtaCardLine(novaPoshta, Boolean(shipping.seat?.estimated))
+          : null
     ),
     ...supplierLines,
     shipping.line,
@@ -1960,15 +1974,16 @@ export async function buildProductCard(input: {
     undefined,
     variant?.id
   );
-  const delivery = shipping.seat
-    ? await input.button(
-        "price_card_delivery",
-        product.id,
-        "🚚 Доставка в город",
-        undefined,
-        variant?.id
-      )
-    : null;
+  const delivery =
+    shipping.seat && !oversize
+      ? await input.button(
+          "price_card_delivery",
+          product.id,
+          "🚚 Доставка в город",
+          undefined,
+          variant?.id
+        )
+      : null;
   const actions = [clientText, delivery].filter((button): button is OpsTelegramInlineButton =>
     Boolean(button)
   );
@@ -2062,6 +2077,13 @@ export async function deliveryPromptForProduct(input: {
   };
 }
 
+const NP_OVERSIZE_LINE = "🚚 Негабарит — цену доставки уточните у перевозчика.";
+
+/** An oversize item (by the storefront's size class) without a real weight and box. */
+function isHandQuoted(facts: StorefrontFacts, seat: NovaPoshtaSeat | null) {
+  return facts.shippingClass === "oversize" && (!seat || Boolean(seat.estimated));
+}
+
 const NOVA_POSHTA_DOWN: PriceReply = {
   text: "🚚 Новая почта сейчас не отвечает — попробуйте через минуту.",
   parseMode: "HTML",
@@ -2107,6 +2129,7 @@ async function deliveryReply(input: {
       where: { id: product.id },
       select: {
         ...MEASURE_SELECT,
+        ...STOREFRONT_SELECT,
         variants: { where: { id: variant?.id ?? "" }, select: MEASURE_SELECT },
       },
     }),
@@ -2118,9 +2141,18 @@ async function deliveryReply(input: {
     measures
   );
   const title = `🚚 <b>${escapeTelegramHtml(sku)}</b>`;
+  const storefront = storefrontFacts({
+    sku,
+    slug: product.slug,
+    title: { ua: product.titleUa, en: product.titleEn },
+    details: measures,
+  });
+  if (isHandQuoted(storefront, shipping.seat)) {
+    return { text: `${title}: ${NP_OVERSIZE_LINE.replace("🚚 ", "")}`, parseMode: "HTML" };
+  }
   if (!shipping.seat) {
     return {
-      text: `${title}: в карточке нет точного веса — Новая почта не посчитает. Впишите вес и коробку в админке.`,
+      text: `${title}: в карточке нет веса — Новая почта не посчитает. Впишите вес и коробку в админке.`,
       parseMode: "HTML",
     };
   }
@@ -2155,7 +2187,7 @@ async function deliveryReply(input: {
       `${title} → ${escapeTelegramHtml(target.name)}`,
       `Новая почта из Киева · ${kilograms(shipping.seat.weightKg)} кг${
         box ? ` · коробка ${box.map(centimetres).join(" × ")} см` : ""
-      }:`,
+      }${shipping.seat.estimated ? ` (${NP_ESTIMATE_MARK})` : ""}:`,
       `• ${novaPoshtaPriceText(quote)}`,
       ...(quote.doors ? [`• до дверей — ${formatPriceWatchMoney(quote.doors, "UAH")}`] : []),
       ...(quote.deliveryDate ? [`Доставка: ${novaPoshtaDeliveryDay(quote.deliveryDate)}`] : []),
