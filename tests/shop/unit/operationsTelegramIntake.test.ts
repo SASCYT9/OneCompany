@@ -91,6 +91,21 @@ test("private update is normalized and accepted through the linked admin allowli
   }
 });
 
+test("a SKU sent to the bot is answered as a product lookup, not as a task", async () => {
+  const result = await intakeOpsTelegramUpdate({
+    rawUpdate: {
+      ...privateUpdate,
+      update_id: 1003,
+      message: { ...privateUpdate.message, message_id: 43, text: "EVE-G8XMV2-CF-INT" },
+    },
+    repository: repository(),
+  });
+  assert.equal(result.outcome, "accepted");
+  if (result.outcome === "accepted") {
+    assert.equal(createOpsTelegramWebhookReply(result).text, "🔎 Смотрю товар…");
+  }
+});
+
 test("group messages are ignored, even when the bot is @mentioned", async () => {
   const ignored = await intakeOpsTelegramUpdate({
     rawUpdate: {

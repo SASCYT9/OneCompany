@@ -68,6 +68,14 @@ function product(sku: string, eur: number, extra: Record<string, unknown> = {}) 
   };
 }
 
+const NO_MEASURES = {
+  weight: null,
+  length: null,
+  width: null,
+  height: null,
+  isDimensionsEstimated: false,
+};
+
 function fakeClient(products: ReturnType<typeof product>[], findings: unknown[] = []) {
   const changes: Array<Record<string, unknown>> = [];
   return {
@@ -530,9 +538,17 @@ test("the product card: our price, the formula, the supplier's stock, weight and
   ];
   const client = {
     shopSettings: { findUnique: async () => ({ currencyRates: RATES }) },
-    shopProduct: { findMany: async () => [brabus] },
+    shopProduct: {
+      findMany: async () => [brabus],
+      findUnique: async () => ({ ...NO_MEASURES, variants: [] }),
+    },
     opsSupplierItem: { findMany: async () => facts },
-    opsPriceWatchSource: { findUnique: async () => ({ id: "src-brabus-0001" }) },
+    opsPriceWatchSource: {
+      findUnique: async () => ({ id: "src-brabus-0001" }),
+      findMany: async () => [
+        { key: "brabus", lastFinishedAt: new Date(), priceListDate: null, nextReminderAt: null },
+      ],
+    },
     opsPriceWatchRun: {
       findFirst: async () => ({
         findings: [
@@ -558,7 +574,8 @@ test("the product card: our price, the formula, the supplier's stock, weight and
   assert.match(text, /На сайте: <b>7\s827,82\s€<\/b> · 403\s602\s₴/);
   assert.match(text, /По формуле: 9\s005,92\s€ — у нас дешевле на 13,1\s%/);
   assert.match(text, /У поставщика: 8\s187,20\s€ · в наличии · проверено/);
-  assert.match(text, /Для доставки: 12,5 кг · коробка 120 × 60 × 40,5 см/);
+  assert.match(text, /Формула: цена brabus\.com \(DE\) × 1,10/);
+  assert.match(text, /Для доставки: 12,5 кг · коробка 120 × 60 × 40,5 см \(у поставщика\)/);
   assert.match(text, /Adrenalin Drive: 480\s000\s₴ \(мы дешевле на 15,9\s%\)/);
   const labels = card?.replyMarkup?.inline_keyboard.flat().map((button) => button.text) ?? [];
   assert.ok(labels.includes("🌐 У поставщика"));
@@ -750,4 +767,89 @@ test("«по формуле» over a systemic difference warns in the preview", 
   });
   assert.match(String(result.reply?.text), /⚠️ Не по формуле сразу 620 из 951/);
   assert.equal(changes.length, 1, "the owner can still apply after checking");
+});
+
+test("a price-list brand's card says where the price comes from and what is not known yet", async () => {
+  const { buildProductCard } = await changesModule;
+  const { priceMessageAck } = await import("../../../src/lib/operations/priceCommands");
+  const usd = (amount: number) => ({
+    priceEur: null,
+    priceUsd: amount,
+    priceUah: null,
+    priceSourceCurrency: "USD",
+    compareAtEur: null,
+    compareAtUsd: null,
+    compareAtUah: null,
+  });
+  const eventuri = {
+    id: "p-eve",
+    sku: "EVE-G8XMV2-CF-INT",
+    slug: "eve-g8xmv2-cf-int",
+    brand: "Eventuri",
+    titleEn: "Carbon Fiber Intake System for BMW M2 (G87) / M3 (G80) / M4 (G82) 2020+",
+    titleUa: "",
+    ...usd(3294.5),
+    variants: [{ id: "v-eve", sku: "EVE-G8XMV2-CF-INT", ...usd(3294.5) }],
+  };
+  const client = (measures: Record<string, unknown>) =>
+    ({
+      shopSettings: { findUnique: async () => ({ currencyRates: RATES }) },
+      shopProduct: { findMany: async () => [eventuri], findUnique: async () => measures },
+      opsSupplierItem: { findMany: async () => [] },
+      opsPriceWatchRun: { findFirst: async () => null },
+      opsPriceWatchSource: {
+        findUnique: async () => ({ id: "src-eventuri-01" }),
+        findMany: async () => [
+          {
+            key: "eventuri",
+            lastFinishedAt: null,
+            priceListDate: new Date("2026-09-02T00:00:00Z"),
+            nextReminderAt: new Date("2026-10-01T00:00:00Z"),
+          },
+          {
+            key: "competitor-adrenalin",
+            lastFinishedAt: null,
+            priceListDate: null,
+            nextReminderAt: null,
+          },
+        ],
+      },
+    }) as unknown as PrismaClient;
+  const estimated = await buildProductCard({
+    client: client({
+      ...NO_MEASURES,
+      variants: [{ weight: 3.2, length: 60, width: 40, height: 30, isDimensionsEstimated: true }],
+    }),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  const text = String(estimated?.text);
+  assert.match(text, /На сайте: <b>\$3\s294,50<\/b>/);
+  assert.match(text, /Формула: цена IND \+ 10 %/);
+  assert.match(text, /Прайс от 2 сентября 2026 г\. — пора запросить новый/);
+  assert.doesNotMatch(
+    text,
+    /У поставщика/,
+    "Eventuri's price comes from a price list, not a site check"
+  );
+  assert.match(text, /Для доставки: 3,2 кг · коробка 60 × 40 × 30 см \(из карточки, оценка\)/);
+  assert.match(text, /Конкуренты: Adrenalin Drive — проверка ещё идёт\./);
+  const bare = await buildProductCard({
+    client: client({ ...NO_MEASURES, variants: [] }),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  assert.match(
+    String(bare?.text),
+    /Для доставки: веса и размеров нет ни у поставщика, ни в карточке\./
+  );
+
+  // The webhook's instant answer to a price message.
+  assert.equal(priceMessageAck("EVE-G8XMV2-CF-INT"), "🔎 Смотрю товар…");
+  assert.equal(priceMessageAck("наличие D650-0010"), "🔎 Смотрю товар…");
+  assert.equal(priceMessageAck("цена Brabus +5%"), "✏️ Считаю, что изменится…");
+  assert.equal(priceMessageAck("цена V167-678-63 9005"), "✏️ Считаю, что изменится…");
+  assert.equal(priceMessageAck("купить кофе на завтра"), null);
 });

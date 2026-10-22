@@ -21,7 +21,12 @@ import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
-import type { PriceWatchFinding, PriceWatchSummary } from "@/lib/operations/priceWatchChecks";
+import { looksLikeSku, parsePriceCommand, type PriceCommand } from "@/lib/operations/priceCommands";
+import {
+  competitorSourcesForBrand,
+  type PriceWatchFinding,
+  type PriceWatchSummary,
+} from "@/lib/operations/priceWatchChecks";
 import {
   escapeTelegramHtml,
   formatPriceWatchMoney,
@@ -129,67 +134,8 @@ export async function loadPriceChangeActor(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Commands (pure)
-// ---------------------------------------------------------------------------
-
-export type PriceCommand =
-  | { kind: "set"; target: string; amount: number; currency: Currency | null }
-  | { kind: "percent"; target: string; percent: number }
-  | { kind: "formula"; target: string }
-  | { kind: "lookup"; target: string };
-
-function parseAmount(value: string) {
-  return Number(value.replace(/[\s ]/g, "").replace("−", "-").replace(",", "."));
-}
-
-function currencyOf(value: string | undefined): Currency | null {
-  const text = String(value ?? "").toLowerCase();
-  if (!text) return null;
-  if (/€|eur|евро|євро/.test(text)) return "EUR";
-  if (/\$|usd|дол/.test(text)) return "USD";
-  if (/₴|грн|uah/.test(text)) return "UAH";
-  return null;
-}
-
-/**
- * «цена V167-678-63 9005.92», «цена V167-678-63 9 005,92 €» — one product;
- * «цена Brabus +5%» — a brand or a product by percent; «цена Brabus по формуле»;
- * «цена V167-678-63», «наличие …», «товар …» — the product card.
- */
-export function parsePriceCommand(text: string): PriceCommand | null {
-  const clean = String(text ?? "")
-    .replace(/\s+/g, " ")
-    .trim();
-  const lookup = clean.match(/^(?:наличие|наявність|товар|артикул)\s+(\S.{1,60})$/i);
-  if (lookup) return { kind: "lookup", target: lookup[1].trim() };
-  const command = clean.match(/^(?:цена|ціна|price)\s+(\S.{0,80})$/i);
-  if (!command) return null;
-  const rest = command[1].trim();
-  let match = rest.match(/^(.+?)\s+(?:по|за)\s+формул\S*$/i);
-  if (match) return { kind: "formula", target: match[1].trim() };
-  match = rest.match(/^(.+?)\s+([+\-−]?\d+(?:[.,]\d+)?)\s*%$/);
-  if (match) {
-    const percent = parseAmount(match[2]);
-    return Number.isFinite(percent) ? { kind: "percent", target: match[1].trim(), percent } : null;
-  }
-  match = rest.match(
-    /^(.+?)\s+(\d[\d\s ]*(?:[.,]\d{1,2})?)\s*(€|eur|евро|євро|\$|usd|дол\S*|₴|грн|uah)?\.?$/i
-  );
-  if (match) {
-    const amount = parseAmount(match[2]);
-    if (Number.isFinite(amount) && amount > 0) {
-      return { kind: "set", target: match[1].trim(), amount, currency: currencyOf(match[3]) };
-    }
-  }
-  return { kind: "lookup", target: rest };
-}
-
-/** A bare SKU sent to the bot opens the product card (checked against the catalog). */
-export function looksLikeSku(text: string) {
-  const clean = String(text ?? "").trim();
-  return /^[A-Za-z0-9][A-Za-z0-9._\-/+]{2,40}$/.test(clean) && /\d/.test(clean);
-}
+// Commands live in priceCommands.ts (pure, read by the webhook too).
+export { looksLikeSku, parsePriceCommand, type PriceCommand } from "@/lib/operations/priceCommands";
 
 const normalizeName = (value: string) => value.toLowerCase().replace(/[\s\-_.·]+/g, "");
 
@@ -1287,9 +1233,136 @@ export async function priceChangeDoneReply(change: OpsPriceChange, button: Price
 // Product card
 // ---------------------------------------------------------------------------
 
+const MEASURE_SELECT = {
+  weight: true,
+  length: true,
+  width: true,
+  height: true,
+  isDimensionsEstimated: true,
+} as const;
+
+type Measures = {
+  weight: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  isDimensionsEstimated: boolean;
+};
+
+const measured = (value: Prisma.Decimal | number | null | undefined) =>
+  value != null && Number(value) > 0;
+
+const centimetres = (value: Prisma.Decimal | number | null) => {
+  const number = Number(value);
+  return formatPriceWatchNumber(number, Number.isInteger(number) ? 0 : 1);
+};
+
+/** How the price is kept: the price list's age, or the latest check against the formula. */
+function priceSourceStatus(input: {
+  source: PriceWatchSourceDefinition | null;
+  row: { priceListDate: Date | null; nextReminderAt: Date | null } | null;
+  formula: Pick<PriceWatchFinding, "kind" | "expected" | "currency" | "deltaPct"> | null;
+  now: Date;
+}) {
+  const { source, formula } = input;
+  if (!source) return [];
+  if (formula) {
+    return [
+      `По формуле: ${formatPriceWatchMoney(formula.expected, formula.currency)} — у нас ${
+        formula.kind === "cheaper" ? "дешевле" : "дороже"
+      } на ${unsignedPercent(Number(formula.deltaPct))}`,
+    ];
+  }
+  if (source.kind === "formula") return ["По формуле: совпадает ✅"];
+  if (source.priceList) {
+    const date = input.row?.priceListDate ?? new Date(source.priceList.date);
+    const overdue = Boolean(input.row?.nextReminderAt && input.row.nextReminderAt <= input.now);
+    const label = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Kyiv",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+    return [`Прайс от ${label}${overdue ? " — пора запросить новый" : ""}`];
+  }
+  if (!source.check) return ["Сайт поставщика пока не проверяю автоматически."];
+  return [];
+}
+
 /**
- * «Спитати бота про товар»: our price, the supplier's price and stock, weight,
- * the formula and competitors, from the last checks.
+ * Weight and box, each from the supplier when it publishes them, otherwise from
+ * our own product card (marked when the card's size is an estimate).
+ */
+function shippingLine(
+  supplierFacts: ReadonlyArray<{
+    weightKg: Prisma.Decimal | number | null;
+    lengthCm: Prisma.Decimal | number | null;
+    widthCm: Prisma.Decimal | number | null;
+    heightCm: Prisma.Decimal | number | null;
+  }>,
+  variant: Measures | null,
+  product: Measures | null
+) {
+  const supplierWeight = supplierFacts.find((fact) => measured(fact.weightKg)) ?? null;
+  const supplierBox =
+    supplierFacts.find(
+      (fact) => measured(fact.lengthCm) && measured(fact.widthCm) && measured(fact.heightCm)
+    ) ?? null;
+  const card = (has: (entry: Measures) => boolean) =>
+    [variant, product].find((entry): entry is Measures => Boolean(entry && has(entry))) ?? null;
+  const cardWeight = supplierWeight ? null : card((entry) => measured(entry.weight));
+  const cardBox = supplierBox
+    ? null
+    : card((entry) => measured(entry.length) && measured(entry.width) && measured(entry.height));
+  const weight = supplierWeight?.weightKg ?? cardWeight?.weight ?? null;
+  const box = supplierBox
+    ? [supplierBox.lengthCm, supplierBox.widthCm, supplierBox.heightCm]
+    : cardBox
+      ? [cardBox.length, cardBox.width, cardBox.height]
+      : null;
+  if (!measured(weight) && !box) {
+    return "Для доставки: веса и размеров нет ни у поставщика, ни в карточке.";
+  }
+  const fromCard = (entry: Measures | null) =>
+    `из карточки${entry?.isDimensionsEstimated ? ", оценка" : ""}`;
+  const parts = [
+    measured(weight)
+      ? {
+          text: `${formatPriceWatchNumber(Number(weight), 1)} кг`,
+          from: supplierWeight ? "у поставщика" : fromCard(cardWeight),
+        }
+      : null,
+    box
+      ? {
+          text: `коробка ${box.map(centimetres).join(" × ")} см`,
+          from: supplierBox ? "у поставщика" : fromCard(cardBox),
+        }
+      : null,
+  ].filter((part): part is { text: string; from: string } => Boolean(part));
+  const sources = new Set(parts.map((part) => part.from));
+  return sources.size === 1
+    ? `Для доставки: ${parts.map((part) => part.text).join(" · ")} (${parts[0].from})`
+    : `Для доставки: ${parts.map((part) => `${part.text} (${part.from})`).join(" · ")}`;
+}
+
+/** Without a competitor price: still checking, not sold there, or a brand we do not compare. */
+function competitorStatus(
+  rivals: readonly string[],
+  row: (key: string) => { lastFinishedAt: Date | null } | null
+) {
+  if (!rivals.length) return "Конкуренты: этот бренд с конкурентами не сравниваю.";
+  return `Конкуренты: ${rivals
+    .map((key) => {
+      const title = escapeTelegramHtml(findPriceWatchSource(key)?.title ?? key);
+      return row(key)?.lastFinishedAt ? `у ${title} не найден` : `${title} — проверка ещё идёт`;
+    })
+    .join("; ")}.`;
+}
+
+/**
+ * «Спитати бота про товар»: our price, the formula or price list it follows,
+ * the supplier's price and stock, weight and box, competitors — and, where the
+ * bot knows nothing yet, why.
  */
 export async function buildProductCard(input: {
   client: Pick<
@@ -1308,7 +1381,8 @@ export async function buildProductCard(input: {
   const native = nativePrice(owner);
   const sku = variant?.sku ?? product.sku ?? input.sku;
   const source = sourceOfBrand(product.brand);
-  const [facts, findings] = await Promise.all([
+  const rivals = competitorSourcesForBrand(product.brand);
+  const [facts, findings, sourceRows, measures] = await Promise.all([
     input.client.opsSupplierItem.findMany({
       where: {
         productId: product.id,
@@ -1318,6 +1392,18 @@ export async function buildProductCard(input: {
       take: 12,
     }),
     source ? latestFormulaFindings(input.client, source.key) : Promise.resolve([]),
+    input.client.opsPriceWatchSource.findMany({
+      where: { key: { in: [...(source ? [source.key] : []), ...rivals] } },
+      select: { key: true, lastFinishedAt: true, priceListDate: true, nextReminderAt: true },
+    }),
+    // Our own weight and box, for products whose supplier publishes none.
+    input.client.shopProduct.findUnique({
+      where: { id: product.id },
+      select: {
+        ...MEASURE_SELECT,
+        variants: { where: { id: variant?.id ?? "" }, select: MEASURE_SELECT },
+      },
+    }),
   ]);
   const formula =
     findings.find((finding) => finding.sku.toLowerCase() === sku.toLowerCase()) ?? null;
@@ -1345,6 +1431,7 @@ export async function buildProductCard(input: {
     (fact) => findPriceWatchSource(fact.sourceKey)?.kind === "competitor"
   );
   const supplier = supplierFacts[0] ?? null;
+  const row = (key: string) => sourceRows.find((entry) => entry.key === key) ?? null;
   const day = (date: Date) =>
     new Intl.DateTimeFormat("ru-RU", {
       timeZone: "Europe/Kyiv",
@@ -1359,18 +1446,6 @@ export async function buildProductCard(input: {
           ? "ограниченно"
           : "в наличии"
         : "наличие не указано";
-  // Weight and box size the supplier publishes, for the future shipping calculator.
-  const measured = (value: Prisma.Decimal | number | null | undefined) =>
-    value != null && Number(value) > 0;
-  const weighed = supplierFacts.find((fact) => measured(fact.weightKg)) ?? null;
-  const boxed =
-    supplierFacts.find(
-      (fact) => measured(fact.lengthCm) && measured(fact.widthCm) && measured(fact.heightCm)
-    ) ?? null;
-  const centimetres = (value: Prisma.Decimal | number | null) => {
-    const number = Number(value);
-    return formatPriceWatchNumber(number, Number.isInteger(number) ? 0 : 1);
-  };
   const lines = [
     `🔎 <b>${escapeTelegramHtml(sku)}</b> · ${escapeTelegramHtml(product.brand ?? "")}`,
     escapeTelegramHtml((product.titleEn || product.titleUa).slice(0, 160)),
@@ -1378,15 +1453,15 @@ export async function buildProductCard(input: {
     `На сайте: <b>${native ? formatPriceWatchMoney(native.amount, native.currency) : "без цены"}</b>${
       uah && native?.currency !== "UAH" ? ` · ${formatPriceWatchMoney(Math.round(uah), "UAH")}` : ""
     }`,
-    ...(formula
-      ? [
-          `По формуле: ${formatPriceWatchMoney(formula.expected, formula.currency)} — у нас ${
-            formula.kind === "cheaper" ? "дешевле" : "дороже"
-          } на ${unsignedPercent(Number(formula.deltaPct))}`,
-        ]
-      : source?.kind === "formula"
-        ? ["По формуле: совпадает ✅"]
-        : []),
+    source
+      ? `Формула: ${escapeTelegramHtml(source.formula)}`
+      : "Источник цены не настроен — бренд не привязан к проверке цен.",
+    ...priceSourceStatus({
+      source,
+      row: source ? row(source.key) : null,
+      formula,
+      now: new Date(),
+    }),
     ...(supplier
       ? [
           `У поставщика: ${supplier.price !== null ? formatPriceWatchMoney(Number(supplier.price), (supplier.currency ?? "EUR") as PriceWatchCurrency) : "цена не указана"} · ${stock(
@@ -1394,29 +1469,20 @@ export async function buildProductCard(input: {
             supplier.availability
           )} · проверено ${day(supplier.lastSeenAt)}`,
         ]
-      : source
-        ? [`У поставщика: ${escapeTelegramHtml(source.site)} — ещё не проверялось`]
+      : source?.check
+        ? [`У поставщика (${escapeTelegramHtml(source.site)}): ещё не проверялось`]
         : []),
-    ...(weighed || boxed
-      ? [
-          `Для доставки: ${[
-            weighed ? `${formatPriceWatchNumber(Number(weighed.weightKg), 1)} кг` : null,
-            boxed
-              ? `коробка ${[boxed.lengthCm, boxed.widthCm, boxed.heightCm].map(centimetres).join(" × ")} см`
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}`,
-        ]
-      : []),
-    ...rivalFacts.map((fact) => {
-      const theirs = Number(fact.price);
-      const difference = uah && theirs > 0 ? ((uah - theirs) / theirs) * 100 : null;
-      return `${escapeTelegramHtml(findPriceWatchSource(fact.sourceKey)?.title ?? fact.sourceKey)}: ${formatPriceWatchMoney(
-        theirs,
-        "UAH"
-      )}${difference !== null && Math.abs(difference) >= 1 ? ` (мы ${difference > 0 ? "дороже" : "дешевле"} на ${unsignedPercent(difference)})` : ""}`;
-    }),
+    shippingLine(supplierFacts, measures?.variants[0] ?? null, measures),
+    ...(rivalFacts.length
+      ? rivalFacts.map((fact) => {
+          const theirs = Number(fact.price);
+          const difference = uah && theirs > 0 ? ((uah - theirs) / theirs) * 100 : null;
+          return `${escapeTelegramHtml(findPriceWatchSource(fact.sourceKey)?.title ?? fact.sourceKey)}: ${formatPriceWatchMoney(
+            theirs,
+            "UAH"
+          )}${difference !== null && Math.abs(difference) >= 1 ? ` (мы ${difference > 0 ? "дороже" : "дешевле"} на ${unsignedPercent(difference)})` : ""}`;
+        })
+      : [competitorStatus(rivals, row)]),
   ];
   const rows: OpsTelegramInlineButton[][] = [];
   const links: OpsTelegramInlineButton[] = [];
