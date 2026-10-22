@@ -21,7 +21,7 @@ import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
-import type { PriceWatchFinding } from "@/lib/operations/priceWatchChecks";
+import type { PriceWatchFinding, PriceWatchSummary } from "@/lib/operations/priceWatchChecks";
 import {
   escapeTelegramHtml,
   formatPriceWatchMoney,
@@ -29,6 +29,8 @@ import {
   formatPriceWatchPercent,
   priceWatchItemName,
   ruPlural,
+  systemicPriceWatchDifference,
+  systemicPriceWatchWarning,
 } from "@/lib/operations/priceWatchReport";
 import {
   PRICE_WATCH_SOURCES,
@@ -342,6 +344,8 @@ export type PriceChangePlan =
       title: string;
       items: PriceChangeItem[];
       skipped: Array<{ sku: string; reason: string }>;
+      /** Warnings shown in the preview, such as a systemic difference at the supplier. */
+      notes?: string[];
     }
   | { ok: false; message: string };
 
@@ -468,7 +472,7 @@ export async function planPriceChange(
       message: `Для «${command.target}» нет формулы в проверке цен — используйте «цена … +5%» или точную цену.`,
     };
   }
-  const findings = await latestFormulaFindings(client, source.key);
+  const { findings, systemic } = await latestFormulaRun(client, source.key);
   const wanted = found
     ? findings.filter((finding) =>
         [found.variant?.sku, found.product.sku].some(
@@ -482,11 +486,14 @@ export async function planPriceChange(
       message: `По последней проверке ${source.title} всё совпадает с формулой — менять нечего.`,
     };
   }
-  return planFromFindings(
+  const plan = await planFromFindings(
     client,
     `${found ? (found.product.sku ?? command.target) : source.title}: по формуле`,
     wanted
   );
+  return plan.ok && systemic && !found
+    ? { ...plan, notes: [systemicPriceWatchWarning(systemic)] }
+    : plan;
 }
 
 export function sourceOfBrand(brand: string | null) {
@@ -494,7 +501,8 @@ export function sourceOfBrand(brand: string | null) {
   return PRICE_WATCH_SOURCES.find((source) => source.brands.includes(brand)) ?? null;
 }
 
-async function latestFormulaFindings(
+/** The formula differences of a source's latest check, and whether they are systemic. */
+async function latestFormulaRun(
   client: Pick<PrismaClient, "opsPriceWatchRun" | "opsPriceWatchSource">,
   sourceKey: string
 ) {
@@ -502,17 +510,30 @@ async function latestFormulaFindings(
     where: { key: sourceKey },
     select: { id: true },
   });
-  if (!source) return [];
+  if (!source) return { findings: [], systemic: null };
   const run = await client.opsPriceWatchRun.findFirst({
     where: { sourceId: source.id },
     orderBy: { finishedAt: "desc" },
-    select: { findings: true },
+    select: { findings: true, summary: true, checked: true },
   });
   const findings = Array.isArray(run?.findings) ? (run.findings as PriceWatchFinding[]) : [];
-  return findings.filter(
-    (finding) =>
-      (finding.kind === "cheaper" || finding.kind === "dearer") && Number(finding.expected) > 0
-  );
+  return {
+    findings: findings.filter(
+      (finding) =>
+        (finding.kind === "cheaper" || finding.kind === "dearer") && Number(finding.expected) > 0
+    ),
+    systemic: systemicPriceWatchDifference(
+      run?.summary as PriceWatchSummary | null | undefined,
+      run?.checked ?? 0
+    ),
+  };
+}
+
+async function latestFormulaFindings(
+  client: Pick<PrismaClient, "opsPriceWatchRun" | "opsPriceWatchSource">,
+  sourceKey: string
+) {
+  return (await latestFormulaRun(client, sourceKey)).findings;
 }
 
 /**
@@ -1459,6 +1480,7 @@ export async function handlePriceMessage(input: {
     actor,
     origin: "command",
     plan,
+    notes: plan.notes,
     telegramChatId: input.telegramChatId,
     button: input.button,
   });
@@ -1478,7 +1500,7 @@ export async function proposeFormulaForSource(input: {
   });
   const def = source ? findPriceWatchSource(source.key) : null;
   if (!source || !def) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
-  const findings = await latestFormulaFindings(input.client, def.key);
+  const { findings, systemic } = await latestFormulaRun(input.client, def.key);
   if (!findings.length) {
     return { message: `По последней проверке ${def.title} менять нечего.`, link: null };
   }
@@ -1489,6 +1511,7 @@ export async function proposeFormulaForSource(input: {
     actor: input.actor,
     origin: "digest",
     plan,
+    notes: systemic ? [systemicPriceWatchWarning(systemic)] : undefined,
     telegramChatId: input.telegramChatId,
     button: input.button,
   });

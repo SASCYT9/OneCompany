@@ -34,6 +34,7 @@ import {
   renderPriceListReminder,
   renderPriceWatchDigest,
   ruPlural,
+  systemicPriceWatchDifference,
   type PriceWatchDigestEntry,
 } from "../../../src/lib/operations/priceWatchReport";
 import {
@@ -396,11 +397,16 @@ test("CT Carbon: the feed's VAT format is detected and the bot's formula recalcu
       },
     ],
   }));
+  const markets: string[] = [];
   const step = await runPriceWatchStep(
     findPriceWatchSource("ct-carbon")!,
     {
       client: fakeCatalog(catalog),
-      fetchImpl: feedResponse(feed) as typeof fetch,
+      fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
+        const cookie = (init?.headers as Record<string, string> | undefined)?.cookie;
+        markets.push(`${new URL(String(url)).searchParams.get("country")} · ${cookie}`);
+        return feedResponse(feed)(url);
+      }) as typeof fetch,
       now: new Date(),
       deadline: Date.now() + 60_000,
       delayMs: 0,
@@ -408,6 +414,12 @@ test("CT Carbon: the feed's VAT format is detected and the bot's formula recalcu
     null
   );
   assert.ok(step.done);
+  // The cron runs in Frankfurt, where ctcarbon.co shows its German market prices (+2.4 %).
+  assert.deepEqual(
+    [...new Set(markets)],
+    ["GB · localization=GB"],
+    "the UK prices the formula starts from, in the URL and the cookie"
+  );
   const result = step.done ? step.result : null;
   assert.equal(result?.summary.feedVat, "included");
   assert.equal(result?.findings.length, 1);
@@ -821,6 +833,52 @@ function entry(partial: Partial<PriceWatchDigestEntry>): PriceWatchDigestEntry {
     ...partial,
   };
 }
+
+test("too many formula differences at once are a supplier change, not prices to fix", () => {
+  assert.equal(systemicPriceWatchDifference({ counts: { cheaper: 10 }, matched: 951 }), null);
+  assert.equal(
+    systemicPriceWatchDifference({ counts: { cheaper: 9 }, matched: 12 }),
+    null,
+    "too few to judge"
+  );
+  assert.deepEqual(
+    systemicPriceWatchDifference({ counts: { cheaper: 1460, dearer: 291 }, matched: 2341 }),
+    {
+      total: 1751,
+      matched: 2341,
+    }
+  );
+  const text = renderPriceWatchDigest({
+    now: kyiv("2026-10-22T10:00:00"),
+    timeZone: "Europe/Kyiv",
+    weekly: false,
+    entries: [
+      entry({
+        key: "ct-carbon",
+        title: "CT Carbon",
+        site: "ctcarbon.co",
+        status: "findings",
+        checked: 2323,
+        findingsCount: 1751,
+        newFindings: 400,
+        summary: { matched: 2341, counts: { cheaper: 1460, dearer: 291 } },
+        findings: [
+          {
+            kind: "cheaper",
+            sku: "CTC-1",
+            title: "ZF Shifter Surround",
+            currency: "USD",
+            ours: 110,
+            expected: 115,
+            deltaPct: 4.5,
+            isNew: true,
+          },
+        ],
+      }),
+    ],
+  });
+  assert.match(String(text), /⚠️ Не по формуле сразу 1\s751 из 2\s341 — так бывает/);
+});
 
 test("the digest is quiet without news and readable with it", () => {
   const now = kyiv("2026-10-22T10:00:00");

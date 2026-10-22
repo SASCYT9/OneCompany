@@ -34,6 +34,29 @@ export type PriceWatchPriceListLine = {
   overdue: boolean;
 };
 
+/** Formula differences on more than this share of a source's products are not price changes. */
+export const PRICE_WATCH_SYSTEMIC_SHARE = 0.3;
+
+/**
+ * Too many formula differences at once: the supplier changed its format,
+ * market or currency rather than prices. No one-click fix then, a warning.
+ */
+export function systemicPriceWatchDifference(
+  summary: Pick<PriceWatchSummary, "counts" | "matched"> | null | undefined,
+  checked = 0
+) {
+  const total = (summary?.counts?.cheaper ?? 0) + (summary?.counts?.dearer ?? 0);
+  const matched = summary?.matched ?? checked;
+  return matched >= 20 && total > matched * PRICE_WATCH_SYSTEMIC_SHARE ? { total, matched } : null;
+}
+
+export function systemicPriceWatchWarning(difference: { total: number; matched: number }) {
+  return `⚠️ Не по формуле сразу ${formatPriceWatchNumber(difference.total, 0)} из ${formatPriceWatchNumber(
+    difference.matched,
+    0
+  )} — так бывает, когда у поставщика меняются формат, рынок или курс, а не цены. Проверьте пару товаров на сайте поставщика, прежде чем менять цены.`;
+}
+
 export type PriceWatchButtonSpec =
   | { text: string; url: string }
   | {
@@ -232,6 +255,8 @@ function renderEntry(entry: PriceWatchDigestEntry, limits: RenderLimits, weekly:
       )} (${change.count} из ${change.total}) — похоже на новый прайс.`
     );
   }
+  const systemic = systemicPriceWatchDifference(entry.summary, entry.checked);
+  if (systemic && (cheaper.length || dearer.length)) body.push(systemicPriceWatchWarning(systemic));
   const list = (items: PriceWatchFinding[]) => [
     ...items.slice(0, limits.lines).map(findingLine),
     ...(items.length > limits.lines ? [`…и ещё ${items.length - limits.lines}`] : []),

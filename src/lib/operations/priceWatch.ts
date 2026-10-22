@@ -41,6 +41,7 @@ import {
   renderPriceListReminder,
   renderPriceWatchDigest,
   renderPriceWatchTaskDescription,
+  systemicPriceWatchDifference,
   type PriceWatchButtonSpec,
   type PriceWatchDigestEntry,
   type PriceWatchPriceListLine,
@@ -903,7 +904,9 @@ export async function buildPriceWatchNotification(input: {
             (weekly || finding.isNew !== false)
         ).length;
         const row = rows.find((candidate) => candidate.key === entry.key);
+        // A systemic difference gets a warning in the text, never a one-click fix.
         if (!count || !row || fixes.length >= 3) continue;
+        if (systemicPriceWatchDifference(entry.summary, entry.checked)) continue;
         const button = await input.button(
           "price_formula",
           row.id,

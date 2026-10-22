@@ -707,3 +707,47 @@ test("an applied price list becomes current; undo brings its old dates back", as
     },
   });
 });
+
+test("«по формуле» over a systemic difference warns in the preview", async () => {
+  const { proposeFormulaForSource } = await changesModule;
+  const changes: Array<Record<string, unknown>> = [];
+  const brabus = product("V167-678-63", 7827.82);
+  const client = {
+    shopSettings: { findUnique: async () => ({ currencyRates: RATES }) },
+    shopProduct: { findMany: async () => [brabus] },
+    opsPriceWatchSource: {
+      findUnique: async () => ({ id: "src-brabus-0001", key: "brabus" }),
+    },
+    opsPriceWatchRun: {
+      findFirst: async () => ({
+        checked: 977,
+        summary: { matched: 951, counts: { cheaper: 600, dearer: 20 } },
+        findings: [
+          {
+            kind: "cheaper",
+            sku: "V167-678-63",
+            expected: 9005.92,
+            currency: "EUR",
+            ours: 7827.82,
+          },
+        ],
+      }),
+    },
+    opsPriceChange: {
+      create: async ({ data }: { data: Record<string, unknown> }) => {
+        const row = { id: "chg-0000000001", ...data };
+        changes.push(row);
+        return row;
+      },
+    },
+  } as unknown as PrismaClient;
+  const result = await proposeFormulaForSource({
+    client,
+    actor: owner,
+    sourceId: "src-brabus-0001",
+    telegramChatId: null,
+    button: noButtons as never,
+  });
+  assert.match(String(result.reply?.text), /⚠️ Не по формуле сразу 620 из 951/);
+  assert.equal(changes.length, 1, "the owner can still apply after checking");
+});

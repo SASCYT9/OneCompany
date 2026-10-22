@@ -54,6 +54,11 @@ export type PriceWatchShopifyFeed = {
    * inside Burger SKUs, or by the supplier page URL the import kept (iPE).
    */
   match: "sku" | "burger" | "handle";
+  /**
+   * Shopify Markets country whose prices the formula starts from. Some stores
+   * price by the visitor's country (CT Carbon: Germany pays 2.4 % more).
+   */
+  market?: string;
 };
 
 export type PriceWatchSourceDefinition = {
