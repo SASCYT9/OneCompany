@@ -1584,6 +1584,20 @@ const ATOMIC_COMPETITOR_COLLECTIONS = [
   { handle: "girodisc", brand: "GiroDisc" },
 ] as const;
 
+/** Competitor checks that look for a brand's products (Atomic, Adrenalin Drive). */
+export function competitorSourcesForBrand(brand: string | null | undefined) {
+  const wanted = String(brand ?? "").toLowerCase();
+  if (!wanted) return [];
+  return [
+    ...(ATOMIC_COMPETITOR_COLLECTIONS.some((entry) => entry.brand.toLowerCase() === wanted)
+      ? ["competitor-atomic"]
+      : []),
+    ...(ADRENALIN_BRANDS.some((entry) => entry.brand.toLowerCase() === wanted)
+      ? ["competitor-adrenalin"]
+      : []),
+  ];
+}
+
 async function checkCompetitorAtomic(def: PriceWatchSourceDefinition, ctx: PriceWatchContext) {
   const rates = await loadPriceBookRates(ctx);
   const brands = [...new Set(ATOMIC_COMPETITOR_COLLECTIONS.map((entry) => entry.brand))];

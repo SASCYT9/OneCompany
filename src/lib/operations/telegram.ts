@@ -9,6 +9,7 @@ import {
 } from "@prisma/client";
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
 import { extractOpsKnowledgeQuestion } from "@/lib/operations/knowledgeQuestion";
+import { priceMessageAck } from "@/lib/operations/priceCommands";
 
 export const OPS_TELEGRAM_UPDATE_MAX_BYTES = 512 * 1024;
 export const OPS_TELEGRAM_RATE_LIMIT_PER_MINUTE = 120;
@@ -684,11 +685,15 @@ export function createOpsTelegramWebhookReply(
       ? "✅ Уже принято. Повторную задачу не создаю."
       : !result.update.media && extractOpsKnowledgeQuestion(result.update.text)
         ? "🔎 Ищу ответ в базе знаний…"
-        : result.update.media && result.update.replyToMessageId
-          ? "✅ Принял голосовое или файл как обновление. Расшифрую, проверю связанную задачу и пришлю результат."
-          : result.update.media
-            ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
-            : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
+        : !result.update.media &&
+            !result.update.isUntrustedForward &&
+            priceMessageAck(result.update.text)
+          ? priceMessageAck(result.update.text)!
+          : result.update.media && result.update.replyToMessageId
+            ? "✅ Принял голосовое или файл как обновление. Расшифрую, проверю связанную задачу и пришлю результат."
+            : result.update.media
+              ? "✅ Принял файл. Обработаю его в фоне и пришлю результат."
+              : "✅ Принял. Разбираю сообщение и подготовлю задачи.";
   return {
     method: "sendMessage",
     chat_id: result.update.chatId.toString(),
