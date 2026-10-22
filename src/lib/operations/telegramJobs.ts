@@ -4077,12 +4077,13 @@ async function executeInternalNotificationJob(input: {
 
 /** Buttons under price messages; each press is checked against the same person. */
 function priceButtons(client: PrismaClient, actorAdminUserId: string): PriceButtonFactory {
-  return async (action, resourceId, label, style) => {
+  return async (action, resourceId, label, style, value) => {
     const callbackData = await createOpsTelegramCallbackState({
       client,
       action,
       resourceId,
       actorAdminUserId,
+      ...(value ? { value } : {}),
       ttlMs: 24 * 60 * 60 * 1000,
     });
     return callbackData

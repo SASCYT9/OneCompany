@@ -16,8 +16,11 @@ import {
 } from "@/lib/admin/adminPermissions";
 import { opsAttachmentRetentionAt } from "@/lib/operations/media";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
+import { applyLeadTimeMarks, undoLeadTimeMarks } from "@/lib/operations/leadTimeMarks";
 import {
+  canChangePrices,
   cancelPriceChange,
+  clientTextForProduct,
   confirmPriceChange,
   proposeFormulaForProduct,
   proposeFormulaForSource,
@@ -29,6 +32,7 @@ import {
   acknowledgePriceList,
   createPriceListTask,
   createPriceWatchDigestTask,
+  currentLeadTimePlan,
   snoozePriceList,
 } from "@/lib/operations/priceWatch";
 import {
@@ -67,7 +71,24 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "price_cancel",
   "price_undo",
   "price_card_formula",
+  "price_card_client_text",
+  "price_lead_mark",
+  "price_lead_clear",
+  "price_lead_undo",
 ] as const;
+
+/** Site lead times from the digest: the resource is the digest job; undo — the change. */
+const PRICE_LEAD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
+  "price_lead_mark",
+  "price_lead_clear",
+  "price_lead_undo",
+];
+
+/** Product card buttons: the resource is the product, the value its variant. */
+const PRICE_CARD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
+  "price_card_formula",
+  "price_card_client_text",
+];
 
 /** Price watch buttons: the resource is a price source, or the digest job for a task. */
 const PRICE_SOURCE_ACTIONS: readonly OpsTelegramCallbackAction[] = [
@@ -154,13 +175,15 @@ export async function createOpsTelegramCallbackState(input: {
           ? "ops.inbox"
           : input.action === "undo_task_update"
             ? "ops.task_event"
-            : input.action === "price_digest_task"
+            : input.action === "price_digest_task" ||
+                input.action === "price_lead_mark" ||
+                input.action === "price_lead_clear"
               ? "ops.job"
               : PRICE_SOURCE_ACTIONS.includes(input.action)
                 ? "ops.price_source"
-                : PRICE_CHANGE_ACTIONS.includes(input.action)
+                : PRICE_CHANGE_ACTIONS.includes(input.action) || input.action === "price_lead_undo"
                   ? "ops.price_change"
-                  : input.action === "price_card_formula"
+                  : PRICE_CARD_ACTIONS.includes(input.action)
                     ? "shop.product"
                     : "ops.task",
       resourceId: input.resourceId,
@@ -1516,6 +1539,7 @@ async function executePriceChangeCallback(input: {
   actor: TelegramActor;
   action: OpsTelegramCallbackAction;
   resourceId: string;
+  value?: string;
 }): Promise<{ message: string; link: string | null; reply?: PriceReply }> {
   const actor = {
     id: input.actor.id,
@@ -1524,12 +1548,13 @@ async function executePriceChangeCallback(input: {
     permissions: input.actor.permissions,
     roleKeys: input.actor.roleKeys,
   };
-  const button: PriceButtonFactory = async (action, resourceId, label, style) => {
+  const button: PriceButtonFactory = async (action, resourceId, label, style, value) => {
     const callbackData = await createOpsTelegramCallbackState({
       client: input.client,
       action,
       resourceId,
       actorAdminUserId: actor.id,
+      ...(value ? { value } : {}),
       ttlMs: 24 * 60 * 60 * 1000,
     });
     return callbackData
@@ -1553,6 +1578,25 @@ async function executePriceChangeCallback(input: {
         telegramChatId: null,
         button,
       });
+    case "price_card_client_text":
+      return clientTextForProduct({
+        client: input.client,
+        productId: input.resourceId,
+        variantId: input.value ?? null,
+      });
+    case "price_lead_mark":
+    case "price_lead_clear":
+      if (!canChangePrices(actor)) throw new Error("TELEGRAM_ACTION_FORBIDDEN");
+      return applyLeadTimeMarks({
+        client: input.client,
+        actor,
+        mode: input.action === "price_lead_mark" ? "mark" : "clear",
+        plan: await currentLeadTimePlan(input.client),
+        telegramChatId: null,
+        button,
+      });
+    case "price_lead_undo":
+      return undoLeadTimeMarks({ client: input.client, actor, changeId: input.resourceId });
     case "price_apply":
     case "price_apply_big":
       return confirmPriceChange({
@@ -1676,7 +1720,8 @@ export async function executeOpsTelegramCallback(input: {
       });
     } else if (
       claimed.state.action === "price_formula" ||
-      claimed.state.action === "price_card_formula" ||
+      PRICE_CARD_ACTIONS.includes(claimed.state.action) ||
+      PRICE_LEAD_ACTIONS.includes(claimed.state.action) ||
       PRICE_CHANGE_ACTIONS.includes(claimed.state.action)
     ) {
       result = await executePriceChangeCallback({
@@ -1684,6 +1729,7 @@ export async function executeOpsTelegramCallback(input: {
         actor,
         action: claimed.state.action,
         resourceId: claimed.state.resourceId,
+        value: claimed.state.value,
       });
     } else {
       requirePermission(actor, ADMIN_PERMISSIONS.OPS_TASKS_READ);

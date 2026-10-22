@@ -572,10 +572,14 @@ test("the product card: our price, the formula, the supplier's stock, weight and
   const text = String(card?.text);
   assert.match(text, /🔎 <b>V167-678-63<\/b> · Brabus/);
   assert.match(text, /На сайте: <b>7\s827,82\s€<\/b> · 403\s602\s₴/);
-  assert.match(text, /По формуле: 9\s005,92\s€ — у нас дешевле на 13,1\s%/);
-  assert.match(text, /У поставщика: 8\s187,20\s€ · в наличии · проверено/);
+  // The calculation: the supplier's price → the formula → the site.
+  assert.match(
+    text,
+    /Расчёт: 8\s187,20\s€ у поставщика → по формуле 9\s005,92\s€ — у нас дешевле на 13,1\s%/
+  );
+  assert.match(text, /У поставщика: в наличии · проверено/);
   assert.match(text, /Формула: цена brabus\.com \(DE\) × 1,10/);
-  assert.match(text, /Для доставки: 12,5 кг · коробка 120 × 60 × 40,5 см \(у поставщика\)/);
+  assert.match(text, /Вес и коробка: 12,5 кг · коробка 120 × 60 × 40,5 см \(у поставщика\)/);
   assert.match(text, /Adrenalin Drive: 480\s000\s₴ \(мы дешевле на 15,9\s%\)/);
   const labels = card?.replyMarkup?.inline_keyboard.flat().map((button) => button.text) ?? [];
   assert.ok(labels.includes("🌐 У поставщика"));
@@ -592,6 +596,108 @@ test("the product card: our price, the formula, the supplier's stock, weight and
   assert.ok(
     !forIgor?.replyMarkup?.inline_keyboard.flat().some((button) => button.text.startsWith("✏️")),
     "superadmin sees the card without the price button"
+  );
+  // The supplier's price and the formula are for owners only; stock and the client text for all.
+  const igorText = String(forIgor?.text);
+  assert.doesNotMatch(igorText, /Формула|Расчёт|8\s187,20/);
+  assert.match(igorText, /У поставщика: в наличии · проверено/);
+  assert.match(igorText, /Adrenalin Drive: 480\s000\s₴/);
+  for (const card of [
+    forIgor,
+    await buildProductCard({
+      client,
+      sku: "V167-678-63",
+      actor: owner,
+      button: noButtons as never,
+    }),
+  ]) {
+    assert.ok(
+      card?.replyMarkup?.inline_keyboard
+        .flat()
+        .some((button) => button.text === "📝 Текст для клиента")
+    );
+  }
+});
+
+test("«📝 Текст для клиента»: the customer's facts in Ukrainian, ready to copy", async () => {
+  const { clientTextForProduct } = await changesModule;
+  const intake = (extra: Record<string, unknown>) =>
+    ({
+      shopSettings: { findUnique: async () => ({ currencyRates: RATES }) },
+      shopProduct: {
+        findFirst: async () => ({
+          id: "p-eve",
+          sku: "EVE-G8XMV2-CF-INT",
+          slug: "eve-g8xmv2-cf-int",
+          brand: "Eventuri",
+          titleEn: "Carbon Fiber Intake System for BMW M2 (G87) / M3 (G80) / M4 (G82) 2020+",
+          titleUa: "Карбоновий впуск Eventuri для BMW M2 (G87) / M3 (G80) / M4 (G82) 2020+",
+          priceEur: null,
+          priceUsd: 3294.5,
+          priceUah: null,
+          priceSourceCurrency: "USD",
+          compareAtEur: null,
+          compareAtUsd: null,
+          compareAtUah: null,
+          variants: [],
+          scope: "auto",
+          productType: "Intake Systems",
+          categoryUa: null,
+          categoryEn: null,
+          category: null,
+          leadTimeUa: null,
+          leadTimeEn: null,
+          vendor: null,
+          tags: [],
+          metafields: [],
+          ...extra,
+        }),
+      },
+    }) as unknown as PrismaClient;
+  const onOrder = [
+    {
+      namespace: "onecompany",
+      key: "storefront_display",
+      value: JSON.stringify({
+        availability: "preOrder",
+        showInStock: false,
+        showInCarousel: false,
+      }),
+    },
+  ];
+  const warehouse = await clientTextForProduct({
+    client: intake({}),
+    productId: "p-eve",
+    variantId: null,
+  });
+  const text = warehouse.reply.text;
+  assert.match(text, /^Карбоновий впуск Eventuri для BMW M2/);
+  assert.match(text, /Артикул: EVE-G8XMV2-CF-INT/);
+  assert.match(text, /Ціна: [\d\s]+₴/);
+  assert.match(text, /Наявність: є на складі — відправимо в день замовлення або наступного дня/);
+  assert.match(text, /Доставка по Україні: Нова Пошта, ≈ 800\s₴, 1–2 дні в дорозі/);
+  assert.match(text, /https:\/\/onecompany\.global\/ua\/shop\/\S*eve-g8xmv2-cf-int/);
+  const usual = await clientTextForProduct({
+    client: intake({ metafields: onOrder }),
+    productId: "p-eve",
+    variantId: null,
+  });
+  assert.match(usual.reply.text, /Наявність: під замовлення, термін ≈ 3 тижні/);
+  const asked = await clientTextForProduct({
+    client: intake({ metafields: onOrder, leadTimeUa: "Уточнюйте у менеджера" }),
+    productId: "p-eve",
+    variantId: null,
+  });
+  assert.match(asked.reply.text, /Наявність: під замовлення, термін уточнимо окремо/);
+  await assert.rejects(
+    clientTextForProduct({
+      client: {
+        shopProduct: { findFirst: async () => null },
+      } as unknown as PrismaClient,
+      productId: "p-gone",
+      variantId: null,
+    }),
+    /CALLBACK_RESOURCE_NOT_FOUND/
   );
 });
 
@@ -791,11 +897,11 @@ test("a price-list brand's card says where the price comes from and what is not 
     ...usd(3294.5),
     variants: [{ id: "v-eve", sku: "EVE-G8XMV2-CF-INT", ...usd(3294.5) }],
   };
-  const client = (measures: Record<string, unknown>) =>
+  const client = (measures: Record<string, unknown>, facts: unknown[] = []) =>
     ({
       shopSettings: { findUnique: async () => ({ currencyRates: RATES }) },
       shopProduct: { findMany: async () => [eventuri], findUnique: async () => measures },
-      opsSupplierItem: { findMany: async () => [] },
+      opsSupplierItem: { findMany: async () => facts },
       opsPriceWatchRun: { findFirst: async () => null },
       opsPriceWatchSource: {
         findUnique: async () => ({ id: "src-eventuri-01" }),
@@ -828,22 +934,103 @@ test("a price-list brand's card says where the price comes from and what is not 
   assert.match(text, /На сайте: <b>\$3\s294,50<\/b>/);
   assert.match(text, /Формула: цена IND \+ 10 %/);
   assert.match(text, /Прайс от 2 сентября 2026 г\. — пора запросить новый/);
+  assert.match(text, /Расчёт: цен из прайса ещё нет — пришлите прайс файлом в этот чат/);
+  // After the list went through the bot: list price × the brand's markup against the site.
+  const listFact = (price: number) => ({
+    sourceKey: "eventuri",
+    price,
+    currency: "USD",
+    available: null,
+    availability: null,
+    weightKg: null,
+    lengthCm: null,
+    widthCm: null,
+    heightCm: null,
+    url: null,
+    lastSeenAt: new Date("2026-10-22T09:00:00Z"),
+  });
+  const listed = await buildProductCard({
+    client: client({ ...NO_MEASURES, variants: [] }, [listFact(2995)]),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  assert.match(
+    String(listed?.text),
+    /Расчёт: прайс \$2\s995 \+ 10 % = \$3\s294,50 — совпадает с сайтом ✅/
+  );
+  assert.doesNotMatch(String(listed?.text), /По прайсу|У поставщика/);
+  const dearerList = await buildProductCard({
+    client: client({ ...NO_MEASURES, variants: [] }, [listFact(3100)]),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  assert.match(
+    String(dearerList?.text),
+    /Расчёт: прайс \$3\s100 \+ 10 % = \$3\s410 — у нас дешевле на 3,5\s%/
+  );
+  const listForIgor = await buildProductCard({
+    client: client({ ...NO_MEASURES, variants: [] }, [listFact(2995)]),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: igor,
+    button: noButtons as never,
+  });
+  assert.doesNotMatch(String(listForIgor?.text), /Формула|Расчёт|Прайс от|2\s995/);
   assert.doesNotMatch(
     text,
     /У поставщика/,
     "Eventuri's price comes from a price list, not a site check"
   );
-  assert.match(text, /Для доставки: 3,2 кг · коробка 60 × 40 × 30 см \(из карточки, оценка\)/);
+  assert.match(text, /Вес и коробка: 3,2 кг · коробка 60 × 40 × 30 см \(из карточки, оценка\)/);
   assert.match(text, /Конкуренты: Adrenalin Drive — проверка ещё идёт\./);
+  // The admin's «Наявність» setting on the product, as the storefront reads it.
+  const display = (availability: "inStock" | "preOrder") => [
+    {
+      namespace: "onecompany",
+      key: "storefront_display",
+      value: JSON.stringify({
+        availability,
+        showInStock: availability === "inStock",
+        showInCarousel: false,
+      }),
+    },
+  ];
   const bare = await buildProductCard({
+    client: client({ ...NO_MEASURES, metafields: display("preOrder"), variants: [] }),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  assert.match(String(bare?.text), /Вес и коробка: нет ни у поставщика, ни в карточке\./);
+  // What a customer is told: on order with the usual lead time, Nova Poshta by size class.
+  assert.match(String(bare?.text), /Наличие у нас: под заказ, срок ≈ 3 недели \(обычный срок\)/);
+  assert.match(
+    String(bare?.text),
+    /Доставка по Украине: Нова Пошта ≈ 800\s₴ \(средняя посылка\), 1–2 дня в пути/
+  );
+  const onOrder = await buildProductCard({
+    client: client({
+      ...NO_MEASURES,
+      leadTimeUa: "4–6 тижнів",
+      metafields: display("preOrder"),
+      variants: [],
+    }),
+    sku: "EVE-G8XMV2-CF-INT",
+    actor: owner,
+    button: noButtons as never,
+  });
+  assert.match(String(onOrder?.text), /Наличие у нас: под заказ, срок 4–6 тижнів/);
+  // Without the admin setting the storefront's warehouse list decides, and this intake is on it.
+  const warehouse = await buildProductCard({
     client: client({ ...NO_MEASURES, variants: [] }),
     sku: "EVE-G8XMV2-CF-INT",
     actor: owner,
     button: noButtons as never,
   });
   assert.match(
-    String(bare?.text),
-    /Для доставки: веса и размеров нет ни у поставщика, ни в карточке\./
+    String(warehouse?.text),
+    /Наличие у нас: на складе — отправим в день заказа или на следующий/
   );
 
   // The webhook's instant answer to a price message.

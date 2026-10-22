@@ -23,6 +23,7 @@ import type {
 } from "@/lib/operations/notifications";
 import { looksLikeSku, parsePriceCommand, type PriceCommand } from "@/lib/operations/priceCommands";
 import {
+  comparePriceWithFormula,
   competitorSourcesForBrand,
   type PriceWatchFinding,
   type PriceWatchSummary,
@@ -43,7 +44,21 @@ import {
   type PriceWatchCurrency,
   type PriceWatchSourceDefinition,
 } from "@/lib/operations/priceWatchSources";
+import { absoluteUrl } from "@/lib/seo";
 import { normalizeShopCurrencyRates } from "@/lib/shopAdminSettings";
+import { DEFAULT_BACKORDER_LEAD_DAYS, isShopLeadTimeOnRequest } from "@/lib/shopGoogleAvailability";
+import {
+  resolveShopShippingClass,
+  SHOP_SHIPPING_CLASS_PRICE_UAH,
+  type ShopShippingClass,
+} from "@/lib/shopShippingClass";
+import {
+  readShopStorefrontDisplay,
+  SHOP_STOREFRONT_DISPLAY_KEY,
+  SHOP_STOREFRONT_DISPLAY_NAMESPACE,
+} from "@/lib/shopStorefrontDisplay";
+import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
+import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import type { applyAdminPricingPatchInTransaction } from "@/lib/shopAdminVariants";
 import type { buildShopCatalogAdminSnapshot } from "@/lib/shopCatalogAdminSnapshot.server";
 import type { coordinateShopCatalogProductMutationWithClient } from "@/lib/shopCatalogMutationCoordinator.server";
@@ -571,10 +586,14 @@ export type PriceButtonFactory = (
     | "price_undo"
     | "price_formula"
     | "price_card_formula"
+    | "price_card_client_text"
+    | "price_lead_undo"
     | "price_ack",
   resourceId: string,
   label: string,
-  style?: "primary" | "success" | "danger"
+  style?: "primary" | "success" | "danger",
+  /** Kept with the button, e.g. the variant of the card. */
+  value?: string
 ) => Promise<OpsTelegramInlineButton | null>;
 
 export type PriceReply = { text: string; replyMarkup?: OpsTelegramReplyMarkup; parseMode: "HTML" };
@@ -792,7 +811,7 @@ async function restorePriceList(
 // Applying
 // ---------------------------------------------------------------------------
 
-function adminSessionOf(actor: PriceChangeActor, changeId: string): AdminSession {
+export function adminSessionOf(actor: PriceChangeActor, changeId: string): AdminSession {
   return {
     email: actor.email,
     name: actor.name ?? actor.email,
@@ -819,7 +838,7 @@ export type PriceChangeCatalogWriter = {
  * server-only, and the bot's intake (which imports this module) should not
  * carry the storefront and outbox runtime.
  */
-async function loadCatalogWriter(): Promise<PriceChangeCatalogWriter> {
+export async function loadCatalogWriter(): Promise<PriceChangeCatalogWriter> {
   const [coordinator, snapshot, variants, outbox, revalidation] = await Promise.all([
     import("@/lib/shopCatalogMutationCoordinator.server"),
     import("@/lib/shopCatalogAdminSnapshot.server"),
@@ -1257,23 +1276,80 @@ const centimetres = (value: Prisma.Decimal | number | null) => {
   return formatPriceWatchNumber(number, Number.isInteger(number) ? 0 : 1);
 };
 
-/** How the price is kept: the price list's age, or the latest check against the formula. */
-function priceSourceStatus(input: {
+/** The supplier's price behind ours: from a site check, or from a price list. */
+type SupplierPrice = { price: number; currency: PriceWatchCurrency; fromList: boolean };
+
+/**
+ * Owners only: the formula and the calculation behind our price (the
+ * supplier's price → what the formula asks → what the site shows), and the
+ * price list's age. The supplier's price can be a purchase price.
+ */
+function pricingLines(input: {
   source: PriceWatchSourceDefinition | null;
   row: { priceListDate: Date | null; nextReminderAt: Date | null } | null;
   formula: Pick<PriceWatchFinding, "kind" | "expected" | "currency" | "deltaPct"> | null;
+  supplier: SupplierPrice | null;
+  /** Our price in a currency, as the storefront converts it. */
+  ours: (currency: PriceWatchCurrency) => number | null;
   now: Date;
-}) {
-  const { source, formula } = input;
-  if (!source) return [];
-  if (formula) {
-    return [
-      `По формуле: ${formatPriceWatchMoney(formula.expected, formula.currency)} — у нас ${
-        formula.kind === "cheaper" ? "дешевле" : "дороже"
-      } на ${unsignedPercent(Number(formula.deltaPct))}`,
-    ];
+}): { lines: string[]; showsSupplierPrice: boolean } {
+  const { source, formula, supplier } = input;
+  if (!source) {
+    return {
+      lines: ["Источник цены не настроен — бренд не привязан к проверке цен."],
+      showsSupplierPrice: false,
+    };
   }
-  if (source.kind === "formula") return ["По формуле: совпадает ✅"];
+  const lines = [`Формула: ${escapeTelegramHtml(source.formula)}`];
+  const verdict = (difference: { kind: string; deltaPct?: number | null } | null) =>
+    difference
+      ? `у нас ${difference.kind === "cheaper" ? "дешевле" : "дороже"} на ${unsignedPercent(
+          Number(difference.deltaPct)
+        )}`
+      : "совпадает с сайтом ✅";
+  const supplierText = supplier
+    ? `${formatPriceWatchMoney(supplier.price, supplier.currency)} ${
+        supplier.fromList ? "по прайсу" : "у поставщика"
+      }`
+    : null;
+  const markup = source.priceList?.file?.markup;
+  let showsSupplierPrice = false;
+  if (formula) {
+    const expected = formatPriceWatchMoney(formula.expected, formula.currency);
+    lines.push(
+      supplierText
+        ? `Расчёт: ${supplierText} → по формуле ${expected} — ${verdict(formula)}`
+        : `По формуле: ${expected} — ${verdict(formula)}`
+    );
+    showsSupplierPrice = Boolean(supplierText);
+  } else if (source.kind === "formula") {
+    lines.push(
+      supplierText
+        ? `Расчёт: ${supplierText} → по формуле ${verdict(null)}`
+        : "По формуле: совпадает ✅"
+    );
+    showsSupplierPrice = Boolean(supplierText);
+  } else if (markup !== undefined && !source.check) {
+    // A price list read by the bot: its price × the brand's markup.
+    if (supplier) {
+      const expected = round2(supplier.price * markup);
+      const difference = comparePriceWithFormula({
+        ours: input.ours(supplier.currency),
+        expected,
+        currency: supplier.currency,
+      });
+      lines.push(
+        `Расчёт: прайс ${formatPriceWatchMoney(supplier.price, supplier.currency)}${
+          markup !== 1
+            ? ` + ${formatPriceWatchNumber(round2((markup - 1) * 100))} % = ${formatPriceWatchMoney(expected, supplier.currency)}`
+            : ""
+        } — ${verdict(difference)}`
+      );
+      showsSupplierPrice = true;
+    } else {
+      lines.push("Расчёт: цен из прайса ещё нет — пришлите прайс файлом в этот чат");
+    }
+  }
   if (source.priceList) {
     const date = input.row?.priceListDate ?? new Date(source.priceList.date);
     const overdue = Boolean(input.row?.nextReminderAt && input.row.nextReminderAt <= input.now);
@@ -1283,10 +1359,11 @@ function priceSourceStatus(input: {
       month: "long",
       year: "numeric",
     }).format(date);
-    return [`Прайс от ${label}${overdue ? " — пора запросить новый" : ""}`];
+    lines.push(`Прайс от ${label}${overdue ? " — пора запросить новый" : ""}`);
+  } else if (!source.check) {
+    lines.push("Сайт поставщика пока не проверяю автоматически.");
   }
-  if (!source.check) return ["Сайт поставщика пока не проверяю автоматически."];
-  return [];
+  return { lines, showsSupplierPrice };
 }
 
 /**
@@ -1321,7 +1398,7 @@ function shippingLine(
       ? [cardBox.length, cardBox.width, cardBox.height]
       : null;
   if (!measured(weight) && !box) {
-    return "Для доставки: веса и размеров нет ни у поставщика, ни в карточке.";
+    return "Вес и коробка: нет ни у поставщика, ни в карточке.";
   }
   const fromCard = (entry: Measures | null) =>
     `из карточки${entry?.isDimensionsEstimated ? ", оценка" : ""}`;
@@ -1341,8 +1418,171 @@ function shippingLine(
   ].filter((part): part is { text: string; from: string } => Boolean(part));
   const sources = new Set(parts.map((part) => part.from));
   return sources.size === 1
-    ? `Для доставки: ${parts.map((part) => part.text).join(" · ")} (${parts[0].from})`
-    : `Для доставки: ${parts.map((part) => `${part.text} (${part.from})`).join(" · ")}`;
+    ? `Вес и коробка: ${parts.map((part) => part.text).join(" · ")} (${parts[0].from})`
+    : `Вес и коробка: ${parts.map((part) => `${part.text} (${part.from})`).join(" · ")}`;
+}
+
+const SHIPPING_CLASS_LABEL: Readonly<Record<ShopShippingClass, string>> = {
+  small: "маленькая посылка",
+  medium: "средняя посылка",
+  large: "большая посылка",
+  oversize: "негабарит",
+};
+
+/** What the storefront reads to tell a customer about stock, lead time and delivery. */
+const STOREFRONT_SELECT = {
+  scope: true,
+  productType: true,
+  categoryUa: true,
+  categoryEn: true,
+  category: { select: { titleUa: true, titleEn: true } },
+  leadTimeUa: true,
+  leadTimeEn: true,
+  vendor: true,
+  tags: true,
+  metafields: {
+    where: { namespace: SHOP_STOREFRONT_DISPLAY_NAMESPACE, key: SHOP_STOREFRONT_DISPLAY_KEY },
+    select: { namespace: true, key: true, value: true },
+  },
+} satisfies Prisma.ShopProductSelect;
+
+type StorefrontDetails = {
+  scope?: string | null;
+  productType?: string | null;
+  categoryUa?: string | null;
+  categoryEn?: string | null;
+  category?: { titleUa: string; titleEn: string } | null;
+  leadTimeUa?: string | null;
+  leadTimeEn?: string | null;
+  metafields?: Array<{ namespace: string; key: string; value: string }>;
+};
+
+/**
+ * What a customer is told on the site: our stock (warehouse-confirmed, as on
+ * the product page), the lead time of an item on order, and the Nova Poshta
+ * size class in Ukraine (owner-approved prices).
+ */
+function storefrontFacts(input: {
+  sku: string;
+  slug: string;
+  title: { ua: string; en: string };
+  details: StorefrontDetails | null;
+}) {
+  const details = input.details ?? {};
+  return {
+    availability: getShopConfirmedAvailability(
+      input.sku,
+      input.slug,
+      readShopStorefrontDisplay(details.metafields)
+    ),
+    lead: details.leadTimeUa?.trim() || details.leadTimeEn?.trim() || null,
+    shippingClass: resolveShopShippingClass({
+      productType: details.productType ?? undefined,
+      // As the storefront reads it: the product's own category, else its catalog category.
+      category: {
+        ua: details.categoryUa || details.category?.titleUa || "",
+        en: details.categoryEn || details.category?.titleEn || "",
+      },
+      title: input.title,
+      scope: details.scope === "moto" ? "moto" : "auto",
+    }),
+  };
+}
+
+type StorefrontFacts = ReturnType<typeof storefrontFacts>;
+
+const USUAL_LEAD_WEEKS = Math.round(DEFAULT_BACKORDER_LEAD_DAYS / 7);
+
+function customerLines(facts: StorefrontFacts) {
+  return [
+    facts.availability === "inStock"
+      ? "Наличие у нас: на складе — отправим в день заказа или на следующий"
+      : facts.availability === "inTransit"
+        ? "Наличие у нас: в пути на склад"
+        : `Наличие у нас: под заказ, ${
+            isShopLeadTimeOnRequest(facts.lead)
+              ? "на сайте «срок уточняйте у менеджера»"
+              : `срок ${
+                  facts.lead
+                    ? escapeTelegramHtml(facts.lead)
+                    : `≈ ${USUAL_LEAD_WEEKS} недели (обычный срок)`
+                }`
+          }`,
+    `Доставка по Украине: Нова Пошта ≈ ${formatPriceWatchMoney(
+      SHOP_SHIPPING_CLASS_PRICE_UAH[facts.shippingClass],
+      "UAH"
+    )} (${SHIPPING_CLASS_LABEL[facts.shippingClass]}), 1–2 дня в пути`,
+  ];
+}
+
+/** «📝 Текст для клиента»: in Ukrainian, plain, ready to copy into a chat with the customer. */
+function clientTextLines(input: {
+  title: string;
+  sku: string;
+  uah: number | null;
+  facts: StorefrontFacts;
+  url: string | null;
+}) {
+  const { facts } = input;
+  const stock =
+    facts.availability === "inStock"
+      ? "є на складі — відправимо в день замовлення або наступного дня"
+      : facts.availability === "inTransit"
+        ? "в дорозі на наш склад"
+        : `під замовлення, термін ${
+            isShopLeadTimeOnRequest(facts.lead)
+              ? "уточнимо окремо"
+              : (facts.lead ?? `≈ ${USUAL_LEAD_WEEKS} тижні`)
+          }`;
+  return [
+    input.title,
+    `Артикул: ${input.sku}`,
+    ...(input.uah ? [`Ціна: ${formatPriceWatchMoney(input.uah, "UAH")}`] : []),
+    `Наявність: ${stock}`,
+    `Доставка по Україні: Нова Пошта, ≈ ${formatPriceWatchMoney(
+      SHOP_SHIPPING_CLASS_PRICE_UAH[facts.shippingClass],
+      "UAH"
+    )}, 1–2 дні в дорозі`,
+    ...(input.url ? [input.url] : []),
+  ];
+}
+
+/** The product page on our site, in Ukrainian. */
+function productPageUrl(product: {
+  slug: string;
+  brand: string | null;
+  vendor?: string | null;
+  tags?: string[];
+}) {
+  return absoluteUrl(
+    buildShopStorefrontProductPathForProduct("ua", {
+      slug: product.slug,
+      brand: product.brand ?? "",
+      vendor: product.vendor ?? undefined,
+      tags: product.tags ?? [],
+    })
+  );
+}
+
+/** Our price in hryvnias, as the storefront converts it; null without a price. */
+function uahPrice(owner: PriceRecord, rates: ShopPriceBookRates) {
+  const native = nativePrice(owner);
+  if (!native) return null;
+  try {
+    return Math.round(
+      repriceShopSourceMoney(
+        {
+          eur: num(owner.priceEur),
+          usd: num(owner.priceUsd),
+          uah: num(owner.priceUah),
+          sourceCurrency: native.currency,
+        },
+        rates
+      ).uah
+    );
+  } catch {
+    return null;
+  }
 }
 
 /** Without a competitor price: still checking, not sold there, or a brand we do not compare. */
@@ -1360,9 +1600,10 @@ function competitorStatus(
 }
 
 /**
- * «Спитати бота про товар»: our price, the formula or price list it follows,
- * the supplier's price and stock, weight and box, competitors — and, where the
- * bot knows nothing yet, why.
+ * «Спитати бота про товар»: our price, stock and delivery as the site tells a
+ * customer, the supplier's stock, weight and box, competitors — and, for
+ * owners only, the formula and the calculation from the supplier's price.
+ * Where the bot knows nothing yet, the card says why.
  */
 export async function buildProductCard(input: {
   client: Pick<
@@ -1382,6 +1623,7 @@ export async function buildProductCard(input: {
   const sku = variant?.sku ?? product.sku ?? input.sku;
   const source = sourceOfBrand(product.brand);
   const rivals = competitorSourcesForBrand(product.brand);
+  const isOwner = Boolean(input.actor && canChangePrices(input.actor));
   const [facts, findings, sourceRows, measures] = await Promise.all([
     input.client.opsSupplierItem.findMany({
       where: {
@@ -1396,34 +1638,19 @@ export async function buildProductCard(input: {
       where: { key: { in: [...(source ? [source.key] : []), ...rivals] } },
       select: { key: true, lastFinishedAt: true, priceListDate: true, nextReminderAt: true },
     }),
-    // Our own weight and box, for products whose supplier publishes none.
+    // What the storefront shows (stock, lead time, size class) and our own weight and box.
     input.client.shopProduct.findUnique({
       where: { id: product.id },
       select: {
         ...MEASURE_SELECT,
+        ...STOREFRONT_SELECT,
         variants: { where: { id: variant?.id ?? "" }, select: MEASURE_SELECT },
       },
     }),
   ]);
   const formula =
     findings.find((finding) => finding.sku.toLowerCase() === sku.toLowerCase()) ?? null;
-  const uah = native
-    ? (() => {
-        try {
-          return repriceShopSourceMoney(
-            {
-              eur: num(owner.priceEur),
-              usd: num(owner.priceUsd),
-              uah: num(owner.priceUah),
-              sourceCurrency: native.currency,
-            },
-            rates
-          ).uah;
-        } catch {
-          return null;
-        }
-      })()
-    : null;
+  const uah = uahPrice(owner, rates);
   const supplierFacts = facts.filter(
     (fact) => findPriceWatchSource(fact.sourceKey)?.kind !== "competitor"
   );
@@ -1446,32 +1673,72 @@ export async function buildProductCard(input: {
           ? "ограниченно"
           : "в наличии"
         : "наличие не указано";
+  // A price-list brand's own facts come from the list (read by the bot or kept at import).
+  const fromList = Boolean(
+    source?.kind === "price_list" && (!source.check || source.check === "import-facts")
+  );
+  const ownFact = source
+    ? (supplierFacts.find((fact) => fact.sourceKey === source.key) ?? null)
+    : null;
+  const pricing = isOwner
+    ? pricingLines({
+        source,
+        row: source ? row(source.key) : null,
+        formula,
+        supplier:
+          ownFact && Number(ownFact.price) > 0
+            ? {
+                price: Number(ownFact.price),
+                currency: (ownFact.currency ?? source?.currency ?? "EUR") as PriceWatchCurrency,
+                fromList,
+              }
+            : null,
+        ours: (currency) => (currency === "GBP" ? null : priceIn(owner, currency, rates)),
+        now: new Date(),
+      })
+    : null;
+  // The supplier's stock for everyone; its price for owners, when the calculation does not show it.
+  const supplierPrice =
+    isOwner && supplier && !pricing?.showsSupplierPrice
+      ? supplier.price !== null
+        ? formatPriceWatchMoney(
+            Number(supplier.price),
+            (supplier.currency ?? "EUR") as PriceWatchCurrency
+          )
+        : "цена не указана"
+      : null;
+  const supplierLines = !supplier
+    ? source?.check
+      ? [`У поставщика (${escapeTelegramHtml(source.site)}): ещё не проверялось`]
+      : []
+    : fromList && supplier === ownFact
+      ? [
+          ...(supplierPrice ? [`По прайсу: ${supplierPrice}`] : []),
+          ...(supplier.available === false ? ["У поставщика: снят с производства"] : []),
+        ]
+      : [
+          `У поставщика: ${supplierPrice ? `${supplierPrice} · ` : ""}${stock(
+            supplier.available,
+            supplier.availability
+          )} · проверено ${day(supplier.lastSeenAt)}`,
+        ];
   const lines = [
     `🔎 <b>${escapeTelegramHtml(sku)}</b> · ${escapeTelegramHtml(product.brand ?? "")}`,
     escapeTelegramHtml((product.titleEn || product.titleUa).slice(0, 160)),
     "",
     `На сайте: <b>${native ? formatPriceWatchMoney(native.amount, native.currency) : "без цены"}</b>${
-      uah && native?.currency !== "UAH" ? ` · ${formatPriceWatchMoney(Math.round(uah), "UAH")}` : ""
+      uah && native?.currency !== "UAH" ? ` · ${formatPriceWatchMoney(uah, "UAH")}` : ""
     }`,
-    source
-      ? `Формула: ${escapeTelegramHtml(source.formula)}`
-      : "Источник цены не настроен — бренд не привязан к проверке цен.",
-    ...priceSourceStatus({
-      source,
-      row: source ? row(source.key) : null,
-      formula,
-      now: new Date(),
-    }),
-    ...(supplier
-      ? [
-          `У поставщика: ${supplier.price !== null ? formatPriceWatchMoney(Number(supplier.price), (supplier.currency ?? "EUR") as PriceWatchCurrency) : "цена не указана"} · ${stock(
-            supplier.available,
-            supplier.availability
-          )} · проверено ${day(supplier.lastSeenAt)}`,
-        ]
-      : source?.check
-        ? [`У поставщика (${escapeTelegramHtml(source.site)}): ещё не проверялось`]
-        : []),
+    ...(pricing?.lines ?? []),
+    ...customerLines(
+      storefrontFacts({
+        sku,
+        slug: product.slug,
+        title: { ua: product.titleUa, en: product.titleEn },
+        details: measures,
+      })
+    ),
+    ...supplierLines,
     shippingLine(supplierFacts, measures?.variants[0] ?? null, measures),
     ...(rivalFacts.length
       ? rivalFacts.map((fact) => {
@@ -1491,7 +1758,15 @@ export async function buildProductCard(input: {
   const adminUrl = opsAdminLink(`/admin/shop/${product.id}`);
   if (/^https?:\/\//.test(adminUrl)) links.push({ text: "🛠 В админке", url: adminUrl });
   if (links.length) rows.push(links);
-  if (formula && input.actor && canChangePrices(input.actor)) {
+  const clientText = await input.button(
+    "price_card_client_text",
+    product.id,
+    "📝 Текст для клиента",
+    undefined,
+    variant?.id
+  );
+  if (clientText) rows.push([clientText]);
+  if (formula && isOwner) {
     const fix = await input.button(
       "price_card_formula",
       product.id,
@@ -1504,6 +1779,40 @@ export async function buildProductCard(input: {
     text: lines.join("\n").slice(0, 3_900),
     parseMode: "HTML",
     ...(rows.length ? { replyMarkup: { inline_keyboard: rows } } : {}),
+  };
+}
+
+/** «📝 Текст для клиента» under the card: the customer's facts in Ukrainian, ready to copy. */
+export async function clientTextForProduct(input: {
+  client: Pick<PrismaClient, "shopProduct" | "shopSettings">;
+  productId: string;
+  variantId: string | null;
+}) {
+  const product = await input.client.shopProduct.findFirst({
+    where: { id: input.productId, status: ShopCatalogStatus.ACTIVE },
+    select: { ...PRODUCT_SELECT, ...STOREFRONT_SELECT },
+  });
+  if (!product) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+  const variant =
+    product.variants.find((entry) => entry.id === input.variantId) ??
+    (product.variants.length === 1 ? product.variants[0] : null);
+  const sku = variant?.sku ?? product.sku ?? product.slug;
+  const text = clientTextLines({
+    title: product.titleUa || product.titleEn,
+    sku,
+    uah: uahPrice(priceOwner(product, variant), await loadRates(input.client)),
+    facts: storefrontFacts({
+      sku,
+      slug: product.slug,
+      title: { ua: product.titleUa, en: product.titleEn },
+      details: product,
+    }),
+    url: productPageUrl(product),
+  });
+  return {
+    message: "Текст для клиента — ниже.",
+    link: null,
+    reply: { text: escapeTelegramHtml(text.join("\n")), parseMode: "HTML" } satisfies PriceReply,
   };
 }
 

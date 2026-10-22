@@ -376,7 +376,8 @@ export const PRICE_WATCH_SOURCES: readonly PriceWatchSourceDefinition[] = [
     url: "https://shop.a-drive.com.ua",
     formula: "наша цена в гривнах против цены Adrenalin Drive",
     everyHours: 7 * 24,
-    pagesPerRun: 70,
+    // 1,682 pages of our brands: about 14 hours a week at this pace.
+    pagesPerRun: 120,
   },
   {
     key: "fx",

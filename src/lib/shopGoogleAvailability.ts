@@ -26,6 +26,24 @@ export function googleProductAvailability(
  * text or an explicit date, and both win over this default.
  */
 export const DEFAULT_BACKORDER_LEAD_DAYS = 21;
+
+/**
+ * Lead time of an item the manufacturer has nothing of: the ops bot offers it
+ * and an owner confirms. The storefront then asks the customer to check with a
+ * manager instead of promising the average lead time.
+ */
+export const SHOP_LEAD_TIME_ON_REQUEST = {
+  ua: "Уточнюйте у менеджера",
+  en: "On request",
+} as const;
+
+export function isShopLeadTimeOnRequest(text?: string | null) {
+  const value = text?.trim().toLowerCase();
+  return (
+    value === SHOP_LEAD_TIME_ON_REQUEST.ua.toLowerCase() ||
+    value === SHOP_LEAD_TIME_ON_REQUEST.en.toLowerCase()
+  );
+}
 const MAX_BACKORDER_LEAD_DAYS = 365;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
