@@ -61,6 +61,19 @@ test("menu buttons and slash commands are recognised; «/ask вопрос» goes
   assert.equal(parseOpsBotCommand("/whatever"), "help");
   assert.equal(parseOpsBotCommand("Купить фильтр для BMW"), null);
 
+  // /help: the product card for everyone, the price commands for owners only.
+  const { buildOpsBotWelcome } = await botModule;
+  const team = buildOpsBotWelcome({ name: "Ігор", miniAppUrl: null });
+  assert.match(team, /🔎 Товары и заказы/);
+  assert.match(team, /«📝 Текст для клиента»/);
+  assert.doesNotMatch(team, /цена Brabus/);
+  const owners = buildOpsBotWelcome({ name: "Олександр", miniAppUrl: null, canChangePrices: true });
+  assert.match(owners, /💰 Цены — только для владельцев/);
+  assert.match(owners, /«цена V167-678-63 9005»/);
+  assert.match(owners, /«цена Brabus \+5%»/);
+  assert.match(owners, /«цена Brabus по формуле»/);
+  assert.match(owners, /Excel или CSV в чат — прайс/);
+
   assert.equal(
     extractOpsKnowledgeQuestion("? доставка из Великобритании"),
     "доставка из Великобритании"
@@ -645,13 +658,23 @@ test("menu commands answer from the webhook; strangers get silence", async () =>
   const body = start?.body as { text: string; reply_markup: { keyboard: unknown[][] } };
   assert.match(body.text, /^👋 Olexandr/);
   assert.doesNotMatch(body.text, /@/, "no inline mode / @-mentions any more");
-  assert.equal(body.reply_markup.keyboard.length, 3, "today/mine, new/ask, «Мой день»");
+  assert.equal(
+    body.reply_markup.keyboard.length,
+    4,
+    "today/mine, new/ask, product/order/prices, «Мой день»"
+  );
   assert.deepEqual(
     body.reply_markup.keyboard[2],
+    [{ text: "🔎 Товар" }, { text: "📦 Заказ" }, { text: "💰 Цены" }],
+    "the owner also gets «💰 Цены»"
+  );
+  assert.deepEqual(
+    body.reply_markup.keyboard[3],
     [{ text: "📱 Мой день" }],
     "keyboard web apps get no signed init data, so this is a plain button"
   );
   assert.ok(start?.menuButtonChatId, "/start also puts «Мой день» on the chat menu button");
+  assert.deepEqual(start?.commands, { chatId: BigInt(7001), owner: true }, "and sets the «/» list");
 
   const app = await handleOpsTelegramBotUpdate({
     client: client(true),

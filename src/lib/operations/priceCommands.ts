@@ -33,7 +33,7 @@ export function parsePriceCommand(text: string): PriceCommand | null {
   const clean = String(text ?? "")
     .replace(/\s+/g, " ")
     .trim();
-  const lookup = clean.match(/^(?:наличие|наявність|товар|артикул)\s+(\S.{1,60})$/i);
+  const lookup = clean.match(/^(?:наличие|наявність|товар|артикул)\s+(\S.{1,80})$/i);
   if (lookup) return { kind: "lookup", target: lookup[1].trim() };
   const command = clean.match(/^(?:цена|ціна|price)\s+(\S.{0,80})$/i);
   if (!command) return null;
@@ -64,10 +64,61 @@ export function looksLikeSku(text: string) {
 }
 
 /**
+ * «🔎 Товар» and «📦 Заказ» ask with a reply prompt; the answer to it is read
+ * as «товар …» / «заказ …». The prompts start with these words.
+ */
+export const OPS_PRODUCT_PROMPT = "🔎 Пришлите артикул, название или ссылку на товар";
+export const OPS_ORDER_PROMPT = "📦 Пришлите номер заказа";
+
+/** A reply to one of the bot's prompts, as the command it answers. */
+export function promptedCommandText(replyToText: string | null | undefined, text: string) {
+  const prompt = String(replyToText ?? "");
+  if (prompt.startsWith(OPS_PRODUCT_PROMPT)) return `товар ${text}`;
+  if (prompt.startsWith(OPS_ORDER_PROMPT)) return `заказ ${text}`;
+  return text;
+}
+
+/** «/product Akrapovic M3», «/order OC-2026-00033»: the same as «товар …», «заказ …». */
+export function slashCommandText(text: string) {
+  const match = text.match(/^\/(product|find|order)(?:@[A-Za-z0-9_]+)?\s+(\S[\s\S]*)$/i);
+  if (!match) return text;
+  return `${match[1].toLowerCase() === "order" ? "заказ" : "товар"} ${match[2].trim()}`;
+}
+
+/**
+ * «OC-2026-00033», «заказ OC-2026-00033», «#OC-2026-00033»: the order card.
+ * Only the number alone — a message about an order stays a task.
+ */
+export function parseOrderCommand(text: string | null | undefined) {
+  const match = String(text ?? "")
+    .trim()
+    .match(/^(?:(?:заказ|замовлення|order)\s*)?(?:№|#)?\s*((?:OC|ORD)-[A-Z0-9-]{3,40})$/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
+/** A product page of our site («…/shop/…/slug»), alone or after «товар»: its slug. */
+export function parseProductLink(text: string | null | undefined) {
+  const match = String(text ?? "")
+    .trim()
+    .match(/^(?:(?:товар|наличие|наявність)\s+)?(https?:\/\/(?:www\.)?onecompany\.global\/\S+)$/i);
+  if (!match) return null;
+  try {
+    const path = new URL(match[1]).pathname.split("/").filter(Boolean);
+    const shop = path.indexOf("shop");
+    const slug = shop >= 0 && path.length > shop + 1 ? path[path.length - 1] : null;
+    return slug ? decodeURIComponent(slug) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The webhook's instant answer to a price message instead of «подготовлю
  * задачи». Null when the text is not about prices.
  */
 export function priceMessageAck(text: string | null | undefined) {
+  if (parseOrderCommand(text)) return "📦 Смотрю заказ…";
+  if (parseProductLink(text)) return "🔎 Смотрю товар…";
   const command = parsePriceCommand(String(text ?? ""));
   if (command && command.kind !== "lookup") return "✏️ Считаю, что изменится…";
   if (command || looksLikeSku(String(text ?? ""))) return "🔎 Смотрю товар…";

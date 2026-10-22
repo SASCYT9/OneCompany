@@ -17,7 +17,9 @@ import {
 import { opsAttachmentRetentionAt } from "@/lib/operations/media";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
 import { applyLeadTimeMarks, undoLeadTimeMarks } from "@/lib/operations/leadTimeMarks";
+import { orderClientText } from "@/lib/operations/orderCard";
 import {
+  buildProductCard,
   canChangePrices,
   cancelPriceChange,
   clientTextForProduct,
@@ -75,6 +77,8 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "price_lead_mark",
   "price_lead_clear",
   "price_lead_undo",
+  "price_card_open",
+  "order_client_text",
 ] as const;
 
 /** Site lead times from the digest: the resource is the digest job; undo — the change. */
@@ -84,10 +88,12 @@ const PRICE_LEAD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
   "price_lead_undo",
 ];
 
-/** Product card buttons: the resource is the product, the value its variant. */
+/** Product card buttons: the resource is the product, the value its variant; the order's text. */
 const PRICE_CARD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
   "price_card_formula",
   "price_card_client_text",
+  "price_card_open",
+  "order_client_text",
 ];
 
 /** Price watch buttons: the resource is a price source, or the digest job for a task. */
@@ -183,9 +189,11 @@ export async function createOpsTelegramCallbackState(input: {
                 ? "ops.price_source"
                 : PRICE_CHANGE_ACTIONS.includes(input.action) || input.action === "price_lead_undo"
                   ? "ops.price_change"
-                  : PRICE_CARD_ACTIONS.includes(input.action)
-                    ? "shop.product"
-                    : "ops.task",
+                  : input.action === "order_client_text"
+                    ? "shop.order"
+                    : PRICE_CARD_ACTIONS.includes(input.action)
+                      ? "shop.product"
+                      : "ops.task",
       resourceId: input.resourceId,
       expiresAt: new Date(Date.now() + Math.max(60_000, input.ttlMs ?? 24 * 60 * 60 * 1000)),
     },
@@ -1584,6 +1592,19 @@ async function executePriceChangeCallback(input: {
         productId: input.resourceId,
         variantId: input.value ?? null,
       });
+    case "price_card_open": {
+      const card = await buildProductCard({
+        client: input.client,
+        productId: input.resourceId,
+        variantId: input.value ?? null,
+        actor,
+        button,
+      });
+      if (!card) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+      return { message: "Карточка — ниже.", link: null, reply: card };
+    }
+    case "order_client_text":
+      return orderClientText({ client: input.client, orderId: input.resourceId, actor });
     case "price_lead_mark":
     case "price_lead_clear":
       if (!canChangePrices(actor)) throw new Error("TELEGRAM_ACTION_FORBIDDEN");

@@ -13,6 +13,9 @@ import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
+import { canChangePrices } from "@/lib/operations/priceChanges";
+import { OPS_ORDER_PROMPT, OPS_PRODUCT_PROMPT } from "@/lib/operations/priceCommands";
+import { priceWatchOwnerActions, type PriceWatchButtonFactory } from "@/lib/operations/priceWatch";
 import { parseOpsRepeatRule, type OpsRepeatRule } from "@/lib/operations/recurrence";
 import {
   addOpsLocalDays,
@@ -36,10 +39,23 @@ export const OPS_BOT_MENU = {
   mine: "📋 Мои задачи",
   create: "➕ Новая задача",
   ask: "❓ Спросить базу",
+  product: "🔎 Товар",
+  order: "📦 Заказ",
+  prices: "💰 Цены",
   app: "📱 Мой день",
 } as const;
 
-export type OpsBotCommand = "start" | "help" | "today" | "mine" | "create" | "ask" | "app";
+export type OpsBotCommand =
+  | "start"
+  | "help"
+  | "today"
+  | "mine"
+  | "create"
+  | "ask"
+  | "product"
+  | "order"
+  | "prices"
+  | "app";
 
 const SLASH_COMMANDS: Record<string, OpsBotCommand> = {
   start: "start",
@@ -52,6 +68,11 @@ const SLASH_COMMANDS: Record<string, OpsBotCommand> = {
   new: "create",
   task: "create",
   ask: "ask",
+  product: "product",
+  find: "product",
+  order: "order",
+  prices: "prices",
+  price: "prices",
   app: "app",
   day: "app",
 };
@@ -61,8 +82,26 @@ const LABEL_COMMANDS = new Map<string, OpsBotCommand>([
   [OPS_BOT_MENU.mine, "mine"],
   [OPS_BOT_MENU.create, "create"],
   [OPS_BOT_MENU.ask, "ask"],
+  [OPS_BOT_MENU.product, "product"],
+  [OPS_BOT_MENU.order, "order"],
+  [OPS_BOT_MENU.prices, "prices"],
   [OPS_BOT_MENU.app, "app"],
 ]);
+
+/** What Telegram lists when «/» is typed; owners also get /prices. */
+export function opsBotCommandList(owner: boolean) {
+  return [
+    { command: "today", description: "📌 Что горит сегодня" },
+    { command: "my", description: "📋 Мои задачи" },
+    { command: "new", description: "➕ Новая задача" },
+    { command: "product", description: "🔎 Товар: артикул, название или ссылка" },
+    { command: "order", description: "📦 Заказ по номеру" },
+    ...(owner ? [{ command: "prices", description: "💰 Цены и сроки: что исправить" }] : []),
+    { command: "ask", description: "❓ Вопрос к базе знаний" },
+    { command: "app", description: "📱 Мой день" },
+    { command: "help", description: "ℹ️ Что я умею" },
+  ];
+}
 
 const LIST_TASK_LIMIT = 10;
 const LIST_BUTTON_LIMIT = 6;
@@ -264,6 +303,8 @@ export type OpsBotMember = {
   timezone: string;
   permissions: string[];
   canAssign: boolean;
+  /** Owners: the price commands are listed in the help. */
+  canChangePrices: boolean;
 };
 
 export async function resolveOpsBotMember(
@@ -303,6 +344,7 @@ export async function resolveOpsBotMember(
     timezone: profile.timezone || "Europe/Kyiv",
     permissions,
     canAssign: matchesAdminPermission(permissions, ADMIN_PERMISSIONS.OPS_TASKS_ASSIGN),
+    canChangePrices: canChangePrices({ permissions, roleKeys }),
   };
 }
 
@@ -310,35 +352,78 @@ function firstName(member: { name: string | null; email: string }) {
   return member.name?.trim().split(/\s+/)[0] || member.email.split("@")[0];
 }
 
-export function buildOpsBotKeyboard(miniAppUrl: string | null) {
+export function buildOpsBotKeyboard(miniAppUrl: string | null, canChangePrices = false) {
   return {
     keyboard: [
       [{ text: OPS_BOT_MENU.today }, { text: OPS_BOT_MENU.mine }],
       [{ text: OPS_BOT_MENU.create }, { text: OPS_BOT_MENU.ask }],
+      [
+        { text: OPS_BOT_MENU.product },
+        { text: OPS_BOT_MENU.order },
+        ...(canChangePrices ? [{ text: OPS_BOT_MENU.prices }] : []),
+      ],
       // A plain button: Telegram gives keyboard-button web apps no signed init
       // data, so the bot answers with an inline «Открыть» button instead.
       ...(miniAppUrl ? [[{ text: OPS_BOT_MENU.app }]] : []),
     ],
     is_persistent: true,
     resize_keyboard: true,
-    input_field_placeholder: "Задача, ответ на задачу или ?вопрос",
+    input_field_placeholder: "Задача, артикул, номер заказа или ?вопрос",
   };
 }
 
-export function buildOpsBotWelcome(input: { name: string; miniAppUrl: string | null }) {
+export function buildOpsBotWelcome(input: {
+  name: string;
+  miniAppUrl: string | null;
+  /** Owners also get the price commands. */
+  canChangePrices?: boolean;
+}) {
   return [
-    `👋 ${input.name}, я помогаю команде не терять задачи.`,
+    `👋 ${input.name}, вот что я умею.`,
     "",
-    "✍️ Напишите или надиктуйте задачу — оформлю её и спрошу, кому поручить.",
-    "↩️ Ответьте на моё сообщение о задаче: «готово», «перенеси на пятницу», «передай Игорю», «повторять каждую неделю».",
-    "❓ Вопрос к базе знаний начните с «?» — например «? доставка из Великобритании».",
-    "🇺🇸 Цена из США: «? США 1000 + 50 доставка, 10 кг» — посчитаю по нашей формуле.",
-    input.miniAppUrl ? "📱 «Мой день» — все ваши задачи с кнопками, прямо в Telegram." : null,
+    "📋 Задачи",
+    "• Напишите или надиктуйте задачу — оформлю и спрошу, кому поручить.",
+    "• Ответьте на моё сообщение о задаче: «готово», «перенеси на пятницу», «передай Игорю», «повторять каждую неделю».",
+    input.miniAppUrl ? "• «📱 Мой день» — все ваши задачи с кнопками, прямо в Telegram." : null,
     "",
+    "🔎 Товары и заказы",
+    "• Артикул, «товар Akrapovic M3» или ссылка с сайта — карточка: наличие, доставка, вес, конкуренты и «📝 Текст для клиента».",
+    "• Номер заказа, например «OC-2026-00033» — оплата, доставка, товары.",
+    "",
+    "❓ База знаний",
+    "• «? доставка из Великобритании» — отвечу по базе.",
+    "• «? США 1000 + 50 доставка, 10 кг» — цена из США по нашей формуле.",
+    ...(input.canChangePrices
+      ? [
+          "",
+          "💰 Цены — только для владельцев",
+          "• «цена V167-678-63 9005» — цена товара (можно «€», «$», «грн»).",
+          "• «цена Brabus +5%» — весь бренд на процент, акционные цены не трогаю.",
+          "• «цена Brabus по формуле» — исправить всё, что нашла проверка.",
+          "• Excel или CSV в чат — прайс; наценку подпишите, например «+10%».",
+          "• «💰 Цены» — что исправить прямо сейчас, кнопками.",
+          "Сначала покажу, что изменится, и подожду «Применить»; отменить можно 30 минут.",
+        ]
+      : []),
+    "",
+    "Кнопки под строкой ввода и список «/» — быстрый доступ ко всему этому.",
     "Сам пишу только с 9:00 до 21:00: утром — что горит, за 2 часа до срока, в пятницу — разбор зависших.",
   ]
     .filter((line) => line !== null)
     .join("\n");
+}
+
+/** «🔎 Товар» / «📦 Заказ»: a prompt the answer is read from (see promptedCommandText). */
+function promptBody(
+  update: NormalizedOpsTelegramUpdate,
+  prompt: string,
+  hint: string,
+  placeholder: string
+) {
+  return replyBody(update, `${prompt}.\n${hint}`, {
+    force_reply: true,
+    input_field_placeholder: placeholder,
+  });
 }
 
 function shortDate(date: Date, timeZone: string) {
@@ -450,12 +535,15 @@ function replyBody(
   update: NormalizedOpsTelegramUpdate,
   text: string,
   replyMarkup?: unknown,
-  quote = false
+  quote = false,
+  parseMode?: "HTML"
 ) {
   return {
     method: "sendMessage",
     chat_id: update.chatId.toString(),
-    text: text.slice(0, 4_000),
+    // HTML texts are built within the limit by their builder and never cut.
+    text: parseMode ? text : text.slice(0, 4_000),
+    ...(parseMode ? { parse_mode: parseMode } : {}),
     link_preview_options: { is_disabled: true },
     ...(quote && update.messageId
       ? { reply_parameters: { message_id: update.messageId, allow_sending_without_reply: true } }
@@ -661,10 +749,26 @@ function taskButtonFactory(client: PrismaClient, adminUserId: string): ButtonFac
   };
 }
 
+/** Buttons under «💰 Цены»: the digest's actions, checked against the same person on press. */
+function priceButtonFactory(client: PrismaClient, adminUserId: string): PriceWatchButtonFactory {
+  return async (action, resourceId, text, style) => {
+    const callbackData = await createOpsTelegramCallbackState({
+      client,
+      action,
+      resourceId,
+      actorAdminUserId: adminUserId,
+      ttlMs: BUTTON_TTL_MS,
+    });
+    return callbackData ? { text, callback_data: callbackData, ...(style ? { style } : {}) } : null;
+  };
+}
+
 export type OpsBotHandled = {
   body: Record<string, unknown>;
   /** Set the «Мой день» chat menu button after replying (on /start). */
   menuButtonChatId?: bigint;
+  /** Set the «/» list after replying (on /start): everyone's, and this chat's. */
+  commands?: { chatId: bigint; owner: boolean };
 };
 
 /**
@@ -713,10 +817,71 @@ export async function handleOpsTelegramBotUpdate(input: {
       return {
         body: replyBody(
           update,
-          buildOpsBotWelcome({ name: firstName(member), miniAppUrl }),
-          buildOpsBotKeyboard(miniAppUrl)
+          buildOpsBotWelcome({
+            name: firstName(member),
+            miniAppUrl,
+            canChangePrices: member.canChangePrices,
+          }),
+          buildOpsBotKeyboard(miniAppUrl, member.canChangePrices)
         ),
         ...(command === "start" && miniAppUrl ? { menuButtonChatId: update.chatId } : {}),
+        commands: { chatId: update.chatId, owner: member.canChangePrices },
+      };
+    }
+    if (command === "product") {
+      return {
+        body: promptBody(
+          update,
+          OPS_PRODUCT_PROMPT,
+          "Например: «EVE-G8XMV2-CF-INT», «Akrapovic M3 G80» или ссылка с onecompany.global.",
+          "Артикул, название или ссылка"
+        ),
+      };
+    }
+    if (command === "order") {
+      return {
+        body: promptBody(
+          update,
+          OPS_ORDER_PROMPT,
+          "Например: «OC-2026-00033». Покажу оплату, доставку и товары.",
+          "OC-2026-…"
+        ),
+      };
+    }
+    if (command === "prices") {
+      if (!member.canChangePrices) {
+        return {
+          body: replyBody(
+            update,
+            "💰 Цены меняют только владельцы. Карточку товара откроет «🔎 Товар»."
+          ),
+        };
+      }
+      const actions = await priceWatchOwnerActions({
+        client: input.client,
+        button: priceButtonFactory(input.client, member.adminUserId),
+        resourceId: member.adminUserId,
+        now,
+      });
+      return {
+        body: replyBody(
+          update,
+          [
+            "💰 <b>Цены и сроки</b>",
+            actions.lines.length
+              ? `По последним проверкам:\n${actions.lines.join("\n")}`
+              : "По последним проверкам исправлять нечего ✅",
+            "",
+            "Команды:",
+            "• «цена V167-678-63 9005» — цена товара",
+            "• «цена Brabus +5%» — весь бренд на процент",
+            "• «цена Brabus по формуле» — по последней проверке",
+            "• Excel или CSV в чат — прайс («+10%» в подписи — наценка)",
+          ].join("\n"),
+          actions.buttons.length ? { inline_keyboard: actions.buttons } : undefined,
+          false,
+          "HTML"
+        ),
       };
     }
     if (command === "create") {

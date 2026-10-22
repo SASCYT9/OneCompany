@@ -88,6 +88,7 @@ import {
   OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
   OpsNotificationError,
   sendOpsTelegramNotification,
+  sendOpsTelegramPhoto,
   type OpsTelegramInlineButton,
   type OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
@@ -176,7 +177,13 @@ export type TelegramJobPayload = {
   callbackLink?: string | null;
   taskUpdateEventId?: string | null;
   /** A ready answer (knowledge-base question, price command) sent as-is at NOTIFY. */
-  commandReply?: { text: string; replyMarkup?: OpsTelegramReplyMarkup; parseMode?: "HTML" } | null;
+  commandReply?: {
+    text: string;
+    replyMarkup?: OpsTelegramReplyMarkup;
+    parseMode?: "HTML";
+    /** With a photo, the text is its caption (the text alone when Telegram cannot fetch it). */
+    photoUrl?: string;
+  } | null;
   /** An older open task that looks like the one just created. */
   duplicateOfTaskId?: string | null;
   autoApplied?: boolean;
@@ -451,6 +458,7 @@ export function asPayload(job: OpsJob): TelegramJobPayload {
             text: string;
             replyMarkup?: OpsTelegramReplyMarkup;
             parseMode?: "HTML";
+            photoUrl?: string;
           })
         : null,
     duplicateOfTaskId: payload.duplicateOfTaskId ? String(payload.duplicateOfTaskId) : null,
@@ -2371,7 +2379,7 @@ async function executeTelegramIntakeStage(input: {
         throw error;
       }
     }
-    // «цена …», «наличие …» or a bare SKU: price commands and the product card.
+    // «цена …», «товар …», a SKU, a product link or an order number: answered here.
     const priceReply =
       !payload.media && !payload.batchId && !payload.isUntrustedForward && payload.text
         ? await handlePriceMessage({
@@ -2388,7 +2396,7 @@ async function executeTelegramIntakeStage(input: {
         data: {
           extractionStatus: OpsInboxExtractionStatus.READY,
           reviewStatus: OpsInboxReviewStatus.IGNORED,
-          summary: `Цены: ${String(payload.text ?? "").slice(0, 200)}`,
+          summary: `Товары, заказы, цены: ${String(payload.text ?? "").slice(0, 200)}`,
           processedAt: new Date(),
           reviewedAt: new Date(),
         },
@@ -2909,15 +2917,39 @@ async function executeTelegramIntakeStage(input: {
       };
     }
     if (payload.commandReply) {
+      const reply = payload.commandReply;
+      const message = {
+        chatId: inbox.telegramUpdate.chatId,
+        replyToMessageId: inbox.telegramUpdate.messageId,
+        replyMarkup: reply.replyMarkup,
+        parseMode: reply.parseMode,
+        fetchImpl: input.dependencies.fetchImpl,
+      };
       try {
-        const sent = await sendOpsTelegramNotification({
-          chatId: inbox.telegramUpdate.chatId,
-          text: payload.commandReply.text,
-          replyToMessageId: inbox.telegramUpdate.messageId,
-          replyMarkup: payload.commandReply.replyMarkup,
-          parseMode: payload.commandReply.parseMode,
-          fetchImpl: input.dependencies.fetchImpl,
-        });
+        let sent: { messageId: number } | null = null;
+        if (reply.photoUrl) {
+          // The client text with the product photo; Telegram may fail to fetch
+          // the picture (format, size), and then the text goes alone.
+          try {
+            sent = await sendOpsTelegramPhoto({
+              ...message,
+              photoUrl: reply.photoUrl,
+              caption: reply.text,
+            });
+          } catch (error) {
+            if (
+              error instanceof OpsNotificationError &&
+              (error.code === "NOTIFICATIONS_DISABLED" ||
+                error.code === OPS_TELEGRAM_RECIPIENT_UNAVAILABLE)
+            ) {
+              throw error;
+            }
+            console.warn("[operations.telegram.photo] sent the text alone", {
+              code: error instanceof OpsNotificationError ? error.code : String(error),
+            });
+          }
+        }
+        sent ??= await sendOpsTelegramNotification({ ...message, text: reply.text });
         return {
           outcome: "succeeded" as const,
           result: { notification: "sent", telegramMessageId: sent.messageId },

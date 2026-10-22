@@ -173,6 +173,87 @@ export async function sendOpsTelegramNotification(input: {
   } satisfies OpsTelegramNotificationResult;
 }
 
+/** Telegram's limit for a photo caption. */
+export const OPS_TELEGRAM_CAPTION_LIMIT = 1_024;
+
+/**
+ * A photo with the text as its caption — e.g. the client text with the product
+ * photo, ready to forward. Telegram fetches the photo by its URL; when it
+ * cannot, this throws and the caller sends the text alone.
+ */
+export async function sendOpsTelegramPhoto(input: {
+  chatId: bigint;
+  photoUrl: string;
+  caption: string;
+  replyToMessageId?: number | null;
+  replyMarkup?: OpsTelegramReplyMarkup;
+  parseMode?: "HTML";
+  token?: string | null;
+  fetchImpl?: typeof fetch;
+}) {
+  if (!enabled(process.env.OPS_TELEGRAM_NOTIFICATIONS_ENABLED)) {
+    throw new OpsNotificationError(
+      "NOTIFICATIONS_DISABLED",
+      "Operations Telegram notifications are disabled"
+    );
+  }
+  const token = String(input.token ?? process.env.OPS_TELEGRAM_BOT_TOKEN ?? "").trim();
+  if (!token) {
+    throw new OpsNotificationError(
+      "TELEGRAM_TOKEN_NOT_CONFIGURED",
+      "OPS_TELEGRAM_BOT_TOKEN is required"
+    );
+  }
+  if (!input.photoUrl.startsWith("https://") || input.caption.length > OPS_TELEGRAM_CAPTION_LIMIT) {
+    throw new OpsNotificationError("TELEGRAM_PHOTO_UNSUITABLE", "No usable photo for a caption");
+  }
+  const response = await (input.fetchImpl ?? fetch)(
+    `https://api.telegram.org/bot${token}/sendPhoto`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: input.chatId.toString(),
+        photo: input.photoUrl,
+        caption: input.caption,
+        ...(input.parseMode ? { parse_mode: input.parseMode } : {}),
+        ...(input.replyToMessageId
+          ? {
+              reply_parameters: {
+                message_id: input.replyToMessageId,
+                allow_sending_without_reply: true,
+              },
+            }
+          : {}),
+        ...(input.replyMarkup ? { reply_markup: input.replyMarkup } : {}),
+      }),
+      signal: AbortSignal.timeout(15_000),
+      cache: "no-store",
+    }
+  );
+  if (!response.ok) {
+    if (await isTelegramRecipientUnavailable(response)) {
+      throw new OpsNotificationError(
+        OPS_TELEGRAM_RECIPIENT_UNAVAILABLE,
+        `Telegram sendPhoto returned ${response.status}: recipient unavailable`
+      );
+    }
+    throw new OpsNotificationError(
+      "TELEGRAM_PHOTO_FAILED",
+      `Telegram sendPhoto returned ${response.status}`
+    );
+  }
+  const body = (await response.json()) as { ok?: boolean; result?: { message_id?: number } };
+  const messageId = Number(body.result?.message_id);
+  if (!body.ok || !Number.isSafeInteger(messageId)) {
+    throw new OpsNotificationError(
+      "TELEGRAM_PHOTO_FAILED",
+      "Telegram returned an invalid sendPhoto response"
+    );
+  }
+  return { chatId: input.chatId, messageId } satisfies OpsTelegramNotificationResult;
+}
+
 export async function editOpsTelegramNotification(input: {
   chatId: bigint;
   messageId: number;
@@ -247,6 +328,38 @@ export async function setOpsTelegramChatMenuButton(input: {
       body: JSON.stringify({
         chat_id: input.chatId.toString(),
         menu_button: { type: "web_app", text: input.text, web_app: { url: input.url } },
+      }),
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    }
+  );
+  return response.ok;
+}
+
+/**
+ * The list Telegram shows when «/» is typed: for everyone, or for one chat
+ * (owners see more). Best effort, like the menu button.
+ */
+export async function setOpsTelegramCommands(input: {
+  commands: ReadonlyArray<{ command: string; description: string }>;
+  /** Without a chat: the default list for every chat. */
+  chatId?: bigint;
+  token?: string | null;
+  fetchImpl?: typeof fetch;
+}) {
+  if (!enabled(process.env.OPS_TELEGRAM_NOTIFICATIONS_ENABLED)) return false;
+  const token = String(input.token ?? process.env.OPS_TELEGRAM_BOT_TOKEN ?? "").trim();
+  if (!token) return false;
+  const response = await (input.fetchImpl ?? fetch)(
+    `https://api.telegram.org/bot${token}/setMyCommands`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        commands: input.commands,
+        scope: input.chatId
+          ? { type: "chat", chat_id: input.chatId.toString() }
+          : { type: "default" },
       }),
       signal: AbortSignal.timeout(10_000),
       cache: "no-store",

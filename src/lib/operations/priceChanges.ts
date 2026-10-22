@@ -21,7 +21,14 @@ import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
-import { looksLikeSku, parsePriceCommand, type PriceCommand } from "@/lib/operations/priceCommands";
+import { buildOrderCard } from "@/lib/operations/orderCard";
+import {
+  looksLikeSku,
+  parseOrderCommand,
+  parsePriceCommand,
+  parseProductLink,
+  type PriceCommand,
+} from "@/lib/operations/priceCommands";
 import {
   comparePriceWithFormula,
   competitorSourcesForBrand,
@@ -330,6 +337,119 @@ async function findItemBySku(client: Pick<PrismaClient, "shopProduct">, sku: str
   return { product, variant, ambiguous: products.length > 1 };
 }
 
+/** A product picked from search results or a link: by id or slug, its variant when known. */
+async function findItemByRef(
+  client: Pick<PrismaClient, "shopProduct">,
+  ref: { productId?: string; slug?: string; variantId?: string | null }
+) {
+  const product = await client.shopProduct.findFirst({
+    where: {
+      status: ShopCatalogStatus.ACTIVE,
+      ...(ref.productId ? { id: ref.productId } : { slug: ref.slug ?? "" }),
+    },
+    select: PRODUCT_SELECT,
+  });
+  if (!product) return null;
+  const variant =
+    product.variants.find((entry) => entry.id === ref.variantId) ??
+    (product.variants.length === 1 ? product.variants[0] : null);
+  return { product, variant, ambiguous: false };
+}
+
+const SEARCH_STOP_WORDS = new Set([
+  "для",
+  "for",
+  "the",
+  "and",
+  "with",
+  "на",
+  "из",
+  "від",
+  "и",
+  "і",
+  "з",
+]);
+const SEARCH_RESULTS = 8;
+
+/**
+ * «товар Akrapovic M3 G80»: every word must appear in the title, SKU or brand
+ * (any order, any case; «g63» also as «G 63» or «G-63», as titles write it).
+ * Whole words count more; among equal matches the dearer item — the system
+ * rather than its clamp — comes first.
+ */
+export async function searchProductsByText(
+  client: Pick<PrismaClient, "shopProduct">,
+  query: string
+) {
+  const words = [
+    ...new Set(
+      query
+        .toLowerCase()
+        .replace(/[«»"'(),;:!?]+/g, " ")
+        .split(/\s+/)
+        .filter((word) => word.length >= 2 && !SEARCH_STOP_WORDS.has(word))
+    ),
+  ].slice(0, 6);
+  if (!words.length) return { total: 0, items: [] };
+  const spellings = (word: string) => {
+    const split = word.match(/^(\p{L}+)(\d+)$/u);
+    return split ? [word, `${split[1]} ${split[2]}`, `${split[1]}-${split[2]}`] : [word];
+  };
+  const rows = await client.shopProduct.findMany({
+    where: {
+      status: ShopCatalogStatus.ACTIVE,
+      AND: words.map((word) => ({
+        OR: spellings(word).flatMap((spelling) => [
+          { titleEn: { contains: spelling, mode: "insensitive" as const } },
+          { titleUa: { contains: spelling, mode: "insensitive" as const } },
+          { sku: { contains: spelling, mode: "insensitive" as const } },
+          { brand: { contains: spelling, mode: "insensitive" as const } },
+        ]),
+      })),
+    },
+    take: 60,
+    select: {
+      id: true,
+      sku: true,
+      brand: true,
+      titleEn: true,
+      titleUa: true,
+      isPublished: true,
+      priceEur: true,
+      priceUsd: true,
+      priceUah: true,
+      variants: { take: 1, orderBy: { position: "asc" }, select: { sku: true } },
+    },
+  });
+  const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const wholeWord = (text: string, word: string) =>
+    spellings(word).some((spelling) =>
+      new RegExp(`(^|[^\\p{L}\\p{N}])${escape(spelling)}(?![\\p{L}\\p{N}])`, "iu").test(text)
+    );
+  // Only to order the results: the price in euros, roughly.
+  const roughEur = (row: (typeof rows)[number]) =>
+    num(row.priceEur) || num(row.priceUsd) / 1.14 || num(row.priceUah) / 50;
+  const scored = rows
+    .map((row) => {
+      const title = `${row.titleEn} ${row.titleUa}`;
+      const score =
+        words.filter((word) => wholeWord(title, word)).length * 2 +
+        words.filter((word) => row.brand && wholeWord(row.brand, word)).length +
+        (row.isPublished ? 1 : 0);
+      return { row, score };
+    })
+    .sort((left, right) => right.score - left.score || roughEur(right.row) - roughEur(left.row));
+  return {
+    total: rows.length,
+    items: scored.slice(0, SEARCH_RESULTS).map(({ row }) => ({
+      productId: row.id,
+      sku: row.sku ?? row.variants[0]?.sku ?? null,
+      brand: row.brand,
+      title: row.titleEn || row.titleUa,
+    })),
+  };
+}
+
 /** What a command would change; nothing is written. */
 export async function planPriceChange(
   client: Pick<
@@ -587,7 +707,9 @@ export type PriceButtonFactory = (
     | "price_formula"
     | "price_card_formula"
     | "price_card_client_text"
+    | "price_card_open"
     | "price_lead_undo"
+    | "order_client_text"
     | "price_ack",
   resourceId: string,
   label: string,
@@ -596,7 +718,13 @@ export type PriceButtonFactory = (
   value?: string
 ) => Promise<OpsTelegramInlineButton | null>;
 
-export type PriceReply = { text: string; replyMarkup?: OpsTelegramReplyMarkup; parseMode: "HTML" };
+export type PriceReply = {
+  text: string;
+  replyMarkup?: OpsTelegramReplyMarkup;
+  parseMode: "HTML";
+  /** Sent as a photo with the text as its caption; the text alone when Telegram cannot. */
+  photoUrl?: string;
+};
 
 function itemsOf(change: Pick<OpsPriceChange, "items">): PriceChangeItem[] {
   return Array.isArray(change.items) ? (change.items as unknown as PriceChangeItem[]) : [];
@@ -1610,17 +1738,24 @@ export async function buildProductCard(input: {
     PrismaClient,
     "shopProduct" | "shopSettings" | "opsSupplierItem" | "opsPriceWatchRun" | "opsPriceWatchSource"
   >;
-  sku: string;
+  /** A SKU from the chat; or the product picked from search results or a link. */
+  sku?: string;
+  productId?: string;
+  slug?: string;
+  variantId?: string | null;
   actor: PriceChangeActor | null;
   button: PriceButtonFactory;
 }): Promise<PriceReply | null> {
-  const found = await findItemBySku(input.client, input.sku);
+  const found =
+    input.productId || input.slug
+      ? await findItemByRef(input.client, input)
+      : await findItemBySku(input.client, input.sku ?? "");
   if (!found) return null;
   const { product, variant } = found;
   const rates = await loadRates(input.client);
   const owner = priceOwner(product, variant);
   const native = nativePrice(owner);
-  const sku = variant?.sku ?? product.sku ?? input.sku;
+  const sku = variant?.sku ?? product.sku ?? input.sku ?? product.slug;
   const source = sourceOfBrand(product.brand);
   const rivals = competitorSourcesForBrand(product.brand);
   const isOwner = Boolean(input.actor && canChangePrices(input.actor));
@@ -1757,7 +1892,16 @@ export async function buildProductCard(input: {
     links.push({ text: "🌐 У поставщика", url: supplier.url });
   const adminUrl = opsAdminLink(`/admin/shop/${product.id}`);
   if (/^https?:\/\//.test(adminUrl)) links.push({ text: "🛠 В админке", url: adminUrl });
-  if (links.length) rows.push(links);
+  links.push({
+    text: "🛒 На сайте",
+    url: productPageUrl({
+      slug: product.slug,
+      brand: product.brand,
+      vendor: measures?.vendor,
+      tags: measures?.tags,
+    }),
+  });
+  rows.push(links);
   const clientText = await input.button(
     "price_card_client_text",
     product.id,
@@ -1790,9 +1934,15 @@ export async function clientTextForProduct(input: {
 }) {
   const product = await input.client.shopProduct.findFirst({
     where: { id: input.productId, status: ShopCatalogStatus.ACTIVE },
-    select: { ...PRODUCT_SELECT, ...STOREFRONT_SELECT },
+    select: { ...PRODUCT_SELECT, ...STOREFRONT_SELECT, image: true },
   });
   if (!product) throw new Error("CALLBACK_RESOURCE_NOT_FOUND");
+  const image = product.image?.trim() ?? "";
+  const photoUrl = image.startsWith("https://")
+    ? image
+    : image.startsWith("/")
+      ? absoluteUrl(image)
+      : null;
   const variant =
     product.variants.find((entry) => entry.id === input.variantId) ??
     (product.variants.length === 1 ? product.variants[0] : null);
@@ -1812,11 +1962,69 @@ export async function clientTextForProduct(input: {
   return {
     message: "Текст для клиента — ниже.",
     link: null,
-    reply: { text: escapeTelegramHtml(text.join("\n")), parseMode: "HTML" } satisfies PriceReply,
+    // With the product photo: one message to forward to the customer.
+    reply: {
+      text: escapeTelegramHtml(text.join("\n")),
+      parseMode: "HTML",
+      ...(photoUrl ? { photoUrl } : {}),
+    } satisfies PriceReply,
   };
 }
 
-/** Text commands from the bot chat; null when the text is not about prices. */
+/** «товар Akrapovic M3»: the card when one product fits, buttons to pick from when several do. */
+async function productSearchReply(input: {
+  client: Pick<
+    PrismaClient,
+    "shopProduct" | "shopSettings" | "opsSupplierItem" | "opsPriceWatchRun" | "opsPriceWatchSource"
+  >;
+  query: string;
+  actor: PriceChangeActor;
+  button: PriceButtonFactory;
+}): Promise<PriceReply> {
+  const query = escapeTelegramHtml(input.query.slice(0, 80));
+  const notFound: PriceReply = {
+    text: `Не нашёл товар «${query}». Пришлите артикул, ссылку с сайта или другие слова.`,
+    parseMode: "HTML",
+  };
+  const found = await searchProductsByText(input.client, input.query);
+  if (!found.items.length) return notFound;
+  if (found.items.length === 1) {
+    return (
+      (await buildProductCard({
+        client: input.client,
+        productId: found.items[0].productId,
+        actor: input.actor,
+        button: input.button,
+      })) ?? notFound
+    );
+  }
+  const rows: OpsTelegramInlineButton[][] = [];
+  for (const item of found.items) {
+    const label = `${item.sku ? `${item.sku} · ` : ""}${item.title}`;
+    const button = await input.button(
+      "price_card_open",
+      item.productId,
+      label.length > 60 ? `${label.slice(0, 59)}…` : label
+    );
+    if (button) rows.push([button]);
+  }
+  const shown =
+    found.total > found.items.length
+      ? `нашёл ${found.total >= 60 ? "больше 60" : found.total}, вот ближайшие ${found.items.length}`
+      : `нашёл ${found.items.length}`;
+  return {
+    text: `🔎 «${query}»: ${shown}. Выберите товар:${
+      found.total > found.items.length ? "\nНет нужного — уточните: модель, кузов, год." : ""
+    }`,
+    parseMode: "HTML",
+    ...(rows.length ? { replyMarkup: { inline_keyboard: rows } } : {}),
+  };
+}
+
+/**
+ * Text commands from the bot chat: an order number, a product link, «товар …»
+ * (SKU or words), a bare SKU, price changes. Null when the text is none of these.
+ */
 export async function handlePriceMessage(input: {
   client: PrismaClient;
   actorAdminUserId: string;
@@ -1824,11 +2032,37 @@ export async function handlePriceMessage(input: {
   telegramChatId: bigint | null;
   button: PriceButtonFactory;
 }): Promise<PriceReply | null> {
-  const command = parsePriceCommand(input.text);
-  const bareSku = !command && looksLikeSku(input.text) ? input.text.trim() : null;
-  if (!command && !bareSku) return null;
+  const orderNumber = parseOrderCommand(input.text);
+  const linkSlug = orderNumber ? null : parseProductLink(input.text);
+  const command = orderNumber || linkSlug ? null : parsePriceCommand(input.text);
+  const bareSku =
+    !orderNumber && !linkSlug && !command && looksLikeSku(input.text) ? input.text.trim() : null;
+  if (!orderNumber && !linkSlug && !command && !bareSku) return null;
   const actor = await loadPriceChangeActor(input.client, input.actorAdminUserId);
   if (!actor) return null;
+  if (orderNumber) {
+    return (
+      (await buildOrderCard({
+        client: input.client,
+        orderNumber,
+        actor,
+        button: input.button,
+      })) ?? { text: `Не нашёл заказ «${escapeTelegramHtml(orderNumber)}».`, parseMode: "HTML" }
+    );
+  }
+  if (linkSlug) {
+    return (
+      (await buildProductCard({
+        client: input.client,
+        slug: linkSlug,
+        actor,
+        button: input.button,
+      })) ?? {
+        text: "Не нашёл этот товар в каталоге — возможно, его сняли с продажи.",
+        parseMode: "HTML",
+      }
+    );
+  }
   if (bareSku || command?.kind === "lookup") {
     const card = await buildProductCard({
       client: input.client,
@@ -1836,14 +2070,15 @@ export async function handlePriceMessage(input: {
       actor,
       button: input.button,
     });
+    if (card) return card;
     // A bare word that is not one of our SKUs stays a normal message for the team.
-    if (!card && bareSku) return null;
-    return (
-      card ?? {
-        text: `Не нашёл товар «${escapeTelegramHtml(command!.target)}».`,
-        parseMode: "HTML",
-      }
-    );
+    if (bareSku) return null;
+    return productSearchReply({
+      client: input.client,
+      query: command!.target,
+      actor,
+      button: input.button,
+    });
   }
   if (!canChangePrices(actor)) {
     return { text: "Менять цены из бота могут только владельцы.", parseMode: "HTML" };
