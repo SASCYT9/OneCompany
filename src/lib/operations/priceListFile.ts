@@ -870,6 +870,36 @@ async function planTableList(input: {
     }))
   );
   if (!plan.ok) return { error: plan.message };
+  // The list's own prices for the product card (owners see list price × markup there).
+  // Only for a brand priced by its list alone, and only under the brand's own markup.
+  if (source?.priceList?.file && !source.check && factor === ruleMarkup) {
+    const listed = new Map(rows.map((row) => [skuKey(row.sku), row]));
+    await savePriceWatchFacts(
+      client,
+      source.key,
+      plan.items.flatMap((item) => {
+        const row = listed.get(skuKey(item.sku));
+        return row
+          ? [
+              {
+                supplierKey: skuKey(row.sku),
+                productId: item.productId,
+                variantId: item.variantId,
+                sku: item.sku,
+                supplierSku: row.sku,
+                title: item.title,
+                url: null,
+                price: row.price,
+                currency: row.currency ?? item.currency,
+                available: null,
+                availability: null,
+                weightKg: null,
+              },
+            ]
+          : [];
+      })
+    );
+  }
   const changed = effectivePriceChanges(plan.items);
   const moves = changed
     .filter((item) => item.before && item.before > 0)

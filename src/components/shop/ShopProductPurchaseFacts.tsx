@@ -3,7 +3,11 @@ import { CreditCard, MessageCircle, PackageCheck, RotateCcw, Timer, Truck } from
 import type { ReactNode } from "react";
 import type { SupportedLocale } from "@/lib/seo";
 import type { ShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
-import { DEFAULT_BACKORDER_LEAD_DAYS, parseLeadTimeDays } from "@/lib/shopGoogleAvailability";
+import {
+  DEFAULT_BACKORDER_LEAD_DAYS,
+  isShopLeadTimeOnRequest,
+  parseLeadTimeDays,
+} from "@/lib/shopGoogleAvailability";
 import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
 
 type Props = {
@@ -77,11 +81,15 @@ export function ShopProductPurchaseFacts({
       ? isUa
         ? `відправлення орієнтовно ${shippingDate}`
         : `expected to ship around ${shippingDate}`
-      : parseLeadTimeDays(leadTimeText) !== null
-        ? lowerFirst(leadTimeText)
-        : isUa
-          ? `у середньому ${DEFAULT_BACKORDER_LEAD_DAYS} день, індивідуальні вироби — довше`
-          : `about ${DEFAULT_BACKORDER_LEAD_DAYS} days on average, longer for items made individually`;
+      : isShopLeadTimeOnRequest(leadTimeText)
+        ? isUa
+          ? "термін уточнюйте у менеджера"
+          : "ask your manager for the lead time"
+        : parseLeadTimeDays(leadTimeText) !== null
+          ? lowerFirst(leadTimeText)
+          : isUa
+            ? `у середньому ${DEFAULT_BACKORDER_LEAD_DAYS} день, індивідуальні вироби — довше`
+            : `about ${DEFAULT_BACKORDER_LEAD_DAYS} days on average, longer for items made individually`;
   }
 
   return (

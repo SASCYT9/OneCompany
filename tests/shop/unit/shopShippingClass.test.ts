@@ -101,6 +101,56 @@ test("generic types fall back to the title, unknown items count as medium", () =
   assert.equal(resolveShopShippingClass(item("", "", "", "")), "medium");
 });
 
+test("tips that come with an exhaust do not make it an accessory", () => {
+  assert.equal(
+    resolveShopShippingClass(
+      item(
+        "Premium Tuning",
+        "Valve controlled sports exhaust system with carbon titanium tailpipes for Mercedes – V 167 – AMG GLE 63",
+        "Спортивна вихлопна система з карбон – титановими насадками для Mercedes – V 167 – AMG GLE 63"
+      )
+    ),
+    "large"
+  );
+  assert.equal(
+    resolveShopShippingClass(
+      item(
+        "Performance Parts",
+        "Dinan Polished Free Flow Axle-Back Exhaust for BMW X3M (F97) & X4M (F98) 2020-2025",
+        "Dinan задня частина вихлопу (axle-back) з полірованими насадками для BMW X3M (F97) та X4M (F98)"
+      )
+    ),
+    "large"
+  );
+  // The tips themselves stay medium, in either language.
+  assert.equal(
+    resolveShopShippingClass(
+      item(
+        "Premium Tuning",
+        "Chrome tailpipes black – S 500 / S 580 for Mercedes – W 223 – AMG Line",
+        "Хромовані вихлопні труби чорного кольору – S 500 / S 580 для Mercedes – W 223 – AMG Line"
+      )
+    ),
+    "medium"
+  );
+  assert.equal(
+    resolveShopShippingClass(
+      item(
+        "",
+        "",
+        "AKRAPOVIC TP-CT/53 Насадки вихлопної системи для PORSCHE 536 Cayenne і Cayenne Coupe"
+      )
+    ),
+    "medium"
+  );
+  assert.equal(
+    resolveShopShippingClass(
+      item("", "AKRAPOVIC TP-CT/26 Exhaust Tailpipes (Carbon) for BMW M3 (F80)")
+    ),
+    "medium"
+  );
+});
+
 test("a specific type wins over words in the title", () => {
   assert.equal(
     resolveShopShippingClass(

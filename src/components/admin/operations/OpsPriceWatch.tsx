@@ -564,6 +564,7 @@ const CHANGE_ORIGIN: Record<string, string> = {
   card: "из карточки",
   undo: "отмена",
   price_list: "прайс",
+  lead_time: "срок на сайте",
 };
 
 function changeResult(change: PriceWatchRecentChange): { label: string; tone: Tone } {

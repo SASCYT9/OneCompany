@@ -504,6 +504,16 @@ test("any SKU + price sheet: the brand's rule or the caption markup; a purchase 
   assert.match(text, /Прайс «Eventuri IND price\.csv» \+10,0\s%/);
   assert.match(text, /с наценкой \+10,0\s% \(правило Eventuri: цена IND \+ 10 %\); валюта: \$/);
   assert.match(text, /Пропущено: 1 — нет на сайте/);
+  // The list's own prices stay for the product card (owners see list × markup there).
+  assert.deepEqual(
+    marked
+      .savedFacts()
+      .map((fact) => [fact.supplierKey, fact.productId, fact.variantId, fact.price, fact.currency]),
+    [
+      ["EVE-1", "p-EVE-1", "v-EVE-1", 100, "USD"],
+      ["EVE-2", "p-EVE-2", "v-EVE-2", 200, "USD"],
+    ]
+  );
 
   const captioned = fakeClient({ products });
   await handlePriceListFile({
@@ -527,6 +537,11 @@ test("any SKU + price sheet: the brand's rule or the caption markup; a purchase 
       ["EVE-2", 230],
     ],
     "the caption wins over the rule"
+  );
+  assert.equal(
+    captioned.savedFacts().length,
+    0,
+    "under another markup the card could not repeat the calculation, so the list is not kept"
   );
 
   // A brand without a price source: the file holds its site prices as they are.

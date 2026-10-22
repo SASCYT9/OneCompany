@@ -19,7 +19,9 @@ export const SHOP_SHIPPING_CLASS_PRICE_UAH: Readonly<Record<ShopShippingClass, n
 // First match wins. Specific small items and exhaust accessories come before
 // the size words, so "wheel spacers" or "exhaust tips" are not priced as
 // wheels or a whole exhaust system. `\b` only knows Latin letters, so the
-// Cyrillic whole words use letter lookarounds instead.
+// Cyrillic whole words use letter lookarounds instead. An accessory named
+// after "with" / "з" comes with the product ("exhaust system with carbon
+// tailpipes"), so it does not make the product an accessory.
 const SHIPPING_CLASS_RULES: ReadonlyArray<readonly [RegExp, ShopShippingClass]> = [
   [
     /chip.?tuning|чип.?тюн|racechip|\bjb4\b|\btuners?\b|тюнер|licen[cs]e|ліценз|\bflash|прошив|\bobd\b|sensor|датчик|spark plug|свіч(?:к|ок)|spacer|проставк|wheel accessor|\blug\b|wheel (?:nut|bolt|lock)|емблем|emblem|badge|sticker|наклейк|decal|brake pads?|колодк|blow.?off|\bbov\b|flex.?fuel|methanol|метанол|top mount|опор[аи]|powerxtra|чохол для ключ|key (?:case|cover|fob)/iu,
@@ -31,7 +33,7 @@ const SHIPPING_CLASS_RULES: ReadonlyArray<readonly [RegExp, ShopShippingClass]> 
     "small",
   ],
   [
-    /exhaust tips?|насадк|tail ?pipes?|аксесуари вихлопної|exhaust accessor|clamp|хомут|gasket|прокладк|накладк\S* радіатор|radiator cover/iu,
+    /(?<!(?:\b(?:with|incl\.?|including|and)|&|(?<![а-яіїєґ])(?:з|із|зі|та|і|й))\s+(?:\S+\s+){0,3})(?:exhaust tips?|насадк|tail ?pipes?|аксесуари вихлопної|exhaust accessor|clamp|хомут|gasket|прокладк|накладк\S* радіатор|radiator cover)/iu,
     "medium",
   ],
   // A steering wheel or bumper corners are not a set of wheels or a whole bumper.

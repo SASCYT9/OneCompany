@@ -17,6 +17,11 @@ import {
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
 import { createOpsExternalId } from "@/lib/operations/ids";
+import {
+  leadTimeButtonLabels,
+  leadTimeDigestLines,
+  planLeadTimeMarks,
+} from "@/lib/operations/leadTimeMarks";
 import type {
   OpsTelegramInlineButton,
   OpsTelegramReplyMarkup,
@@ -806,7 +811,9 @@ export type PriceWatchCallbackAction =
   | "price_ack"
   | "price_snooze"
   | "price_list_task"
-  | "price_formula";
+  | "price_formula"
+  | "price_lead_mark"
+  | "price_lead_clear";
 
 export type PriceWatchButtonFactory = (
   action: PriceWatchCallbackAction,
@@ -842,6 +849,11 @@ export function priceWatchPageUrl() {
 
 async function loadDigestEntries(client: PrismaClient, since: Date, weekly: boolean) {
   return entriesFromRuns(await latestPriceWatchRuns(client, weekly ? undefined : since));
+}
+
+/** Lead times to set or clear by the latest check of every source (see leadTimeMarks.ts). */
+export async function currentLeadTimePlan(client: PrismaClient, now = new Date()) {
+  return planLeadTimeMarks(client, await latestPriceWatchRuns(client), now);
 }
 
 /** Builds the digest or a reminder at send time from the current state; null = nothing to send. */
@@ -916,9 +928,25 @@ export async function buildPriceWatchNotification(input: {
         if (button) fixes.push([button]);
       }
     }
+    // Owners: the site's lead time for what the manufacturer has none of (and has again).
+    let ownerText = text;
+    if (input.canChangePrices) {
+      const plan = await currentLeadTimePlan(client, now);
+      const lines = leadTimeDigestLines(plan);
+      const withLines = [text, ...lines].join("\n\n");
+      if (lines.length && withLines.length <= 4_000) ownerText = withLines;
+      const labels = leadTimeButtonLabels(plan);
+      for (const [action, label] of [
+        ["price_lead_mark", labels.mark],
+        ["price_lead_clear", labels.clear],
+      ] as const) {
+        const button = label ? await input.button(action, input.jobId, label) : null;
+        if (button) fixes.push([button]);
+      }
+    }
     const keyboard = [...fixes, ...(markup?.inline_keyboard ?? [])];
     return {
-      text,
+      text: ownerText,
       parseMode: "HTML",
       ...(keyboard.length ? { replyMarkup: { inline_keyboard: keyboard } } : {}),
     };
