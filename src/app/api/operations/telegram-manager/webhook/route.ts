@@ -2,7 +2,10 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { opsMiniAppUrl } from "@/lib/operations/adminLinks";
 import { drainOpsJobs, drainSoonDueOpsJobs } from "@/lib/operations/jobs";
 import { OPS_KNOWLEDGE_FOLLOW_UP_JOB } from "@/lib/operations/knowledgeFollowUp";
-import { setOpsTelegramChatMenuButton } from "@/lib/operations/notifications";
+import {
+  setOpsTelegramChatMenuButton,
+  setOpsTelegramCommands,
+} from "@/lib/operations/notifications";
 import { createOpsJobStageExecutor } from "@/lib/operations/telegramJobs";
 import {
   createOpsTelegramWebhookReply,
@@ -23,7 +26,7 @@ import {
   syncOpsTelegramBatchFinalStatus,
   syncOpsTelegramBatchStatus,
 } from "@/lib/operations/telegramBatch";
-import { handleOpsTelegramBotUpdate } from "@/lib/operations/telegramBot";
+import { handleOpsTelegramBotUpdate, opsBotCommandList } from "@/lib/operations/telegramBot";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -145,6 +148,21 @@ export async function POST(request: NextRequest) {
             });
           } catch (error) {
             console.error("[operations.telegram.menu-button] failed", error);
+          }
+        });
+      }
+      const commands = botReply.commands;
+      if (commands) {
+        // The «/» list: the team's for everyone, and this person's (owners see /prices).
+        after(async () => {
+          try {
+            await setOpsTelegramCommands({ commands: opsBotCommandList(false) });
+            await setOpsTelegramCommands({
+              commands: opsBotCommandList(commands.owner),
+              chatId: commands.chatId,
+            });
+          } catch (error) {
+            console.error("[operations.telegram.commands] failed", error);
           }
         });
       }

@@ -40,6 +40,7 @@ import {
   type PriceWatchSummary,
 } from "@/lib/operations/priceWatchChecks";
 import {
+  escapeTelegramHtml,
   isPriceWatchEntryReportable,
   priceListReminderButtons,
   priceWatchDigestButtons,
@@ -854,6 +855,59 @@ async function loadDigestEntries(client: PrismaClient, since: Date, weekly: bool
 /** Lead times to set or clear by the latest check of every source (see leadTimeMarks.ts). */
 export async function currentLeadTimePlan(client: PrismaClient, now = new Date()) {
   return planLeadTimeMarks(client, await latestPriceWatchRuns(client), now);
+}
+
+/**
+ * «💰 Цены» for owners at any time: what the latest checks ask for — prices off
+ * the formula per source and site lead times — as the digest's one-tap buttons.
+ */
+export async function priceWatchOwnerActions(input: {
+  client: PrismaClient;
+  button: PriceWatchButtonFactory;
+  /** Kept with the lead-time buttons; the plan is rebuilt on press anyway. */
+  resourceId: string;
+  now?: Date;
+}) {
+  const runs = await latestPriceWatchRuns(input.client);
+  const [rows, plan] = await Promise.all([
+    input.client.opsPriceWatchSource.findMany({ select: { id: true, key: true } }),
+    planLeadTimeMarks(input.client, runs, input.now ?? new Date()),
+  ]);
+  const lines: string[] = [];
+  const buttons: OpsTelegramInlineButton[][] = [];
+  for (const entry of entriesFromRuns(runs)) {
+    const count = entry.findings.filter(
+      (finding) => finding.kind === "cheaper" || finding.kind === "dearer"
+    ).length;
+    const row = rows.find((candidate) => candidate.key === entry.key);
+    if (!count || !row) continue;
+    // A systemic difference is the supplier's market or format, never a one-tap fix.
+    const title = escapeTelegramHtml(entry.title);
+    if (systemicPriceWatchDifference(entry.summary, entry.checked)) {
+      lines.push(`⚠️ ${title}: ${count} — похоже на смену рынка или формата, проверьте вручную`);
+      continue;
+    }
+    lines.push(`✏️ ${title}: ${count} не по формуле`);
+    const button = await input.button(
+      "price_formula",
+      row.id,
+      `✏️ ${entry.title}: по формуле (${count})`,
+      "primary"
+    );
+    if (button) buttons.push([button]);
+  }
+  lines.push(...leadTimeDigestLines(plan));
+  const labels = leadTimeButtonLabels(plan);
+  for (const [action, label] of [
+    ["price_lead_mark", labels.mark],
+    ["price_lead_clear", labels.clear],
+  ] as const) {
+    const button = label ? await input.button(action, input.resourceId, label) : null;
+    if (button) buttons.push([button]);
+  }
+  const pricesUrl = priceWatchPageUrl();
+  if (pricesUrl) buttons.push([{ text: "📊 Страница цен", url: pricesUrl }]);
+  return { lines, buttons };
 }
 
 /** Builds the digest or a reminder at send time from the current state; null = nothing to send. */

@@ -9,7 +9,11 @@ import {
 } from "@prisma/client";
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
 import { extractOpsKnowledgeQuestion } from "@/lib/operations/knowledgeQuestion";
-import { priceMessageAck } from "@/lib/operations/priceCommands";
+import {
+  priceMessageAck,
+  promptedCommandText,
+  slashCommandText,
+} from "@/lib/operations/priceCommands";
 
 export const OPS_TELEGRAM_UPDATE_MAX_BYTES = 512 * 1024;
 export const OPS_TELEGRAM_RATE_LIMIT_PER_MINUTE = 120;
@@ -401,10 +405,19 @@ export function normalizeOpsTelegramUpdate(
 
   const botUsername = normalizedUsername(options.botUsername);
   const parsedBotId = asBigInt(options.botId);
-  const text =
+  const typed =
     String(message.text ?? message.caption ?? "")
       .trim()
       .slice(0, 20_000) || null;
+  // An answer to «🔎 Товар» / «📦 Заказ» is that command («товар …», «заказ …»),
+  // and so is «/product …» / «/order …». The bot works in private chats only,
+  // so a replied bot message is its own.
+  const text =
+    typed && message.text
+      ? message.reply_to_message?.from?.is_bot
+        ? promptedCommandText(message.reply_to_message.text, typed)
+        : slashCommandText(typed)
+      : typed;
   const repliedUser = message.reply_to_message?.from;
   const replyToTelegramUserId =
     repliedUser && !repliedUser.is_bot ? asBigInt(repliedUser.id) : null;
