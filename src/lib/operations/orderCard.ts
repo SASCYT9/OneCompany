@@ -3,19 +3,33 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPermissions";
 import { opsAdminLink } from "@/lib/operations/adminLinks";
 import type { OpsTelegramInlineButton } from "@/lib/operations/notifications";
+import {
+  exactSeat,
+  findNovaPoshtaCity,
+  novaPoshtaPriceText,
+  quoteNovaPoshta,
+  type NovaPoshtaSeat,
+} from "@/lib/operations/novaPoshta";
 import type { PriceButtonFactory, PriceReply } from "@/lib/operations/priceChanges";
-import { escapeTelegramHtml, formatPriceWatchMoney } from "@/lib/operations/priceWatchReport";
+import {
+  escapeTelegramHtml,
+  formatPriceWatchMoney,
+  ruPlural,
+} from "@/lib/operations/priceWatchReport";
 import type { PriceWatchCurrency } from "@/lib/operations/priceWatchSources";
+import { normalizeShopCurrencyRates } from "@/lib/shopAdminSettings";
 import {
   formatShopOrderStatus,
   orderPaymentLabel,
   orderPaymentMethodLabel,
 } from "@/lib/shopOrderPresentation";
+import { repriceShopSourceMoney } from "@/lib/shopPriceBookCurrency";
 
 /**
  * «OC-2026-00033» in the bot: where the order is — payment, delivery, items —
  * for people who may read orders, with the admin page, Nova Poshta tracking
- * and a text for the customer. Labels are the admin's own.
+ * and a text for the customer. Labels are the admin's own. Before it ships,
+ * what Nova Poshta charges to the customer's city.
  */
 
 const ORDER_SELECT = {
@@ -35,7 +49,7 @@ const ORDER_SELECT = {
   createdAt: true,
   items: {
     orderBy: { createdAt: "asc" },
-    select: { title: true, quantity: true, total: true },
+    select: { title: true, quantity: true, total: true, productId: true, variantId: true },
   },
   shipments: {
     orderBy: { createdAt: "desc" },
@@ -88,6 +102,99 @@ function cityOf(order: OrderRow) {
     .slice(0, 80);
 }
 
+const MEASURE_SELECT = {
+  weight: true,
+  length: true,
+  width: true,
+  height: true,
+  isDimensionsEstimated: true,
+} as const;
+
+type OrderCardClient = Pick<PrismaClient, "shopOrder" | "shopProduct" | "shopSettings">;
+
+/** The order's total in hryvnias: Nova Poshta insures the parcel for it. */
+async function orderUah(client: OrderCardClient, order: OrderRow) {
+  const currency = String(order.currency).toUpperCase();
+  const total = Number(order.total);
+  if (currency === "UAH") return total;
+  if (currency !== "EUR" && currency !== "USD") return null;
+  const settings = await client.shopSettings.findUnique({
+    where: { key: "shop" },
+    select: { currencyRates: true },
+  });
+  try {
+    return repriceShopSourceMoney(
+      {
+        eur: currency === "EUR" ? total : 0,
+        usd: currency === "USD" ? total : 0,
+        uah: 0,
+        sourceCurrency: currency,
+      },
+      normalizeShopCurrencyRates(settings?.currencyRates)
+    ).uah;
+  } catch {
+    return null;
+  }
+}
+
+/** Every unit is a box of its card's real weight; one missing weight prices nothing. */
+async function novaPoshtaOrderLine(
+  client: OrderCardClient,
+  order: OrderRow,
+  fetchImpl?: typeof fetch
+) {
+  const address =
+    order.shippingAddress && typeof order.shippingAddress === "object"
+      ? (order.shippingAddress as Record<string, unknown>)
+      : {};
+  const city = typeof address.city === "string" ? address.city.trim() : "";
+  if (!city) return null;
+  const ids = [
+    ...new Set(order.items.map((item) => item.productId).filter((id): id is string => Boolean(id))),
+  ];
+  const products = ids.length
+    ? await client.shopProduct.findMany({
+        where: { id: { in: ids } },
+        select: {
+          id: true,
+          ...MEASURE_SELECT,
+          variants: { select: { id: true, ...MEASURE_SELECT } },
+        },
+      })
+    : [];
+  const seats: NovaPoshtaSeat[] = [];
+  let missing = 0;
+  for (const item of order.items) {
+    const product = products.find((entry) => entry.id === item.productId);
+    const seat =
+      exactSeat(product?.variants.find((entry) => entry.id === item.variantId)) ??
+      exactSeat(product);
+    if (!seat) missing += 1;
+    else for (let unit = 0; unit < Math.max(1, item.quantity); unit += 1) seats.push(seat);
+  }
+  if (missing) {
+    return `🚚 Новая почта: нет веса у ${missing} из ${order.items.length} ${ruPlural(
+      order.items.length,
+      "товара",
+      "товаров",
+      "товаров"
+    )} — не посчитать.`;
+  }
+  try {
+    const target = await findNovaPoshtaCity(city, fetchImpl);
+    if (!target) return `🚚 Новая почта: не нашёл город «${escapeTelegramHtml(city)}».`;
+    const quote = await quoteNovaPoshta({
+      cityRef: target.ref,
+      seats,
+      declaredUah: await orderUah(client, order),
+      fetchImpl,
+    });
+    return `🚚 Новая почта до ${escapeTelegramHtml(target.name)}: ${novaPoshtaPriceText(quote)}`;
+  } catch {
+    return "🚚 Новая почта сейчас не отвечает — цену доставки не посчитал.";
+  }
+}
+
 /** What should happen next, as the shop's own order tasks see it. */
 function nextStep(order: OrderRow, ttn: string | null) {
   if (order.isDraft) return "черновик: ждёт согласования с клиентом";
@@ -107,11 +214,12 @@ async function loadOrder(
 
 /** The order card; null when there is no such order. */
 export async function buildOrderCard(input: {
-  client: Pick<PrismaClient, "shopOrder">;
+  client: OrderCardClient;
   orderNumber: string;
   actor: { permissions: string[] };
   button: PriceButtonFactory;
   now?: Date;
+  fetchImpl?: typeof fetch;
 }): Promise<PriceReply | null> {
   if (!canReadOrders(input.actor)) {
     return {
@@ -139,6 +247,12 @@ export async function buildOrderCard(input: {
     );
   if (order.items.length > ITEM_LINES) items.push(`…и ещё ${order.items.length - ITEM_LINES}`);
   const next = nextStep(order, ttn);
+  const novaPoshta =
+    order.deliveryMethod === "NOVA_POSHTA" &&
+    !ttn &&
+    !["CANCELLED", "REFUNDED", "DELIVERED", "SHIPPED"].includes(order.status)
+      ? await novaPoshtaOrderLine(input.client, order, input.fetchImpl)
+      : null;
   const statusLabel = formatShopOrderStatus("ua", order.status);
   const paymentLabel = orderPaymentLabel(order.paymentStatus);
   const lines = [
@@ -156,6 +270,7 @@ export async function buildOrderCard(input: {
     )}${city ? ` · ${escapeTelegramHtml(city)}` : ""} · ${
       ttn ? `ТТН ${escapeTelegramHtml(ttn)}` : "ТТН ещё нет"
     }`,
+    ...(novaPoshta ? [novaPoshta] : []),
     "",
     "Товары:",
     ...(items.length ? items : ["• нет позиций"]),

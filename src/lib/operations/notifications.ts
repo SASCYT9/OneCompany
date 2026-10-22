@@ -25,6 +25,9 @@ export type OpsTelegramReplyMarkup = {
   inline_keyboard: OpsTelegramInlineButton[][];
 };
 
+/** A prompt: Telegram opens a reply to the message, and the answer comes back to the bot. */
+export type OpsTelegramForceReply = { force_reply: true; input_field_placeholder?: string };
+
 function enabled(value: string | undefined) {
   return value === "1" || value?.toLocaleLowerCase("en-US") === "true";
 }
@@ -101,7 +104,7 @@ export async function sendOpsTelegramNotification(input: {
   chatId: bigint;
   text: string;
   replyToMessageId?: number | null;
-  replyMarkup?: OpsTelegramReplyMarkup;
+  replyMarkup?: OpsTelegramReplyMarkup | OpsTelegramForceReply;
   /** HTML texts are built within Telegram's limit by their builder and never cut here. */
   parseMode?: "HTML";
   token?: string | null;
@@ -186,7 +189,7 @@ export async function sendOpsTelegramPhoto(input: {
   photoUrl: string;
   caption: string;
   replyToMessageId?: number | null;
-  replyMarkup?: OpsTelegramReplyMarkup;
+  replyMarkup?: OpsTelegramReplyMarkup | OpsTelegramForceReply;
   parseMode?: "HTML";
   token?: string | null;
   fetchImpl?: typeof fetch;

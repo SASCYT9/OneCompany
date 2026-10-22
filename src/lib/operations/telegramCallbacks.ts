@@ -24,6 +24,7 @@ import {
   cancelPriceChange,
   clientTextForProduct,
   confirmPriceChange,
+  deliveryPromptForProduct,
   proposeFormulaForProduct,
   proposeFormulaForSource,
   undoPriceChange,
@@ -79,6 +80,7 @@ export const OPS_TELEGRAM_CALLBACK_ACTIONS = [
   "price_lead_undo",
   "price_card_open",
   "order_client_text",
+  "price_card_delivery",
 ] as const;
 
 /** Site lead times from the digest: the resource is the digest job; undo — the change. */
@@ -92,6 +94,7 @@ const PRICE_LEAD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
 const PRICE_CARD_ACTIONS: readonly OpsTelegramCallbackAction[] = [
   "price_card_formula",
   "price_card_client_text",
+  "price_card_delivery",
   "price_card_open",
   "order_client_text",
 ];
@@ -1588,6 +1591,12 @@ async function executePriceChangeCallback(input: {
       });
     case "price_card_client_text":
       return clientTextForProduct({
+        client: input.client,
+        productId: input.resourceId,
+        variantId: input.value ?? null,
+      });
+    case "price_card_delivery":
+      return deliveryPromptForProduct({
         client: input.client,
         productId: input.resourceId,
         variantId: input.value ?? null,

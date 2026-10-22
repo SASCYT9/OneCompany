@@ -14,7 +14,11 @@ import type {
   OpsTelegramReplyMarkup,
 } from "@/lib/operations/notifications";
 import { canChangePrices } from "@/lib/operations/priceChanges";
-import { OPS_ORDER_PROMPT, OPS_PRODUCT_PROMPT } from "@/lib/operations/priceCommands";
+import {
+  OPS_DELIVERY_PROMPT,
+  OPS_ORDER_PROMPT,
+  OPS_PRODUCT_PROMPT,
+} from "@/lib/operations/priceCommands";
 import { priceWatchOwnerActions, type PriceWatchButtonFactory } from "@/lib/operations/priceWatch";
 import { parseOpsRepeatRule, type OpsRepeatRule } from "@/lib/operations/recurrence";
 import {
@@ -41,6 +45,7 @@ export const OPS_BOT_MENU = {
   ask: "❓ Спросить базу",
   product: "🔎 Товар",
   order: "📦 Заказ",
+  delivery: "🚚 Доставка",
   prices: "💰 Цены",
   app: "📱 Мой день",
 } as const;
@@ -54,6 +59,7 @@ export type OpsBotCommand =
   | "ask"
   | "product"
   | "order"
+  | "delivery"
   | "prices"
   | "app";
 
@@ -71,6 +77,7 @@ const SLASH_COMMANDS: Record<string, OpsBotCommand> = {
   product: "product",
   find: "product",
   order: "order",
+  delivery: "delivery",
   prices: "prices",
   price: "prices",
   app: "app",
@@ -84,6 +91,7 @@ const LABEL_COMMANDS = new Map<string, OpsBotCommand>([
   [OPS_BOT_MENU.ask, "ask"],
   [OPS_BOT_MENU.product, "product"],
   [OPS_BOT_MENU.order, "order"],
+  [OPS_BOT_MENU.delivery, "delivery"],
   [OPS_BOT_MENU.prices, "prices"],
   [OPS_BOT_MENU.app, "app"],
 ]);
@@ -96,6 +104,7 @@ export function opsBotCommandList(owner: boolean) {
     { command: "new", description: "➕ Новая задача" },
     { command: "product", description: "🔎 Товар: артикул, название или ссылка" },
     { command: "order", description: "📦 Заказ по номеру" },
+    { command: "delivery", description: "🚚 Доставка Новой почтой: артикул и город" },
     ...(owner ? [{ command: "prices", description: "💰 Цены и сроки: что исправить" }] : []),
     { command: "ask", description: "❓ Вопрос к базе знаний" },
     { command: "app", description: "📱 Мой день" },
@@ -357,9 +366,9 @@ export function buildOpsBotKeyboard(miniAppUrl: string | null, canChangePrices =
     keyboard: [
       [{ text: OPS_BOT_MENU.today }, { text: OPS_BOT_MENU.mine }],
       [{ text: OPS_BOT_MENU.create }, { text: OPS_BOT_MENU.ask }],
+      [{ text: OPS_BOT_MENU.product }, { text: OPS_BOT_MENU.order }],
       [
-        { text: OPS_BOT_MENU.product },
-        { text: OPS_BOT_MENU.order },
+        { text: OPS_BOT_MENU.delivery },
         ...(canChangePrices ? [{ text: OPS_BOT_MENU.prices }] : []),
       ],
       // A plain button: Telegram gives keyboard-button web apps no signed init
@@ -389,6 +398,7 @@ export function buildOpsBotWelcome(input: {
     "🔎 Товары и заказы",
     "• Артикул, «товар Akrapovic M3» или ссылка с сайта — карточка: наличие, доставка, вес, конкуренты и «📝 Текст для клиента».",
     "• Номер заказа, например «OC-2026-00033» — оплата, доставка, товары.",
+    "• «доставка 1021000B Одесса» или «🚚 Доставка» — Новая почта из Киева: до отделения и до дверей, со страховкой, срок.",
     "",
     "❓ База знаний",
     "• «? доставка из Великобритании» — отвечу по базе.",
@@ -845,6 +855,16 @@ export async function handleOpsTelegramBotUpdate(input: {
           OPS_ORDER_PROMPT,
           "Например: «OC-2026-00033». Покажу оплату, доставку и товары.",
           "OC-2026-…"
+        ),
+      };
+    }
+    if (command === "delivery") {
+      return {
+        body: promptBody(
+          update,
+          OPS_DELIVERY_PROMPT,
+          "Например: «1021000B Одесса». Посчитаю Новую почту до отделения и до дверей.",
+          "Артикул и город"
         ),
       };
     }
