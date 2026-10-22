@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
@@ -20,10 +19,6 @@ import { EventuriAvailabilityBadge } from "@/components/shop/EventuriAvailabilit
 import type { ShopStock } from "@/lib/shopCatalog";
 import type { SupportedLocale } from "@/lib/seo";
 import { shouldShowEventuriStockBadge } from "@/lib/shopStockUi";
-
-const EventuriAirflowScene = dynamic(() => import("./EventuriAirflowScene"), {
-  ssr: false,
-});
 
 type EventuriMoney = {
   eur: number;
@@ -634,7 +629,6 @@ export default function EventuriMachineAtelier({
         darkSrc="/images/eventuri/eventuri-airflow-dark.png"
         className="h-[48rem] sm:h-[54rem]"
       />
-      <EventuriAirflowScene reducedMotion={Boolean(reduceMotion)} />
 
       <section className="relative z-10 border-b border-black/10 pt-24 dark:border-white/10 sm:pt-28 lg:pt-32">
         <div className="mx-auto min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8">
