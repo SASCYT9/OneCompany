@@ -22,8 +22,15 @@ const NP_MAX_SEATS = 20;
 
 export const NP_OTHER_CARRIERS_NOTE = "Укрпошту, Meest и DHL посчитаю, когда будут ключи их API.";
 
-/** One box: weight in kg, sides in cm when known. */
-export type NovaPoshtaSeat = { weightKg: number; box: readonly [number, number, number] | null };
+/** One box: weight in kg, sides in cm when known; an estimate is priced too, and marked. */
+export type NovaPoshtaSeat = {
+  weightKg: number;
+  box: readonly [number, number, number] | null;
+  estimated?: boolean;
+};
+
+/** «≈ оценка» after a price that rests on an estimated weight or box. */
+export const NP_ESTIMATE_MARK = "≈ оценка";
 
 export type NovaPoshtaQuote = {
   /** To a branch, with no extra insurance. */
@@ -45,13 +52,14 @@ type Measures = {
   isDimensionsEstimated: boolean;
 };
 
-/** A seat from a card's own measures; an estimate prices nothing. */
-export function exactSeat(entry: Measures | null | undefined): NovaPoshtaSeat | null {
-  if (!entry || entry.isDimensionsEstimated || !(Number(entry.weight) > 0)) return null;
+/** A seat from a card's own measures; an estimate is marked as one. */
+export function cardSeat(entry: Measures | null | undefined): NovaPoshtaSeat | null {
+  if (!entry || !(Number(entry.weight) > 0)) return null;
   const sides = [entry.length, entry.width, entry.height].map(Number);
   return {
     weightKg: Number(entry.weight),
     box: sides.every((side) => side > 0) ? [sides[0], sides[1], sides[2]] : null,
+    ...(entry.isDimensionsEstimated ? { estimated: true } : {}),
   };
 }
 
@@ -188,8 +196,8 @@ export function novaPoshtaPriceText(quote: NovaPoshtaQuote) {
 }
 
 /** The product card's line: Kyiv → any regional centre. */
-export function novaPoshtaCardLine(quote: NovaPoshtaQuote) {
-  return `🚚 Новая почта по Украине: ${novaPoshtaPriceText(quote)}${
+export function novaPoshtaCardLine(quote: NovaPoshtaQuote, estimated = false) {
+  return `🚚 Новая почта по Украине${estimated ? ` (${NP_ESTIMATE_MARK})` : ""}: ${novaPoshtaPriceText(quote)}${
     quote.deliveryDate ? `; доставка ${novaPoshtaDeliveryDay(quote.deliveryDate)}` : ""
   }`;
 }

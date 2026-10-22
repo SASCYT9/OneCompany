@@ -4,8 +4,9 @@ import { ADMIN_PERMISSIONS, matchesAdminPermission } from "@/lib/admin/adminPerm
 import { opsAdminLink } from "@/lib/operations/adminLinks";
 import type { OpsTelegramInlineButton } from "@/lib/operations/notifications";
 import {
-  exactSeat,
+  cardSeat,
   findNovaPoshtaCity,
+  NP_ESTIMATE_MARK,
   novaPoshtaPriceText,
   quoteNovaPoshta,
   type NovaPoshtaSeat,
@@ -166,9 +167,10 @@ async function novaPoshtaOrderLine(
   let missing = 0;
   for (const item of order.items) {
     const product = products.find((entry) => entry.id === item.productId);
-    const seat =
-      exactSeat(product?.variants.find((entry) => entry.id === item.variantId)) ??
-      exactSeat(product);
+    const own =
+      cardSeat(product?.variants.find((entry) => entry.id === item.variantId)) ?? cardSeat(product);
+    // The product's estimate flag covers a variant that inherited its numbers.
+    const seat = own && product?.isDimensionsEstimated ? { ...own, estimated: true } : own;
     if (!seat) missing += 1;
     else for (let unit = 0; unit < Math.max(1, item.quantity); unit += 1) seats.push(seat);
   }
@@ -189,7 +191,14 @@ async function novaPoshtaOrderLine(
       declaredUah: await orderUah(client, order),
       fetchImpl,
     });
-    return `🚚 Новая почта до ${escapeTelegramHtml(target.name)}: ${novaPoshtaPriceText(quote)}`;
+    const estimated = seats.some((seat) => seat.estimated);
+    // Oversize parcels on estimates are quoted by hand; a box over 1.5 m is oversize.
+    if (estimated && seats.some((seat) => seat.box && Math.max(...seat.box) > 150)) {
+      return "🚚 Негабарит — цену доставки уточните у перевозчика.";
+    }
+    return `🚚 Новая почта до ${escapeTelegramHtml(target.name)}${
+      estimated ? ` (${NP_ESTIMATE_MARK})` : ""
+    }: ${novaPoshtaPriceText(quote)}`;
   } catch {
     return "🚚 Новая почта сейчас не отвечает — цену доставки не посчитал.";
   }

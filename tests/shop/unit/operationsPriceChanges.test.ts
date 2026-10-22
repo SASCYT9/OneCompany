@@ -930,6 +930,8 @@ test("a price-list brand's card says where the price comes from and what is not 
     sku: "EVE-G8XMV2-CF-INT",
     actor: owner,
     button: noButtons as never,
+    // No network in tests: Nova Poshta «down», the card keeps the size-class estimate.
+    fetchImpl: (async () => new Response("", { status: 503 })) as unknown as typeof fetch,
   });
   const text = String(estimated?.text);
   assert.match(text, /На сайте: <b>\$3\s294,50<\/b>/);
