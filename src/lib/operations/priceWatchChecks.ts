@@ -226,12 +226,26 @@ const NOT_FOUND_REDIRECT = /(?:^|\/)404(?:\.html?)?(?:$|[/?#])/i;
  * One GET with retries on 429/5xx. Returns null when the page is gone: 404/410,
  * or a redirect to a 404 page, which is caught without loading that page.
  */
-async function fetchSupplier(ctx: PriceWatchContext, url: string, accept: string) {
+/**
+ * `market`: a Shopify Markets country (`localization` cookie). Without it a
+ * store prices by the visitor's country, and the cron runs in Frankfurt.
+ */
+async function fetchSupplier(
+  ctx: PriceWatchContext,
+  url: string,
+  accept: string,
+  options: { market?: string } = {}
+) {
+  const headers = {
+    "user-agent": PRICE_WATCH_USER_AGENT,
+    accept,
+    ...(options.market ? { cookie: `localization=${options.market}` } : {}),
+  };
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     let status = 0;
     try {
       let response = await ctx.fetchImpl(url, {
-        headers: { "user-agent": PRICE_WATCH_USER_AGENT, accept },
+        headers,
         signal: AbortSignal.timeout(20_000),
         cache: "no-store",
         redirect: "manual",
@@ -240,7 +254,7 @@ async function fetchSupplier(ctx: PriceWatchContext, url: string, accept: string
       if (response.status >= 300 && response.status < 400 && location) {
         if (NOT_FOUND_REDIRECT.test(new URL(location, url).pathname)) return null;
         response = await ctx.fetchImpl(new URL(location, url).toString(), {
-          headers: { "user-agent": PRICE_WATCH_USER_AGENT, accept },
+          headers,
           signal: AbortSignal.timeout(20_000),
           cache: "no-store",
           redirect: "follow",
@@ -586,17 +600,20 @@ export function shopifyRegularPrice(variant: ShopifyFeedVariant) {
 
 export async function fetchShopifyFeed(
   ctx: PriceWatchContext,
-  feed: Pick<PriceWatchShopifyFeed, "base" | "collection" | "query">
+  feed: Pick<PriceWatchShopifyFeed, "base" | "collection" | "query" | "market">
 ) {
   const root = `${feed.base.replace(/\/$/, "")}${
     feed.collection ? `/collections/${feed.collection}` : ""
   }/products.json`;
   const products: ShopifyFeedProduct[] = [];
+  // The market is asked for twice, in the URL and the cookie, so the server's country never wins.
+  const market = feed.market ? `&country=${encodeURIComponent(feed.market)}` : "";
   for (let page = 1; page <= 60; page += 1) {
     const response = await fetchSupplier(
       ctx,
-      `${root}?limit=250&page=${page}${feed.query ?? ""}`,
-      "application/json"
+      `${root}?limit=250&page=${page}${feed.query ?? ""}${market}`,
+      "application/json",
+      { market: feed.market }
     );
     if (!response) throw new PriceWatchFetchError(404, root);
     const body = (await response.json()) as { products?: ShopifyFeedProduct[] };
@@ -744,11 +761,14 @@ type CtStoredPricing = {
   variants?: CtStoredVariant[];
 };
 
+/** The formula starts from the UK price; Germany (where the cron runs) is shown 2.4 % more. */
+const CT_CARBON_MARKET = "GB";
+
 async function checkCtCarbon(def: PriceWatchSourceDefinition, ctx: PriceWatchContext) {
   const base = def.url ?? "https://www.ctcarbon.co";
   const [catalog, feed] = await Promise.all([
     loadPriceWatchCatalog(ctx.client, def.brands, ["ct_carbon_import"]),
-    fetchShopifyFeed(ctx, { base }),
+    fetchShopifyFeed(ctx, { base, market: CT_CARBON_MARKET }),
   ]);
   const byId = new Map(feed.map((product) => [String(product.id), product]));
   const findings: PriceWatchFinding[] = [];
