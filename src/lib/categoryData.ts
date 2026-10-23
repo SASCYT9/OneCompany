@@ -158,6 +158,7 @@ const unfilteredCategoryData: CategoryData[] = [
       "EVP",
       "RPM SXS",
       "Supersprint",
+      "Valvetronic Designs",
       "Tubi Style",
     ],
   },

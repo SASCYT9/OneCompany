@@ -1,0 +1,109 @@
+{
+ "14882962866544": {
+  "titleEn": "Valvetronic Designs Blackbear™ Valved Exhaust System for Jeep Wrangler JL / JLU",
+  "titleUa": "Valvetronic Designs — клапанна вихлопна система Blackbear™ для Jeep Wrangler JL / JLU",
+  "vehicles": [
+   {
+    "make": "Jeep",
+    "model": "Wrangler",
+    "chassisCode": "JL",
+    "engine": "2.0L Turbo",
+    "market": null,
+    "note": "2-door",
+    "yearFrom": null,
+    "yearTo": null
+   },
+   {
+    "make": "Jeep",
+    "model": "Wrangler",
+    "chassisCode": "JL",
+    "engine": "3.6L V6",
+    "market": null,
+    "note": "2-door",
+    "yearFrom": null,
+    "yearTo": null
+   },
+   {
+    "make": "Jeep",
+    "model": "Wrangler",
+    "chassisCode": "JLU",
+    "engine": "2.0L Turbo",
+    "market": null,
+    "note": "4-door Unlimited",
+    "yearFrom": null,
+    "yearTo": null
+   },
+   {
+    "make": "Jeep",
+    "model": "Wrangler",
+    "chassisCode": "JLU",
+    "engine": "3.6L V6",
+    "market": null,
+    "note": "4-door Unlimited",
+    "yearFrom": null,
+    "yearTo": null
+   }
+  ]
+ },
+ "14762345595248": {
+  "titleEn": "Valvetronic Designs True F1 / Valved Exhaust System for Lamborghini Huracan Performante / EVO / STO / Tecnica",
+  "titleUa": "Valvetronic Designs — вихлопна система True F1 або клапанна для Lamborghini Huracan Performante / EVO / STO / Tecnica"
+ },
+ "7497829056548": {
+  "specsEn": [
+   {
+    "label": "Product type",
+    "value": "Free flow headers"
+   }
+  ],
+  "specsUa": [
+   {
+    "label": "Тип",
+    "value": "Випускні колектори без каталізаторів (free flow)"
+   }
+  ],
+  "fitmentEn": [
+   "Porsche GT3 991.1",
+   "Porsche GT3 991.2"
+  ],
+  "fitmentUa": [
+   "Porsche GT3 991.1",
+   "Porsche GT3 991.2"
+  ]
+ },
+ "5061123047460": {
+  "inBoxEn": [
+   "Replacement electronic exhaust valve spring (sold individually)"
+  ],
+  "inBoxUa": [
+   "Змінна пружина електронного клапана вихлопу (продається поштучно)"
+  ]
+ },
+ "7274245881892": {
+  "fitmentEn": [
+   "BMW G8x Valvetronic Designs midpipe and axle-back systems",
+   "Exhaust piping of the matching diameter"
+  ],
+  "fitmentUa": [
+   "Середня секція (midpipe) та аксл-бек Valvetronic Designs для BMW G8x",
+   "Вихлопні труби відповідного діаметра"
+  ]
+ },
+ "7274243260452": {
+  "inBoxEn": [
+   "Replacement control box power wire (cigarette lighter adaptor)"
+  ],
+  "inBoxUa": [
+   "Кабель живлення блока керування (адаптер прикурювача)"
+  ]
+ },
+ "6710632480804": {
+  "titleUa": "Valvetronic Designs — хомут середньої секції 80 мм для BMW F Chassis"
+ },
+ "14656121569648": {
+  "seoTitleUa": "Вихлопна система Valvetronic BMW X7 G07 B58"
+ },
+ "7237532123172": {
+  "seoTitleUa": "Вихлопна система Valvetronic для Porsche 992 GT3 / GT3 RS"
+ }
+}

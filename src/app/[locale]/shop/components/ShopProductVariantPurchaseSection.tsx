@@ -15,6 +15,7 @@ import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
 import { requiresUrbanBodyKitQuote } from "@/lib/shopProductPurchasePolicy";
 import { googleProductAvailability } from "@/lib/shopGoogleAvailability";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
+import SUPPLIER_OPTION_VALUES_UA from "@/lib/shopOptionValueLabelsUa.json";
 import type {
   ShopProduct,
   ShopProductOptionSummary,
@@ -92,6 +93,12 @@ const UA_OPTION_NAMES: Record<string, string> = {
   "Engine Type": "Тип двигуна",
   "Factory Aero Pack": "Заводський аеропакет",
   Fitting: "Монтаж",
+  Tips: "Насадки",
+  "Front Pipes": "Передні труби",
+  Application: "Застосування",
+  System: "Система",
+  Valves: "Клапани",
+  Quantity: "Кількість",
 };
 
 const EN_OPTION_VALUES: Array<[RegExp, string]> = [
@@ -176,7 +183,12 @@ function localizeOptionValue(value: string, isUa: boolean) {
     if (size[2].toLowerCase() === "in") return `${amount}"`;
     return `${amount} ${isUa ? "мм" : "mm"}`;
   }
-  if (isUa) return UA_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
+  if (isUa) {
+    // Reviewed labels for long supplier choices (Valvetronic systems, tips, front pipes).
+    const label = (SUPPLIER_OPTION_VALUES_UA as Record<string, string>)[value.trim()];
+    if (label) return label;
+    return UA_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
+  }
   return EN_OPTION_VALUES.find(([pattern]) => pattern.test(value))?.[1] ?? value;
 }
 

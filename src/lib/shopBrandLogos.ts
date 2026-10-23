@@ -43,6 +43,7 @@ export const getBrandLogoPath = (brandName: string): string | null => {
   if (b === "apr" || b === "apr performance") return "/logos/apr-performance-white.png";
   if (b.includes("link ecu")) return "/logos/link-ecu.svg";
   if (b.includes("ct carbon")) return "/logos/ct-carbon-white.png";
+  if (b.includes("valvetronic designs")) return "/logos/valvetronic-designs-white.png";
   return null;
 };
 
@@ -60,6 +61,7 @@ export const getBrandLightLogoPath = (brandName: string, fallback: string): stri
   if (b.includes("dinan")) return "/logos/dinan-black.png";
   if (b === "apr" || b === "apr performance") return "/logos/apr-performance-black.png";
   if (b.includes("ct carbon")) return "/logos/ct-carbon-black.png";
+  if (b.includes("valvetronic designs")) return "/logos/valvetronic-designs-black.png";
   return fallback;
 };
 
@@ -95,6 +97,7 @@ const LOGO_WIDE_MARK_BRANDS = [
   "remus",
   "stopflex",
   "urban",
+  "valvetronic designs",
 ];
 
 export function brandLogoNeedsContrastLift(brandName: string) {
