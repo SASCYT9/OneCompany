@@ -735,6 +735,7 @@ const KNOWN_BRANDS = [
   "Armytrix",
   "FI Exhaust",
   "Valvetronic",
+  "Valvetronic Designs",
   "Frequency Intelligence",
 ];
 

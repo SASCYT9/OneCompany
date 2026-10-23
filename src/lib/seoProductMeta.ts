@@ -146,13 +146,15 @@ function vehicleKeepingCuts(name: string, maxLength: number): string[] {
 
 /**
  * Supplier part numbers belong in a title; internal codes (Shopify variant
- * ids of Burger, Urban's URB-… codes) and kit lists ("A + B*2") do not.
+ * ids of Burger, Valvetronic's VTD-<product id>, Urban's URB-… codes) and kit
+ * lists ("A + B*2") do not.
  */
 function isTitleSku(sku: string): boolean {
   return (
     sku.length <= 20 &&
     !/\s\+\s|\*/.test(sku) &&
     !/^BURGER-V-\d+$/i.test(sku) &&
+    !/^VTD-\d+$/i.test(sku) &&
     !/^URB-[A-Z]+-\d+-V\d+$/i.test(sku)
   );
 }

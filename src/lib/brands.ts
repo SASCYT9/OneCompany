@@ -779,6 +779,14 @@ export const brandsUsa: LocalBrand[] = [
     website: "https://www.turnermotorsport.com",
   },
   {
+    name: "Valvetronic Designs",
+    description:
+      "American valved exhaust specialists: sport and F1 race exhaust systems, downpipes and headers with electronic valve control — loud when you want it, quiet when you need it.",
+    descriptionUA:
+      "Американські спеціалісти з клапанних вихлопних систем: спортивні та F1-вихлопи, даунпайпи й колектори з електронним керуванням клапанами — гучно, коли хочеться, і тихо, коли потрібно.",
+    website: "https://valvetronic.com",
+  },
+  {
     name: "Vargas Turbo",
     description:
       "BMW turbo technology specialists offering upgraded turbochargers and supporting modifications for significant power gains.",
@@ -2512,6 +2520,7 @@ export const brandMetadata: Record<string, BrandMetadata> = {
   Stillen: { country: "USA", subcategory: "Engine" },
   "Titan Motorsport": { country: "USA", subcategory: "Engine" },
   "Turner Motorsport": { country: "USA", subcategory: "Engine" },
+  "Valvetronic Designs": { country: "USA", subcategory: "Exhaust" },
   "Vargas Turbo": { country: "USA", subcategory: "Engine" },
   "Velos Designwerks": { country: "USA", subcategory: "Wheels" },
   "Verus Engineering": { country: "USA", subcategory: "Aero" },
