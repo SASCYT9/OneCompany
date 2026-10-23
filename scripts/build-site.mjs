@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { mkdirSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
@@ -39,6 +40,15 @@ run(tsxCli, ["scripts/generate-shop-filter-indexes.ts"]);
 // Type-check on its own, before `next build`. Inside the build the check ran
 // while webpack still held its memory, and the 8 GB Vercel machine went out
 // of memory (2026-10-17, twice). The build then skips its own check.
-run(tscCli, ["--noEmit", "-p", "tsconfig.build.json"]);
+// The incremental state lives in .next/cache, which Vercel restores between
+// builds, so only files changed since the last build are re-checked.
+mkdirSync(path.resolve(".next", "cache"), { recursive: true });
+run(tscCli, [
+  "--noEmit",
+  "-p",
+  "tsconfig.build.json",
+  "--tsBuildInfoFile",
+  path.join(".next", "cache", "tsc-build.tsbuildinfo"),
+]);
 environment.ONECOMPANY_TYPECHECKED = "1";
 run(nextCli, ["build", "--webpack"]);

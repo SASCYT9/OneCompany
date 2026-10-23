@@ -26,6 +26,17 @@ export default function GlobalPresence({ locale }: { locale: string }) {
   const [selected, setSelected] = useState(0);
   const [officeOpen, setOfficeOpen] = useState(false);
   const addressRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [onScreen, setOnScreen] = useState(false);
+  // The flight lines animate only while the map is visible; the footer sits on
+  // every page and its blurred strokes otherwise repaint forever off screen.
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (!officeOpen || !window.matchMedia("(max-width: 1023px)").matches) return;
     const frame = requestAnimationFrame(() => {
@@ -43,8 +54,10 @@ export default function GlobalPresence({ locale }: { locale: string }) {
   const typography = getTypography(resolveLocale(locale));
   return (
     <section
+      ref={sectionRef}
       id="global-presence"
       className={styles.presence}
+      data-paused={onScreen ? undefined : ""}
       aria-label={ua ? "Міжнародна присутність OneCompany" : "OneCompany global presence"}
     >
       <h2 className={`${styles.heading} ${typography.h3} font-display font-semibold`}>

@@ -8,6 +8,8 @@
   z-index: -10;
   overflow: hidden;
   background-color: hsl(var(--background));
+  /* Painted once on its own layer: scrolling never repaints the backdrop. */
+  will-change: transform;
 }
 
 /* Subtle Film Grain / Noise Overlay */
@@ -22,14 +24,14 @@
   z-index: 1;
 }
 
-/* Base glowing lights to illuminate the void */
+/* Base glowing lights to illuminate the void. Static and unblurred: the radial
+   gradient is soft already, and an animated blur(120px) kept laptop GPUs busy
+   on every shop page (fans spinning on the catalog, 2026-10-23). */
 .shop-ambient-glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
   z-index: 0;
   opacity: 0.4;
-  animation: glow-pulse-breathe 18s ease-in-out infinite alternate;
 }
 
 .shop-ambient-glow.glow-1 {
@@ -40,7 +42,6 @@
   background: radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%);
   top: -20%;
   right: -10%;
-  animation-delay: 0s;
 }
 
 .shop-ambient-glow.glow-2 {
@@ -51,7 +52,6 @@
   background: radial-gradient(circle, hsl(var(--foreground) / 0.04) 0%, transparent 70%);
   bottom: -20%;
   left: -20%;
-  animation-delay: -5s;
 }
 
 .shop-ambient-glow.glow-3 {
@@ -62,21 +62,4 @@
   background: radial-gradient(circle, hsl(var(--foreground) / 0.05) 0%, transparent 70%);
   top: 40%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  animation-delay: -9s;
-}
-
-@keyframes glow-pulse-breathe {
-  0% {
-    transform: scale(0.9) translate(0, 0);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.05) translate(20px, 10px);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(0.95) translate(-10px, -20px);
-    opacity: 0.3;
-  }
 }

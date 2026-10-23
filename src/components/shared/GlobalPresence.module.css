@@ -55,6 +55,10 @@
   stroke-width: 4;
   opacity: 0.6;
 }
+.presence[data-paused] .flight,
+.presence[data-paused] .flightGlow {
+  animation-play-state: paused;
+}
 .point {
   color: #8ba3bb;
 }
