@@ -35,12 +35,12 @@ const segmentMeta: Record<
     ua: {
       title: "Європейські бренди тюнінгу | OneCompany",
       description:
-        "Європейські бренди тюнінгу для авто і мото: OEM та performance рішення, офіційний імпорт і професійний підбір.",
+        "Європейські бренди тюнінгу для авто і мото: OEM та performance рішення, імпорт оригінальної продукції і професійний підбір.",
     },
     en: {
       title: "European Tuning Brands | OneCompany",
       description:
-        "European tuning brands for auto and moto projects with official importer support and reliable logistics.",
+        "European tuning brands for auto and moto projects with genuine products, importer support and reliable logistics.",
     },
   },
   oem: {

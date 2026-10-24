@@ -107,7 +107,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
         locale === "ua"
           ? "Формуємо культуру преміум тюнінгу та забезпечуємо безкомпромісну підтримку."
           : "We create the culture of premium tuning and provide uncompromising support.",
-      meta: locale === "ua" ? "Офіційні програми з 2007 року" : "Official programs since 2007",
+      meta: locale === "ua" ? "Працюємо з 2007 року" : "In business since 2007",
     },
     {
       id: "authenticity",
@@ -116,7 +116,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
         locale === "ua"
           ? "Тільки оригінальна продукція з повною документацією та гарантією від виробника."
           : "Only genuine products with full documentation and manufacturer warranty.",
-      meta: locale === "ua" ? "Без посередників" : "No intermediaries",
+      meta: locale === "ua" ? "Прямі поставки від постачальників" : "Direct supply from suppliers",
     },
   ];
 
@@ -179,8 +179,8 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
           {/* SEO H1 - visually hidden but accessible */}
           <h1 className="sr-only">
             {locale === "ua"
-              ? "One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дистриб'ютор Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins. Преміум тюнінг Київ."
-              : "One Company Global — Premium Auto & Moto Tuning Ukraine. Official distributor of Akrapovic, Brabus, Eventuri, HRE, KW, Ohlins in Kyiv."}
+              ? "One Company Global — Тюнінг Авто та Мото Київ, Україна. Офіційний дилер KW, оригінальна продукція Akrapovic, Brabus, Eventuri, Ohlins. Преміум тюнінг Київ."
+              : "One Company Global — Premium Auto & Moto Tuning Ukraine. Official KW dealer; genuine Akrapovic, Brabus, Eventuri and Ohlins parts in Kyiv."}
           </h1>
 
           <HomeShopShowcase

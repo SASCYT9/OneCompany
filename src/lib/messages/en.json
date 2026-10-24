@@ -106,11 +106,11 @@
     "refundPolicy": "Refund Policy",
     "weDoNotSell": "We do not sell goods or provide services to residents of Russia and Belarus.",
     "companyRequisites": "One Company LLC, Reg No: XXXXXXXX",
-    "description": "Leading tuning importer since 2007. We work with workshops, tuning shops, detailing studios, and auto/moto dealers in many countries worldwide."
+    "description": "Tuning importer since 2007. We work with workshops, tuning shops, detailing studios, and auto/moto dealers in many countries worldwide."
   },
   "home": {
     "badge": "premium tuning parts · 200+ brands · one\u00A0company",
-    "globalPresence": "B2B distributor since 2007",
+    "globalPresence": "B2B wholesale since 2007",
     "brandPromise": "200+ brands · Workshops, detailing, tuning shops",
     "atelierAddress": "21B BASEINA ST · KYIV IMPORTER",
     "conciergeService": "ONE COMPANY B2B SUPPORT",
@@ -329,7 +329,7 @@
     "premiumPerformance": "200 Premium Tuning Brands",
     "welcomeHeading": "Welcome to the world of",
     "premiumBrands": "Premium Brands",
-    "welcomeText": "One Company has been active since 2007 as a distributor for premium aftermarket brands in the automotive & motorcycle industry. We've built strong relationships with trusted partners across Ukraine and beyond.",
+    "welcomeText": "One Company has been active since 2007 as an importer of premium aftermarket brands in the automotive & motorcycle industry. We've built strong relationships with trusted partners across Ukraine and beyond.",
     "performance": "PERFORMANCE",
     "quality": "QUALITY",
     "service": "SERVICE",
@@ -407,7 +407,7 @@
       "items": {
         "curation": {
           "title": "Exclusive access to brands",
-          "description": "Direct access to the world-leading manufacturers with full support, limited editions and bespoke finishes."
+          "description": "Direct supply from suppliers with full support, priority quotas, limited editions and bespoke finishes."
         },
         "integration": {
           "title": "Rendering & visualization",
@@ -496,8 +496,8 @@
       "title": "Contact information",
       "emailLabel": "Email",
       "phoneLabel": "Phone",
-      "locationLabel": "Location",
-      "locationValue": "Kyiv, Ukraine",
+      "locationLabel": "Address",
+      "locationValue": "21B Baseina St, Kyiv 01024, Ukraine",
       "description": "Managers help with part selection, logistics and installation support. Leave a message — we will respond within one business day."
     },
     "form": {
@@ -552,8 +552,8 @@
     "description": "Join the global One Company network. We offer favorable conditions for suppliers, workshops, detailing centers and tuning shops.",
     "benefits": {
       "official": {
-        "title": "Official Distributor",
-        "description": "Direct supplies from manufacturers without intermediaries."
+        "title": "Direct Supply",
+        "description": "Direct supply from suppliers, genuine products with manufacturer warranty."
       },
       "logistics": {
         "title": "Global Logistics",

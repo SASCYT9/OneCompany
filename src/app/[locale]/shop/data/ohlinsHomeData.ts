@@ -3,11 +3,11 @@ export const OHLINS_HERO = {
   titleUa: "ВІДЧУЙ ДОРОГУ",
   subtitle: "Advanced Suspension Technology",
   subtitleUa: "Передові Технології Підвіски",
-  description: "Authorised distributor of Öhlins Racing. Patented DFV technology, gold-anodised aerospace alloy, hand-tuned in Sweden.",
-  descriptionUa: "Авторизований дистриб'ютор Öhlins Racing. Запатентована технологія DFV, авіаційний сплав із золотим анодуванням, ручна доводка у Швеції.",
+  description: "Genuine Öhlins Racing suspension. Patented DFV technology, gold-anodised aerospace alloy, hand-tuned in Sweden.",
+  descriptionUa: "Оригінальна підвіска Öhlins Racing. Запатентована технологія DFV, авіаційний сплав із золотим анодуванням, ручна доводка у Швеції.",
   ctaText: "Explore Catalog",
   ctaTextUa: "Відкрити Каталог",
-  badgeEyebrow: "official distributor · est. 2007 · one company",
+  badgeEyebrow: "genuine öhlins · est. 2007 · one company",
 };
 
 export const OHLINS_PRODUCT_LINES = [

@@ -516,7 +516,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                   {fopDetails.companyName && <p>{fopDetails.companyName}</p>}
                   {fopDetails.iban && <p>IBAN: {fopDetails.iban}</p>}
                   {fopDetails.bankName && <p>{fopDetails.bankName}</p>}
-                  {fopDetails.edrpou && <p>ЄДРПОУ: {fopDetails.edrpou}</p>}
+                  {fopDetails.edrpou && <p>РНОКПП: {fopDetails.edrpou}</p>}
                   {fopDetails.details && (
                     <p className="mt-2 whitespace-pre-wrap text-foreground/85 dark:text-foreground/70">
                       {fopDetails.details}

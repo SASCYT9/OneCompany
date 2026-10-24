@@ -457,6 +457,26 @@ test("curated stored titles stay unless they are too long to show", () => {
     buildProductSeoTitle({ explicitTitle: "Custom title | One Company", title: "Name" }),
     "Custom title"
   );
+  // Live 2026-10-23: a KW title kept the former storefront's name, which reads
+  // as the brand's own Ukrainian office; "Buy in Ukraine" after a dash stays.
+  assert.equal(
+    buildProductSeoTitle({
+      explicitTitle:
+        "KW Height Adjustable Springs for BMW M5 F90 / 5 G30 — 253200CC | KW Suspension Ukraine",
+      title: "KW Height Adjustable Springs for BMW M5 F90 / 5 G30",
+      sku: "253200CC",
+      brand: "KW Suspensions",
+      locale: "en",
+    }),
+    "KW Height Adjustable Springs for BMW M5 F90 / 5 G30 253200CC"
+  );
+  assert.equal(
+    buildProductSeoTitle({
+      explicitTitle: "BMW E46 Intake System – Buy in Ukraine",
+      title: "Name",
+    }),
+    "BMW E46 Intake System – Buy in Ukraine"
+  );
   // Live 2026-10-17: a BMC stored title cut mid-word before "| One Company";
   // over the hard limit it is cut at a phrase boundary like a name.
   assert.equal(

@@ -681,7 +681,7 @@ export function getCategoryMetadata(slug: string, locale: string): Metadata {
       : category.description[lang];
   const description =
     lang === "ua"
-      ? `${compactBase} Тюнінг, OEM, вихлоп, підвіска та електрика. Підбір і офіційне постачання OneCompany.`
+      ? `${compactBase} Тюнінг, OEM, вихлоп, підвіска та електрика. Підбір і постачання оригінальної продукції OneCompany.`
       : `${compactBase} Performance tuning, OEM parts, exhaust, suspension and electronics with official OneCompany sourcing.`;
 
   return {

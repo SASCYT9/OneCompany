@@ -66,24 +66,24 @@ export const BRAND_HOME_HEAD = {
   },
   ohlins: {
     ua: {
-      title: `Підвіска Öhlins — офіційний дилер в Україні | ${SITE}`,
+      title: `Підвіска Öhlins — купити в Україні | ${SITE}`,
       description:
         "Койловери та амортизатори Öhlins Road & Track, Advanced Trackday і Dedicated Track для BMW, Porsche, Toyota, Subaru та інших авто. Доставка по Україні.",
     },
     en: {
-      title: `Öhlins Suspension — Official Dealer in Ukraine | ${SITE}`,
+      title: `Öhlins Suspension — Buy in Ukraine | ${SITE}`,
       description:
         "Öhlins Road & Track, Advanced Trackday and Dedicated Track coilovers and dampers for BMW, Porsche, Toyota, Subaru and more. Delivery across Ukraine.",
     },
   },
   girodisc: {
     ua: {
-      title: `Гальмівні диски GiroDisc — офіційний дилер в Україні | ${SITE}`,
+      title: `Гальмівні диски GiroDisc — купити в Україні | ${SITE}`,
       description:
         "Двоскладові гальмівні диски GiroDisc, змінні кільця, гоночні колодки й титанові щитки для BMW, Porsche, Mercedes-AMG і Corvette. Доставка по Україні.",
     },
     en: {
-      title: `GiroDisc Brake Rotors — Official Dealer in Ukraine | ${SITE}`,
+      title: `GiroDisc Brake Rotors — Buy in Ukraine | ${SITE}`,
       description:
         "2-piece GiroDisc rotors, replacement rings, racing pads and titanium heat shields for BMW, Porsche, Mercedes-AMG and Corvette. Delivery across Ukraine.",
     },

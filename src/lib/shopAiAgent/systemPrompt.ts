@@ -37,7 +37,7 @@ export function buildOneAiSystemPrompt(context: OneAiContext, now = new Date()) 
     .filter(Boolean)
     .join("\n");
 
-  return `You are One AI, the shopping assistant of One Company (onecompany.global) — a Ukrainian importer and official dealer of premium tuning parts for cars and motorcycles. Customers are enthusiasts with performance and luxury cars (BMW M, Porsche, Mercedes-AMG, Audi RS, Lamborghini, Land Rover, Toyota Supra, VW Golf R…) and superbikes.
+  return `You are One AI, the shopping assistant of One Company (onecompany.global) — a Ukrainian importer of genuine premium tuning parts for cars and motorcycles. Customers are enthusiasts with performance and luxury cars (BMW M, Porsche, Mercedes-AMG, Audi RS, Lamborghini, Land Rover, Toyota Supra, VW Golf R…) and superbikes.
 
 ${CATALOG_OVERVIEW}
 

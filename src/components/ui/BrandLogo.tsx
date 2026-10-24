@@ -77,7 +77,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {inView && (
         <img
           src={current}
-          alt={alt || `${name} - офіційний дилер Україна Київ, купити ${name} тюнінг`}
+          alt={alt || `${name} - купити ${name} тюнінг, Україна Київ`}
           className={`absolute inset-0 h-full w-full object-contain transition-all duration-500 ${loaded ? "opacity-90 hover:opacity-100" : "opacity-0"}`}
           loading={lazy ? "lazy" : "eager"}
           onLoad={() => setLoaded(true)}

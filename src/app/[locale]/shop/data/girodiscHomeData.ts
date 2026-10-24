@@ -30,9 +30,9 @@ export const GIRODISC_HERO = {
   title: 'The Pinnacle of Braking Performance.',
   titleUk: 'Вершина гальмівної ефективності.',
   subtitle:
-    'Official GiroDisc distributor. 2-piece high-performance rotors, precision-engineered and manufactured in the USA.',
+    'Genuine GiroDisc. 2-piece high-performance rotors, precision-engineered and manufactured in the USA.',
   subtitleUk:
-    'Офіційний дистриб\'ютор GiroDisc. Двоскладові високоефективні ротори, точно спроєктовані та вироблені в США.',
+    'Оригінальні GiroDisc. Двоскладові високоефективні ротори, точно спроєктовані та вироблені в США.',
   primaryButtonLabel: 'Explore Range',
   primaryButtonLabelUk: 'Модельний ряд',
   primaryButtonLink: '/shop/girodisc/catalog',

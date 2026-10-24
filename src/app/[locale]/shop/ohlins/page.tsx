@@ -29,8 +29,8 @@ export default async function OhlinsSkinPage({ params }: Props) {
   const availableVehicles = buildOhlinsHeroVehicleTree(ohlinsProducts);
   const description =
     resolvedLocale === "ua"
-      ? "Ексклюзивні підвіски Öhlins: Road & Track, Advanced Track Day та Dedicated Track серії. Замовляйте з доставкою. OneCompany — офіційний дилер."
-      : "Exclusive Öhlins suspensions: Road & Track, Advanced Track Day, and Dedicated Track series. Buy with worldwide shipping. OneCompany — official dealer.";
+      ? "Ексклюзивні підвіски Öhlins: Road & Track, Advanced Track Day та Dedicated Track серії. Замовляйте з доставкою. Оригінальна продукція з гарантією виробника."
+      : "Exclusive Öhlins suspensions: Road & Track, Advanced Track Day, and Dedicated Track series. Buy with worldwide shipping. Genuine products with manufacturer warranty.";
 
   return (
     <>

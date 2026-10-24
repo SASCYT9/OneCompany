@@ -96,7 +96,7 @@ export default function BrandsMarquee() {
             >
               <Image
                 src={brand.logo}
-                alt={`${brand.name} - преміум тюнінг Україна Київ, офіційний дистриб'ютор`}
+                alt={`${brand.name} - преміум тюнінг Україна Київ`}
                 width={160}
                 height={80}
                 className={`object-contain ${shouldInvertBrandOrLogo(brand.name, brand.logo) ? "filter brightness-0 invert" : ""}`}

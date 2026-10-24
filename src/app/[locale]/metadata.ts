@@ -5,7 +5,7 @@ const homeMetaCopy: Record<SupportedLocale, { title: string; description: string
   en: {
     title: "Premium Auto & Moto Tuning | OneCompany",
     description:
-      "Official importer of premium auto and motorcycle tuning parts: exhaust, suspension, OEM, electronics, carbon. Expert sourcing and delivery.",
+      "Importer of premium auto and motorcycle tuning parts: exhaust, suspension, OEM, electronics, carbon. Expert sourcing and delivery.",
   },
   ua: {
     title: "Преміум тюнінг авто та мото | OneCompany",

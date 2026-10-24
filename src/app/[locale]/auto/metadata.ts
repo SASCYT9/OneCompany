@@ -5,7 +5,7 @@ const autoMetaCopy: Record<SupportedLocale, { title: string; description: string
   en: {
     title: "Auto Tuning & Performance Parts | OneCompany",
     description:
-      "Auto tuning in Ukraine: exhaust systems, suspension, brakes, OEM parts and electronics. Commercial sourcing, warranty, official supply.",
+      "Auto tuning in Ukraine: exhaust systems, suspension, brakes, OEM parts and electronics. Commercial sourcing, warranty, genuine products.",
   },
   ua: {
     title: "Авто тюнінг та сервісні рішення | OneCompany",

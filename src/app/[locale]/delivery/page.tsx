@@ -155,7 +155,7 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                   ? "ФОП Семиноженко Ігор Володимирович"
                   : "Sole Proprietor Ihor Volodymyrovych Semynozhenko"}
               </p>
-              <p>{l === "ua" ? "ЄДРПОУ: 3257316796" : "Registration No: 3257316796"}</p>
+              <p>{l === "ua" ? "РНОКПП: 3257316796" : "Taxpayer No. (RNOKPP): 3257316796"}</p>
               <p className="mt-2">{l === "ua" ? "вул. Басейна, 21Б" : "21B Baseina St"}</p>
               <p>{l === "ua" ? "Київ, 01024, Україна" : "Kyiv, 01024, Ukraine"}</p>
               <p className="mt-2">Email: info@onecompany.global</p>

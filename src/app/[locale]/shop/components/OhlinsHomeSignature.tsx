@@ -73,8 +73,8 @@ export default function OhlinsHomeSignature({ locale, availableVehicles }: Props
           <div className="oh-brand-badge" data-oh-reveal>
             <span className="oh-badge-dot"></span>
             {L(isUa,
-              'official distributor · est. 2007 · one company',
-              'офіційний дистриб\'ютор · з 2007 · one company'
+              'genuine öhlins · est. 2007 · one company',
+              'оригінальна продукція · з 2007 · one company'
             )}
           </div>
 

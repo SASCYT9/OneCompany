@@ -62,10 +62,10 @@ export default async function LocaleLayout({ children, params }: Props) {
     ]);
     shopSettingsRuntime = shopSettings;
     if (shopSettings.fopCompanyName) {
-      companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, ЄДРПОУ: ${shopSettings.fopEdrpou}` : ""}`;
+      companyRequisites = `${shopSettings.fopCompanyName}${shopSettings.fopEdrpou ? `, РНОКПП: ${shopSettings.fopEdrpou}` : ""}`;
     }
   } catch (error) {
-    companyRequisites = "ФОП Семиноженко Ігор Володимирович, ЄДРПОУ: 3257316796";
+    companyRequisites = "ФОП Семиноженко Ігор Володимирович, РНОКПП: 3257316796";
     console.warn(
       "Failed to fetch shop settings from DB for footer, using fallback:",
       error instanceof Error ? error.message : error

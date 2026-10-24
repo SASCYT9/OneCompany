@@ -30,9 +30,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title:
-    "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Mansory | Worldwide Shipping",
+    "OneCompany — Premium Auto & Moto Tuning | Akrapovic, Brabus, Eventuri | Worldwide Shipping",
   description:
-    "Official distributor 200+ premium tuning brands: Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping USA, Europe, Ukraine.",
+    "Genuine parts from 200+ premium tuning brands: Akrapovic, Brabus, Eventuri, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. Worldwide shipping USA, Europe, Ukraine.",
   keywords: [
     "OneCompany",
     "One Company Global",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "OneCompany — Premium Auto & Moto Tuning | 200+ Brands | Worldwide Shipping",
     description:
-      "Official distributor of Akrapovic, Brabus, Mansory, HRE, KW, Ohlins. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
+      "Genuine Akrapovic, Brabus, Eventuri, KW and Ohlins parts. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
     type: "website",
     siteName: "OneCompany - Premium Tuning Worldwide",
     locale: "en_US",
@@ -86,16 +86,16 @@ export const metadata: Metadata = {
         url: `${siteUrl}/branding/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "OneCompany - Premium Auto Moto Tuning | Akrapovic, Brabus, Mansory, HRE, Ohlins | Worldwide Shipping",
+        alt: "OneCompany - Premium Auto Moto Tuning | Akrapovic, Brabus, Eventuri, KW, Ohlins | Worldwide Shipping",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OneCompany — Premium Tuning | Akrapovic, Brabus, Mansory | Worldwide",
+    title: "OneCompany — Premium Tuning | Akrapovic, Brabus, Eventuri | Worldwide",
     description:
-      "Official distributor 200+ tuning brands. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
+      "Genuine parts from 200+ tuning brands. Exhaust systems, suspension, wheels, carbon fiber. USA, Europe, Middle East shipping.",
     images: [`${siteUrl}/branding/og-image.png`],
     creator: "@onecompany_ua",
     site: "@onecompany_ua",

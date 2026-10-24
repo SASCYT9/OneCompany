@@ -472,7 +472,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
     description:
       locale === "ua"
         ? "Тюнінг авто та мото в Києві: OEM і performance деталі, офіційні поставки, логістика та технічна підтримка."
-        : "Auto and moto tuning in Kyiv: OEM and performance parts, official supply, logistics and technical support.",
+        : "Auto and moto tuning in Kyiv: OEM and performance parts, genuine products, logistics and technical support.",
   };
 
   // One entity with two types. It used to be three separate nodes with the same
