@@ -75,7 +75,7 @@ export function DesktopShopMenu({
     >
       <div className="relative inline-flex items-center">
         <Link
-          href={`/${locale}/shop`}
+          href={`/${locale}/shop/catalog`}
           className={cn(
             "whitespace-nowrap font-display text-xs uppercase tracking-[0.15em] text-foreground/60 transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/55 md:text-[13px]",
             trackingClassName,
@@ -154,7 +154,7 @@ export function DesktopShopMenu({
               <div className="space-y-1">
                 {getShopNavigationDestinations(locale)
                   .filter(
-                    (destination): destination is { key: "brands" | "catalog"; href: string } =>
+                    (destination): destination is { key: "catalog"; href: string } =>
                       destination.key !== "selection"
                   )
                   .map((destination) => {

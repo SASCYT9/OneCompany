@@ -29,7 +29,7 @@ export default function ShopCheckoutShell({
         </div>
       )}
       <header className={styles.header}>
-        <Link href={`/${locale}/shop`} aria-label="OneCompany" className={styles.logo}>
+        <Link href={`/${locale}/shop/catalog`} aria-label="OneCompany" className={styles.logo}>
           <Image
             src="/branding/logo-dark.svg"
             alt="OneCompany"

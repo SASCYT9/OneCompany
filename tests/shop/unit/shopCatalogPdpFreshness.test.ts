@@ -49,12 +49,13 @@ test("manual product mutations delegate storefront invalidation without duplicat
   }
 });
 
-test("storefront invalidation takes legacy listing behavior from the shared route registry", () => {
+test("storefront invalidation refreshes the brand landing page, not the retired storefront listings", () => {
   const source = read("src/lib/shopStorefrontRevalidationPlan.ts");
-  assert.match(source, /getStorefrontRoute\(segment\)/);
-  assert.match(source, /route\.listingSurface/);
-  assert.match(source, /route\.paginated/);
-  assert.doesNotMatch(source, /LISTING_SURFACE_BY_SEGMENT|PAGINATED_SEGMENTS/);
+  assert.match(source, /buildShopStorefrontRootPath\(locale, segment\)/);
+  assert.doesNotMatch(
+    source,
+    /route\.listingSurface|LISTING_SURFACE_BY_SEGMENT|PAGINATED_SEGMENTS/
+  );
 });
 
 test("catalog invalidation evicts local and tagged Accelerate caches", () => {

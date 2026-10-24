@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import createNextIntlPlugin from "next-intl/plugin";
-import { SHOP_PRODUCT_LEGACY_PREFIX_ROUTES } from "./src/lib/storefrontRouteRegistry";
+import { STOREFRONT_ROUTE_REGISTRY } from "./src/lib/storefrontRouteRegistry";
+
+/** Old brand storefront segments (`/shop/ipe`, `/shop/brabus`…), plus Eventuri's landing. */
+const STOREFRONT_SEGMENTS_PATTERN = [
+  ...new Set([...STOREFRONT_ROUTE_REGISTRY.map((route) => route.segment), "eventuri"]),
+].join("|");
 import { SHOP_REMOTE_IMAGE_HOSTS } from "./src/lib/shopImageHosts";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -671,7 +676,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:locale(ua|en)/eventuri",
-        destination: "/:locale/shop/eventuri",
+        destination: "/:locale/shop/brand/eventuri",
         permanent: true,
       },
       {
@@ -688,12 +693,12 @@ const nextConfig: NextConfig = {
       // not-found drilldown 2026-10-10) and that have an obvious storefront.
       {
         source: "/:locale(ua|en)/shop/ipeexhaust",
-        destination: "/:locale/shop/ipe",
+        destination: "/:locale/shop/brand/ipe",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/shop/burgermotorsports",
-        destination: "/:locale/shop/burger",
+        destination: "/:locale/shop/brand/burger",
         permanent: true,
       },
     ];
@@ -711,26 +716,38 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       ...legacyBrandRedirects,
-      // Resolve Do88-prefixed PDPs in the catalog route, where the current
-      // product brand is known. A static `/shop/do88-*` redirect loops for
-      // third-party products that were reclassified after import (for example
-      // BMC SKUs that retain their legacy `do88-` slug).
-      ...SHOP_PRODUCT_LEGACY_PREFIX_ROUTES.filter(({ segment }) => segment !== "do88").map(
-        ({ prefix, segment }) => ({
-          source: `/:locale(ua|en)/shop/:slug(${prefix}.*)`,
-          destination: `/:locale/shop/${segment}/products/:slug`,
-          permanent: true,
-        })
-      ),
-      // The Turn14 live catalogue was retired; send old links to the shop hub.
+      // One shop: the «Бренди» hub is gone, every product lives at
+      // /shop/{slug} in one design, and each brand storefront (home,
+      // collections, listings) gives way to its catalog landing page.
+      {
+        source: "/:locale(ua|en)/shop",
+        destination: "/:locale/shop/catalog",
+        permanent: true,
+      },
+      {
+        source: `/:locale(ua|en)/shop/:store(${STOREFRONT_SEGMENTS_PATTERN})/products/:slug`,
+        destination: "/:locale/shop/:slug",
+        permanent: true,
+      },
+      {
+        source: `/:locale(ua|en)/shop/:store(${STOREFRONT_SEGMENTS_PATTERN})`,
+        destination: "/:locale/shop/brand/:store",
+        permanent: true,
+      },
+      {
+        source: `/:locale(ua|en)/shop/:store(${STOREFRONT_SEGMENTS_PATTERN})/:rest*`,
+        destination: "/:locale/shop/brand/:store",
+        permanent: true,
+      },
+      // The Turn14 live catalogue was retired; send old links to the catalog.
       {
         source: "/:locale(ua|en)/shop/turn14/:path*",
-        destination: "/:locale/shop",
+        destination: "/:locale/shop/catalog",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/shop/turn14",
-        destination: "/:locale/shop",
+        destination: "/:locale/shop/catalog",
         permanent: true,
       },
       {
@@ -750,12 +767,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/:locale(ua|en)/brands/adro",
-        destination: "/:locale/shop/adro",
+        destination: "/:locale/shop/brand/adro",
         permanent: true,
       },
       {
         source: "/:locale(ua|en)/brands/eventuri",
-        destination: "/:locale/shop/eventuri",
+        destination: "/:locale/shop/brand/eventuri",
         permanent: true,
       },
       {

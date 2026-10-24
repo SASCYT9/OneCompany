@@ -159,7 +159,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     <div className="min-h-screen bg-background text-foreground dark:bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.16),transparent_30%),linear-gradient(180deg,#070707_0%,#0f0f0f_55%,#050505_100%)]">
       <div className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6">
         <Link
-          href={`/${locale}/shop`}
+          href={`/${locale}/shop/catalog`}
           className="mb-6 inline-flex items-center gap-2 text-sm text-foreground/70 dark:text-foreground/55 transition hover:text-foreground"
         >
           ← {isUa ? "До каталогу" : "Back to catalog"}
@@ -183,7 +183,7 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
           <div className="mt-8 rounded-3xl border border-foreground/10 bg-card/70 dark:bg-black/40 p-10 text-center text-foreground/75 dark:text-foreground/60 shadow-2xl backdrop-blur-xl">
             <p>{isUa ? "Кошик порожній." : "Your cart is empty."}</p>
             <Link
-              href={`/${locale}/shop`}
+              href={`/${locale}/shop/catalog`}
               className="mt-6 inline-block rounded-full border border-foreground/10 bg-card dark:bg-zinc-950 px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-foreground dark:text-foreground/90 transition hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
             >
               {isUa ? "Перейти до каталогу" : "Go to catalog"}

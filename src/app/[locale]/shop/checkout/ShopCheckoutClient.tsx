@@ -647,7 +647,7 @@ export default function ShopCheckoutClient({
                 ? "Додайте товари, щоб перейти до оформлення."
                 : "Add an item to begin checkout.")}
           </p>
-          <Link href={"/" + locale + "/shop"} className={styles.submit}>
+          <Link href={"/" + locale + "/shop/catalog"} className={styles.submit}>
             {isUa ? "До магазину" : "Back to shop"} <ArrowRight size={16} aria-hidden="true" />
           </Link>
         </div>

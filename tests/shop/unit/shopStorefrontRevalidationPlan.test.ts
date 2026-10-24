@@ -18,12 +18,9 @@ test("batch keeps each UA/EN product alias and deduplicates shared listings/tags
     new Set(individual.flatMap((plan) => plan.paths.map((path) => JSON.stringify(path))))
   );
   assert.deepEqual(new Set(batch.tags), new Set(individual.flatMap((plan) => plan.tags)));
-  assert.ok(
-    batch.paths.some(
-      ({ path, type }) => path === "/ua/shop/ohlins/catalog/page/[page]" && type === "page"
-    )
-  );
-  assert.ok(batch.paths.some(({ path }) => path === "/en/shop/ohlins/products/part-99"));
+  // The brand's listing is its catalog landing page now.
+  assert.ok(batch.paths.some(({ path }) => path === "/ua/shop/brand/ohlins"));
+  assert.ok(batch.paths.some(({ path }) => path === "/en/shop/part-99"));
   assert.equal(batch.tags.length, 2);
   assert.ok(batch.paths.length < individual.reduce((sum, plan) => sum + plan.paths.length, 0));
 });
@@ -33,12 +30,7 @@ test("price-only batches do not invalidate listings or global tags", () => {
   assert.deepEqual(plan.tags, []);
   assert.deepEqual(
     plan.paths.map(({ path }) => path),
-    [
-      "/ua/shop/ohlins/products/part",
-      "/ua/shop/part",
-      "/en/shop/ohlins/products/part",
-      "/en/shop/part",
-    ]
+    ["/ua/shop/part", "/en/shop/part"]
   );
 });
 
@@ -47,6 +39,7 @@ test("empty batches do nothing and generic products do not create phantom brand 
   const plan = buildShopStorefrontRevalidationPlan([{ slug: "part", brand: "Custom" }]);
   assert.equal(plan.paths.length, 2);
   assert.deepEqual(plan.tags, ["shop-products"]);
+  assert.ok(plan.paths.every(({ path }) => !path.includes("/shop/brand/")));
 });
 
 const racechip = (slug: string, make: string, model: string, extra: string[] = []) => ({
@@ -72,15 +65,9 @@ test("a RaceChip mutation revalidates every other PDP of its model group", () =>
   assert.deepEqual(
     [...paths].sort(),
     [
-      "/en/shop/racechip/products/rc-a4-150hp",
-      "/en/shop/racechip/products/rc-a4-177hp",
-      "/en/shop/racechip/products/rc-a4-190hp",
       "/en/shop/rc-a4-150hp",
       "/en/shop/rc-a4-177hp",
       "/en/shop/rc-a4-190hp",
-      "/ua/shop/racechip/products/rc-a4-150hp",
-      "/ua/shop/racechip/products/rc-a4-177hp",
-      "/ua/shop/racechip/products/rc-a4-190hp",
       "/ua/shop/rc-a4-150hp",
       "/ua/shop/rc-a4-177hp",
       "/ua/shop/rc-a4-190hp",
@@ -98,8 +85,8 @@ test("paths already in the revalidation plan are not issued twice", () => {
 
   assert.ok(paths.length > 0);
   assert.ok(paths.every((path) => !planned.has(path)));
-  assert.ok(!paths.includes("/ua/shop/racechip/products/rc-a4-177hp"));
-  assert.ok(paths.includes("/ua/shop/racechip/products/rc-a4-190hp"));
+  assert.ok(!paths.includes("/ua/shop/rc-a4-177hp"));
+  assert.ok(paths.includes("/ua/shop/rc-a4-190hp"));
 });
 
 test("the group a product moved away from is revalidated through its previous tags", () => {
@@ -107,8 +94,8 @@ test("the group a product moved away from is revalidated through its previous ta
   const moved = racechip("rc-a4-177hp", "Audi", "A6");
   const paths = buildRacechipSiblingRevalidationPaths([moved, previous], catalog);
 
-  assert.ok(paths.includes("/ua/shop/racechip/products/rc-a6-204hp"));
-  assert.ok(paths.includes("/ua/shop/racechip/products/rc-a4-190hp"));
+  assert.ok(paths.includes("/ua/shop/rc-a6-204hp"));
+  assert.ok(paths.includes("/ua/shop/rc-a4-190hp"));
 });
 
 test("non-RaceChip or ungroupable products never trigger sibling revalidation", () => {

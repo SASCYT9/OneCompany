@@ -39,13 +39,13 @@ test("resolveShopStorefrontSegment keeps store:main products out of Urban and Br
   );
 });
 
-test("buildShopStorefrontProductPath still supports legacy brand storefront routing when no store tag exists", () => {
+test("former storefront brands share the one product address", () => {
   assert.equal(
     buildShopStorefrontProductPath("ua", {
       slug: "akr-slip-on",
       brand: "Akrapovic",
     }),
-    "/ua/shop/akrapovic/products/akr-slip-on"
+    "/ua/shop/akr-slip-on"
   );
 });
 
@@ -55,9 +55,10 @@ test("buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront"
       slug: "ipe-system",
       brand: "iPE exhaust",
     }),
-    "/ua/shop/ipe/products/ipe-system"
+    "/ua/shop/ipe-system"
   );
 
+  // The segment still picks iPE's brand-specific blocks inside the one design.
   assert.equal(
     resolveShopStorefrontSegment({
       vendor: "Innotech Performance Exhaust",
@@ -66,21 +67,23 @@ test("buildShopStorefrontProductPath resolves iPE aliases to the ipe storefront"
   );
 });
 
-test("brand labels link to the complete dedicated storefront or a filtered catalog", () => {
-  assert.equal(buildShopStorefrontBrandPath("ua", "Eventuri"), "/ua/shop/eventuri");
-  assert.equal(buildShopStorefrontBrandPath("en", "Urban Automotive"), "/en/shop/urban/products");
+test("brand labels link to the brand's catalog landing page or a filtered catalog", () => {
+  assert.equal(buildShopStorefrontBrandPath("ua", "Eventuri"), "/ua/shop/brand/eventuri");
+  assert.equal(buildShopStorefrontBrandPath("en", "Urban Automotive"), "/en/shop/brand/urban");
+  assert.equal(buildShopStorefrontBrandPath("ua", "Akrapovič"), "/ua/shop/brand/akrapovic");
+  assert.equal(buildShopStorefrontBrandPath("ua", "Ilmberger Carbon"), "/ua/shop/brand/ilmberger");
+  // Every old storefront segment has a landing page to redirect to.
   for (const route of STOREFRONT_ROUTE_REGISTRY) {
-    for (const brandAlias of route.brandAliases) {
-      assert.equal(
-        buildShopStorefrontBrandPath("ua", brandAlias),
-        `/ua/shop/${route.segment}/${route.listingSurface}`
-      );
-    }
+    assert.equal(
+      buildShopStorefrontBrandPath("ua", route.segment),
+      `/ua/shop/brand/${route.segment}`,
+      route.segment
+    );
   }
   assert.equal(buildShopStorefrontBrandPath("ua", "KW Suspensions"), "/ua/shop/brand/kw");
   assert.equal(buildShopStorefrontBrandPath("en", "Remus"), "/en/shop/brand/remus");
   assert.equal(buildShopStorefrontBrandPath("en", "Setrab"), "/en/shop/catalog?brand=Setrab");
-  assert.equal(buildShopStorefrontBrandPath("ua", ""), "/ua/shop");
+  assert.equal(buildShopStorefrontBrandPath("ua", ""), "/ua/shop/catalog");
 });
 
 test("storefront route registry is the complete declarative routing and listing configuration", () => {
@@ -128,7 +131,7 @@ test("legacy product prefixes are unique and cover every canonical storefront ro
   );
 });
 
-test("all routed brands produce long canonical product paths", () => {
+test("all former storefront brands produce the short canonical product path", () => {
   const samples = [
     ["Brabus", "brabus"],
     ["GiroDisc", "girodisc"],
@@ -141,7 +144,7 @@ test("all routed brands produce long canonical product paths", () => {
   for (const [brand, segment] of samples) {
     assert.equal(
       buildShopStorefrontProductPath("en", { slug: `${segment}-sample`, brand }),
-      `/en/shop/${segment}/products/${segment}-sample`
+      `/en/shop/${segment}-sample`
     );
   }
 });
@@ -166,22 +169,21 @@ test("catalog product links fall back safely for missing or unexpected hrefs", (
     resolveShopCatalogProductHref("ua", "https://example.com/product", "safe-product"),
     "/ua/shop/safe-product"
   );
-  assert.equal(resolveShopCatalogProductHref("ua", "javascript:alert(1)", ""), "/ua/shop");
+  assert.equal(resolveShopCatalogProductHref("ua", "javascript:alert(1)", ""), "/ua/shop/catalog");
 });
 
-test("brand landing path exists only for brands with a storefront or a catalog landing page", () => {
+test("brand landing path is the brand's catalog landing page", () => {
   assert.equal(
     resolveShopStorefrontBrandLandingPath("ua", "Akrapovič"),
-    "/ua/shop/akrapovic/collections"
+    "/ua/shop/brand/akrapovic"
   );
-  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Brabus"), "/en/shop/brabus/products");
-  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Öhlins"), "/en/shop/ohlins/catalog");
-  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Eventuri"), "/ua/shop/eventuri");
+  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Brabus"), "/en/shop/brand/brabus");
+  assert.equal(resolveShopStorefrontBrandLandingPath("en", "Öhlins"), "/en/shop/brand/ohlins");
+  assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Eventuri"), "/ua/shop/brand/eventuri");
   assert.equal(
     resolveShopStorefrontBrandLandingPath("ua", "Burger Motorsports"),
-    "/ua/shop/burger/products"
+    "/ua/shop/brand/burger"
   );
-  // Brands without a storefront reach their catalog landing page.
   assert.equal(resolveShopStorefrontBrandLandingPath("ua", "Remus"), "/ua/shop/brand/remus");
   assert.equal(resolveShopStorefrontBrandLandingPath("en", "KW Suspension"), "/en/shop/brand/kw");
   assert.equal(resolveShopStorefrontBrandLandingPath("ua", "BMC filters"), "/ua/shop/brand/bmc");

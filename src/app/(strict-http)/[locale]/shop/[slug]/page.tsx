@@ -3,7 +3,6 @@ import bmcDescriptionStyles from "@/app/[locale]/shop/components/BmcProductDescr
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ShoppingBag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { isLocalStorefrontMode } from "@/lib/localStorefront";
 import {
@@ -12,15 +11,11 @@ import {
   resolveLocale,
   type SupportedLocale,
 } from "@/lib/seo";
-import {
-  getShopProductBySlugServer,
-  getShopRelatedProductsByBrandServer,
-} from "@/lib/shopCatalogServer";
+import { getShopProductBySlugServer } from "@/lib/shopCatalogServer";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
-  type ShopViewerPricingContext,
 } from "@/lib/shopPricingAudience";
 import { buildLocalizedProductSeoTitle, buildProductSeoDescription } from "@/lib/seoProductMeta";
 import {
@@ -29,30 +24,30 @@ import {
   localizeShopText,
 } from "@/lib/shopText";
 import { buildShopProductDescriptionHtml } from "@/lib/shopProductDescription";
-import { findRelatedProducts } from "@/lib/shopRelatedProducts";
-import { buildShopStorefrontProductPathForProduct } from "@/lib/shopStorefrontRouting";
-import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
+import {
+  buildShopStorefrontProductPathForProduct,
+  resolveShopStorefrontSegment,
+} from "@/lib/shopStorefrontRouting";
+import { resolveLegacyProductPath } from "@/lib/legacyProductSlugs.server";
+import ShopProductDetailPage, {
+  getShopProductPageMetadata,
+} from "@/app/[locale]/shop/components/ShopProductDetailPage";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
 import { BrandLogoTile } from "@/components/shop/ShopBrandLogoTile";
 import { getBrandLogoPath } from "@/lib/shopBrandLogos";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
+import { displayPartNumber } from "@/lib/shopPartNumber";
 import { ShopProductTitleSku } from "@/app/[locale]/shop/components/ShopProductTitleSku";
+import { ShopRelatedProductsSection } from "@/app/[locale]/shop/components/ShopRelatedProductsSection";
 import { ShopInlineSearch } from "@/components/shop/ShopSearchForm";
-import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { ShopProductVariantPurchaseSection } from "@/app/[locale]/shop/components/ShopProductVariantPurchaseSection";
 import { ShopVariantImageProvider } from "@/app/[locale]/shop/components/ShopVariantImageContext";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 import { isRevozportBrand } from "@/lib/revozportShipping";
-import {
-  isWheelForceWheel,
-  isWheelForceWheelSet,
-  wheelForceSetMoney,
-  WHEELFORCE_FAMILY_CHILD_TAG,
-} from "@/lib/wheelforceFamily";
 
 // ISR: anonymous SSR; B2B prices applied client-side via useShopViewerContext.
 export const dynamic = "force-static";
@@ -91,6 +86,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const resolvedLocale = resolveLocale(locale);
   const product = await getShopProductBySlugServer(slug);
+
+  if (product && resolveShopStorefrontSegment(product)) {
+    return getShopProductPageMetadata({
+      locale: resolvedLocale,
+      slug,
+      mode: resolveShopStorefrontSegment(product) ?? "default",
+    });
+  }
 
   if (!product) {
     notFound();
@@ -165,7 +168,18 @@ export default async function ShopProductPage({ params }: Props) {
 
   const product = await getShopProductBySlugServer(slug);
   if (!product) {
+    // A renamed slug that was already indexed (iPE "-titanium-exhaust" became
+    // "-exhaust"): send visitors to the product it became, not a 404.
+    const successorPath = await resolveLegacyProductPath(resolvedLocale, slug);
+    if (successorPath) permanentRedirect(successorPath);
     notFound();
+  }
+
+  // Brands that had their own storefront (do88, Urban, Akrapovič, IPE…) keep
+  // their brand-specific blocks, rendered inside the same product design.
+  const storefrontMode = resolveShopStorefrontSegment(product);
+  if (storefrontMode) {
+    return <ShopProductDetailPage locale={resolvedLocale} slug={slug} mode={storefrontMode} />;
   }
 
   const currentPath = `/${resolvedLocale}/shop/${slug}`;
@@ -219,7 +233,8 @@ export default async function ShopProductPage({ params }: Props) {
   const brandLogoPath = getBrandLogoPath(product.brand || "");
   const defaultVariant =
     product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0] ?? null;
-  const primaryPartNumber = (product.sku || defaultVariant?.sku || "").trim();
+  const primaryPartNumber =
+    displayPartNumber(product.sku) ?? displayPartNumber(defaultVariant?.sku) ?? "";
 
   return (
     <ShopVariantImageProvider key={product.slug} enabled={showsVariantPhotos}>
@@ -234,7 +249,7 @@ export default async function ShopProductPage({ params }: Props) {
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href={`/${resolvedLocale}/shop`}
+              href={`/${resolvedLocale}/shop/catalog`}
               className="inline-flex w-fit shrink-0 items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
             >
               ← {isUa ? "Назад до магазину" : "Back to shop"}
@@ -308,7 +323,7 @@ export default async function ShopProductPage({ params }: Props) {
                 locale={resolvedLocale}
                 isUa={isUa}
                 productTitle={productTitle}
-                continueShoppingHref={`/${resolvedLocale}/shop`}
+                continueShoppingHref={`/${resolvedLocale}/shop/catalog`}
               >
                 <div className="flex flex-wrap gap-2">
                   {productCollection ? (
@@ -327,7 +342,7 @@ export default async function ShopProductPage({ params }: Props) {
           </section>
 
           <Suspense fallback={null}>
-            <RelatedProductsSection
+            <ShopRelatedProductsSection
               product={product}
               locale={resolvedLocale}
               viewerContext={viewerContext}
@@ -336,97 +351,5 @@ export default async function ShopProductPage({ params }: Props) {
         </div>
       </div>
     </ShopVariantImageProvider>
-  );
-}
-async function RelatedProductsSection({
-  product,
-  locale,
-  viewerContext,
-}: {
-  product: ShopProduct;
-  locale: SupportedLocale;
-  viewerContext: ShopViewerPricingContext;
-}) {
-  // Brand-scoped fetch — ~95% of related-product picks come from the same
-  // brand anyway. Heavy lift (DB query + mapDbToCatalog × N) runs here in
-  // the Suspense subtree so it doesn't block the main PDP first byte.
-  const brandPool = await getShopRelatedProductsByBrandServer(product.brand);
-  const relatedPool =
-    product.brand.trim().toLowerCase() === "wheelforce"
-      ? brandPool.filter(
-          (item) =>
-            !(item.tags ?? []).includes(WHEELFORCE_FAMILY_CHILD_TAG) &&
-            item.slug !== product.wheelForceFamily?.parentSlug
-        )
-      : brandPool;
-  const isWheelForceBrand = product.brand.trim().toLowerCase() === "wheelforce";
-  const wheelSetRecommendations = isWheelForceBrand
-    ? findRelatedProducts(product, relatedPool.filter(isWheelForceWheelSet), 3)
-    : [];
-  const remainingRecommendationSlots = Math.max(0, 3 - wheelSetRecommendations.length);
-  const otherRecommendations = remainingRecommendationSlots
-    ? findRelatedProducts(
-        product,
-        isWheelForceBrand ? relatedPool.filter((item) => !isWheelForceWheelSet(item)) : relatedPool,
-        remainingRecommendationSlots
-      )
-    : [];
-  const relatedProducts = isWheelForceBrand
-    ? [...wheelSetRecommendations, ...otherRecommendations]
-    : otherRecommendations;
-  if (!relatedProducts.length) return null;
-  const isUa = locale === "ua";
-  return (
-    <section className="space-y-4">
-      <h2 className="text-2xl font-light">{isUa ? "Схожі товари" : "Related products"}</h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {relatedProducts.map((item) => {
-          const image = normalizeImage(item.image);
-          const relatedPricing = resolveShopProductPricing(item, viewerContext);
-          const relatedPrice = isWheelForceWheel(item)
-            ? wheelForceSetMoney(relatedPricing.effectivePrice)
-            : relatedPricing.effectivePrice;
-          return (
-            <Link
-              key={item.slug}
-              href={buildShopStorefrontProductPathForProduct(locale, item)}
-              className="group overflow-hidden rounded-2xl border border-foreground/15 bg-foreground/5 transition hover:border-primary/35"
-            >
-              <div className="relative aspect-4/3 overflow-hidden bg-white border-b border-zinc-950/10 flex items-center justify-center p-4">
-                {image ? (
-                  <ShopProductImage
-                    src={image}
-                    alt={localizeShopProductTitle(locale, item)}
-                    fill
-                    sizes="(max-width: 1280px) 100vw, 30vw"
-                    fallbackSrc="/images/placeholders/product-fallback.svg"
-                    className="object-contain p-4 mix-blend-multiply transition duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-zinc-400">
-                    <ShoppingBag className="h-12 w-12 opacity-30" />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
-                  {item.brand}
-                </p>
-                <h3 className="text-lg font-light leading-snug">
-                  {localizeShopProductTitle(locale, item)}
-                </h3>
-                <p className="text-sm text-foreground/80 dark:text-foreground/65">
-                  <ShopInlinePriceText
-                    locale={locale}
-                    price={relatedPrice}
-                    requestLabel={isUa ? "Ціна за запитом" : "Price on request"}
-                  />
-                </p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
   );
 }

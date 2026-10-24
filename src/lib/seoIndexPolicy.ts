@@ -18,37 +18,9 @@ export const localeAgnosticPublicPrefixes = [
 
 export const localizedStaticSlugs = [
   "",
-  "/shop",
+  // One shop: the catalog is the shop's front page; brand pages are catalog
+  // landings (`/shop/brand/*`, listed with the landing pages).
   "/shop/catalog",
-  "/shop/akrapovic",
-  "/shop/akrapovic/collections",
-  "/shop/ilmberger",
-  "/shop/ilmberger/collections",
-  "/shop/eventuri",
-  "/shop/csf",
-  "/shop/csf/collections",
-  "/shop/ohlins",
-  "/shop/ohlins/collections",
-  "/shop/ohlins/catalog",
-  "/shop/girodisc",
-  "/shop/girodisc/catalog",
-  "/shop/girodisc/collections",
-  "/shop/ipe",
-  "/shop/ipe/collections",
-  "/shop/brabus",
-  "/shop/brabus/collections",
-  "/shop/brabus/products",
-  "/shop/do88",
-  "/shop/do88/collections",
-  "/shop/racechip",
-  "/shop/racechip/catalog",
-  "/shop/burger",
-  "/shop/burger/products",
-  "/shop/adro",
-  "/shop/adro/collections",
-  "/shop/urban",
-  "/shop/urban/collections",
-  "/shop/urban/products",
   "/auto",
   "/moto",
   "/brands",
@@ -77,7 +49,7 @@ export const removedBlogSlugs = ["one-company-dtskmdmjfgf"] as const;
 const legacyBrandRedirectTargets = {
   kw: "/shop/brand/kw",
   fi: "/shop/brand/fi-exhaust",
-  eventuri: "/shop/eventuri",
+  eventuri: "/shop/brand/eventuri",
 } as const;
 
 export const indexablePatterns = [

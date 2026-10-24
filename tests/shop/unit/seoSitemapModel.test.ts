@@ -101,9 +101,9 @@ test("product entries use the canonical storefront URL for both locales", () => 
 
   const urls = entries.map((entry) => entry.url);
   assert.deepEqual(urls, [
-    "https://onecompany.global/ua/shop/racechip/products/racechip-gts5-audi-a4",
+    "https://onecompany.global/ua/shop/racechip-gts5-audi-a4",
     "https://onecompany.global/ua/shop/remus-bundle-1",
-    "https://onecompany.global/en/shop/racechip/products/racechip-gts5-audi-a4",
+    "https://onecompany.global/en/shop/racechip-gts5-audi-a4",
     "https://onecompany.global/en/shop/remus-bundle-1",
   ]);
   assert.ok(entries[0].lastModified instanceof Date);
@@ -157,34 +157,17 @@ test("index and urlset XML are well formed and escape values", () => {
   assert.match(urlset, /hreflang="uk"/);
 });
 
-test("brand collection hubs and catalogs are listed for both locales", () => {
-  // Live 2026-10-17: these 24 pages answered 200, index and a self canonical
-  // but were missing from the sitemap.
-  const slugs = brandHubSitemapSlugs();
-  for (const slug of [
-    "/shop/brabus/collections/g-class",
-    "/shop/do88/collections/all",
-    "/shop/do88/collections/intercoolers",
-    "/shop/adro/collections/bmw-m4",
-  ]) {
-    assert.ok(slugs.includes(slug), slug);
-  }
-
+test("old brand storefront pages are not listed; brand landings are", () => {
+  // The storefronts redirect to /shop/brand/* now, so the sitemap must not
+  // list them (a redirect in a sitemap wastes crawl budget).
+  assert.deepEqual(brandHubSitemapSlugs(), []);
   const urls = [...buildStaticSitemapEntries(), ...buildBrandHubSitemapEntries()].map(
     (entry) => entry.url
   );
   for (const locale of ["ua", "en"]) {
-    for (const slug of ["/shop/ohlins/catalog", "/shop/girodisc/collections", ...slugs]) {
-      assert.ok(urls.includes(`https://onecompany.global/${locale}${slug}`), `${locale}${slug}`);
+    for (const slug of ["/shop", "/shop/ohlins/catalog", "/shop/girodisc/collections"]) {
+      assert.ok(!urls.includes(`https://onecompany.global/${locale}${slug}`), `${locale}${slug}`);
     }
   }
   assert.equal(new Set(urls).size, urls.length, "no URL is listed twice");
-
-  for (const entry of buildBrandHubSitemapEntries()) {
-    assert.deepEqual(Object.keys(entry.alternates?.languages ?? {}).sort(), [
-      "en",
-      "uk",
-      "x-default",
-    ]);
-  }
 });

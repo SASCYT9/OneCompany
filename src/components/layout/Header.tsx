@@ -24,7 +24,7 @@ import { isShopCurrencyAllowedForCountry } from "@/lib/shopCountryCurrency";
 const navItems = [
   { key: "automotive", href: "/auto" },
   { key: "moto", href: "/moto" },
-  { key: "shop", href: "/shop" },
+  { key: "shop", href: "/shop/catalog" },
   { key: "blog", href: "/blog" },
   { key: "contact", href: "/contact" },
 ];

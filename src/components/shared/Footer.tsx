@@ -52,7 +52,7 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
     services: [
       { name: t("automotive"), href: `/${locale}/auto` },
       { name: t("motorcycles"), href: `/${locale}/moto` },
-      { name: t("shop"), href: `/${locale}/shop` },
+      { name: t("shop"), href: `/${locale}/shop/catalog` },
     ],
   };
 
@@ -97,7 +97,11 @@ const Footer = ({ currentYear, companyRequisites }: FooterProps) => {
       label: "X",
     },
     { icon: Youtube, href: "https://www.youtube.com/@OneCompanyGlobal", label: "YouTube" },
-    { icon: Linkedin, href: "https://www.linkedin.com/company/onecompany-global/", label: "LinkedIn" },
+    {
+      icon: Linkedin,
+      href: "https://www.linkedin.com/company/onecompany-global/",
+      label: "LinkedIn",
+    },
   ];
 
   const scopeRef = useRef<HTMLDivElement | null>(null);

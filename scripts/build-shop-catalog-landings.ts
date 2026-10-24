@@ -47,10 +47,8 @@ const BRAND_HUBS_FILE = path.join("src", "data", "shopCatalogLandingBrandHubs.js
 /** Filter set → landing path, for the browser catalog and old filter URLs. */
 const KEYS_FILE = path.join("src", "data", "shopCatalogLandingKeys.json");
 const TOP_MAKES_WITH_MODELS = 10;
-/** Brands without their own storefront get a brand landing page. */
-const CATALOG_ONLY_BRANDS = Object.entries(SHOP_CATALOG_LANDING_BRANDS)
-  .filter(([, brand]) => !brand.storefront)
-  .map(([label]) => label);
+/** Every listed brand gets a brand landing page (brand storefronts were folded into them). */
+const LANDING_BRANDS = Object.keys(SHOP_CATALOG_LANDING_BRANDS);
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -112,7 +110,7 @@ async function collect(): Promise<Raw> {
         .data ?? [];
   }
   const tasks: Task[] = [
-    ...CATALOG_ONLY_BRANDS.map((brand) => ({ kind: "brand" as const, brand })),
+    ...LANDING_BRANDS.map((brand) => ({ kind: "brand" as const, brand })),
     ...makes.flatMap((row) => [
       ...Object.entries(row.categories)
         .filter(([, count]) => count >= MIN)
@@ -128,7 +126,15 @@ async function collect(): Promise<Raw> {
   const landing: Raw["landing"] = [];
   for (const task of tasks) {
     const { kind: _kind, ...filters } = task;
-    landing.push({ task, ...(await searchCounts(filters as Record<string, string>)) });
+    const scope =
+      task.kind === "brand" ? SHOP_CATALOG_LANDING_BRANDS[task.brand]?.scope : undefined;
+    landing.push({
+      task,
+      ...(await searchCounts({
+        ...(filters as Record<string, string>),
+        ...(scope ? { scope } : {}),
+      })),
+    });
     process.stdout.write(`\rpages ${landing.length}/${tasks.length}   `);
   }
   process.stdout.write("\n");
@@ -258,10 +264,12 @@ export function selectShopCatalogLandings(raw: Raw): {
 
   for (const row of raw.landing) {
     if (row.task.kind !== "brand" || row.total < MIN) continue;
+    const scope = SHOP_CATALOG_LANDING_BRANDS[row.task.brand]?.scope;
     landings.push({
       kind: "brand",
       path: `brand/${catalogLandingBrandSlug(row.task.brand)}`,
       brand: row.task.brand,
+      ...(scope ? { scope } : {}),
       count: row.total,
     });
   }

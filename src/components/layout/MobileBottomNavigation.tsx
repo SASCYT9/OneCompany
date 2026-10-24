@@ -41,7 +41,7 @@ export function MobileBottomNavigation({ locale }: MobileBottomNavigationProps) 
     },
     {
       key: "shop",
-      href: `/${locale}/shop`,
+      href: `/${locale}/shop/catalog`,
       label: isUa ? "Магазин" : "Shop",
       icon: ShoppingBag,
     },

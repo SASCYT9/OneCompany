@@ -1,5 +1,15 @@
 "use client";
 
+import { displayPartNumber } from "@/lib/shopPartNumber";
+import {
+  buildOptionAxes as buildIpeOptionAxes,
+  ipeHasConditionalDownpipeAxis,
+  isIpeBrand,
+  localizeAxisName as localizeIpeAxisName,
+  localizeOptionValue as localizeIpeOptionValue,
+  pickPreferredCatbackVariant,
+  systemUsesDownpipeOption,
+} from "@/lib/ipeProductPresentation";
 import type { ReactNode } from "react";
 import styles from "./Do88PurchaseSection.module.css";
 import { useEffect, useMemo, useState } from "react";
@@ -49,6 +59,8 @@ type VariantAxis = {
   index: 0 | 1 | 2;
   name: string;
   values: string[];
+  /** iPE: a "(OPF)"-style suffix every value shares, shown once on the label. */
+  commonSuffix?: string;
 };
 
 const FALLBACK_AXIS_NAMES = ["Configuration", "Design", "Option"];
@@ -253,15 +265,45 @@ export function ShopProductVariantPurchaseSection({
   const setSelectedVariantSku = variantImageContext?.setSelectedVariantSku;
   const viewerContext = useShopViewerContext(ssrViewerContext);
   const variants = useMemo(() => product.variants ?? [], [product.variants]);
-  const optionAxes = useMemo(
-    () => buildOptionAxes(product.options, variants),
-    [product.options, variants]
+  // iPE keeps its own variant rules: axes named from the values, labels in
+  // tuner Ukrainian, cat-back as the default, and a downpipe choice that only
+  // full systems and downpipes need.
+  const isIpe = isIpeBrand(product.brand);
+  const optionAxes = useMemo<VariantAxis[]>(
+    () =>
+      isIpe
+        ? buildIpeOptionAxes(variants).map((axis) => ({
+            index: axis.index,
+            name: axis.name,
+            values: axis.values,
+            commonSuffix: axis.commonSuffix,
+          }))
+        : buildOptionAxes(product.options, variants),
+    [isIpe, product.options, variants]
   );
+  const hasConditionalDownpipeAxis = isIpe && ipeHasConditionalDownpipeAxis(optionAxes);
   const initialVariant = useMemo(
-    () => variants.find((variant) => variant.isDefault) ?? variants[0] ?? null,
-    [variants]
+    () =>
+      variants.find((variant) => variant.isDefault) ??
+      (isIpe ? pickPreferredCatbackVariant(variants) : null) ??
+      variants[0] ??
+      null,
+    [isIpe, variants]
   );
-  const [selected, setSelected] = useState<string[]>(() => optionValuesOf(initialVariant));
+  const [selected, setSelected] = useState<string[]>(() => {
+    const initial = optionValuesOf(initialVariant);
+    if (hasConditionalDownpipeAxis && !systemUsesDownpipeOption(initial[1])) initial[2] = "";
+    return initial;
+  });
+  const axisName = (name: string) =>
+    isIpe ? localizeIpeAxisName(name, isUa) : localizeOptionName(name, isUa);
+  const optionLabel = (value: string, axis?: VariantAxis) => {
+    if (!isIpe) return localizeOptionValue(value, isUa);
+    const suffix = axis?.commonSuffix;
+    const bare =
+      suffix && value.endsWith(`(${suffix})`) ? value.slice(0, -(suffix.length + 2)).trim() : value;
+    return localizeIpeOptionValue(bare, isUa);
+  };
   const [selectedAccessorySkus, setSelectedAccessorySkus] = useState<string[]>([]);
 
   useEffect(() => {
@@ -278,9 +320,15 @@ export function ShopProductVariantPurchaseSection({
     return variants.find((variant) => variantMatches(variant, selected)) ?? initialVariant;
   }, [initialVariant, selected, variants]);
 
+  const shownPartNumber = currentVariant?.sku
+    ? displayPartNumber(currentVariant.sku)
+    : displayPartNumber(product.sku);
+
   useEffect(() => {
     setSelectedVariantImage?.(currentVariant?.image ?? null);
-    setSelectedVariantSku?.(currentVariant?.sku?.trim() || product.sku || null);
+    setSelectedVariantSku?.(
+      displayPartNumber(currentVariant?.sku) ?? displayPartNumber(product.sku)
+    );
   }, [
     currentVariant?.id,
     currentVariant?.image,
@@ -317,18 +365,23 @@ export function ShopProductVariantPurchaseSection({
     setSelected((previous) => {
       const next = [...previous];
       next[axisIndex] = value;
+      const showDownpipeChoice = !hasConditionalDownpipeAxis || systemUsesDownpipeOption(next[1]);
+      if (!showDownpipeChoice) next[2] = "";
       const compatible =
         variants.find((variant) => variantMatches(variant, next)) ??
         variants.find((variant) => variant.optionValues?.[axisIndex] === value);
-      return compatible ? optionValuesOf(compatible) : next;
+      if (!compatible) return next;
+      const values = optionValuesOf(compatible);
+      if (!showDownpipeChoice) values[2] = "";
+      return values;
     });
   };
 
   const selectedVariantLabel = currentVariant
     ? currentVariant.optionValues
         ?.filter(Boolean)
-        .map((value) => localizeOptionValue(value, isUa))
-        .join(" / ") || localizeOptionValue(currentVariant.title?.trim() ?? "", isUa)
+        .map((value) => optionLabel(value))
+        .join(" / ") || optionLabel(currentVariant.title?.trim() ?? "")
     : "";
   const isWheelForce = product.brand.trim().toLowerCase() === "wheelforce";
   const selectedWheelSku = currentVariant?.sku?.trim() || product.sku;
@@ -409,6 +462,11 @@ export function ShopProductVariantPurchaseSection({
         </div>
 
         <ShopB2BPricingBand pricing={displayPricing} locale={locale} />
+        {isIpe && /catback|cat\s*back/i.test((currentVariant?.optionValues ?? []).join(" ")) ? (
+          <p className="mt-2 text-xs uppercase tracking-[0.16em] text-foreground/60 dark:text-foreground/45">
+            {isUa ? "Ціна за Cat-back систему" : "Price for cat-back system"}
+          </p>
+        ) : null}
 
         {isVehicleWheelSet && product.wheelForceSet ? (
           <section
@@ -467,33 +525,38 @@ export function ShopProductVariantPurchaseSection({
                   ? "Виберіть варіант"
                   : "Choose your variant"}
             </p>
-            {optionAxes.map((axis) => (
-              <fieldset key={axis.index} className="space-y-2">
-                <legend className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
-                  {localizeOptionName(axis.name, isUa)}
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {axis.values.map((value) => {
-                    const active = selected[axis.index] === value;
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        aria-pressed={active}
-                        className={`rounded-xl border px-3.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                          active
-                            ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                            : "border-foreground/18 bg-foreground/[0.03] text-foreground/80 hover:border-foreground/35 hover:text-foreground"
-                        }`}
-                        onClick={() => handleSelect(axis.index, value)}
-                      >
-                        {localizeOptionValue(value, isUa)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            ))}
+            {optionAxes.map((axis) =>
+              hasConditionalDownpipeAxis &&
+              axis.index === 2 &&
+              !systemUsesDownpipeOption(selected[1]) ? null : (
+                <fieldset key={axis.index} className="space-y-2">
+                  <legend className="text-xs uppercase tracking-[0.18em] text-foreground/70 dark:text-foreground/55">
+                    {axisName(axis.name)}
+                    {axis.commonSuffix ? ` (${axis.commonSuffix})` : ""}
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {axis.values.map((value) => {
+                      const active = selected[axis.index] === value;
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          aria-pressed={active}
+                          className={`rounded-xl border px-3.5 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                            active
+                              ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                              : "border-foreground/18 bg-foreground/[0.03] text-foreground/80 hover:border-foreground/35 hover:text-foreground"
+                          }`}
+                          onClick={() => handleSelect(axis.index, value)}
+                        >
+                          {optionLabel(value, axis)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )
+            )}
             {selectedVariantLabel ? (
               <p className="text-xs text-foreground/55 dark:text-foreground/40">
                 {isUa ? "Обрано:" : "Selected:"} {selectedVariantLabel}
@@ -664,13 +727,13 @@ export function ShopProductVariantPurchaseSection({
         className="text-foreground"
       />
 
-      {!isDo88Product && (currentVariant?.sku || product.sku) ? (
+      {!isDo88Product && shownPartNumber ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
             SKU
           </span>
           <span className="min-w-0 break-all rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 font-mono text-xs tracking-[0.04em] text-foreground/85">
-            {currentVariant?.sku ?? product.sku}
+            {shownPartNumber}
           </span>
         </div>
       ) : null}

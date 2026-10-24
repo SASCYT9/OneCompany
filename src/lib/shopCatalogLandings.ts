@@ -46,6 +46,8 @@ export type ShopCatalogLanding = {
   model?: string;
   category?: ShopCatalogLandingCategoryKey;
   brand?: string;
+  /** Motorcycle-only brands (Ilmberger) search the moto catalog. */
+  scope?: "moto";
   /** Products when the list was generated; the page itself shows live data. */
   count: number;
 };
@@ -123,37 +125,38 @@ export const SHOP_CATALOG_LANDING_CATEGORIES: Record<ShopCatalogLandingCategoryK
 type BrandCopy = {
   slug: string;
   name: string;
-  /** The brand's own storefront home, which stays its brand page. */
-  storefront?: string;
+  /** Motorcycle-only brand: its landing searches the moto catalog. */
+  scope?: "moto";
 };
 
 /** Keyed by the catalog's brand label (the `brand` filter value). */
 export const SHOP_CATALOG_LANDING_BRANDS: Readonly<Record<string, BrandCopy>> = {
-  AKRAPOVIC: { slug: "akrapovic", name: "Akrapovič", storefront: "akrapovic" },
-  OHLINS: { slug: "ohlins", name: "Öhlins", storefront: "ohlins" },
-  DO88: { slug: "do88", name: "do88", storefront: "do88" },
+  AKRAPOVIC: { slug: "akrapovic", name: "Akrapovič" },
+  OHLINS: { slug: "ohlins", name: "Öhlins" },
+  DO88: { slug: "do88", name: "do88" },
   "KW Suspensions": { slug: "kw", name: "KW" },
   "Fi EXHAUST": { slug: "fi-exhaust", name: "Fi Exhaust" },
-  "iPE exhaust": { slug: "ipe", name: "iPE", storefront: "ipe" },
-  "Burger Motorsports": { slug: "burger", name: "Burger Motorsports", storefront: "burger" },
-  "Urban Automotive": { slug: "urban", name: "Urban Automotive", storefront: "urban" },
+  "iPE exhaust": { slug: "ipe", name: "iPE" },
+  "Burger Motorsports": { slug: "burger", name: "Burger Motorsports" },
+  "Urban Automotive": { slug: "urban", name: "Urban Automotive" },
   "MST Performance": { slug: "mst", name: "MST Performance" },
   STOPFLEX: { slug: "stopflex", name: "Stopflex" },
   "G-Sport by GESi": { slug: "g-sport", name: "G-Sport" },
   Remus: { slug: "remus", name: "Remus" },
   BMC: { slug: "bmc", name: "BMC" },
-  Brabus: { slug: "brabus", name: "Brabus", storefront: "brabus" },
-  RaceChip: { slug: "racechip", name: "RaceChip", storefront: "racechip" },
-  GiroDisc: { slug: "girodisc", name: "GiroDisc", storefront: "girodisc" },
+  Brabus: { slug: "brabus", name: "Brabus" },
+  RaceChip: { slug: "racechip", name: "RaceChip" },
+  GiroDisc: { slug: "girodisc", name: "GiroDisc" },
   Revozport: { slug: "revozport", name: "Revozport" },
   WheelForce: { slug: "wheelforce", name: "WheelForce" },
-  ADRO: { slug: "adro", name: "ADRO", storefront: "adro" },
-  CSF: { slug: "csf", name: "CSF", storefront: "csf" },
-  Eventuri: { slug: "eventuri", name: "Eventuri", storefront: "eventuri" },
+  ADRO: { slug: "adro", name: "ADRO" },
+  CSF: { slug: "csf", name: "CSF" },
+  Eventuri: { slug: "eventuri", name: "Eventuri" },
   Garrett: { slug: "garrett", name: "Garrett" },
   BootMod3: { slug: "bootmod3", name: "BootMod3" },
   GFB: { slug: "gfb", name: "GFB" },
   Setrab: { slug: "setrab", name: "Setrab" },
+  "Ilmberger Carbon": { slug: "ilmberger", name: "Ilmberger Carbon", scope: "moto" },
 };
 
 /** Lower-case ASCII URL segment: "Mercedes-Benz" → "mercedes-benz", "RS5 Coupé" → "rs5-coupe". */
@@ -215,6 +218,7 @@ export function shopCatalogLandingHref(locale: string, landing: Pick<ShopCatalog
 export function shopCatalogLandingFilters(landing: ShopCatalogLanding): Record<string, string> {
   const filters: Record<string, string> = {};
   if (landing.brand) filters.brand = landing.brand;
+  if (landing.scope) filters.scope = landing.scope;
   if (landing.category) filters.category = landing.category;
   if (landing.make) filters.make = landing.make;
   if (landing.model) filters.model = landing.model;
@@ -338,9 +342,7 @@ function landingCrumb(locale: "ua" | "en", path: string, name: string): ShopCata
 function brandCrumb(locale: "ua" | "en", label: string): ShopCatalogLandingCrumb {
   const name = catalogLandingBrandName(label);
   const hub = landingsByPath.get(`brand/${catalogLandingBrandSlug(label)}`);
-  if (hub) return { name, href: shopCatalogLandingHref(locale, hub) };
-  const storefront = SHOP_CATALOG_LANDING_BRANDS[label]?.storefront;
-  return storefront ? { name, href: `/${locale}/shop/${storefront}` } : { name };
+  return hub ? { name, href: shopCatalogLandingHref(locale, hub) } : { name };
 }
 
 /**

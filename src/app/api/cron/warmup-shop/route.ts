@@ -14,25 +14,21 @@ import { NextRequest, NextResponse } from "next/server";
  * triggers background regeneration.
  */
 
-// Most-trafficked brand pages — keep these warm. Both locales because
+// The catalog and the most-trafficked brand pages — keep these warm. Both locales because
 // language-switched visits go through different ISR keys.
 const WARMUP_PATHS = [
-  "/ua/shop",
-  "/ua/shop/racechip",
-  "/ua/shop/racechip/catalog",
-  "/ua/shop/brabus",
-  "/ua/shop/brabus/products",
-  "/ua/shop/akrapovic",
-  "/ua/shop/akrapovic/collections",
-  "/ua/shop/girodisc",
-  "/ua/shop/girodisc/catalog",
-  "/ua/shop/ohlins",
-  "/ua/shop/ipe",
-  "/ua/shop/csf",
-  "/ua/shop/adro",
-  "/ua/shop/burger/products",
-  "/ua/shop/urban",
-  "/en/shop/racechip/catalog",
+  "/ua/shop/catalog",
+  "/ua/shop/brand/racechip",
+  "/ua/shop/brand/brabus",
+  "/ua/shop/brand/akrapovic",
+  "/ua/shop/brand/girodisc",
+  "/ua/shop/brand/ohlins",
+  "/ua/shop/brand/ipe",
+  "/ua/shop/brand/csf",
+  "/ua/shop/brand/adro",
+  "/ua/shop/brand/burger",
+  "/ua/shop/brand/urban",
+  "/en/shop/catalog",
 ];
 
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || "https://onecompany.global";

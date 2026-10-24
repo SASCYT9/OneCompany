@@ -70,19 +70,41 @@ test("related projection has no heavy PDP relations", () => {
 });
 
 test("related cards keep all source currencies and render under the active NBU price book", () => {
-  const product = projectShopRelatedProduct(row({ priceSourceCurrency: "EUR", compareAtSourceCurrency: "EUR",
-    b2bPriceSourceCurrency: "USD", b2bCompareAtSourceCurrency: "UAH" }));
+  const product = projectShopRelatedProduct(
+    row({
+      priceSourceCurrency: "EUR",
+      compareAtSourceCurrency: "EUR",
+      b2bPriceSourceCurrency: "USD",
+      b2bCompareAtSourceCurrency: "UAH",
+    })
+  );
   assert.equal(product.price.sourceCurrency, "EUR");
   assert.equal(product.compareAt?.sourceCurrency, "EUR");
   assert.equal(product.b2bPrice?.sourceCurrency, "USD");
   assert.equal(product.b2bCompareAt?.sourceCurrency, "UAH");
-  const context = { customerGroup: null, customerB2BDiscountPercent: null, isAuthenticated: false,
-    b2bVisibilityMode: "request_quote" as const, defaultB2BDiscountPercent: 0, priceCountry: "Ukraine",
-    currencyRates: { EUR: 1, USD: 51.483 / 46.0564, UAH: 50.483, _rawUsdToUah: 45.0564, _uahReserve: 1 } };
+  const context = {
+    customerGroup: null,
+    customerB2BDiscountPercent: null,
+    isAuthenticated: false,
+    b2bVisibilityMode: "request_quote" as const,
+    defaultB2BDiscountPercent: 0,
+    priceCountry: "Ukraine",
+    currencyRates: {
+      EUR: 1,
+      USD: 51.483 / 46.0564,
+      UAH: 50.483,
+      _rawUsdToUah: 45.0564,
+      _uahReserve: 1,
+    },
+  };
   const pricing = resolveShopProductPricing(product, context);
   assert.equal(pricing.effectivePrice.eur, 1200.5);
   assert.equal(pricing.effectivePrice.uah, 61805.34);
-  assert.equal(resolveShopProductPricing(product, { ...context, customerGroup: "B2B_APPROVED" }).effectivePrice.usd, 1100);
+  assert.equal(
+    resolveShopProductPricing(product, { ...context, customerGroup: "B2B_APPROVED" }).effectivePrice
+      .usd,
+    1100
+  );
 });
 
 test("missing brand falls back to vendor and preserves safe stock/scope enums", () => {
@@ -107,16 +129,24 @@ test("PDP related reader is a narrow select and the page uses it", () => {
     /longDescUa|longDescEn|bodyHtmlUa|bodyHtmlEn|variants:|media:|bundle:/
   );
 
-  const page = readFileSync("src/app/(strict-http)/[locale]/shop/[slug]/page.tsx", "utf8");
+  const page = readFileSync(
+    "src/app/[locale]/shop/components/ShopRelatedProductsSection.tsx",
+    "utf8"
+  );
   assert.match(page, /getShopRelatedProductsByBrandServer\(product\.brand\)/);
   assert.doesNotMatch(page, /getShopProductsByBrandServer\(product\.brand\)/);
 });
 
 test("related Revozport cards preserve the approved delivery-pricing weight", () => {
-  const product = projectShopRelatedProduct(row({ brand: "Revozport", metafields: [
-    { namespace: "revozport_logistics", key: "delivery_pricing_weight_kg", value: "5.489" },
-    { namespace: "revozport_logistics", key: "sea_shipping_usd", value: "49.00" },
-  ] }));
+  const product = projectShopRelatedProduct(
+    row({
+      brand: "Revozport",
+      metafields: [
+        { namespace: "revozport_logistics", key: "delivery_pricing_weight_kg", value: "5.489" },
+        { namespace: "revozport_logistics", key: "sea_shipping_usd", value: "49.00" },
+      ],
+    })
+  );
   assert.equal(product.shippingPricingWeightKg, 5.489);
   assert.equal(product.shippingToUaUsd, 49);
 });

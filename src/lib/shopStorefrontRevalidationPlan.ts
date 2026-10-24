@@ -1,9 +1,9 @@
 import { isRacechipRow, resolveRacechipModelGroupKey } from "@/lib/seoRacechipConsolidation";
 import {
   buildShopStorefrontProductPath,
+  buildShopStorefrontRootPath,
   resolveShopStorefrontSegment,
 } from "@/lib/shopStorefrontRouting";
-import { getStorefrontRoute } from "@/lib/storefrontRouteRegistry";
 
 export type RevalidationProduct = {
   slug: string;
@@ -22,13 +22,10 @@ export function buildShopStorefrontRevalidationPlan(
   for (const product of products) {
     const segment = resolveShopStorefrontSegment(product);
     for (const locale of ["ua", "en"] as const) {
+      // One address per product; a brand's listing is its catalog landing page.
       add(buildShopStorefrontProductPath(locale, product));
-      add(`/${locale}/shop/${product.slug}`);
       if (detailOnly || !segment) continue;
-      const route = getStorefrontRoute(segment);
-      const basePath = `/${locale}/shop/${segment}/${route.listingSurface}`;
-      add(basePath);
-      if (route.paginated) add(`${basePath}/page/[page]`, "page");
+      add(buildShopStorefrontRootPath(locale, segment));
     }
     if (!detailOnly) {
       tags.add("shop-products");
@@ -79,12 +76,8 @@ export function buildRacechipSiblingRevalidationPaths(
     const key = resolveRacechipModelGroupKey(row);
     if (!key || !keys.has(key)) continue;
     for (const locale of ["ua", "en"] as const) {
-      for (const path of [
-        buildShopStorefrontProductPath(locale, row),
-        `/${locale}/shop/${row.slug}`,
-      ]) {
-        if (!alreadyPlanned.has(path)) paths.add(path);
-      }
+      const path = buildShopStorefrontProductPath(locale, row);
+      if (!alreadyPlanned.has(path)) paths.add(path);
     }
   }
   return [...paths];
