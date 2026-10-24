@@ -8,8 +8,8 @@ import {
 
 test("shop navigation exposes brands, catalog, and finder without a second shop", () => {
   assert.deepEqual(getShopNavigationDestinations("ua"), [
-    { key: "brands", href: "/ua/shop" },
     { key: "catalog", href: "/ua/shop/catalog" },
+    { key: "brands", href: "/ua/shop" },
     { key: "selection", href: "/ua/contact#selection-form" },
   ]);
 });

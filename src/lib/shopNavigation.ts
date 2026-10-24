@@ -18,8 +18,9 @@ export function getShopNavigationDestinations(locale: string): ShopNavigationDes
   const localeRoot = `/${locale}`;
 
   return [
-    { key: "brands", href: `${localeRoot}/shop` },
+    // The catalog comes first: most visitors search for a part, not a brand.
     { key: "catalog", href: `${localeRoot}/shop/catalog` },
+    { key: "brands", href: `${localeRoot}/shop` },
     { key: "selection", href: `${localeRoot}/contact#selection-form` },
   ];
 }
