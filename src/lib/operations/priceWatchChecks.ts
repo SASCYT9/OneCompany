@@ -8,6 +8,7 @@ import {
 } from "@/lib/ctCarbonCatalog";
 import { calculateLinkEcuPriceEur } from "@/lib/linkEcuCatalog";
 import { calculateMstRetailPrice } from "@/lib/mstCatalog";
+import { VALVETRONIC_STORE, calculateValvetronicPriceUsd } from "@/lib/valvetronicCatalog";
 import { normalizeShopCurrencyRates } from "@/lib/shopAdminSettings";
 import { repriceShopSourceMoney, type ShopPriceBookRates } from "@/lib/shopPriceBookCurrency";
 import {
@@ -992,6 +993,111 @@ async function checkLinkEcu(def: PriceWatchSourceDefinition, ctx: PriceWatchCont
   });
 }
 
+/**
+ * Valvetronic Designs (valvetronic.com, Shopify, USD): regular price × 1.15 + $12/kg. The
+ * weight is the one our price was set with (pricing record: feed weight, the heaviest of the
+ * configuration or an estimate), so a finding means the brand changed its price.
+ */
+async function checkValvetronic(def: PriceWatchSourceDefinition, ctx: PriceWatchContext) {
+  const base = def.url ?? VALVETRONIC_STORE;
+  const [catalog, feed] = await Promise.all([
+    loadPriceWatchCatalog(ctx.client, def.brands, ["valvetronic_import"]),
+    fetchShopifyFeed(ctx, { base }),
+  ]);
+  const byVariantId = new Map<
+    string,
+    { product: ShopifyFeedProduct; variant: ShopifyFeedVariant }
+  >();
+  const bySku = new Map<string, { product: ShopifyFeedProduct; variant: ShopifyFeedVariant }>();
+  for (const product of feed) {
+    for (const variant of product.variants) {
+      byVariantId.set(String(variant.id), { product, variant });
+      if (variant.sku && !bySku.has(normalizeSku(variant.sku))) {
+        bySku.set(normalizeSku(variant.sku), { product, variant });
+      }
+    }
+  }
+  const findings: PriceWatchFinding[] = [];
+  const facts: PriceWatchFact[] = [];
+  const soldProducts = new Set<number>();
+  const ratios: number[] = [];
+  let matched = 0;
+  let missing = 0;
+  let soldOut = 0;
+  for (const product of catalog) {
+    const pricing = parseJsonValue<{
+      variants?: Array<{ sku: string; regularUsd?: number; weightKg?: number }>;
+    }>(product.meta.pricing);
+    for (const variant of product.variants.length ? product.variants : [null]) {
+      const sku = variant?.sku ?? product.sku ?? "";
+      // Our VTD-<id> SKUs carry the brand's Shopify variant id.
+      const hit =
+        byVariantId.get(sku.match(/^VTD-(\d+)$/)?.[1] ?? "") ?? bySku.get(normalizeSku(sku));
+      const ours = ourPrice(product, variant, "USD");
+      if (!hit) {
+        missing += 1;
+        findings.push({ kind: "gone", sku, title: product.title, currency: "USD", ours });
+        continue;
+      }
+      matched += 1;
+      soldProducts.add(hit.product.id);
+      const url = `${base}/products/${encodeURIComponent(hit.product.handle)}`;
+      const record = pricing?.variants?.find((item) => item.sku === sku);
+      facts.push({
+        supplierKey: `v${hit.variant.id}`,
+        productId: product.id,
+        variantId: variant?.id ?? null,
+        sku,
+        supplierSku: hit.variant.sku ?? null,
+        title: product.title,
+        url,
+        price: shopifyRegularPrice(hit.variant) || null,
+        currency: "USD",
+        available: hit.variant.available ?? null,
+        availability: null,
+        weightKg: record?.weightKg ?? gramsToKg(hit.variant.grams),
+      });
+      if (hit.variant.available === false) {
+        soldOut += 1;
+        findings.push({ kind: "sold_out", sku, title: product.title, url, currency: "USD", ours });
+      }
+      const regular = shopifyRegularPrice(hit.variant);
+      const weightKg = record?.weightKg;
+      if (!(regular > 0) || !weightKg) continue;
+      const expected = calculateValvetronicPriceUsd(regular, weightKg);
+      if (record?.regularUsd) ratios.push(regular / record.regularUsd);
+      const difference = comparePriceWithFormula({ ours, expected, currency: "USD" });
+      if (difference) {
+        findings.push({
+          kind: difference.kind,
+          sku,
+          title: product.title,
+          url,
+          currency: "USD",
+          ours,
+          expected,
+          before: record?.regularUsd ?? null,
+          now: regular,
+          supplierCurrency: "USD",
+          deltaPct: difference.deltaPct,
+        });
+      }
+    }
+  }
+  for (const product of feed) {
+    if (!soldProducts.has(product.id)) facts.push(unmatchedShopifyFact(base, product, "USD"));
+  }
+  return finishPriceWatchCheck({
+    checked: catalog.length,
+    matched,
+    missing,
+    ratios,
+    findings,
+    summary: { soldOut },
+    facts,
+  });
+}
+
 type PagePlanItem = {
   productId: string;
   sku: string;
@@ -1922,6 +2028,8 @@ export async function runPriceWatchStep(
       return { done: true, result: await checkCtCarbon(def, ctx) };
     case "link-ecu":
       return { done: true, result: await checkLinkEcu(def, ctx) };
+    case "valvetronic":
+      return { done: true, result: await checkValvetronic(def, ctx) };
     case "brabus":
       return stepBrabus(def, ctx, progress);
     case "mst":

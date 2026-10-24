@@ -79,3 +79,35 @@ test("MINI, Supra and Link ECU's Japanese cars use the picker's generations", ()
     "Mitsubishi Lancer Evolution IX CT9A",
   ]);
 });
+
+test("exotic and AMG names become the picker's models", () => {
+  assert.deepEqual(picker([vehicle("Ferrari", "488 Pista")]), ["Ferrari 488 -"]);
+  assert.deepEqual(picker([vehicle("Ferrari", "F12berlinetta")]), ["Ferrari F12 -"]);
+  assert.deepEqual(picker([vehicle("Ferrari", "GTC4 Lusso")]), ["Ferrari GTC4 -"]);
+  assert.deepEqual(picker([vehicle("Ferrari", "SF90 Stradale")]), ["Ferrari SF90 Stradale -"]);
+  assert.deepEqual(picker([vehicle("Ferrari", "F8 Tributo")]), ["Ferrari F8 Tributo -"]);
+  assert.deepEqual(picker([vehicle("Lamborghini", "Aventador SVJ")]), ["Lamborghini Aventador -"]);
+  assert.deepEqual(picker([vehicle("Mclaren", "MP4-12C")]), ["McLaren MP4 12C -"]);
+  assert.deepEqual(picker([vehicle("Mercedes-Benz", "E63 AMG", "W212")]), [
+    "Mercedes-Benz AMG E 63 W212",
+  ]);
+  assert.deepEqual(picker([vehicle("Mercedes-Benz", "C63S", "W205")]), [
+    "Mercedes-Benz AMG C 63 S W205",
+  ]);
+  assert.deepEqual(picker([vehicle("Mercedes-Benz", "AMG GT63 S")]), ["Mercedes-Benz AMG GT 63 -"]);
+  assert.deepEqual(picker([vehicle("Mercedes-Benz", "G63 Squared", "W463A")]), [
+    "Mercedes-Benz AMG G 63 W463A",
+  ]);
+  assert.deepEqual(picker([vehicle("Lexus", "RC F")]), ["Lexus RC -"]);
+  assert.deepEqual(picker([vehicle("Jeep", "Wrangler", "JL")]), ["Jeep Wrangler IV JL"]);
+});
+
+test("Porsche: 911 trims under 911, 718 by chassis or years", () => {
+  assert.deepEqual(picker([vehicle("Porsche", "GT3 RS", "992")]), ["Porsche 911 GT3 RS 992"]);
+  assert.deepEqual(picker([vehicle("Porsche", "Carrera", "991.2")]), ["Porsche 911 Carrera 991.2"]);
+  assert.deepEqual(picker([vehicle("Porsche", "Boxster S", "981", 2012)]), ["Porsche Boxster 981"]);
+  assert.deepEqual(picker([vehicle("Porsche", "Cayman GT4", "982", 2020)]), [
+    "Porsche 718 Cayman 982",
+  ]);
+  assert.deepEqual(picker([vehicle("Porsche", "Cayman GT4 RS")]), ["Porsche 718 Cayman GT4 RS -"]);
+});

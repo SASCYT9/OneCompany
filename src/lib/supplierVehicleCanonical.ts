@@ -16,6 +16,8 @@ const MAKE_ALIASES: Record<string, string> = {
   škoda: "Škoda",
   mercedes: "Mercedes-Benz",
   "mercedes-benz": "Mercedes-Benz",
+  "mercedes-amg": "Mercedes-Benz",
+  mclaren: "McLaren",
 };
 
 /** Engine families and platforms that some pages list where a car model belongs. */
@@ -155,8 +157,79 @@ function hondaModel(model: string, chassis: string | null): string {
   return model;
 }
 
+/** Ferrari body and edition names ("488 Pista", "F12berlinetta") belong to the picker's model. */
+function ferrariModel(model: string): string {
+  const rules: Array<[RegExp, string]> = [
+    [/^296\b/i, "296"],
+    [/^458\b/i, "458"],
+    [/^488\b/i, "488"],
+    [/^812\b/i, "812"],
+    [/^F12/i, "F12"],
+    [/^F430\b/i, "F430"],
+    [/^F8 (?:Spider|Tributo Spider)$/i, "F8"],
+    [/^GTC4/i, "GTC4"],
+    [/^SF90\b(?! Stradale$)/i, "SF90"],
+    [/^California\b/i, "California"],
+  ];
+  return rules.find(([pattern]) => pattern.test(model))?.[1] ?? model;
+}
+
+/**
+ * Mercedes-AMG cars sit under "AMG <class> <number>" in the picker ("E63 AMG" → "AMG E 63");
+ * the S versions only where the picker lists them.
+ */
+function mercedesModel(model: string): string {
+  if (/^G\s?63\b/i.test(model)) return "AMG G 63";
+  if (/^G\s?500$/i.test(model)) return "G 500";
+  if (/^G\s?550$/i.test(model)) return "G-Class";
+  if (/^CLS\s?63\b/i.test(model)) return "CLS-Class";
+  const amg = model
+    .replace(/\bAMG\b/gi, " ")
+    .trim()
+    .match(/^(C|E|S|GLC|GLE|GT)\s?(35|43|45|53|63)\s?(S)?$/i);
+  if (amg) {
+    const [, series, number, s] = amg;
+    const name = `AMG ${series.toUpperCase()} ${number}`;
+    return s && ["C", "GLC", "GLE"].includes(series.toUpperCase()) ? `${name} S` : name;
+  }
+  return model;
+}
+
+function porscheModel(model: string, chassis: string | null, yearFrom: number | null): string {
+  if (/^911 Carrera 4 ?S?$/i.test(model)) return "911 Carrera";
+  if (/^930$/.test(model)) return "911";
+  if (/^(?:GT3|GT3 RS|GT2 RS|Carrera|Turbo|Turbo S)$/i.test(model)) {
+    return `911 ${model.replace(/^carrera$/i, "Carrera").replace(/^turbo/i, "Turbo")}`;
+  }
+  const code = String(chassis ?? "").toUpperCase();
+  // 718 (982) Boxster / Cayman from 2016; the 981 and older keep the plain name.
+  const is718 = /^(?:718|982)/.test(code) || (!code && (yearFrom ?? 0) >= 2017);
+  if (/^Cayman GT4 RS$/i.test(model)) return "718 Cayman GT4 RS";
+  if (/^(?:Boxster )?Spyder RS$/i.test(model)) return "718 Spyder RS";
+  const base = model.match(/^(Boxster|Cayman)\b/i)?.[1];
+  if (base) {
+    const name = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+    return is718 ? `718 ${name}` : name;
+  }
+  return model;
+}
+
 function modelFor(make: string, model: string, chassis: string | null, yearFrom: number | null) {
   switch (make) {
+    case "Ferrari":
+      return ferrariModel(model);
+    case "Lamborghini":
+      if (/^Aventador\b/i.test(model)) return "Aventador";
+      if (/^Gallardo\b(?! Spyder$)/i.test(model)) return "Gallardo";
+      return model;
+    case "McLaren":
+      return /^MP4-?12C$/i.test(model) ? "MP4 12C" : model;
+    case "Mercedes-Benz":
+      return mercedesModel(model);
+    case "Jeep":
+      return /^Wrangler$/i.test(model) && /^JL/i.test(chassis ?? "") ? "Wrangler IV" : model;
+    case "Lexus":
+      return /^RC ?F$/i.test(model) ? "RC" : model;
     case "BMW":
       return bmwModel(model);
     case "Audi":
@@ -171,8 +244,7 @@ function modelFor(make: string, model: string, chassis: string | null, yearFrom:
       }
       return /^86$/.test(model) ? "GT 86" : model;
     case "Porsche":
-      if (/^911 Carrera 4 ?S?$/i.test(model)) return "911 Carrera";
-      return /^930$/.test(model) ? "911" : model;
+      return porscheModel(model, chassis, yearFrom);
     case "Subaru":
       return subaruModel(model, chassis);
     case "Mitsubishi":
