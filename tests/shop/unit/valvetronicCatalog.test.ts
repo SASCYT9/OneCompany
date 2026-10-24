@@ -128,6 +128,8 @@ test("weights from weights.json fill the gaps of the feed", () => {
   const noWeight = { sku: "VTD.TIP.25", grams: 0 };
   assert.equal(valvetronicWeightKg(noWeight), null);
   assert.equal(valvetronicWeightKg(noWeight, { "VTD.TIP.25": 1.2 }), 1.2);
+  // Variants without a brand SKU are keyed by our VTD-<variant id>.
+  assert.equal(valvetronicWeightKg({ id: 77, sku: null, grams: 0 }, { "VTD-77": 5 }), 5);
   const tips = product({
     variants: [{ ...product().variants[0], sku: "VTD.TIP.25", grams: 0 }],
   });

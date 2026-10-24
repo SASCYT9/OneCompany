@@ -52,14 +52,19 @@ export type ValvetronicSourceProduct = {
   updatedAt: string | null;
 };
 
-/** Shipping weights sent by the brand or Ігор, by Valvetronic SKU (kg); they win over the feed. */
+/**
+ * Shipping weights (kg) that win over the feed: from Ігор or the owner's estimates, keyed by
+ * the Valvetronic SKU, or by our `VTD-<variant id>` for variants the brand left without one.
+ */
 export type ValvetronicWeightOverrides = Record<string, number>;
 
 export function valvetronicWeightKg(
-  variant: Pick<ValvetronicSourceVariant, "sku" | "grams">,
+  variant: Pick<ValvetronicSourceVariant, "sku" | "grams"> & { id?: number },
   overrides: ValvetronicWeightOverrides = {}
 ): number | null {
-  const override = variant.sku ? overrides[variant.sku] : undefined;
+  const override =
+    (variant.sku ? overrides[variant.sku] : undefined) ??
+    (variant.id !== undefined ? overrides[`VTD-${variant.id}`] : undefined);
   if (override !== undefined && Number.isFinite(override) && override > 0) return override;
   // Exact grams: rounding the weight first can move the price by a dollar.
   return variant.grams > 0 ? variant.grams / 1000 : null;
