@@ -35,7 +35,7 @@ Rules:
 - Glossary: valved → клапанна / з клапанами; catback / cat-back → кет-бек; axleback / axle-back → аксл-бек; rear section → задня секція;
   midpipe → середня секція (midpipe); front pipes → передні труби; downpipes → даунпайпи; test pipes / race pipes → прямі труби;
   free flow → без каталізаторів (free flow); headers / manifolds → колектори; bypass pipes → байпас-труби; over axle pipes → труби над мостом;
-  400 cell catted / catalytic converters → з 400-комірковими каталізаторами; resonated → з резонаторами; quad / dual → чотири / два;
+  400 cell catted / catalytic converters → з каталізаторами 400 cell (never «коміркові»); resonated → з резонаторами; quad / dual → чотири / два;
   tips → насадки; outlet → вихід; single wall → одностінні; brushed (steel) → шліфована сталь; burnt → палений; raw titanium → необроблений титан;
   black → чорні; 1x1 carbon (fiber) → карбон 1x1; forged carbon (fiber) → кований карбон; stainless steel → нержавіюча сталь;
   Grade 5 titanium → титан Grade 5; anodized gold → анодоване золото; full system → повна система; only → лише; system → система;

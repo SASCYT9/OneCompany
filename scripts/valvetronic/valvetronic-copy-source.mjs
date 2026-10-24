@@ -18,7 +18,7 @@ ${COMMON_RULES}
 - Ukrainian exhaust words (EN → UA): valved exhaust → клапанна вихлопна система; valves → клапани; cat-back / catback → кет-бек (cat-back);
   axle-back → аксл-бек (axle-back); rear section → задня секція; midpipe / mid-section → середня секція (midpipe); front pipes → передні труби;
   downpipes → даунпайпи; test pipes / race pipes / free flow pipes → прямі труби без каталізаторів (free flow); headers / manifolds → випускні колектори (headers);
-  catted / catalytic converters → з каталізаторами; 400 cell / 200 cell → 400-коміркові / 200-коміркові; Euro 6 → Euro 6; resonated → з резонаторами;
+  catted / catalytic converters → з каталізаторами; 400 cell / 200 cell → «каталізатори 400 cell» / «з каталізаторами 200 cell» (tuners say "cell"; never «коміркові»); Euro 6 → Euro 6; resonated → з резонаторами;
   muffler → глушник; X-pipe → X-труба (X-pipe); Y-pipe → Y-труба (Y-pipe); bypass → байпас; exhaust tips → насадки вихлопу; outlet → вихідний діаметр;
   single wall / double wall → одностінні / двостінні; brushed → шліфовані; burnt / burnt titanium → палений титан (з кольоровою побіжалістю); black → чорні;
   1x1 carbon fiber → карбон 1x1; forged carbon → кований карбон; T304 stainless steel → нержавіюча сталь T304; Grade 5 titanium → титан Grade 5;
@@ -35,7 +35,7 @@ Fields:
 - titleEn / titleUa: start with "Valvetronic Designs", then what the product is, then the car (make, model, chassis code, years when SOURCE gives them).
   Examples: EN "Valvetronic Designs Valved Sport Exhaust System for Audi S4 / S5 B9 (2017–2024)";
   UA "Valvetronic Designs — клапанна вихлопна система для Audi S4 / S5 B9 (2017–2024)";
-  EN "Valvetronic Designs 400 Cell Catted Downpipes for BMW M2 / M3 / M4 G87 / G80 / G82"; UA "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для BMW M2 / M3 / M4 G87 / G80 / G82".
+  EN "Valvetronic Designs 400 Cell Catted Downpipes for BMW M2 / M3 / M4 G87 / G80 / G82"; UA "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для BMW M2 / M3 / M4 G87 / G80 / G82".
   Universal parts (clamps, tips, remotes) name the part and its size. Max 110 characters.
 - shortDescEn / shortDescUa: 1–2 sentences, max 200 characters: what it is and the main reason to buy.
 - introEn / introUa: exactly 2 short paragraphs, 2 sentences each.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import ShopCatalogLandingView from "@/components/shop/ShopCatalogLandingView";
+import { getBrandBySlug } from "@/lib/brands";
 import { resolveLocale } from "@/lib/seo";
 import { findShopCatalogLanding } from "@/lib/shopCatalogLandings";
 import { buildShopCatalogLandingMetadata } from "@/lib/shopCatalogLandings.server";
@@ -42,5 +43,7 @@ export default async function ShopBrandLandingPage({ params, searchParams }: Pro
 
   const brand = decodeBrandSegment(rawBrand);
   if (!brand) notFound();
-  permanentRedirect(`/${locale}/shop/catalog?brand=${encodeURIComponent(brand)}`);
+  // The catalog filters by the brand name: a slug ("ct-carbon") would match nothing.
+  const name = getBrandBySlug(brand.toLowerCase())?.name ?? brand;
+  permanentRedirect(`/${locale}/shop/catalog?brand=${encodeURIComponent(name)}`);
 }
