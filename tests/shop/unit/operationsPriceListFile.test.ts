@@ -343,7 +343,7 @@ test("a CSV in Windows-1251 with semicolons and decimal commas", async () => {
   );
 });
 
-test("a Dinan dealer list: Ігор's formula, competitor cap, new and gone items, facts with size", async () => {
+test("a Dinan dealer list: Ігор's formula, new and gone items, facts with size", async () => {
   const { handlePriceListFile } = await fileModule;
   const { client, proposals, savedFacts, sourceUpdates } = fakeClient({
     products: [
@@ -408,14 +408,14 @@ test("a Dinan dealer list: Ігор's formula, competitor cap, new and gone item
     [
       // MAP $900 × 1.15 + $12 × 11 lb → kg = $1 094.87 → $1 095.
       ["D440-0001", 1000, 1095],
-      // Formula $488 is dearer than the competitor ($434.50) and $434 is above MAP + shipping ($428).
-      ["D440-0002", 500, 434],
+      // MAP $400 × 1.15 + $12 × 5 lb → kg = $487.22 → $488; the cheaper competitor does not matter.
+      ["D440-0002", 500, 488],
     ]
   );
   assert.match(text, /Dinan: новый прайс/);
   assert.match(text, /Dinan Retail 1-15-27\.xlsx: 4 позиции, на сайте из них 3/);
   assert.match(text, /MAP: выше у 1 \(в среднем \+9,8\s%\), ниже у 0/);
-  assert.match(text, /Не дороже конкурента: 1 · не ниже MAP \+ доставка: 0/);
+  assert.doesNotMatch(text, /Не дороже конкурента/);
   assert.match(text, /В прайсе, но нет на сайте: 1\n/);
   assert.doesNotMatch(text, /D020-1001-S/, "merchandise is not a product to import");
   assert.match(text, /Сняты с производства или пропали из прайса: 2/);

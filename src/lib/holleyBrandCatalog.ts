@@ -23,8 +23,8 @@ import {
  * advertised price) × 1.15 + $12 per kg of the price-list weight, which is in
  * POUNDS and is already the boxed weight. MSRP ("Retail") is used only when a
  * SKU has no MAP. Never a sale price shown on the brand's website.
- * Owner, 19.10.2026: the final price must not be higher than competitors' and
- * not lower than MAP + $12/kg.
+ * Ігор, 24.10.2026: no competitor cap any more — the site price is the formula
+ * as is (competitor prices stay in the data for reference only).
  */
 export const HOLLEY_BRAND_MARKUP = 1.15;
 export const HOLLEY_BRAND_USD_PER_KG = 12;
@@ -80,10 +80,9 @@ export type HolleyCompetitorPrice = {
 
 export type HolleyPriceDecision = {
   formulaUsd: number;
-  floorUsd: number | null;
   competitorUsd: number | null;
   priceUsd: number;
-  rule: "formula" | "competitor" | "floor";
+  rule: "formula";
 };
 
 /** Base price × 1.15 + $12/kg (price-list pounds → kg), rounded up to a whole dollar. */
@@ -99,9 +98,8 @@ export function calculateHolleyFormulaUsd(baseUsd: number, weightLb: number) {
 }
 
 /**
- * Not more expensive than the cheapest competitor, but never below the floor
- * (the US price plus our shipping), so a stale competitor price cannot push a
- * product under what it costs to bring it in.
+ * The site price is the formula. The cheapest competitor price is kept only as
+ * information (price watch, product card), it never changes the price.
  */
 export function decideHolleyPriceUsd(input: {
   retailUsd: number;
@@ -114,18 +112,9 @@ export function decideHolleyPriceUsd(input: {
     hasMap ? input.mapUsd! : input.retailUsd,
     input.weightLb
   );
-  const shippingUsd = HOLLEY_BRAND_USD_PER_KG * Math.max(0, input.weightLb || 0) * POUND_KG;
-  const floorUsd = hasMap ? Math.ceil(input.mapUsd! + shippingUsd) : null;
   const competitors = input.competitorUsd.filter((value) => Number.isFinite(value) && value > 0);
   const competitorUsd = competitors.length ? Math.min(...competitors) : null;
-  if (competitorUsd === null || competitorUsd >= formulaUsd) {
-    return { formulaUsd, floorUsd, competitorUsd, priceUsd: formulaUsd, rule: "formula" };
-  }
-  const matched = Math.floor(competitorUsd);
-  if (floorUsd !== null && matched < floorUsd) {
-    return { formulaUsd, floorUsd, competitorUsd, priceUsd: floorUsd, rule: "floor" };
-  }
-  return { formulaUsd, floorUsd, competitorUsd, priceUsd: matched, rule: "competitor" };
+  return { formulaUsd, competitorUsd, priceUsd: formulaUsd, rule: "formula" };
 }
 
 export type HolleyCollectedPage = {
@@ -843,7 +832,7 @@ export function buildHolleyProductPayload(
         namespace: meta.namespace,
         key: "price_formula",
         value:
-          "MAP × 1.15 + $12/kg (price-list pounds; MSRP when there is no MAP), rounded up to $1; not above the cheapest competitor, not below MAP + $12/kg",
+          "MAP × 1.15 + $12/kg (price-list pounds; MSRP when there is no MAP), rounded up to $1",
         valueType: "single_line_text_field",
       },
       ...(docs.length

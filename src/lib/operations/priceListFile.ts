@@ -8,7 +8,6 @@ import {
   POUND_KG,
   decideHolleyPriceUsd,
   type HolleyBrandKey,
-  type HolleyPriceDecision,
 } from "@/lib/holleyBrandCatalog";
 import { OPS_XLSX_MIME_TYPE } from "@/lib/operations/media";
 import {
@@ -48,8 +47,7 @@ import {
 /**
  * «Прайс файлом у бот»: an owner sends a supplier price list (.xlsx or .csv) to
  * the ops bot. A Dinan / APR dealer list is priced by Ігор's formula
- * (decideHolleyPriceUsd: MAP × 1.15 + $12/kg, not above the cheapest
- * competitor, not below MAP + $12/kg); any other sheet with SKU and price
+ * (decideHolleyPriceUsd: MAP × 1.15 + $12/kg); any other sheet with SKU and price
  * columns becomes site prices by the brand's price-list rule or the caption
  * markup («+10%»). Either way the owner first sees what changes and confirms
  * it, as with «цена …» commands.
@@ -656,7 +654,6 @@ async function planHolleyList(input: {
   const listed = new Set<string>();
   const facts: PriceWatchFact[] = [];
   const findings: Array<{ sku: string; expected: number; currency: "USD" }> = [];
-  const rules = new Map<string, HolleyPriceDecision["rule"]>();
   const offSite: string[] = [];
   const freshOffSite: string[] = [];
   const discontinued: string[] = [];
@@ -718,7 +715,6 @@ async function planHolleyList(input: {
       competitorUsd: rivalUsd.get(key) ?? (ours.competitorUsd ? [ours.competitorUsd] : []),
     });
     findings.push({ sku: ours.sku, expected: decision.priceUsd, currency: "USD" });
-    rules.set(skuKey(ours.sku), decision.rule);
   }
   if (!listed.size) return { error: `в файле нет строк ${brand.brand}` };
   const missing = [...site.values()]
@@ -737,8 +733,6 @@ async function planHolleyList(input: {
   const plan = await planFromFindings(client, title, findings);
   if (!plan.ok) return { error: plan.message };
   const changed = effectivePriceChanges(plan.items);
-  const byRule = (rule: HolleyPriceDecision["rule"]) =>
-    changed.filter((item) => rules.get(skuKey(item.sku)) === rule).length;
   const up = baseMoves.filter((move) => move >= 0.5);
   const down = baseMoves.filter((move) => move <= -0.5);
   const gone = [...discontinued, ...missing];
@@ -750,11 +744,6 @@ async function planHolleyList(input: {
           up.length || down.length
             ? `MAP: выше у ${up.length}${up.length ? ` (в среднем ${formatPriceWatchPercent(median(up))})` : ""}, ниже у ${down.length}${down.length ? ` (${formatPriceWatchPercent(median(down))})` : ""}`
             : "MAP не изменились",
-        ]
-      : []),
-    ...(byRule("competitor") || byRule("floor")
-      ? [
-          `Не дороже конкурента: ${byRule("competitor")} · не ниже MAP + доставка: ${byRule("floor")}`,
         ]
       : []),
     ...(offSite.length
