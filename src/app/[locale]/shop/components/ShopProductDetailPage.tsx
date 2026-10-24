@@ -34,12 +34,10 @@ import {
 } from "@/lib/do88DescriptionEnricher";
 import {
   buildShopStorefrontProductPathForProduct,
-  resolveShopStorefrontBrandLandingPath,
   resolveShopStorefrontSegment,
 } from "@/lib/shopStorefrontRouting";
 import { buildRacechipSeoMeta } from "@/lib/seoProductMeta";
 import { getRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation.server";
-import { catalogLandingBrandName } from "@/lib/shopCatalogLandings";
 import { ShopRelatedProductsSection } from "./ShopRelatedProductsSection";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
 import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
@@ -687,14 +685,9 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   const priceValidUntil = new Date();
   priceValidUntil.setDate(priceValidUntil.getDate() + 30);
-  // One shop: back to the catalog, and a link to all of the brand's products.
+  // One shop: back to the catalog; the brand logo in the card links to the brand page.
   const backLinkHref = `/${resolvedLocale}/shop/catalog`;
   const backLinkLabel = `← ${isUa ? "Назад до магазину" : "Back to shop"}`;
-  const brandLandingHref = resolveShopStorefrontBrandLandingPath(resolvedLocale, product.brand);
-  const contextLinkHref: string | null = brandLandingHref;
-  const contextLinkLabel: string | null = brandLandingHref
-    ? `${isUa ? "Усі товари" : "All products"} ${catalogLandingBrandName(product.brand)}`
-    : null;
   const continueShoppingHref = `/${resolvedLocale}/shop/catalog`;
 
   const purchaseSection = (
@@ -763,20 +756,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
               label={backLinkLabel}
               className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
             />
-            <ShopInlineSearch locale={resolvedLocale} className="sm:order-last" />
-
-            {contextLinkHref && contextLinkLabel ? (
-              <Link
-                href={contextLinkHref}
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground/72 transition hover:border-foreground/35 hover:text-foreground"
-              >
-                {contextLinkLabel}
-              </Link>
-            ) : null}
-
-            <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/65">
-              {product.scope === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
-            </span>
+            <ShopInlineSearch locale={resolvedLocale} />
           </div>
 
           <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
