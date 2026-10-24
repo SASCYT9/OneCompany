@@ -16,7 +16,6 @@ import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
@@ -337,12 +336,6 @@ export default function RacechipShopProductDetailLayout({
                 )}
                 leadTime={product.leadTime}
                 productSlug={product.slug}
-                className="mt-4"
-              />
-              <ProductAiOpinionPanel
-                locale={locale}
-                product={product}
-                shape="rounded"
                 className="mt-4"
               />
 

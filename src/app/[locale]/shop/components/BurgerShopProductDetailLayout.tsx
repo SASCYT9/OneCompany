@@ -26,7 +26,6 @@ import { htmlToPlainText } from "@/lib/sanitizeRichTextHtml";
 import styles from "./BurgerShopProductDetailLayout.module.css";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
 import { SHOW_STOCK_BADGE } from "@/lib/shopStockUi";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability, isShopInStockProduct } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
@@ -113,7 +112,7 @@ function localizeBurgerOptionName(name: string, isUa: boolean) {
     "Choose oil catch can": "Тип уловлювача оливи",
     "Choose vehicle": "Модель автомобіля",
     "Choose spark plugs": "Тип свічок запалювання",
-    "tuner": "Версія автомобіля",
+    tuner: "Версія автомобіля",
     "Choose Your Port Injection Kit:": "Тип комплекту портового впорскування",
     "Add fuel line and injectors?": "Форсунки та паливна магістраль",
     "Add Basic Fuel Line and Injectors?": "Форсунки та паливна магістраль",
@@ -122,11 +121,11 @@ function localizeBurgerOptionName(name: string, isUa: boolean) {
     "Port Injection Controller:": "Контролер портового впорскування",
     "Add an injector controller?": "Контролер",
     "Filter color": "Тип фільтрів",
-    "Engine": "Двигун",
-    "System": "Система",
+    Engine: "Двигун",
+    System: "Система",
     "Please select a tuner:": "Оберіть тюнер",
     "Harness Type": "Тип джгута",
-    "Type": "Тип",
+    Type: "Тип",
     "Choose your powertrain": "Оберіть силову установку",
     "Choose your vehicle": "Оберіть автомобіль",
     "B48 generation": "Покоління B48",
@@ -164,21 +163,33 @@ function stripBurgerOptionPrice(value: string) {
 function localizeBurgerOptionValue(value: string, isUa: boolean, productSlug?: string) {
   const cleanValue = stripBurgerOptionPrice(value);
   if (!isUa) return cleanValue;
-  if (productSlug === "burger-n54-jb-quick-install" &&
-      /^yes include n54 drop-in performance filter$/i.test(cleanValue)) return "Так, додати drop-in фільтр N54";
-  if (productSlug === "burger-n54-jb-quick-install" && /^no$/i.test(cleanValue)) return "Без додаткового фільтра";
-  if (productSlug === "burger-s58-bmw-water-methanol-port-injection-kit" &&
-      /^do not add a port injection controller$/i.test(cleanValue)) return "Без додаткового CANfuel";
-  if (productSlug === "burger-s58-bmw-water-methanol-port-injection-kit" &&
-      /^Fuel-It! CANfuel Sequential Port Fuel Injection Controller$/i.test(cleanValue)) {
+  if (
+    productSlug === "burger-n54-jb-quick-install" &&
+    /^yes include n54 drop-in performance filter$/i.test(cleanValue)
+  )
+    return "Так, додати drop-in фільтр N54";
+  if (productSlug === "burger-n54-jb-quick-install" && /^no$/i.test(cleanValue))
+    return "Без додаткового фільтра";
+  if (
+    productSlug === "burger-s58-bmw-water-methanol-port-injection-kit" &&
+    /^do not add a port injection controller$/i.test(cleanValue)
+  )
+    return "Без додаткового CANfuel";
+  if (
+    productSlug === "burger-s58-bmw-water-methanol-port-injection-kit" &&
+    /^Fuel-It! CANfuel Sequential Port Fuel Injection Controller$/i.test(cleanValue)
+  ) {
     return "Додати Fuel-It! CANfuel для керування PI/WMI";
   }
   if (/^Opaque Black$/i.test(cleanValue)) return "Непрозорий чорний бак";
   if (/^Translucent White$/i.test(cleanValue)) return "Напівпрозорий білий бак";
   if (/^CPI Kit without FSB$/i.test(cleanValue)) return "CPI без контролера FSB";
   if (/^CPI Kit with FSB$/i.test(cleanValue)) return "CPI з контролером FSB для JB4";
-  if (/^CPI Kit with Stand Alone Controller$/i.test(cleanValue)) return "CPI з автономним контролером";
-  const phoenixManifold = cleanValue.match(/^Phoenix Racing N(54|55) Port Injection Intake Manifold$/i);
+  if (/^CPI Kit with Stand Alone Controller$/i.test(cleanValue))
+    return "CPI з автономним контролером";
+  const phoenixManifold = cleanValue.match(
+    /^Phoenix Racing N(54|55) Port Injection Intake Manifold$/i
+  );
   if (phoenixManifold) return `Phoenix Racing · N${phoenixManifold[1]} · впускний колектор PI`;
   if (/do not add an eca/i.test(value)) return "Без Bluetooth ECA";
   if (/add the fuel-it! bluetooth (?:eca|analyzer)/i.test(value)) return "З Bluetooth ECA";
@@ -186,13 +197,20 @@ function localizeBurgerOptionValue(value: string, isUa: boolean, productSlug?: s
   if (/upgrade me to the 950cc injector/i.test(value)) return "Інжектор 950cc";
   if (/do not add an injector controller/i.test(value)) return "Без контролера";
   if (/include fsb for jb4 control/i.test(value)) return "З контролером FSB";
-  if (/^(?:do not add|do not include|do not add fuel|do not include fuel).*injectors?(?: and fuel line)?$/i.test(cleanValue)) {
+  if (
+    /^(?:do not add|do not include|do not add fuel|do not include fuel).*injectors?(?: and fuel line)?$/i.test(
+      cleanValue
+    )
+  ) {
     return /fuel line/i.test(cleanValue)
       ? "Без форсунок і паливної магістралі"
       : "Без додаткових форсунок";
   }
-  const injectorLine = cleanValue.match(/^add\s+(750|950|1050)cc\s+(DW|IDX)(?:\s+fuel)?\s+injectors?(?:\s+and\s+fuel\s+line)?$/i);
-  if (injectorLine) return `Форсунки ${injectorLine[2].toUpperCase()} ${injectorLine[1]}cc${/fuel line/i.test(cleanValue) ? " та паливна магістраль" : ""}`;
+  const injectorLine = cleanValue.match(
+    /^add\s+(750|950|1050)cc\s+(DW|IDX)(?:\s+fuel)?\s+injectors?(?:\s+and\s+fuel\s+line)?$/i
+  );
+  if (injectorLine)
+    return `Форсунки ${injectorLine[2].toUpperCase()} ${injectorLine[1]}cc${/fuel line/i.test(cleanValue) ? " та паливна магістраль" : ""}`;
   if (/^do not add (?:a )?(?:port injection|PI) controller$/i.test(cleanValue)) {
     return "Без контролера портового впорскування";
   }
@@ -202,20 +220,26 @@ function localizeBurgerOptionValue(value: string, isUa: boolean, productSlug?: s
   if (/^Elite$/i.test(cleanValue)) return "Elite — версія з додатковим зворотним портом";
   if (/^Manifold$/i.test(cleanValue)) return "Manifold — версія з впускним колектором";
   if (/^do not add a flex fuel kit$/i.test(cleanValue)) return "Без додаткового Flex Fuel Kit";
-  const flexFuelChoice = cleanValue.match(/^(I already have|Add) (?:your )?(?:a )?(Fuel-It!|CANflex)?\s*flex fuel kit(?: on my| for) (M2\/M3\/M4|X3M\/X4M)$/i);
+  const flexFuelChoice = cleanValue.match(
+    /^(I already have|Add) (?:your )?(?:a )?(Fuel-It!|CANflex)?\s*flex fuel kit(?: on my| for) (M2\/M3\/M4|X3M\/X4M)$/i
+  );
   if (flexFuelChoice) {
     const action = /^I already have$/i.test(flexFuelChoice[1]) ? "Вже маю" : "Додати";
     const brand = flexFuelChoice[2] ? `${flexFuelChoice[2]} ` : "";
     return `${action} ${brand}Flex Fuel Kit · ${flexFuelChoice[3]}`;
   }
-  if (/^Blue Oiled Renewable Performance Filters$/i.test(value)) return "Сині масляні багаторазові фільтри";
-  if (/^Red Oiled Renewable Performance Filters$/i.test(value)) return "Червоні масляні багаторазові фільтри";
+  if (/^Blue Oiled Renewable Performance Filters$/i.test(value))
+    return "Сині масляні багаторазові фільтри";
+  if (/^Red Oiled Renewable Performance Filters$/i.test(value))
+    return "Червоні масляні багаторазові фільтри";
   if (/^Blue Filters$/i.test(value)) return "Сині фільтри";
   if (/^Red Filters$/i.test(value)) return "Червоні фільтри";
   if (/^Blue Intake Filter$/i.test(cleanValue)) return "Синій фільтр впуску";
   if (/^Red Intake Filter$/i.test(cleanValue)) return "Червоний фільтр впуску";
-  if (/^Blue Oiled Renewable Performance Filter$/i.test(cleanValue)) return "Синій масляний багаторазовий фільтр";
-  if (/^Red Oiled Renewable Performance Filter$/i.test(cleanValue)) return "Червоний масляний багаторазовий фільтр";
+  if (/^Blue Oiled Renewable Performance Filter$/i.test(cleanValue))
+    return "Синій масляний багаторазовий фільтр";
+  if (/^Red Oiled Renewable Performance Filter$/i.test(cleanValue))
+    return "Червоний масляний багаторазовий фільтр";
   if (/^Dry Extendable Performance Filter$/i.test(cleanValue)) return "Сухий фільтр Dry Extendable";
   if (/^Non-Hybrid Engine$/i.test(cleanValue)) return "Бензиновий двигун без гібридної системи";
   if (/^Hybrid Engine$/i.test(cleanValue)) return "Гібридний двигун";
@@ -227,7 +251,8 @@ function localizeBurgerOptionValue(value: string, isUa: boolean, productSlug?: s
   if (/^Gen1 \(2016-2019\)$/i.test(cleanValue)) return "B58 Gen 1 · 2016–2019";
   if (/^Gen2 \(2020\+\) JB4PRO$/i.test(cleanValue)) return "B58 Gen 2 · 2020+ · JB4PRO";
   if (/^Gen2 \(2020\+\)$/i.test(cleanValue)) return "B58 Gen 2 · 2020+";
-  if (/^Zero Maintenance Oil Catch Can$/i.test(cleanValue)) return "Уловлювач оливи без обслуговування";
+  if (/^Zero Maintenance Oil Catch Can$/i.test(cleanValue))
+    return "Уловлювач оливи без обслуговування";
   if (/^Serviceable Oil Catch Can$/i.test(cleanValue)) return "Обслуговуваний уловлювач оливи";
   if (/^Denso 5346 IKH24 "1 Step" High Performance Spark Plugs$/i.test(cleanValue)) {
     return "Свічки Denso 5346 IKH24 · 1 Step";
@@ -241,20 +266,35 @@ function localizeBurgerOptionValue(value: string, isUa: boolean, productSlug?: s
   if (/^BMS Silicone Front Mount Cold Air Intake for G Chassis B58 BMW$/i.test(cleanValue)) {
     return "Передній силіконовий впуск BMS для BMW B58 G-Series";
   }
-  const s58G8xIntake = cleanValue.match(/^BMS G8x (S58 Performance Intake in Matte Black Finish|Front Mount S58 Performance Intake|Silicone Front Mount S58 Performance Intakes)(?: with)?(?: (Blue|Red) Filters)?$/i);
+  const s58G8xIntake = cleanValue.match(
+    /^BMS G8x (S58 Performance Intake in Matte Black Finish|Front Mount S58 Performance Intake|Silicone Front Mount S58 Performance Intakes)(?: with)?(?: (Blue|Red) Filters)?$/i
+  );
   if (s58G8xIntake) {
     const style = /Matte Black/i.test(s58G8xIntake[1])
       ? "верхній · матове чорне покриття"
-      : /Silicone/i.test(s58G8xIntake[1]) ? "передній · силіконовий" : "передній";
-    const color = s58G8xIntake[2] ? ` · ${s58G8xIntake[2].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри` : "";
+      : /Silicone/i.test(s58G8xIntake[1])
+        ? "передній · силіконовий"
+        : "передній";
+    const color = s58G8xIntake[2]
+      ? ` · ${s58G8xIntake[2].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри`
+      : "";
     return `Впуск BMS G8x S58 · ${style}${color}`;
   }
-  const s58F97Intake = cleanValue.match(/^BMS F97 F98 S58 Performance Intake in Matte Black Finish with (Blue|Red) Filters$/i);
-  if (s58F97Intake) return `Впуск BMS F97/F98 S58 · матове чорне покриття · ${s58F97Intake[1].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри`;
-  const s58F97Silicone = cleanValue.match(/^BMS Silicone Front Mount F97 F98 S58 Performance Intakes with (Blue|Red) Filters$/i);
-  if (s58F97Silicone) return `Впуск BMS F97/F98 S58 · передній силіконовий · ${s58F97Silicone[1].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри`;
-  const n54Package = cleanValue.match(/^500 Horsepower N54 (Race )?Package w\/Stage (1|2) Fuel Pump$/i);
-  if (n54Package) return `JB4 N54 · насос Stage ${n54Package[2]} · ${n54Package[1] ? "Race інтеркулер" : "стандартний інтеркулер"}`;
+  const s58F97Intake = cleanValue.match(
+    /^BMS F97 F98 S58 Performance Intake in Matte Black Finish with (Blue|Red) Filters$/i
+  );
+  if (s58F97Intake)
+    return `Впуск BMS F97/F98 S58 · матове чорне покриття · ${s58F97Intake[1].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри`;
+  const s58F97Silicone = cleanValue.match(
+    /^BMS Silicone Front Mount F97 F98 S58 Performance Intakes with (Blue|Red) Filters$/i
+  );
+  if (s58F97Silicone)
+    return `Впуск BMS F97/F98 S58 · передній силіконовий · ${s58F97Silicone[1].toLowerCase() === "blue" ? "сині" : "червоні"} фільтри`;
+  const n54Package = cleanValue.match(
+    /^500 Horsepower N54 (Race )?Package w\/Stage (1|2) Fuel Pump$/i
+  );
+  if (n54Package)
+    return `JB4 N54 · насос Stage ${n54Package[2]} · ${n54Package[1] ? "Race інтеркулер" : "стандартний інтеркулер"}`;
   if (/^Dry Extendable Performance Filters$/i.test(value)) return "Сухі фільтри";
   if (/^2\.0L I4 Turbo$/i.test(value)) return "2,0 л I4 Turbo";
   if (/^3\.3L V6 Turbo$/i.test(value)) return "3,3 л V6 Turbo";
@@ -392,16 +432,23 @@ export function BurgerShopProductDetailLayout({
     setBrokenIdx(new Set());
   };
   const selectedSku = selectedVariant?.sku || product.sku;
-  const manufacturerSku = selectedSku && !/^BURGER-(?:V-)?\d+$/i.test(selectedSku) &&
-    !/\s/.test(selectedSku) && /^[A-Za-z0-9]/.test(selectedSku) ? selectedSku : null;
+  const manufacturerSku =
+    selectedSku &&
+    !/^BURGER-(?:V-)?\d+$/i.test(selectedSku) &&
+    !/\s/.test(selectedSku) &&
+    /^[A-Za-z0-9]/.test(selectedSku)
+      ? selectedSku
+      : null;
   const selectedOptions = selectedVariant?.optionValues ?? [];
-  const fuelItWithoutEca = product.slug.includes("48-extension-for-fuel-it-flex-fuel-analyzer") &&
+  const fuelItWithoutEca =
+    product.slug.includes("48-extension-for-fuel-it-flex-fuel-analyzer") &&
     [selectedVariant?.title, ...selectedOptions].some((option) =>
       /do not add an eca/i.test(option ?? "")
     );
   const variantPrice = selectedVariant?.price;
-  const hasSelectedVariantPrice = !canChooseVariant || Boolean(variantPrice &&
-    (variantPrice.eur > 0 || variantPrice.usd > 0 || variantPrice.uah > 0));
+  const hasSelectedVariantPrice =
+    !canChooseVariant ||
+    Boolean(variantPrice && (variantPrice.eur > 0 || variantPrice.usd > 0 || variantPrice.uah > 0));
   const pricing = resolveShopProductPricing(
     canChooseVariant && variantPrice
       ? {
@@ -425,20 +472,26 @@ export function BurgerShopProductDetailLayout({
               (isUa ? `Опція ${index + 1}` : `Option ${index + 1}`),
             isUa
           ),
-          values: Array.from(new Set(variants.map((variant) => variant.optionValues?.[index]).filter(
-            (value): value is string => Boolean(value)
-          ))),
+          values: Array.from(
+            new Set(
+              variants
+                .map((variant) => variant.optionValues?.[index])
+                .filter((value): value is string => Boolean(value))
+            )
+          ),
         }))
         .filter((axis) => axis.values.length > 1)
     : [];
   const chooseOption = (index: number, value: string) => {
     const currentValues = selectedVariant?.optionValues ?? [];
     const nextVariant =
-      variants.find((variant) =>
-        variant.optionValues?.[index] === value &&
-        variant.optionValues.every((candidate, candidateIndex) =>
-          candidateIndex === index || candidate === currentValues[candidateIndex]
-        )
+      variants.find(
+        (variant) =>
+          variant.optionValues?.[index] === value &&
+          variant.optionValues.every(
+            (candidate, candidateIndex) =>
+              candidateIndex === index || candidate === currentValues[candidateIndex]
+          )
       ) ?? variants.find((variant) => variant.optionValues?.[index] === value);
     if (nextVariant?.id) selectVariant(nextVariant.id);
   };
@@ -451,7 +504,7 @@ export function BurgerShopProductDetailLayout({
   const gallery = buildShopVariantGallery(
     product.image,
     product.gallery,
-    canChooseVariant ? selectedVariant?.image : null,
+    canChooseVariant ? selectedVariant?.image : null
   );
   const visibleGallery = gallery.filter((_, i) => !brokenIdx.has(i));
   // activeImageIdx indexes the ORIGINAL gallery array (kept in sync with thumb
@@ -664,7 +717,9 @@ export function BurgerShopProductDetailLayout({
                   >
                     {manufacturerSku
                       ? `SKU: ${manufacturerSku}`
-                      : isUa ? "Артикул виробника не вказано" : "Manufacturer SKU not provided"}
+                      : isUa
+                        ? "Артикул виробника не вказано"
+                        : "Manufacturer SKU not provided"}
                   </div>
                 </div>
               </div>
@@ -697,51 +752,88 @@ export function BurgerShopProductDetailLayout({
                 <div>
                   {(canChooseVariant || fuelItWithoutEca) && (
                     <div style={{ display: "grid", gap: 14, marginBottom: 24 }}>
-                      {canChooseVariant && (optionAxes.length > 0 ? optionAxes.map((axis) => (
-                        <label key={axis.index} style={{ display: "grid", gap: 7, fontSize: 13 }}>
-                          <span style={{ fontWeight: 600 }}>{axis.name}</span>
-                          <select
-                            value={selectedVariant?.optionValues?.[axis.index] ?? ""}
-                            onChange={(event) => chooseOption(axis.index, event.target.value)}
-                            style={{ width: "100%", padding: "12px", borderRadius: 6,
-                              border: "1px solid hsl(var(--foreground) / 0.25)",
-                              background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}
-                          >
-                            {axis.values.map((value) => {
-                              const allUnavailable = variants
-                                .filter((variant) => variant.optionValues?.[axis.index] === value)
-                                .every((variant) => variant.inventoryQty === 0);
-                              return <option key={value} value={value}>
-                                {localizeBurgerOptionValue(value, isUa, product.slug)}
-                                {allUnavailable ? (isUa ? " — тимчасово недоступно" : " — unavailable") : ""}
-                              </option>;
-                            })}
-                          </select>
-                        </label>
-                      )) : (
-                        <label style={{ display: "grid", gap: 7, fontSize: 13 }}>
-                          <span style={{ fontWeight: 600 }}>{isUa ? "Варіант" : "Variant"}</span>
-                          <select
-                            value={selectedVariant?.id ?? ""}
-                            onChange={(event) => selectVariant(event.target.value)}
-                            style={{ width: "100%", padding: "12px", borderRadius: 6,
-                              border: "1px solid hsl(var(--foreground) / 0.25)",
-                              background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}
-                          >
-                            {variants.map((variant) => (
-                              <option key={variant.id ?? variant.position} value={variant.id}>
-                                {variant.title || variant.sku || (isUa ? "Варіант" : "Variant")}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      ))}
+                      {canChooseVariant &&
+                        (optionAxes.length > 0 ? (
+                          optionAxes.map((axis) => (
+                            <label
+                              key={axis.index}
+                              style={{ display: "grid", gap: 7, fontSize: 13 }}
+                            >
+                              <span style={{ fontWeight: 600 }}>{axis.name}</span>
+                              <select
+                                value={selectedVariant?.optionValues?.[axis.index] ?? ""}
+                                onChange={(event) => chooseOption(axis.index, event.target.value)}
+                                style={{
+                                  width: "100%",
+                                  padding: "12px",
+                                  borderRadius: 6,
+                                  border: "1px solid hsl(var(--foreground) / 0.25)",
+                                  background: "hsl(var(--card))",
+                                  color: "hsl(var(--foreground))",
+                                }}
+                              >
+                                {axis.values.map((value) => {
+                                  const allUnavailable = variants
+                                    .filter(
+                                      (variant) => variant.optionValues?.[axis.index] === value
+                                    )
+                                    .every((variant) => variant.inventoryQty === 0);
+                                  return (
+                                    <option key={value} value={value}>
+                                      {localizeBurgerOptionValue(value, isUa, product.slug)}
+                                      {allUnavailable
+                                        ? isUa
+                                          ? " — тимчасово недоступно"
+                                          : " — unavailable"
+                                        : ""}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </label>
+                          ))
+                        ) : (
+                          <label style={{ display: "grid", gap: 7, fontSize: 13 }}>
+                            <span style={{ fontWeight: 600 }}>{isUa ? "Варіант" : "Variant"}</span>
+                            <select
+                              value={selectedVariant?.id ?? ""}
+                              onChange={(event) => selectVariant(event.target.value)}
+                              style={{
+                                width: "100%",
+                                padding: "12px",
+                                borderRadius: 6,
+                                border: "1px solid hsl(var(--foreground) / 0.25)",
+                                background: "hsl(var(--card))",
+                                color: "hsl(var(--foreground))",
+                              }}
+                            >
+                              {variants.map((variant) => (
+                                <option key={variant.id ?? variant.position} value={variant.id}>
+                                  {variant.title || variant.sku || (isUa ? "Варіант" : "Variant")}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        ))}
                       {selectedVariant && (
-                        <div style={{ fontSize: 13, lineHeight: 1.5, padding: "12px 14px",
-                          border: "1px solid hsl(var(--foreground) / 0.16)", borderRadius: 6 }}>
-                          <strong>{isUa ? "Обрана комплектація: " : "Selected configuration: "}</strong>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            lineHeight: 1.5,
+                            padding: "12px 14px",
+                            border: "1px solid hsl(var(--foreground) / 0.16)",
+                            borderRadius: 6,
+                          }}
+                        >
+                          <strong>
+                            {isUa ? "Обрана комплектація: " : "Selected configuration: "}
+                          </strong>
                           {selectedOptions.length
-                            ? selectedOptions.map((value) => localizeBurgerOptionValue(value, isUa, product.slug)).join(" · ")
+                            ? selectedOptions
+                                .map((value) =>
+                                  localizeBurgerOptionValue(value, isUa, product.slug)
+                                )
+                                .join(" · ")
                             : selectedVariant.title}
                           {fuelItWithoutEca && (
                             <div style={{ marginTop: 8 }}>
@@ -752,12 +844,14 @@ export function BurgerShopProductDetailLayout({
                           )}
                           {selectedVariantUnavailable && (
                             <div style={{ marginTop: 8 }}>
-                              {isUa ? "Зараз недоступно у постачальника." : "Currently unavailable from the supplier."}
+                              {isUa
+                                ? "Зараз недоступно у постачальника."
+                                : "Currently unavailable from the supplier."}
                             </div>
                           )}
                         </div>
                       )}
-                  </div>
+                    </div>
                   )}
                   <div
                     style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 16 }}
@@ -826,8 +920,10 @@ export function BurgerShopProductDetailLayout({
                 {/* CTA Action logic */}
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16 }}>
                   <div style={{ width: "100%", padding: "2px" }}>
-                    {selectedVariantUnavailable || !hasSelectedVariantPrice || !pricing.effectivePrice ||
-                      pricing.effectivePrice.usd === 0 ? (
+                    {selectedVariantUnavailable ||
+                    !hasSelectedVariantPrice ||
+                    !pricing.effectivePrice ||
+                    pricing.effectivePrice.usd === 0 ? (
                       <Link
                         href={`/${resolvedLocale}/contact`}
                         className="burger-btn w-full justify-center text-center uppercase tracking-widest font-bold"
@@ -840,8 +936,12 @@ export function BurgerShopProductDetailLayout({
                         }}
                       >
                         {selectedVariantUnavailable
-                          ? (isUa ? "Уточнити доступність" : "Check availability")
-                          : (isUa ? "Запитати ціну" : "Request Price")}
+                          ? isUa
+                            ? "Уточнити доступність"
+                            : "Check availability"
+                          : isUa
+                            ? "Запитати ціну"
+                            : "Request Price"}
                       </Link>
                     ) : (
                       <AddToCartButton
@@ -856,17 +956,16 @@ export function BurgerShopProductDetailLayout({
                     )}
                   </div>
                   <ShopProductPurchaseFacts
-                  locale={resolvedLocale}
-                  availability={getShopConfirmedAvailability(
-                    product.sku,
-                    product.slug,
-                    product.storefrontDisplay
-                  )}
-                  leadTime={product.leadTime}
-                  productSlug={product.slug}
-                  className="mt-4"
-                />
-                  <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="rounded" className="mt-4" />
+                    locale={resolvedLocale}
+                    availability={getShopConfirmedAvailability(
+                      product.sku,
+                      product.slug,
+                      product.storefrontDisplay
+                    )}
+                    leadTime={product.leadTime}
+                    productSlug={product.slug}
+                    className="mt-4"
+                  />
                 </div>
               </div>
             </div>
@@ -880,7 +979,6 @@ export function BurgerShopProductDetailLayout({
                 />
               </MobileProductDisclosure>
             )}
-
           </div>
         </div>
       </div>

@@ -18,7 +18,7 @@ import { motion, useReducedMotion } from "framer-motion";
 
 import { oneAiPriceAmount } from "@/lib/shopAiAgent/catalogQuery";
 import type { OneAiCard, OneAiComparison, OneAiContext, OneAiEvent } from "@/lib/shopAiAgent/types";
-import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
+import { formatShopMoneyWithSign, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 
 import { OneAiText } from "./oneAiText";
 
@@ -150,14 +150,14 @@ function ProductCard({ card, context }: { card: OneAiCard; context: OneAiContext
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[13px] font-semibold tabular-nums text-foreground">
               {price
-                ? formatShopMoney(context.locale, price, context.currency)
+                ? formatShopMoneyWithSign(context.locale, price, context.currency)
                 : isUa
                   ? "Ціна за запитом"
                   : "Price on request"}
             </span>
             {showOld && oldPrice ? (
               <span className="text-[11px] tabular-nums text-foreground/40 line-through">
-                {formatShopMoney(context.locale, oldPrice, context.currency)}
+                {formatShopMoneyWithSign(context.locale, oldPrice, context.currency)}
               </span>
             ) : null}
             <span

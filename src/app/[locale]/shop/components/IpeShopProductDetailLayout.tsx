@@ -18,7 +18,6 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopResolvedPricing, ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 
@@ -968,12 +967,6 @@ export function IpeShopProductDetailLayout({
             )}
             leadTime={product.leadTime}
             productSlug={product.slug}
-            className="mt-4"
-          />
-          <ProductAiOpinionPanel
-            locale={resolvedLocale}
-            product={product}
-            shape="pill"
             className="mt-4"
           />
           {currentVariant?.sku || product.sku ? (

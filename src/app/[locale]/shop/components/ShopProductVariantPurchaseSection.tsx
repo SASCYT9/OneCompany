@@ -9,7 +9,6 @@ import { ShopB2BPricingBand } from "@/components/shop/ShopB2BPricingBand";
 import { ShopInlinePriceText } from "@/components/shop/ShopInlinePriceText";
 import { ShopPrimaryPriceBox } from "@/components/shop/ShopPrimaryPriceBox";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { buildProductInquiryHref } from "@/lib/shopProductInquiry";
 import { requiresUrbanBodyKitQuote } from "@/lib/shopProductPurchasePolicy";
@@ -664,7 +663,6 @@ export function ShopProductVariantPurchaseSection({
         }
         className="text-foreground"
       />
-      <ProductAiOpinionPanel locale={locale} product={product} shape="pill" />
 
       {!isDo88Product && (currentVariant?.sku || product.sku) ? (
         <div className="flex flex-wrap items-center gap-2">

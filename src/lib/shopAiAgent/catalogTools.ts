@@ -14,6 +14,7 @@ import {
   describeOneAiProductForModel,
   hasOneAiSearchConstraint,
   needsOneAiVehicle,
+  oneAiPriceAmount,
   registerOneAiProduct,
   titleMentionsChassis,
   toOneAiProduct,
@@ -290,6 +291,13 @@ export function executeOneAiShowProducts(rawArgs: unknown, session: OneAiToolSes
           "Those products are for another generation than the customer's. Do not show them; say so honestly and offer a manager check.",
       };
     }
+  }
+  // Premium first: cards go from the most expensive down (price on request last).
+  // A comparison keeps the model's order, its table rows are aligned to it.
+  if (result.layout === "cards") {
+    const price = (card: (typeof result.cards)[number]) =>
+      oneAiPriceAmount(card.priceSet, session.context.currency) ?? -1;
+    result.cards = [...result.cards].sort((a, b) => price(b) - price(a));
   }
   // A second show_products call in the same answer adds only new cards; a
   // comparison always re-renders its full set.
