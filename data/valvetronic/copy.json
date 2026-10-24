@@ -123,20 +123,20 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "77d923b6e4c2c086",
+   "sourceHash": "df34a6981b0b7730",
    "generatedAt": "2026-10-23T20:59:48.535Z"
   },
   "15031995302256": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for BMW M2 / M3 / M4 G87 / G80 / G82 / G83",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для BMW M2 / M3 / M4 G87 / G80 / G82 / G83",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для BMW M2 / M3 / M4 G87 / G80 / G82 / G83",
    "shortDescEn": "High-flow 400 cell catted downpipes for BMW G8X models with S58 engine. Improves turbo response and sound while maintaining EPA compliance.",
-   "shortDescUa": "Високопродуктивні даунпайпи з 400-комірковими каталізаторами для BMW G8X з двигуном S58. Покращують відгук турбін та звук, відповідаючи стандартам EPA.",
+   "shortDescUa": "Високопродуктивні даунпайпи з каталізаторами 400 cell для BMW G8X з двигуном S58. Покращують відгук турбін та звук, відповідаючи стандартам EPA.",
    "introEn": [
     "The BMW G8X platform is powered by the capable S58 twin-turbo inline six engine. These EPA-compliant 400 cell high-flow catted downpipes are engineered to reduce exhaust backpressure while preserving compliance standards.",
     "By replacing restrictive factory catalysts, these downpipes enhance turbo spool speed and unleash a deeper, more aggressive exhaust note. They provide noticeable performance gains without compromising daily drivability."
    ],
    "introUa": [
-    "Платформа BMW G8X оснащена потужним бітурбованим рядним шестициліндровим двигуном S58. Ці даунпайпи з 400-комірковими каталізаторами відповідають стандартам EPA та спроектовані для зменшення протитиску у вихлопній системі.",
+    "Платформа BMW G8X оснащена потужним бітурбованим рядним шестициліндровим двигуном S58. Ці даунпайпи з каталізаторами 400 cell відповідають стандартам EPA та спроектовані для зменшення протитиску у вихлопній системі.",
     "Заміна обмежених заводських каталізаторів прискорює спул турбін та розкриває глибший і агресивніший звук вихлопу. Вони забезпечують відчутний приріст продуктивності без шкоди для щоденного використання."
    ],
    "keyPointsEn": [
@@ -146,7 +146,7 @@
     "Direct OEM bolt-on installation utilizing factory mounting points"
    ],
    "keyPointsUa": [
-    "400-коміркові високопродуктивні каталізатори відповідно до норм EPA",
+    "400 cell високопродуктивні каталізатори відповідно до норм EPA",
     "Виготовлені з преміальної нержавіючої сталі зі зварюванням TIG",
     "Гнуття на дорні (mandrel-bent) для плавності внутрішнього потоку",
     "Встановлюється без переробок (direct bolt-on) на заводські кріплення"
@@ -184,7 +184,7 @@
     },
     {
      "label": "Осердя каталізатора",
-     "value": "400-коміркове високопродуктивне (відповідає EPA)"
+     "value": "400 cell високопродуктивне (відповідає EPA)"
     },
     {
      "label": "Конструкція труб",
@@ -222,9 +222,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes BMW M2 M3 M4 G80 G82 G87",
    "seoTitleUa": "Valvetronic даунпайпи 400 cell BMW M2 M3 M4 G80 G82 G87",
    "seoDescriptionEn": "Valvetronic Designs 400 cell EPA-compliant high-flow catted downpipes for BMW M2, M3, and M4 G8X platform with S58 engine. Direct bolt-on fitment.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами EPA для BMW M2, M3 та M4 G8X з двигуном S58. Встановлення без переробок.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell EPA для BMW M2, M3 та M4 G8X з двигуном S58. Встановлення без переробок.",
    "imageAltEn": "Valvetronic Designs 400 Cell Catted Downpipes for BMW G80 G82 G87 M2 M3 M4",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для BMW G80 G82 G87 M2 M3 M4",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для BMW G80 G82 G87 M2 M3 M4",
    "vehicles": [
     {
      "make": "BMW",
@@ -269,7 +269,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0695628fb59de00f",
+   "sourceHash": "352ac3fd430315ec",
    "generatedAt": "2026-10-23T20:59:50.541Z"
   },
   "6888558886948": {
@@ -399,7 +399,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "5de9311a578538d7",
+   "sourceHash": "7d95c7e24d1a0541",
    "generatedAt": "2026-10-23T20:59:50.323Z"
   },
   "2191576858683": {
@@ -426,7 +426,7 @@
     "Вакуумні клапани забезпечують високу надійність та швидке перемикання",
     "Конструкція з нержавіючої сталі T304 із гнуттям на дорні",
     "Заощаджує 10,1 фунта ваги порівняно із заводською системою",
-    "Доступні опціональні середні секції з 200-комірковими каталізаторами або без них",
+    "Доступні опціональні середні секції з каталізаторами 200 cell або без них",
     "Встановлюється без переробок на штатні кріплення"
    ],
    "specsEn": [
@@ -535,7 +535,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "bc5a406ebf51fb48",
+   "sourceHash": "fb557e33c7745d98",
    "generatedAt": "2026-10-23T20:59:50.423Z"
   },
   "7439974006820": {
@@ -610,7 +610,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e6d66b8259fe3b9d",
+   "sourceHash": "01c6a066f2dc7954",
    "generatedAt": "2026-10-23T20:59:53.918Z"
   },
   "2229445263419": {
@@ -723,7 +723,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f3ca6f649b2d081b",
+   "sourceHash": "c9c8fb62c6708261",
    "generatedAt": "2026-10-23T20:59:59.074Z"
   },
   "4485043748900": {
@@ -830,7 +830,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6cd974c6dace0085",
+   "sourceHash": "82bfad953e85b9dd",
    "generatedAt": "2026-10-23T20:59:57.099Z"
   },
   "14621037003120": {
@@ -897,7 +897,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "7c0ad17d4c2d95fb",
+   "sourceHash": "0c85ed1e330da61f",
    "generatedAt": "2026-10-23T21:06:46.400Z"
   },
   "14586700038512": {
@@ -964,7 +964,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "d122eb49453c340e",
+   "sourceHash": "a7421f0e836d2bb9",
    "generatedAt": "2026-10-23T21:06:46.412Z"
   },
   "14621039559024": {
@@ -1043,7 +1043,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "9b70a4c7d4f1c815",
+   "sourceHash": "d7b238569062e137",
    "generatedAt": "2026-10-23T21:06:46.829Z"
   },
   "14882873540976": {
@@ -1139,21 +1139,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "99ec6c1d41c9126a",
+   "sourceHash": "a3be503a6e606435",
    "generatedAt": "2026-10-23T21:06:48.340Z"
   },
   "15031998513520": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Audi RS6 / RS7 C8",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Audi RS6 / RS7 C8",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Audi RS6 / RS7 C8",
    "shortDescEn": "High-flow EPA-compliant 400 cell catted downpipes for the Audi C8 RS6 and RS7 4.0T V8, designed to improve turbo spool, enhance exhaust acoustics, and optimize flow.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для Audi C8 RS6 / RS7 4.0T V8 покращують спул турбін, оптимізують потік газів та надають глибокого звучання.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для Audi C8 RS6 / RS7 4.0T V8 покращують спул турбін, оптимізують потік газів та надають глибокого звучання.",
    "introEn": [
     "Factory catalytic converters on the 4.0T twin-turbo V8 create backpressure and restrict performance. Replacing them with high-flow downpipes improves exhaust gas flow and enhances turbo efficiency.",
     "Engineered with 400 cell catalytic cores, this setup delivers a deeper exhaust tone and faster throttle response. It integrates seamlessly with stock or Valvetronic exhaust components."
    ],
    "introUa": [
     "Заводські каталізатори двигуна 4.0T twin-turbo V8 створюють суттєвий протитиск і глушать вихлоп. Заміна їх на продуктивні даунпайпи покращує відвід газів та ефективність турбін.",
-    "Конструкція з 400-комірковими каталізаторами забезпечує глибокий звук вихлопу та прискорює реакцію на натискання педалі газу. Комплект чудово поєднується з оригінальним або спортивним вихлопом."
+    "Конструкція з каталізаторами 400 cell забезпечує глибокий звук вихлопу та прискорює реакцію на натискання педалі газу. Комплект чудово поєднується з оригінальним або спортивним вихлопом."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalytic converter cores",
@@ -1162,7 +1162,7 @@
     "Direct OEM bolt-on installation using factory mounting points"
    ],
    "keyPointsUa": [
-    "400-коміркові каталізатори високої пропускної здатності EPA",
+    "каталізатори 400 cell високої пропускної здатності EPA",
     "Покращений спул турбін та відгук у середньому діапазоні обертів",
     "Нержавіюча сталь із гнуттям на дорні та зварюванням TIG",
     "Встановлення без переробок на заводські кріплення"
@@ -1192,7 +1192,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові високої пропускної здатності (EPA)"
+     "value": "400 cell високої пропускної здатності (EPA)"
     },
     {
      "label": "Конструкція",
@@ -1218,9 +1218,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes Audi RS6 RS7 C8",
    "seoTitleUa": "Даунпайпи Valvetronic Audi RS6 RS7 C8 400 Cell",
    "seoDescriptionEn": "High-flow 400 cell catted downpipes by Valvetronic Designs for Audi C8 RS6 and RS7 4.0T V8. Improved flow, enhanced tone, OEM bolt-on fitment.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic з 400-комірковими каталізаторами для Audi C8 RS6 та RS7 4.0T V8. Покращений потік, глибокий звук, болт-он монтаж.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic з каталізаторами 400 cell для Audi C8 RS6 та RS7 4.0T V8. Покращений потік, глибокий звук, болт-он монтаж.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Audi C8 RS6 RS7",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Audi C8 RS6 RS7",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Audi C8 RS6 RS7",
    "vehicles": [
     {
      "make": "Audi",
@@ -1245,7 +1245,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "26de7c26967ea3fa",
+   "sourceHash": "ac7adaece09f99b5",
    "generatedAt": "2026-10-23T21:06:53.589Z"
   },
   "5035946016804": {
@@ -1391,7 +1391,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "23ea36299ecc4d86",
+   "sourceHash": "fde2b6bbd7d1f2c8",
    "generatedAt": "2026-10-23T21:06:54.921Z"
   },
   "14661256511856": {
@@ -1545,7 +1545,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "2cd5a6c751ee2741",
+   "sourceHash": "c7069e2db8e711f8",
    "generatedAt": "2026-10-23T21:06:55.320Z"
   },
   "2322115199035": {
@@ -1711,7 +1711,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "9e9d6da1dbf77ec6",
+   "sourceHash": "9209943a352ca955",
    "generatedAt": "2026-10-23T21:06:57.688Z"
   },
   "6646560587812": {
@@ -1841,7 +1841,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e46eab3cef162293",
+   "sourceHash": "4986dbdf5a8d1f04",
    "generatedAt": "2026-10-23T21:07:02.557Z"
   },
   "15053724057968": {
@@ -1963,7 +1963,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f168e0cfadb11fa2",
+   "sourceHash": "c02951dfb486a543",
    "generatedAt": "2026-10-23T21:11:36.983Z"
   },
   "5034718199844": {
@@ -2181,7 +2181,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "ca2a210ad14aae75",
+   "sourceHash": "91bc65382b26abcc",
    "generatedAt": "2026-10-23T21:07:04.806Z"
   },
   "6753833091108": {
@@ -2303,21 +2303,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "1d0b8fefb5fd4702",
+   "sourceHash": "209b9ba7a8c2876a",
    "generatedAt": "2026-10-23T21:07:04.809Z"
   },
   "15031956537712": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Audi RSQ8 / SQ8 / SQ7 4.0T",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Audi RSQ8 / SQ8 / SQ7 4.0T",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Audi RSQ8 / SQ8 / SQ7 4.0T",
    "shortDescEn": "EPA-compliant 400 cell high-flow downpipes for Audi 4.0T V8 models, designed to reduce backpressure, improve turbo spool, and enhance exhaust tone.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами для Audi 4.0T V8, що відповідають нормам EPA, зменшують протитиск, прискорюють спул турбін та покращують звук.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell для Audi 4.0T V8, що відповідають нормам EPA, зменшують протитиск, прискорюють спул турбін та покращують звук.",
    "introEn": [
     "The 4.0T twin-turbo V8 powering Audi RSQ8, SQ8, and SQ7 models delivers immense power, but factory catalytic converters create heavy exhaust restriction. These high-flow catted downpipes reduce backpressure to unlock improved turbo response and increase overall exhaust velocity.",
     "Engineered with EPA-compliant 400 cell catalyst cores, these downpipes sharpen exhaust tone and turbo acoustics while maintaining emissions compliance. Built from stainless steel with TIG welds, they bolt directly to factory mounting locations."
    ],
    "introUa": [
     "Двотурбінний двигун 4.0T V8 на модельних рядах Audi RSQ8, SQ8 та SQ7 має високий потенціал, але заводські каталізатори створюють суттєвий опір вихлопним газам. Ці високопоточні даунпайпи зменшують протитиск для швидшого відгуку турбін і підвищення швидкості потоку.",
-    "Оснащені 400-комірковими каталізаторами стандарту EPA, вони роблять звучання вихлопу й турбін виразнішим із збереженням екологічних норм. Виготовлені з нержавіючої сталі зі зварюванням TIG, вони монтуються безпосередньо на заводські кріплення."
+    "Оснащені 400 cell каталізаторами стандарту EPA, вони роблять звучання вихлопу й турбін виразнішим із збереженням екологічних норм. Виготовлені з нержавіючої сталі зі зварюванням TIG, вони монтуються безпосередньо на заводські кріплення."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalytic converters",
@@ -2326,7 +2326,7 @@
     "Direct OEM bolt-on fitment using factory mounting locations"
    ],
    "keyPointsUa": [
-    "Високопоточні 400-коміркові каталізатори стандарту EPA",
+    "Високопоточні каталізатори 400 cell стандарту EPA",
     "Зменшення протитиску для швидшого спулу турбін і віддачі крутного моменту",
     "Нержавіюча сталь, гнуття на дорні (mandrel-bent) та зварювання TIG",
     "Встановлення без переробок (bolt-on) на штатні кріплення"
@@ -2356,7 +2356,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові сумісні з EPA"
+     "value": "400 cell сумісні з EPA"
     },
     {
      "label": "Конструкція",
@@ -2384,9 +2384,9 @@
    "seoTitleEn": "Valvetronic Downpipes Audi RSQ8 SQ8 SQ7 4.0T",
    "seoTitleUa": "Valvetronic даунпайпи Audi RSQ8 SQ8 SQ7 4.0T",
    "seoDescriptionEn": "Valvetronic Designs 400 cell catted downpipes for Audi RSQ8, SQ8, and SQ7 4.0T V8. EPA-compliant high-flow performance and improved sound.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Audi RSQ8, SQ8 та SQ7 4.0T V8. Покращений потік вихлопу та звучання.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Audi RSQ8, SQ8 та SQ7 4.0T V8. Покращений потік вихлопу та звучання.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Audi RSQ8 SQ8 SQ7 4.0T",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами Audi RSQ8 SQ8 SQ7 4.0T",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell Audi RSQ8 SQ8 SQ7 4.0T",
    "vehicles": [
     {
      "make": "Audi",
@@ -2421,7 +2421,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f7678e4fe232e7a5",
+   "sourceHash": "42460a4c51c43175",
    "generatedAt": "2026-10-23T21:07:10.369Z"
   },
   "6849040023588": {
@@ -2557,7 +2557,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "c605628f321b18ef",
+   "sourceHash": "71447e6ef0d2658b",
    "generatedAt": "2026-10-23T21:07:10.675Z"
   },
   "7262832099364": {
@@ -2679,7 +2679,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3aeed599e67b3a17",
+   "sourceHash": "8bfd77cf243efb68",
    "generatedAt": "2026-10-23T21:07:11.935Z"
   },
   "4676877058084": {
@@ -2805,21 +2805,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "cd73522e33701716",
+   "sourceHash": "1293842611156b45",
    "generatedAt": "2026-10-23T21:07:12.713Z"
   },
   "15031958667632": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Bentley Bentayga V8",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Bentley Bentayga V8",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Bentley Bentayga V8",
    "shortDescEn": "EPA-compliant 400 cell catted downpipes for Bentley Bentayga V8. High-flow design that improves turbo response and refines exhaust tone.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для Bentley Bentayga V8. Високопоточна конструкція покращує відгук турбін та звучання.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для Bentley Bentayga V8. Високопоточна конструкція покращує відгук турбін та звучання.",
    "introEn": [
     "The Bentley Bentayga V8 platform is a masterclass in performance engineering. Factory catalyst restrictions limit the full efficiency and character of its 4.0L twin-turbo V8 engine.",
     "These EPA-compliant 400 cell high-flow catted downpipes reduce backpressure to refine sound and sharpen throttle response. They offer direct bolt-on installation utilizing factory mounting points."
    ],
    "introUa": [
     "Платформа Bentley Bentayga V8 є зразком інженерної майстерності. Проте заводські каталізатори обмежують потенціал та характер 4,0-літрового двигуна twin-turbo V8.",
-    "Ці високопоточні даунпайпи з 400-комірковими каталізаторами EPA зменшують протитиск, покращуючи відгук на педаль газу та звук. Вони встановлюються безпосередньо на заводські кріплення."
+    "Ці високопоточні даунпайпи з каталізаторами 400 cell EPA зменшують протитиск, покращуючи відгук на педаль газу та звук. Вони встановлюються безпосередньо на заводські кріплення."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalysts",
@@ -2828,7 +2828,7 @@
     "Direct OEM bolt-on fitment"
    ],
    "keyPointsUa": [
-    "400-коміркові каталізатори EPA з високою пропускною здатністю",
+    "каталізатори 400 cell EPA з високою пропускною здатністю",
     "Труби з нержавіючої сталі з гнуттям на дорні (mandrel-bent)",
     "Високоточне зварювання TIG",
     "Встановлення без переробок на штатні кріплення"
@@ -2858,7 +2858,7 @@
     },
     {
      "label": "Тип каталізатора",
-     "value": "400-комірковий високопоточний (EPA)"
+     "value": "400 cell високопоточний (EPA)"
     },
     {
      "label": "Конструкція",
@@ -2882,9 +2882,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes for Bentley Bentayga V8",
    "seoTitleUa": "Valvetronic — даунпайпи з каталізаторами Bentley Bentayga V8",
    "seoDescriptionEn": "Valvetronic Designs 400 cell EPA-compliant catted downpipes for Bentley Bentayga 4.0L V8. High-flow stainless steel design for improved turbo response.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами EPA для Bentley Bentayga V8. Покращений відгук турбін та звук з нержавіючої сталі.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell EPA для Bentley Bentayga V8. Покращений відгук турбін та звук з нержавіючої сталі.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Bentley Bentayga V8",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Bentley Bentayga V8",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Bentley Bentayga V8",
    "vehicles": [
     {
      "make": "Bentley",
@@ -2899,21 +2899,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "79b9c1d212956366",
+   "sourceHash": "4e8c5ff5c2963bfe",
    "generatedAt": "2026-10-23T21:07:15.694Z"
   },
   "15032012570992": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for BMW B58 Gen 1 / 2 / 3",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для BMW B58 Gen 1 / 2 / 3",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для BMW B58 Gen 1 / 2 / 3",
    "shortDescEn": "EPA-compliant 400 cell catted downpipe for BMW B58 engines. Reduces backpressure and improves turbo spool while maintaining compliance.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для двигунів BMW B58. Зменшують протитиск та прискорюють розгін турбіни.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для двигунів BMW B58. Зменшують протитиск та прискорюють розгін турбіни.",
    "introEn": [
     "The B58 turbocharged inline-six is celebrated for its performance potential and smooth power delivery across all generations. However, factory catalytic converters restrict exhaust flow and limit turbo efficiency.",
     "This EPA-compliant 400 cell catted downpipe upgrade reduces backpressure, sharpens turbo spool, and enhances exhaust acoustics. It serves as a strong foundation for both stock and tuned B58 vehicles."
    ],
    "introUa": [
     "Турбований шестициліндровий двигун B58 відомий своїм високим потенціалом для тюнінгу та плавною віддачею потужності. Проте заводські каталізатори суттєво обмежують потік вихлопних газів та ефективність турбіни.",
-    "Даунпайпи з 400-комірковими каталізаторами EPA зменшують протитиск, прискорюють спул турбіни та поглиблюють звучання вихлопу. Це чудовий базовий апгрейд як для стандартних, так і для модифікованих авто."
+    "Даунпайпи з каталізаторами 400 cell EPA зменшують протитиск, прискорюють спул турбіни та поглиблюють звучання вихлопу. Це чудовий базовий апгрейд як для стандартних, так і для модифікованих авто."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalytic converters",
@@ -2922,7 +2922,7 @@
     "Direct OEM bolt-on installation using factory mounts"
    ],
    "keyPointsUa": [
-    "400-коміркові спортивні каталізатори зі стандартами EPA",
+    "400 cell спортивні каталізатори зі стандартами EPA",
     "Швидший спул турбіни та зменшення протитиску",
     "Труби з гнуттям на дорні (mandrel-bent) та TIG-зварюванням",
     "Установка без переробок (direct bolt-on) на заводські кріплення"
@@ -2952,7 +2952,7 @@
     },
     {
      "label": "Каталізатор",
-     "value": "400-комірковий high-flow (відповідає EPA)"
+     "value": "400 cell high-flow (відповідає EPA)"
     },
     {
      "label": "Конструкція",
@@ -2980,9 +2980,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Catted Downpipe for BMW B58",
    "seoTitleUa": "Valvetronic — даунпайпи 400 Cell для BMW B58 Gen 1 / 2 / 3",
    "seoDescriptionEn": "EPA-compliant 400 cell high-flow catted downpipes for BMW B58 engines. Reduces backpressure, improves turbo spool, and enhances sound.",
-   "seoDescriptionUa": "Даунпайпи з 400-комірковими каталізаторами для BMW B58 Gen 1, Gen 2 та Gen 3. Зменшення протитиску, швидкий спул турбіни та виразне звучання.",
+   "seoDescriptionUa": "Даунпайпи з каталізаторами 400 cell для BMW B58 Gen 1, Gen 2 та Gen 3. Зменшення протитиску, швидкий спул турбіни та виразне звучання.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipe for BMW B58",
-   "imageAltUa": "Даунпайп Valvetronic Designs з 400-комірковим каталізатором для BMW B58",
+   "imageAltUa": "Даунпайп Valvetronic Designs з каталізатором 400 cell для BMW B58",
    "vehicles": [
     {
      "make": "BMW",
@@ -3017,7 +3017,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "65e8d52da32b4b48",
+   "sourceHash": "5a1c07b2d6ff9a2c",
    "generatedAt": "2026-10-23T21:07:18.946Z"
   },
   "7320639701028": {
@@ -3169,7 +3169,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "23a127f9244a283f",
+   "sourceHash": "a69e2c88626a56a9",
    "generatedAt": "2026-10-23T21:07:19.368Z"
   },
   "7052273123364": {
@@ -3285,7 +3285,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "d57d562ec2605e4b",
+   "sourceHash": "e72e7fee789f3a59",
    "generatedAt": "2026-10-23T21:07:21.479Z"
   },
   "14655904285040": {
@@ -3397,7 +3397,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f8531f957519052d",
+   "sourceHash": "db054a726892a594",
    "generatedAt": "2026-10-23T21:07:22.321Z"
   },
   "6710632480804": {
@@ -3476,7 +3476,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "15d678ed2744691e",
+   "sourceHash": "f156c2d549a19685",
    "generatedAt": "2026-10-23T21:11:34.726Z"
   },
   "4455063617572": {
@@ -3533,7 +3533,7 @@
     },
     {
      "label": "Конфігурація",
-     "value": "Прямоточна з чотирма резонаторами або з 200-комірковими каталізаторами Euro 6 та двома резонаторами"
+     "value": "Прямоточна з чотирма резонаторами або з каталізаторами 200 cell Euro 6 та двома резонаторами"
     },
     {
      "label": "Конструкція",
@@ -3606,7 +3606,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e6bb025d248727e5",
+   "sourceHash": "0ad5c60d2a1ec951",
    "generatedAt": "2026-10-23T21:07:27.579Z"
   },
   "6691977789476": {
@@ -3681,7 +3681,7 @@
     },
     {
      "label": "Варіанти передніх труб",
-     "value": "Прямі без каталізаторів (free flow) або з 200-комірковими каталізаторами Euro 6"
+     "value": "Прямі без каталізаторів (free flow) або з каталізаторами 200 cell Euro 6"
     },
     {
      "label": "Тип монтажу",
@@ -3742,7 +3742,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "acf23e821232810f",
+   "sourceHash": "1c1e1b26c9921639",
    "generatedAt": "2026-10-23T21:07:27.859Z"
   },
   "2073032917051": {
@@ -4084,7 +4084,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6430331a54cf34f3",
+   "sourceHash": "8f3a699fe5019d4f",
    "generatedAt": "2026-10-23T21:07:32.609Z"
   },
   "14629492228464": {
@@ -4204,7 +4204,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "114f1bb439ccd33c",
+   "sourceHash": "764a3da127013a73",
    "generatedAt": "2026-10-23T21:07:35.114Z"
   },
   "4516873928740": {
@@ -4334,7 +4334,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b9dd6c8317546694",
+   "sourceHash": "66b2518557509f99",
    "generatedAt": "2026-10-23T21:07:35.129Z"
   },
   "4858779107364": {
@@ -4458,7 +4458,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "70e9a718aaa0e4c4",
+   "sourceHash": "d78ebca435659c08",
    "generatedAt": "2026-10-23T21:12:08.091Z"
   },
   "4515793010724": {
@@ -4580,7 +4580,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3a937a4880d2b487",
+   "sourceHash": "f214f6333a61db70",
    "generatedAt": "2026-10-23T21:07:42.888Z"
   },
   "7316966277156": {
@@ -4684,7 +4684,7 @@
     "On race or free-flow downpipes, low-rpm shifts may produce rasp around 2k rpm. High-flow 200 cell catalytic converters are recommended for the cleanest sound."
    ],
    "importantUa": [
-    "З даунпайпами без каталізаторів (free flow) на низьких обертах (близько 2000 об/хв) можливий брязкіт. Для максимально чистого тону рекомендується використовувати спортивні 200-коміркові каталізатори."
+    "З даунпайпами без каталізаторів (free flow) на низьких обертах (близько 2000 об/хв) можливий брязкіт. Для максимально чистого тону рекомендується використовувати спортивні каталізатори 200 cell."
    ],
    "seoTitleEn": "Valvetronic Exhaust BMW M2 Competition CS F87",
    "seoTitleUa": "Valvetronic — клапанний вихлоп BMW M2 Competition CS F87",
@@ -4716,7 +4716,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "7ae412ee0e379825",
+   "sourceHash": "6e6417430b2df55f",
    "generatedAt": "2026-10-23T21:07:43.396Z"
   },
   "2303290703931": {
@@ -5110,14 +5110,14 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "a05d95fa71953cec",
+   "sourceHash": "27dc9ea9f616b4dd",
    "generatedAt": "2026-10-23T21:07:44.716Z"
   },
   "15031988650352": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for BMW M2 Competition / M3 / M4 F87 / F80 / F82 / F83",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для BMW M2 Competition / M3 / M4 F8X",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для BMW M2 Competition / M3 / M4 F8X",
    "shortDescEn": "EPA-compliant 400 cell high-flow catted downpipes engineered for the S55 engine in BMW M2 Competition, M3, and M4 models.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для двигуна S55 на BMW M2 Competition, M3 та M4.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для двигуна S55 на BMW M2 Competition, M3 та M4.",
    "introEn": [
     "Upgrade the exhaust efficiency of your S55 twin-turbo inline-six engine with these EPA-compliant high-flow downpipes. Designed for the F8X platform, they reduce backpressure to deliver faster turbo spool and sharper throttle response.",
     "Constructed from high-grade stainless steel with precision TIG welds, these downpipes fit directly onto factory mounting points. They enhance exhaust sound clarity and pair seamlessly with factory or Valvetronic exhaust systems."
@@ -5133,7 +5133,7 @@
     "Direct OEM bolt-on installation using factory mounts"
    ],
    "keyPointsUa": [
-    "Високопотокові 400-коміркові каталізатори EPA",
+    "Високопотокові каталізатори 400 cell EPA",
     "Швидший спул турбін та зниження зворотного тиску",
     "Високоякісна нержавіюча сталь і зварювання TIG",
     "Встановлення без переробок на штатні кріплення"
@@ -5163,7 +5163,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові високопотокові EPA"
+     "value": "400 cell високопотокові EPA"
     },
     {
      "label": "Конструкція",
@@ -5191,9 +5191,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes for BMW M2C M3 M4 F80 F82",
    "seoTitleUa": "Даунпайпи Valvetronic 400 Cell для BMW M2C M3 M4 F8X",
    "seoDescriptionEn": "Buy Valvetronic Designs EPA-compliant 400 cell catted downpipes for BMW F80 M3, F82 F83 M4, and F87 M2 Competition with S55 engine.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для BMW M2 Competition, M3 та M4 F8X з двигуном S55.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для BMW M2 Competition, M3 та M4 F8X з двигуном S55.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for BMW F80 M3 F82 M4 F87 M2C",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для BMW F80 M3 F82 M4 F87 M2C",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для BMW F80 M3 F82 M4 F87 M2C",
    "vehicles": [
     {
      "make": "BMW",
@@ -5238,7 +5238,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f7855fbd6f3694fb",
+   "sourceHash": "b051368a2963e763",
    "generatedAt": "2026-10-23T21:07:47.649Z"
   },
   "4515832234020": {
@@ -5360,7 +5360,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "63ab6b2f5727f88f",
+   "sourceHash": "0e1b1817a9a5cd52",
    "generatedAt": "2026-10-23T21:07:50.555Z"
   },
   "4515849404452": {
@@ -5510,7 +5510,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "475b0c36a434754a",
+   "sourceHash": "b6b598f2ed84d533",
    "generatedAt": "2026-10-23T21:07:50.988Z"
   },
   "6693139054628": {
@@ -5646,7 +5646,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "1e68960404700fac",
+   "sourceHash": "d45b4597c02b0035",
    "generatedAt": "2026-10-23T21:07:52.859Z"
   },
   "4799738282020": {
@@ -5772,7 +5772,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "4668b6c8363a5bae",
+   "sourceHash": "deba3fab30bdfdc2",
    "generatedAt": "2026-10-23T21:07:55.284Z"
   },
   "6896757800996": {
@@ -5894,7 +5894,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "72ad1d992277c916",
+   "sourceHash": "7fe8282868abeb62",
    "generatedAt": "2026-10-23T21:07:57.754Z"
   },
   "7212923879460": {
@@ -6084,7 +6084,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "eb33f0d6357429ff",
+   "sourceHash": "199e6f0269d63d41",
    "generatedAt": "2026-10-23T21:08:01.037Z"
   },
   "6678336045092": {
@@ -6218,7 +6218,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "77e61dccc049bbb0",
+   "sourceHash": "abd1882e54c862d4",
    "generatedAt": "2026-10-23T21:08:02.041Z"
   },
   "14629492130160": {
@@ -6328,7 +6328,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b8377142444af67a",
+   "sourceHash": "f7abaf3d209ee205",
    "generatedAt": "2026-10-23T21:08:02.191Z"
   },
   "7678200479780": {
@@ -6452,7 +6452,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3620157d0640d4df",
+   "sourceHash": "719234648a41b37a",
    "generatedAt": "2026-10-23T21:08:05.744Z"
   },
   "7569426776100": {
@@ -6562,7 +6562,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "980be2b2d7e8ecad",
+   "sourceHash": "071df26a16884c01",
    "generatedAt": "2026-10-23T21:08:07.973Z"
   },
   "15058103075184": {
@@ -6716,7 +6716,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "850753822d28a982",
+   "sourceHash": "66d8cf336339d0e3",
    "generatedAt": "2026-10-23T21:12:08.548Z"
   },
   "7268050272292": {
@@ -6842,7 +6842,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0854a43900a26bf8",
+   "sourceHash": "9a4dd104673212ec",
    "generatedAt": "2026-10-23T21:08:10.666Z"
   },
   "6563231465508": {
@@ -6994,7 +6994,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "1f0b5d32e3654ad2",
+   "sourceHash": "0b12a33d1bc7a297",
    "generatedAt": "2026-10-23T21:08:14.273Z"
   },
   "14641687986544": {
@@ -7100,7 +7100,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "fef28a97edc689b9",
+   "sourceHash": "c94c9a663b65aee3",
    "generatedAt": "2026-10-23T21:08:15.007Z"
   },
   "4865942650916": {
@@ -7202,7 +7202,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "44287894294d0f05",
+   "sourceHash": "8c0b7f5b7c6690ac",
    "generatedAt": "2026-10-23T21:08:16.095Z"
   },
   "7377141497892": {
@@ -7324,7 +7324,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "22eff3b14d01ee1c",
+   "sourceHash": "5660ae727012b9ed",
    "generatedAt": "2026-10-23T21:08:18.458Z"
   },
   "7377142120484": {
@@ -7434,7 +7434,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "7c6ec45673e89c6d",
+   "sourceHash": "5983495ea9aa11f3",
    "generatedAt": "2026-10-23T21:08:21.077Z"
   },
   "14655895667056": {
@@ -7556,7 +7556,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3a5c73964e0eabf7",
+   "sourceHash": "4a8adcedd5ecf18c",
    "generatedAt": "2026-10-23T21:08:21.744Z"
   },
   "14655899107696": {
@@ -7696,7 +7696,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3a5d02a2921d8914",
+   "sourceHash": "c1202c4ed662ea01",
    "generatedAt": "2026-10-23T21:08:24.374Z"
   },
   "7268549689380": {
@@ -7840,7 +7840,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "98b4a7e241267dd2",
+   "sourceHash": "44533c7e113c690b",
    "generatedAt": "2026-10-23T21:08:26.793Z"
   },
   "15052271518064": {
@@ -7938,7 +7938,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6c4ff50ecc196cc0",
+   "sourceHash": "a37b84180f475247",
    "generatedAt": "2026-10-23T21:08:28.068Z"
   },
   "14656121569648": {
@@ -8048,21 +8048,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "93fb019bbcfbaf47",
+   "sourceHash": "30642241a199968f",
    "generatedAt": "2026-10-23T21:08:28.217Z"
   },
   "15031090151792": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Chevrolet Corvette C8 / C8 Z06",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Chevrolet Corvette C8 / C8 Z06",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Chevrolet Corvette C8 / C8 Z06",
    "shortDescEn": "EPA-compliant high-flow 400 cell catted downpipes engineered to unlock performance and sound for Chevrolet Corvette C8 and C8 Z06.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для Chevrolet Corvette C8 та C8 Z06, що покращують пропускну здатність і звук.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для Chevrolet Corvette C8 та C8 Z06, що покращують пропускну здатність і звук.",
    "introEn": [
     "The factory catalyst setup on the mid-engine Corvette creates exhaust restriction that limits performance and sound potential. These high-flow catted downpipes reduce backpressure to enhance throttle response and unleash an aggressive exhaust note.",
     "Built from premium high-grade stainless steel with 400 cell catalyst cores, these downpipes are engineered for long-term durability under extreme exhaust temperatures. They integrate seamlessly with original mounting points and sensor locations for a straightforward bolt-on upgrade."
    ],
    "introUa": [
     "Заводські каталізатори середньомоторного Corvette створюють опір вихлопним газам, обмежуючи потенціал потужності та звуку. Ці високопотокові даунпайпи зменшують протитиск, покращуючи відгук на педаль газу та розкриваючи агресивне звучання.",
-    "Виготовлені з високоякісної нержавіючої сталі із 400-комірковими елементами, ці даунпайпи розраховані на тривалу експлуатацію в умовах екстремальних температур. Вони встановлюються безпосередньо на заводські кріплення та зберігають штатні місця для датчиків."
+    "Виготовлені з високоякісної нержавіючої сталі із 400 cell елементами, ці даунпайпи розраховані на тривалу експлуатацію в умовах екстремальних температур. Вони встановлюються безпосередньо на заводські кріплення та зберігають штатні місця для датчиків."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalysts",
@@ -8072,7 +8072,7 @@
     "Direct OEM bolt-on fitment using factory mounting points"
    ],
    "keyPointsUa": [
-    "400-коміркові високопотокові каталізатори EPA",
+    "400 cell високопотокові каталізатори EPA",
     "Зменшення протитиску та покращений відгук на газ",
     "Глибший, чіткіший та агресивніший звук вихлопу",
     "Високоякісна нержавіюча сталь та зварювання TIG",
@@ -8103,7 +8103,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові відповідно до вимог EPA"
+     "value": "400 cell відповідно до вимог EPA"
     },
     {
      "label": "Конструкція",
@@ -8129,7 +8129,7 @@
    "seoTitleEn": "Valvetronic Catted Downpipes for Corvette C8 / C8 Z06",
    "seoTitleUa": "Даунпайпи Valvetronic для Corvette C8 / C8 Z06",
    "seoDescriptionEn": "High-flow 400 cell EPA-compliant catted downpipes by Valvetronic Designs for Chevrolet Corvette C8 and C8 Z06. Stainless steel bolt-on upgrade.",
-   "seoDescriptionUa": "Високопотокові даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Chevrolet Corvette C8 та C8 Z06. Нержавіюча сталь, direct fit.",
+   "seoDescriptionUa": "Високопотокові даунпайпи Valvetronic Designs з каталізаторами 400 cell для Chevrolet Corvette C8 та C8 Z06. Нержавіюча сталь, direct fit.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Chevrolet Corvette C8 Z06",
    "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Chevrolet Corvette C8 Z06",
    "vehicles": [
@@ -8156,7 +8156,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "69470c983c2924fc",
+   "sourceHash": "fa73ba1297bc66f9",
    "generatedAt": "2026-10-23T21:08:30.832Z"
   },
   "15033979306352": {
@@ -8250,7 +8250,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f11eacd7a417eaae",
+   "sourceHash": "3644129549da24c4",
    "generatedAt": "2026-10-23T21:08:32.946Z"
   },
   "6988380471332": {
@@ -8382,7 +8382,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "a5f3d152e232da57",
+   "sourceHash": "58ccad211716e810",
    "generatedAt": "2026-10-23T21:08:35.295Z"
   },
   "7318178463780": {
@@ -8496,7 +8496,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "aae7b0c5cdd8a05d",
+   "sourceHash": "b9512031c46e83d3",
    "generatedAt": "2026-10-23T21:08:36.045Z"
   },
   "14658377941360": {
@@ -8666,7 +8666,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3f3a94ecdb682272",
+   "sourceHash": "34ef2004e96f936e",
    "generatedAt": "2026-10-23T21:11:43.732Z"
   },
   "14882909192560": {
@@ -8764,7 +8764,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "76977d014e2ff543",
+   "sourceHash": "6dd8a06172f1b160",
    "generatedAt": "2026-10-23T21:11:42.630Z"
   },
   "7274244046884": {
@@ -8829,7 +8829,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "408600ade6205294",
+   "sourceHash": "48c827952da99977",
    "generatedAt": "2026-10-23T21:11:42.006Z"
   },
   "4662370795556": {
@@ -8916,7 +8916,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "943f9a00fd79ff7b",
+   "sourceHash": "f6cfc8abaa7f6bc9",
    "generatedAt": "2026-10-23T21:08:41.905Z"
   },
   "7274243588132": {
@@ -8989,7 +8989,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "dadcd643f836dd51",
+   "sourceHash": "6daa637ba39c84a4",
    "generatedAt": "2026-10-23T21:08:42.513Z"
   },
   "14621038281072": {
@@ -9056,7 +9056,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0594c67bd0070e3a",
+   "sourceHash": "943042af134cbaba",
    "generatedAt": "2026-10-23T21:08:42.642Z"
   },
   "14621038903664": {
@@ -9119,7 +9119,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "eded15f1bb37c2dd",
+   "sourceHash": "13b9d4344c42281a",
    "generatedAt": "2026-10-23T21:08:44.125Z"
   },
   "14832649503088": {
@@ -9208,7 +9208,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3fb98a4f51f091dd",
+   "sourceHash": "76e4238e3201c20a",
    "generatedAt": "2026-10-23T21:08:48.003Z"
   },
   "14638151172464": {
@@ -9322,7 +9322,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "23c33289494380ce",
+   "sourceHash": "5cb643b1089ee09a",
    "generatedAt": "2026-10-23T21:08:49.291Z"
   },
   "14987395727728": {
@@ -9438,7 +9438,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "ee3aa718d12680a5",
+   "sourceHash": "ccb9ef426ba48e44",
    "generatedAt": "2026-10-23T21:08:50.023Z"
   },
   "7591699677220": {
@@ -9566,7 +9566,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "ecc606ea4d7329f6",
+   "sourceHash": "f09675f80b40b05e",
    "generatedAt": "2026-10-23T21:08:52.151Z"
   },
   "4515859234852": {
@@ -9698,7 +9698,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b358d85fbd67f609",
+   "sourceHash": "c0720596a4b33998",
    "generatedAt": "2026-10-23T21:08:55.890Z"
   },
   "4515861233700": {
@@ -9826,7 +9826,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f40d3a3879265405",
+   "sourceHash": "651542f24002c863",
    "generatedAt": "2026-10-23T21:08:56.245Z"
   },
   "7278743027748": {
@@ -9936,7 +9936,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "46af95e806cb960b",
+   "sourceHash": "ed5f2e9e63c8327f",
    "generatedAt": "2026-10-23T21:08:57.300Z"
   },
   "14661257298288": {
@@ -10052,7 +10052,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "633ebc7165c04b8c",
+   "sourceHash": "d26edff8e0aa8444",
    "generatedAt": "2026-10-23T21:08:58.944Z"
   },
   "7608092360740": {
@@ -10150,7 +10150,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3e2e010749f0b244",
+   "sourceHash": "488ab804f620ebca",
    "generatedAt": "2026-10-23T21:09:02.683Z"
   },
   "7205780127780": {
@@ -10274,7 +10274,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "c23053018e7a34da",
+   "sourceHash": "4fa32eb75fc92c88",
    "generatedAt": "2026-10-23T21:09:05.051Z"
   },
   "4515863429156": {
@@ -10424,7 +10424,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "38e7260f27a9ed0e",
+   "sourceHash": "e5c99981690de576",
    "generatedAt": "2026-10-23T21:09:05.347Z"
   },
   "7320006852644": {
@@ -10528,21 +10528,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "692a136a0cd3a322",
+   "sourceHash": "fd3208c3fc911b62",
    "generatedAt": "2026-10-23T21:09:05.621Z"
   },
   "15018429383024": {
    "titleEn": "Valvetronic Designs Downpipes for Ferrari F8 Tributo / Spider (2019–2023)",
    "titleUa": "Valvetronic Designs — даунпайпи для Ferrari F8 Tributo / Spider (2019–2023)",
    "shortDescEn": "High-flow stainless steel downpipes for the Ferrari F8, available in 400 cell catted or free flow race versions to increase exhaust flow and enhance sound.",
-   "shortDescUa": "Високопотокові даунпайпи з нержавіючої сталі для Ferrari F8, доступні у версіях з 400-комірковими каталізаторами або без них для максимального звуку.",
+   "shortDescUa": "Високопотокові даунпайпи з нержавіючої сталі для Ferrari F8, доступні у версіях з каталізаторами 400 cell або без них для максимального звуку.",
    "introEn": [
     "Factory exhaust catalysts on the twin-turbo V8 engine significantly restrict power potential and dampen the acoustic experience. Upgrading to these downpipes minimizes backpressure straight from the turbochargers to ensure immediate throttle response and a much more aggressive sound profile.",
     "Buyers can select between high-flow 400 cell catted pipes for refined road use or free-flow race pipes for maximum performance. Each set is manufactured to pair cleanly with original mounting points and Valvetronic exhaust components."
    ],
    "introUa": [
     "Заводські каталізатори на твін-турбо двигуні V8 суттєво обмежують розкриття потужності та глушать характерний звук. Встановлення цих даунпайпів зменшує протитиск безпосередньо від турбін, забезпечуючи швидший відгук на педаль газу та агресивніше звучання.",
-    "На вибір пропонуються варіанти з високопотоковими 400-комірковими каталізаторами для комфортної щоденної їзди або прямі труби без каталізаторів для треку. Кожен комплект розроблений для ідеального поєднання з оригінальними кріпленнями та вихлопними системами Valvetronic."
+    "На вибір пропонуються варіанти з високопотоковими 400 cell каталізаторами для комфортної щоденної їзди або прямі труби без каталізаторів для треку. Кожен комплект розроблений для ідеального поєднання з оригінальними кріпленнями та вихлопними системами Valvetronic."
    ],
    "keyPointsEn": [
     "Engineered specifically for the 3.9L twin-turbo V8 engine",
@@ -10552,7 +10552,7 @@
    ],
    "keyPointsUa": [
     "Спроектовано спеціально для 3.9-літрового двигуна V8 twin-turbo",
-    "Вибір між 400-комірковими каталізаторами та прямими трубами",
+    "Вибір між 400 cell каталізаторами та прямими трубами",
     "Труби з нержавіючої сталі із гнуттям на дорні (mandrel-bent) та TIG-зварюванням",
     "Встановлення без переробок з заводським розташуванням датчиків"
    ],
@@ -10585,7 +10585,7 @@
     },
     {
      "label": "Конфігурації",
-     "value": "З 400-комірковими каталізаторами або прямі труби без каталізаторів"
+     "value": "З каталізаторами 400 cell або прямі труби без каталізаторів"
     },
     {
      "label": "Тип встановлення",
@@ -10615,7 +10615,7 @@
    "seoTitleEn": "Valvetronic Downpipes for Ferrari F8 Tributo / Spider",
    "seoTitleUa": "Даунпайпи Valvetronic Designs для Ferrari F8 Tributo / Spider",
    "seoDescriptionEn": "High-performance stainless steel downpipes for Ferrari F8 Tributo and Spider (2019–2023). Available with 400 cell cats or as free flow race pipes.",
-   "seoDescriptionUa": "Високопродуктивні даунпайпи з нержавіючої сталі для Ferrari F8 Tributo та Spider (2019–2023). Варіанти з 400-комірковими каталізаторами або без них.",
+   "seoDescriptionUa": "Високопродуктивні даунпайпи з нержавіючої сталі для Ferrari F8 Tributo та Spider (2019–2023). Варіанти з каталізаторами 400 cell або без них.",
    "imageAltEn": "Valvetronic Designs stainless steel downpipes for Ferrari F8",
    "imageAltUa": "Даунпайпи з нержавіючої сталі Valvetronic Designs для Ferrari F8",
    "vehicles": [
@@ -10642,7 +10642,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0b42ccab64ed6227",
+   "sourceHash": "cdefe478718fa36a",
    "generatedAt": "2026-10-23T21:09:10.356Z"
   },
   "7309901529124": {
@@ -10752,7 +10752,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f62a9b1a4779b8e5",
+   "sourceHash": "6f08a1be7a4634d4",
    "generatedAt": "2026-10-23T21:09:11.903Z"
   },
   "7229464346660": {
@@ -10864,7 +10864,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "822c183995f6d39d",
+   "sourceHash": "120013f1870ba56a",
    "generatedAt": "2026-10-23T21:09:11.994Z"
   },
   "7206850396196": {
@@ -10996,7 +10996,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f80db7f7840bd686",
+   "sourceHash": "a1652f2702f08c6a",
    "generatedAt": "2026-10-23T21:09:12.892Z"
   },
   "14750607802736": {
@@ -11072,7 +11072,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f68defe9c3ff34a4",
+   "sourceHash": "5f971bcf8aa1d030",
    "generatedAt": "2026-10-23T21:09:14.306Z"
   },
   "6731393204260": {
@@ -11188,7 +11188,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0c7e2b7519a58b86",
+   "sourceHash": "6ea906047d173c23",
    "generatedAt": "2026-10-23T21:09:18.632Z"
   },
   "7439953297444": {
@@ -11304,7 +11304,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "ce6d7034e15416e5",
+   "sourceHash": "214edaf4ff598708",
    "generatedAt": "2026-10-23T21:09:19.461Z"
   },
   "6998075375652": {
@@ -11434,7 +11434,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "86ccc2c1eaff94b6",
+   "sourceHash": "8f548adcc4d59af1",
    "generatedAt": "2026-10-23T21:11:47.542Z"
   },
   "14882962866544": {
@@ -11586,7 +11586,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "047ee2cb1907ce9d",
+   "sourceHash": "ce08199cfdf4c496",
    "generatedAt": "2026-10-23T21:12:26.720Z"
   },
   "6590271619108": {
@@ -11720,7 +11720,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "278139a8e2c7a191",
+   "sourceHash": "382dd7debf082d75",
    "generatedAt": "2026-10-23T21:09:26.332Z"
   },
   "6590265196580": {
@@ -11850,7 +11850,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "d06f03c1fa4ebd24",
+   "sourceHash": "8ba925d4b2c5a0ba",
    "generatedAt": "2026-10-23T21:09:27.293Z"
   },
   "14650810761584": {
@@ -11980,7 +11980,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "5ba78d90dffc77b7",
+   "sourceHash": "0a48f36f1cbe953b",
    "generatedAt": "2026-10-23T21:09:29.392Z"
   },
   "4515871850532": {
@@ -12086,7 +12086,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "450bb24cd2027689",
+   "sourceHash": "840bb879753188fc",
    "generatedAt": "2026-10-23T21:09:29.807Z"
   },
   "14762345595248": {
@@ -12232,7 +12232,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "48c75c0692e2f6a9",
+   "sourceHash": "bb94f14eadcd9098",
    "generatedAt": "2026-10-23T21:12:24.077Z"
   },
   "14827062985072": {
@@ -12338,7 +12338,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "c6661b889229efc0",
+   "sourceHash": "8de75c5c4c3b1634",
    "generatedAt": "2026-10-23T21:09:33.493Z"
   },
   "14624038257008": {
@@ -12448,20 +12448,20 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "4a80ad1414b075d5",
+   "sourceHash": "8e422aed83d1ebde",
    "generatedAt": "2026-10-23T21:09:36.338Z"
   },
   "15031078158704": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Lamborghini Urus",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Lamborghini Urus",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Lamborghini Urus",
    "shortDescEn": "EPA-compliant 400 cell catted downpipes for the Lamborghini Urus 4.0L Twin-Turbo V8. Unlocks improved exhaust flow, sharper turbo response, and an aggressive sound.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для Lamborghini Urus 4.0L Twin-Turbo V8. Покращують потік газів, відгук турбін та звучання.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для Lamborghini Urus 4.0L Twin-Turbo V8. Покращують потік газів, відгук турбін та звучання.",
    "introEn": [
     "The Lamborghini Urus delivers high performance, but factory catalysts restrict the airflow of its 4.0L twin-turbo V8 engine. These 400 cell catted downpipes reduce backpressure to enhance turbo spool and throttle response while remaining EPA-compliant.",
     "Constructed from high-grade stainless steel with precision TIG welds, they bolt directly to factory mounting points. You can pair them with the stock exhaust or a Valvetronic titanium system for maximum tone transformation."
    ],
    "introUa": [
-    "Lamborghini Urus забезпечує високу продуктивність, але заводські каталізатори обмежують вихлопний потік двигуна 4.0L Twin-Turbo V8. Ці даунпайпи з 400-комірковими каталізаторами зменшують протитиск, покращуючи спул турбін та відгук на педаль газу з дотриманням норм EPA.",
+    "Lamborghini Urus забезпечує високу продуктивність, але заводські каталізатори обмежують вихлопний потік двигуна 4.0L Twin-Turbo V8. Ці даунпайпи з каталізаторами 400 cell зменшують протитиск, покращуючи спул турбін та відгук на педаль газу з дотриманням норм EPA.",
     "Виготовлені з високоякісної нержавіючої сталі за допомогою точного TIG-зварювання, вони монтуються безпосередньо на заводські кріплення. Їх можна поєднувати зі штатною вихлопною системою або з титановим вихлопом Valvetronic для максимального розкриття звуку."
    ],
    "keyPointsEn": [
@@ -12471,7 +12471,7 @@
     "Direct OEM bolt-on fitment with factory O2 sensor locations"
    ],
    "keyPointsUa": [
-    "400-коміркові каталізатори, що відповідають нормам EPA",
+    "каталізатори 400 cell, що відповідають нормам EPA",
     "Зменшують протитиск для швидшого спулу та відгуку турбін",
     "Виготовлені з високоякісної нержавіючої сталі з TIG-зварюванням",
     "Установлюються без переробок на штатні місця та лямбда-зонди"
@@ -12501,7 +12501,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові, відповідні нормам EPA"
+     "value": "400 cell, відповідні нормам EPA"
     },
     {
      "label": "Конструкція",
@@ -12533,9 +12533,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes for Lamborghini Urus",
    "seoTitleUa": "Даунпайпи Valvetronic 400 Cell для Lamborghini Urus",
    "seoDescriptionEn": "Buy Valvetronic Designs 400 cell catted downpipes for Lamborghini Urus 4.0L Twin-Turbo V8. High-flow EPA-compliant stainless steel downpipes.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Lamborghini Urus 4.0L V8. Нержавіюча сталь, покращений потік та звук.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Lamborghini Urus 4.0L V8. Нержавіюча сталь, покращений потік та звук.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Lamborghini Urus",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Lamborghini Urus",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Lamborghini Urus",
    "vehicles": [
     {
      "make": "Lamborghini",
@@ -12550,7 +12550,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b07a59ca47de2d70",
+   "sourceHash": "10655ca0bd38c18b",
    "generatedAt": "2026-10-23T21:09:36.716Z"
   },
   "14882945827184": {
@@ -12646,7 +12646,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "2b55bcb8db550d55",
+   "sourceHash": "12a3620b0795dbf6",
    "generatedAt": "2026-10-23T21:09:39.629Z"
   },
   "4712586903588": {
@@ -12788,7 +12788,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "a0b54fba1cf11558",
+   "sourceHash": "ca5b51b056cd741b",
    "generatedAt": "2026-10-23T21:09:40.176Z"
   },
   "7227466809380": {
@@ -12898,7 +12898,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "2176398aace2033a",
+   "sourceHash": "2f74b13f1d0b7aa8",
    "generatedAt": "2026-10-23T21:09:43.313Z"
   },
   "7668995686436": {
@@ -13028,7 +13028,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "03faaa8d008d7ae7",
+   "sourceHash": "ed025f6b4bdedac0",
    "generatedAt": "2026-10-23T21:09:43.335Z"
   },
   "7408969711652": {
@@ -13132,7 +13132,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "9caf27cef2c5e171",
+   "sourceHash": "f4d01487ed20e171",
    "generatedAt": "2026-10-23T21:09:46.044Z"
   },
   "4515874996260": {
@@ -13254,7 +13254,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "757d1cb838cb36d1",
+   "sourceHash": "6123a9dac7562ec4",
    "generatedAt": "2026-10-23T21:09:47.711Z"
   },
   "5027674161188": {
@@ -13360,7 +13360,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "9f26a287d26eb648",
+   "sourceHash": "3fd7d496709a62bf",
    "generatedAt": "2026-10-23T21:09:50.263Z"
   },
   "4515877388324": {
@@ -13480,7 +13480,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "dfaa9b9e537b6837",
+   "sourceHash": "4a4b8beb273585d0",
    "generatedAt": "2026-10-23T21:09:51.271Z"
   },
   "14827056857456": {
@@ -13574,7 +13574,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b15fba9def5cc460",
+   "sourceHash": "bd1e7a100c4996e9",
    "generatedAt": "2026-10-23T21:09:51.537Z"
   },
   "14827048141168": {
@@ -13678,7 +13678,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "d35cb885883fad9c",
+   "sourceHash": "df007b30cde8c995",
    "generatedAt": "2026-10-23T21:09:54.478Z"
   },
   "14624480854384": {
@@ -13772,7 +13772,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "85900f7890b11194",
+   "sourceHash": "5605310d908c9624",
    "generatedAt": "2026-10-23T21:09:56.190Z"
   },
   "7206831423524": {
@@ -13874,7 +13874,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f2aaa8a4190cedfe",
+   "sourceHash": "b2dcc194e0e4a907",
    "generatedAt": "2026-10-23T21:09:57.554Z"
   },
   "4881516331044": {
@@ -13980,7 +13980,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "2a70fee0cb66f87b",
+   "sourceHash": "6aa1570914781dcd",
    "generatedAt": "2026-10-23T21:09:58.248Z"
   },
   "7301228757028": {
@@ -14110,7 +14110,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f5c6b141e58cbc3b",
+   "sourceHash": "131ef680df5cf5b0",
    "generatedAt": "2026-10-23T21:10:01.587Z"
   },
   "14844692332912": {
@@ -14230,7 +14230,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0f04942ad74bcbcd",
+   "sourceHash": "1e598b6e400303e1",
    "generatedAt": "2026-10-23T21:10:03.064Z"
   },
   "7525920505892": {
@@ -14370,7 +14370,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6207e6a1301184a2",
+   "sourceHash": "6d0aa7c073f328f1",
    "generatedAt": "2026-10-23T21:10:03.805Z"
   },
   "7206857965604": {
@@ -14474,7 +14474,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "99fce9a5bb4e54d8",
+   "sourceHash": "4c314ce2f13aa1a9",
    "generatedAt": "2026-10-23T21:10:04.825Z"
   },
   "14656152469872": {
@@ -14576,7 +14576,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "7a3e858cbbdf4927",
+   "sourceHash": "ed5963ea9e8fc127",
    "generatedAt": "2026-10-23T21:10:07.922Z"
   },
   "6965509029924": {
@@ -14706,7 +14706,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "2c91f7a91a871252",
+   "sourceHash": "69b3216e7487e0be",
    "generatedAt": "2026-10-23T21:11:51.703Z"
   },
   "4515885678628": {
@@ -14836,7 +14836,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "71feeaff3c5215d6",
+   "sourceHash": "f6d5c0e72510f08a",
    "generatedAt": "2026-10-23T21:11:54.679Z"
   },
   "5047800397860": {
@@ -14944,7 +14944,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3a4545524dfa3faf",
+   "sourceHash": "9b6f5aa9207ac20b",
    "generatedAt": "2026-10-23T21:10:12.420Z"
   },
   "6639602597924": {
@@ -15072,7 +15072,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "514d6ed2f53604ea",
+   "sourceHash": "46ab29e21605a513",
    "generatedAt": "2026-10-23T21:10:15.815Z"
   },
   "5048306008100": {
@@ -15202,7 +15202,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "ef68554caf281895",
+   "sourceHash": "869d09ebd2e4ea95",
    "generatedAt": "2026-10-23T21:10:16.733Z"
   },
   "4936232468516": {
@@ -15308,7 +15308,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "4c5f7349c2e38122",
+   "sourceHash": "b7a470c0e844438a",
    "generatedAt": "2026-10-23T21:10:17.078Z"
   },
   "7569418649636": {
@@ -15404,7 +15404,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e1c1f3ed5a779b21",
+   "sourceHash": "74836048b8a5cc5b",
    "generatedAt": "2026-10-23T21:10:19.261Z"
   },
   "4676841734180": {
@@ -15516,7 +15516,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "299007eedc745545",
+   "sourceHash": "8c8be95a334fa8e2",
    "generatedAt": "2026-10-23T21:10:23.022Z"
   },
   "14882948022640": {
@@ -15626,7 +15626,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "58232c90b77d157e",
+   "sourceHash": "dfc5134db5c70880",
    "generatedAt": "2026-10-23T21:10:23.245Z"
   },
   "7326763712548": {
@@ -15724,7 +15724,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "feebaaeacdc1788a",
+   "sourceHash": "976fd4c794e54462",
    "generatedAt": "2026-10-23T21:10:25.816Z"
   },
   "7698211045412": {
@@ -15878,7 +15878,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3ae47bf7d2cea3d5",
+   "sourceHash": "4f7a9788a9ecfcab",
    "generatedAt": "2026-10-23T21:10:25.884Z"
   },
   "4676910350372": {
@@ -16022,7 +16022,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "967844d97c9ad5a2",
+   "sourceHash": "ea4a20a5f097f52f",
    "generatedAt": "2026-10-23T21:10:31.328Z"
   },
   "4672793182244": {
@@ -16130,7 +16130,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "eb078c51ec716fa3",
+   "sourceHash": "9cde22d996688da0",
    "generatedAt": "2026-10-23T21:10:33.076Z"
   },
   "4676851400740": {
@@ -16324,7 +16324,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "334de2aeb7f9b1cb",
+   "sourceHash": "8699f47c7a277e94",
    "generatedAt": "2026-10-23T21:10:33.096Z"
   },
   "7292002107428": {
@@ -16428,7 +16428,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "61cb77a1b0773c99",
+   "sourceHash": "ee412922e081989f",
    "generatedAt": "2026-10-23T21:10:34.165Z"
   },
   "7497829056548": {
@@ -16516,7 +16516,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e165172eddb0bd2f",
+   "sourceHash": "f9a80f3b69e1a050",
    "generatedAt": "2026-10-23T21:12:22.455Z"
   },
   "7237532123172": {
@@ -16630,20 +16630,20 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "5455b39672ae9361",
+   "sourceHash": "4c34e117cad29f95",
    "generatedAt": "2026-10-23T21:10:40.332Z"
   },
   "15032020631920": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Porsche 992 Turbo / Turbo S",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Porsche 992 Turbo / Turbo S",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Porsche 992 Turbo / Turbo S",
    "shortDescEn": "EPA-compliant 400 cell high-flow catted downpipes engineered for the Porsche 992 Turbo and Turbo S 3.8L twin-turbo flat-six engine.",
-   "shortDescUa": "Даунпайпи з 400-комірковими каталізаторами EPA для Porsche 992 Turbo та Turbo S з двигуном 3,8L twin-turbo.",
+   "shortDescUa": "Даунпайпи з каталізаторами 400 cell EPA для Porsche 992 Turbo та Turbo S з двигуном 3,8L twin-turbo.",
    "introEn": [
     "The Porsche 992 Turbo and Turbo S deliver exceptional factory power, but restrictive catalysts limit exhaust efficiency and mute the true flat-six engine tone. These EPA-compliant 400 cell high-flow catted downpipes are designed to reduce backpressure while maintaining emissions compliance standards.",
     "Engineered with mandrel-bent stainless steel tubing and precision TIG welding, these downpipes enhance turbo spool and throttle response. They install as a direct bolt-on upgrade into factory mounting locations and pair seamlessly with stock or Valvetronic exhaust systems."
    ],
    "introUa": [
-    "Porsche 992 Turbo та Turbo S мають вражаючу заводську потужність, проте стандартні каталізатори обмежують ефективність вихлопу та глушать звук двигуна. Даунпайпи з 400-комірковими каталізаторами EPA знижують зворотний тиск із збереженням екологічних стандартів.",
+    "Porsche 992 Turbo та Turbo S мають вражаючу заводську потужність, проте стандартні каталізатори обмежують ефективність вихлопу та глушать звук двигуна. Даунпайпи з каталізаторами 400 cell EPA знижують зворотний тиск із збереженням екологічних стандартів.",
     "Виготовлені з нержавіючої сталі методом гнуття на дорні та зварювання TIG, вони покращують відгук турбін і педалі газу. Виріб встановлюється без переробок у штатні кріплення та підходить для використання із заводською або спортивною системою Valvetronic."
    ],
    "keyPointsEn": [
@@ -16653,7 +16653,7 @@
     "Reduces exhaust backpressure for improved turbo spool"
    ],
    "keyPointsUa": [
-    "High-flow 400-коміркові каталізатори з відповідністю стандартам EPA",
+    "High-flow каталізатори 400 cell з відповідністю стандартам EPA",
     "Конструкція з якісної нержавіючої сталі з гнуттям на дорні",
     "Установка без переробок у штатні місця та роз'єми лямбда-зондів",
     "Зменшення зворотного тиску для швидшого виходу турбін на буст"
@@ -16687,7 +16687,7 @@
     },
     {
      "label": "Тип каталізатора",
-     "value": "400-коміркові high-flow стандарту EPA"
+     "value": "400 cell high-flow стандарту EPA"
     },
     {
      "label": "Конструкція труби",
@@ -16717,9 +16717,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes for Porsche 992 Turbo / S",
    "seoTitleUa": "Даунпайпи Valvetronic 400 Cell для Porsche 992 Turbo / S",
    "seoDescriptionEn": "EPA-compliant 400 cell high-flow catted downpipes by Valvetronic Designs for Porsche 992 Turbo and Turbo S. Stainless steel direct bolt-on fitment.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic з 400-комірковими каталізаторами EPA для Porsche 992 Turbo та Turbo S. Нержавіюча сталь, прямоточна конструкція, bolt-on.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic з каталізаторами 400 cell EPA для Porsche 992 Turbo та Turbo S. Нержавіюча сталь, прямоточна конструкція, bolt-on.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Porsche 992 Turbo S",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Porsche 992 Turbo S",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Porsche 992 Turbo S",
    "vehicles": [
     {
      "make": "Porsche",
@@ -16744,7 +16744,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "bfb08122a10e12a7",
+   "sourceHash": "255e55de10ee784e",
    "generatedAt": "2026-10-23T21:10:40.917Z"
   },
   "5057653014564": {
@@ -16886,7 +16886,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "83d21bd8cab62c7f",
+   "sourceHash": "a5c292b723c7d211",
    "generatedAt": "2026-10-23T21:12:24.273Z"
   },
   "7274085416996": {
@@ -17014,7 +17014,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6161e9c7a49a5197",
+   "sourceHash": "f70d0258c0acf368",
    "generatedAt": "2026-10-23T21:10:44.678Z"
   },
   "7519913050148": {
@@ -17148,7 +17148,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "81897be1a4a4eb01",
+   "sourceHash": "a5bd8f3f01b47eae",
    "generatedAt": "2026-10-23T21:10:46.664Z"
   },
   "2322090721339": {
@@ -17235,21 +17235,21 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "58562126a2319e6c",
+   "sourceHash": "88bd1440af2ac4f3",
    "generatedAt": "2026-10-23T21:10:46.841Z"
   },
   "15031953752432": {
    "titleEn": "Valvetronic Designs 400 Cell Catted Downpipes for Porsche Cayenne Turbo S / GT / GTS",
-   "titleUa": "Valvetronic Designs — даунпайпи з 400-комірковими каталізаторами для Porsche Cayenne Turbo S / GT / GTS",
+   "titleUa": "Valvetronic Designs — даунпайпи з каталізаторами 400 cell для Porsche Cayenne Turbo S / GT / GTS",
    "shortDescEn": "EPA-compliant 400 cell catted downpipes engineered for the Porsche Cayenne 4.0L Twin-Turbo V8 to improve exhaust flow and turbo response.",
-   "shortDescUa": "Екологічні даунпайпи з 400-комірковими каталізаторами EPA для Porsche Cayenne з двигуном 4.0L Twin-Turbo V8 для кращого відгуку турбін.",
+   "shortDescUa": "Екологічні даунпайпи з каталізаторами 400 cell EPA для Porsche Cayenne з двигуном 4.0L Twin-Turbo V8 для кращого відгуку турбін.",
    "introEn": [
     "Factory catalyst restrictions limit the full performance and sound character of the Porsche Cayenne 4.0L twin-turbo V8. These high-flow catted downpipes reduce backpressure and refine the exhaust note while maintaining emissions compliance.",
     "Engineered specifically for Turbo S, Turbo GT, and GTS models, they feature high-temperature 400 cell catalyst cores and smooth mandrel-bent stainless-steel tubing. The result is improved throttle response and enhanced daily drivability."
    ],
    "introUa": [
     "Заводські каталізатори обмежують потенціал потужності та звучання 4,0-літрового V8 twin-turbo у Porsche Cayenne. Ці високопотокові даунпайпи знижують зворотний тиск і роблять звук вихлопу виразнішим із збереженням екологічних стандартів.",
-    "Розроблені спеціально для версій Turbo S, Turbo GT та GTS, вони оснащені стійкими до високих температур 400-комірковими каталізаторами та вигнутими на дорні трубами з нержавіючої сталі. Це забезпечує кращий відгук на педаль газу та відмінну щоденну практичність."
+    "Розроблені спеціально для версій Turbo S, Turbo GT та GTS, вони оснащені стійкими до високих температур 400 cell каталізаторами та вигнутими на дорні трубами з нержавіючої сталі. Це забезпечує кращий відгук на педаль газу та відмінну щоденну практичність."
    ],
    "keyPointsEn": [
     "EPA-compliant 400 cell high-flow catalysts for reduced backpressure",
@@ -17258,7 +17258,7 @@
     "OEM-style sensor placement for accurate operation"
    ],
    "keyPointsUa": [
-    "Високопотокові 400-коміркові каталізатори, що відповідають нормам EPA",
+    "Високопотокові каталізатори 400 cell, що відповідають нормам EPA",
     "Нержавіюча сталь із гнуттям на дорні (mandrel-bent) та TIG-зварюванням",
     "Установка без переробок (direct bolt-on) на заводські кріплення",
     "Заводське розташування датчиків для правильної роботи системи"
@@ -17288,7 +17288,7 @@
     },
     {
      "label": "Каталізатори",
-     "value": "400-коміркові екологічні блоки (EPA)"
+     "value": "400 cell екологічні блоки (EPA)"
     },
     {
      "label": "Конструкція труб",
@@ -17316,9 +17316,9 @@
    "seoTitleEn": "Valvetronic 400 Cell Downpipes Porsche Cayenne Turbo S GT GTS",
    "seoTitleUa": "Даунпайпи Valvetronic 400 Cell для Porsche Cayenne Turbo GTS",
    "seoDescriptionEn": "Valvetronic Designs EPA-compliant 400 cell catted downpipes for Porsche Cayenne Turbo S, Turbo GT, and GTS 4.0L V8 twin-turbo models.",
-   "seoDescriptionUa": "Даунпайпи Valvetronic Designs із 400-комірковими каталізаторами EPA для Porsche Cayenne Turbo S, Turbo GT та GTS 4.0L V8 twin-turbo.",
+   "seoDescriptionUa": "Даунпайпи Valvetronic Designs із каталізаторами 400 cell EPA для Porsche Cayenne Turbo S, Turbo GT та GTS 4.0L V8 twin-turbo.",
    "imageAltEn": "Valvetronic Designs 400 cell catted downpipes for Porsche Cayenne Turbo V8",
-   "imageAltUa": "Даунпайпи Valvetronic Designs з 400-комірковими каталізаторами для Porsche Cayenne Turbo V8",
+   "imageAltUa": "Даунпайпи Valvetronic Designs з каталізаторами 400 cell для Porsche Cayenne Turbo V8",
    "vehicles": [
     {
      "make": "Porsche",
@@ -17353,21 +17353,21 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "412ca6767d79b7be",
+   "sourceHash": "9415aeb5064977cf",
    "generatedAt": "2026-10-23T21:10:47.740Z"
   },
   "7261620371492": {
    "titleEn": "Valvetronic Designs 200 Cell Free Flow Front Pipes for Range Rover / Sport (2014–2022)",
    "titleUa": "Valvetronic Designs — передні труби 200 Cell для Range Rover / Sport (2014–2022)",
    "shortDescEn": "Euro 6 grade 200 cell catalytic front pipes engineered to boost sound and power on Land Rover models.",
-   "shortDescUa": "Передні труби з 200-комірковими каталізаторами Euro 6 для покращення звуку та потужності Land Rover.",
+   "shortDescUa": "Передні труби з каталізаторами 200 cell Euro 6 для покращення звуку та потужності Land Rover.",
    "introEn": [
     "Upgrade your Land Rover with these high-flow catalytic front pipes designed for maximum performance gains. The free-flowing design increases power output while unlocking an aggressive raw exhaust note.",
     "Engineered with Euro 6 grade 200 cell catalysts, these front pipes eliminate factory flow restrictions. They provide a significant weight reduction over original exhaust components for enhanced dynamics."
    ],
    "introUa": [
     "Оновіть свій Land Rover за допомогою високопродуктивних передніх труб із каталізаторами високої пропускної здатності. Вільніший потік підвищує віддачу двигуна та розкриває агресивний звук вихлопу.",
-    "Оснащені 200-комірковими каталізаторами стандарту Euro 6, ці передні труби усувають заводські обмеження. Вони також забезпечують помітне зниження ваги порівняно з оригінальними елементами."
+    "Оснащені 200 cell каталізаторами стандарту Euro 6, ці передні труби усувають заводські обмеження. Вони також забезпечують помітне зниження ваги порівняно з оригінальними елементами."
    ],
    "keyPointsEn": [
     "Euro 6 grade 200 cell catalytic converters",
@@ -17376,7 +17376,7 @@
     "Designed for 2014-2022 Range Rover and Sport models"
    ],
    "keyPointsUa": [
-    "200-коміркові каталізатори стандарту Euro 6",
+    "каталізатори 200 cell стандарту Euro 6",
     "Висока пропускна здатність для кращого звуку й потужності",
     "На 11 фунтів легші за оригінальні заводські деталі",
     "Розроблені для моделей Range Rover та Sport 2014–2022 років"
@@ -17398,7 +17398,7 @@
    "specsUa": [
     {
      "label": "Тип каталізаторів",
-     "value": "200-коміркові Euro 6"
+     "value": "200 cell Euro 6"
     },
     {
      "label": "Зниження ваги",
@@ -17455,7 +17455,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "a1208b3f2c4939d2",
+   "sourceHash": "b51b87eeaf465cac",
    "generatedAt": "2026-10-23T21:10:51.012Z"
   },
   "7359128764452": {
@@ -17534,7 +17534,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "6923d85eb21e017e",
+   "sourceHash": "2ca11bf6390edeb5",
    "generatedAt": "2026-10-23T21:10:51.689Z"
   },
   "7470062600228": {
@@ -17603,7 +17603,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "949947f01b3b2012",
+   "sourceHash": "fc25237fafd80ccb",
    "generatedAt": "2026-10-23T21:10:51.983Z"
   },
   "7333044518948": {
@@ -17739,7 +17739,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "df10e670664c0d5e",
+   "sourceHash": "fd093091fe733ae4",
    "generatedAt": "2026-10-23T21:11:59.519Z"
   },
   "5061123047460": {
@@ -17820,7 +17820,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3089f4276f946acf",
+   "sourceHash": "8f27d8f1d4cde25d",
    "generatedAt": "2026-10-23T21:12:27.678Z"
   },
   "7274245652516": {
@@ -17899,7 +17899,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "12cc0c5eec003792",
+   "sourceHash": "a7f477c79e7cd953",
    "generatedAt": "2026-10-23T21:10:57.067Z"
   },
   "7274245881892": {
@@ -17972,7 +17972,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "75d65b4c78476ea8",
+   "sourceHash": "fa22fa2877791717",
    "generatedAt": "2026-10-23T21:12:30.693Z"
   },
   "7274242768932": {
@@ -18041,7 +18041,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "1869050b185d9f89",
+   "sourceHash": "93b87b74e41b35ae",
    "generatedAt": "2026-10-23T21:10:57.968Z"
   },
   "4782454341668": {
@@ -18114,7 +18114,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "f1b321c811db43ed",
+   "sourceHash": "57e4b9581072c673",
    "generatedAt": "2026-10-23T21:11:00.692Z"
   },
   "7274243260452": {
@@ -18185,7 +18185,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "0dcd4976db043a8b",
+   "sourceHash": "c9956909be5eec74",
    "generatedAt": "2026-10-23T21:12:28.446Z"
   },
   "7279743303716": {
@@ -18254,7 +18254,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "7edef425ea1cb8a7",
+   "sourceHash": "7a3da32b57daa3fb",
    "generatedAt": "2026-10-23T21:11:01.822Z"
   },
   "15288509432176": {
@@ -18400,7 +18400,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "72ebd0d3eaf79c5a",
+   "sourceHash": "3e24180a04ed7400",
    "generatedAt": "2026-10-23T21:11:06.163Z"
   },
   "14883006153072": {
@@ -18512,7 +18512,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "336558b3bc2d5cdf",
+   "sourceHash": "3323345256521b02",
    "generatedAt": "2026-10-23T21:11:06.991Z"
   },
   "4676866015268": {
@@ -18634,7 +18634,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e189a29feefb74f9",
+   "sourceHash": "cfde5bf4f3ff4557",
    "generatedAt": "2026-10-23T21:11:06.997Z"
   },
   "7259482619940": {
@@ -18745,7 +18745,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "3e055c00bfd15f7a",
+   "sourceHash": "81ea987be66d8e45",
    "generatedAt": "2026-10-23T21:11:08.784Z"
   },
   "4946068013092": {
@@ -18816,7 +18816,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "447bdb8bb54abd21",
+   "sourceHash": "ade9e7ab582af29e",
    "generatedAt": "2026-10-23T21:11:10.725Z"
   },
   "7558679298084": {
@@ -18909,7 +18909,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "1de0f94ea157cd2e",
+   "sourceHash": "82d9d3c541da7de8",
    "generatedAt": "2026-10-23T21:11:12.083Z"
   },
   "7261065576484": {
@@ -19012,7 +19012,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "94f09178a2edbe05",
+   "sourceHash": "43b15dc49cb2649a",
    "generatedAt": "2026-10-23T21:11:12.153Z"
   },
   "14882953724272": {
@@ -19108,7 +19108,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "fdf1cfd87c035827",
+   "sourceHash": "bcf7d76e4f09f8be",
    "generatedAt": "2026-10-23T21:11:15.678Z"
   },
   "7278178172964": {
@@ -19209,7 +19209,7 @@
    "vehicles": [],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "b535b80d91fa0735",
+   "sourceHash": "3948acc31b03d287",
    "generatedAt": "2026-10-23T21:11:16.775Z"
   },
   "15063445471600": {
@@ -19321,7 +19321,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "e2d963d16811f794",
+   "sourceHash": "3370c74da1147101",
    "generatedAt": "2026-10-23T21:11:18.954Z"
   },
   "15401877504368": {
@@ -19479,7 +19479,7 @@
    ],
    "issues": [],
    "model": "gemini-3.5-flash",
-   "sourceHash": "cb515b280c731513",
+   "sourceHash": "6e8404b7373377e9",
    "generatedAt": "2026-10-23T21:11:19.939Z"
   }
  }
