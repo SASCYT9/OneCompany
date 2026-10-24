@@ -35,6 +35,7 @@ export type PriceWatchKind =
 export type PriceWatchCheck =
   | "ct-carbon"
   | "link-ecu"
+  | "valvetronic"
   | "brabus"
   | "mst"
   | "shopify-changes"
@@ -125,6 +126,19 @@ export const PRICE_WATCH_SOURCES: readonly PriceWatchSourceDefinition[] = [
     url: "https://linkecu.com",
     formula: "EU RRP × 1,20, вверх до 1 €",
     currency: "EUR",
+    everyHours: 24,
+  },
+  {
+    key: "valvetronic",
+    title: "Valvetronic Designs",
+    brands: ["Valvetronic Designs"],
+    kind: "formula",
+    check: "valvetronic",
+    site: "valvetronic.com",
+    url: "https://valvetronic.com",
+    formula:
+      "обычная цена сайта $ (не акционная) × 1,15 + $12 за кг веса коробки, вверх до $1; вес — из карточки (у одной конфигурации — самый тяжёлый вариант)",
+    currency: "USD",
     everyHours: 24,
   },
   {

@@ -9,6 +9,7 @@ import {
   buildValvetronicSlug,
   calculateValvetronicPriceUsd,
   valvetronicProductType,
+  valvetronicShippingWeightsKg,
   valvetronicVariantSkus,
   valvetronicVariantsWithoutWeight,
   valvetronicWeightKg,
@@ -127,11 +128,59 @@ test("weights from weights.json fill the gaps of the feed", () => {
   const noWeight = { sku: "VTD.TIP.25", grams: 0 };
   assert.equal(valvetronicWeightKg(noWeight), null);
   assert.equal(valvetronicWeightKg(noWeight, { "VTD.TIP.25": 1.2 }), 1.2);
+  // Variants without a brand SKU are keyed by our VTD-<variant id>.
+  assert.equal(valvetronicWeightKg({ id: 77, sku: null, grams: 0 }, { "VTD-77": 5 }), 5);
   const tips = product({
     variants: [{ ...product().variants[0], sku: "VTD.TIP.25", grams: 0 }],
   });
   assert.deepEqual(valvetronicVariantsWithoutWeight(tips), ["VTD.TIP.25"]);
   assert.deepEqual(valvetronicVariantsWithoutWeight(tips, { "VTD.TIP.25": 1.2 }), []);
+});
+
+test("every variant of one configuration ships at the heaviest weight of that configuration", () => {
+  const base = product().variants[0];
+  const m5 = product({
+    title: "BMW G90/G99 M5 Valved Sport Exhaust System",
+    optionNames: ["Application", "Material", "Tips"],
+    variants: [
+      {
+        ...base,
+        id: 1,
+        sku: "TI",
+        options: ["BMW G90 M5", "Grade 5 Titanium", "Burnt"],
+        grams: 27669,
+      },
+      { ...base, id: 2, sku: "SS", options: ["BMW G90 M5", "Brushed T304", "Black"], grams: 30391 },
+      {
+        ...base,
+        id: 3,
+        sku: "G99",
+        options: ["BMW G99 M5", "Brushed T304", "Black"],
+        grams: 40823,
+      },
+      {
+        ...base,
+        id: 4,
+        sku: "G99-TI",
+        options: ["BMW G99 M5", "Grade 5 Titanium", "Black"],
+        grams: 0,
+      },
+    ],
+  });
+  // G90: titanium takes the steel box; G99 keeps its own; a weightless variant stays unpriced.
+  assert.deepEqual(valvetronicShippingWeightsKg(m5), [30.391, 30.391, 40.823, null]);
+  // weights.json still wins before the configuration rule.
+  assert.deepEqual(valvetronicShippingWeightsKg(m5, { TI: 45 }), [45, 45, 40.823, null]);
+  // Tips keep their own weights (different sizes ship in different boxes).
+  const tips = product({
+    title: "Valvetronic Designs Exhaust Tips (SINGLES)",
+    optionNames: ["Size", "Tips"],
+    variants: [
+      { ...base, id: 5, options: ["2.5", "Brushed"], grams: 1361 },
+      { ...base, id: 6, options: ["2.5", "Forged"], grams: 907 },
+    ],
+  });
+  assert.deepEqual(valvetronicShippingWeightsKg(tips), [1.361, 0.907]);
 });
 
 test("variant SKUs keep the brand's SKU unless it is missing or repeated in the product", () => {
@@ -160,7 +209,8 @@ test("payload is a USD draft with brand SKUs, YouTube videos and the vehicle fit
     payload.variants.map((variant) => [variant.sku, variant.priceUsd]),
     [
       ["AUD.B9.S4.VSES.BR.BRSH", 3360],
-      ["AUD.B9.S4.VSES.BR.RC", 3344],
+      // Same system, carbon tips: the configuration's heaviest box (40.37 kg), not 39.0 kg.
+      ["AUD.B9.S4.VSES.BR.RC", 3360],
     ]
   );
   const videos = (payload.media ?? []).filter((item) => item.mediaType === "EXTERNAL_VIDEO");
