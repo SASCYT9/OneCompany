@@ -112,8 +112,8 @@ export function ShopProductPurchaseFacts({
       <Fact icon={<Truck className={iconClassName} />}>
         <span className="opacity-75">
           {isUa
-            ? "Нова пошта по Україні, DHL Express за кордон. "
-            : "Nova Poshta across Ukraine, DHL Express abroad. "}
+            ? "Нова пошта по Україні; за кордон — DHL Express, FedEx, UPS або Air Cargo. "
+            : "Nova Poshta across Ukraine; abroad by DHL Express, FedEx, UPS or air cargo. "}
         </span>
         <Link href={`/${locale}/delivery`} className={linkClassName}>
           {isUa ? "Доставка й оплата" : "Delivery & payment"}
@@ -122,8 +122,8 @@ export function ShopProductPurchaseFacts({
       <Fact icon={<CreditCard className={iconClassName} />}>
         <span className="opacity-75">
           {isUa
-            ? "Оплата карткою онлайн: Visa, Mastercard, Apple Pay, Google Pay. Для B2B — за рахунком."
-            : "Pay online by card: Visa, Mastercard, Apple Pay, Google Pay. B2B: by invoice."}
+            ? "Оплата карткою онлайн: Visa, Mastercard, Apple Pay, Google Pay. Для B2B — за рахунком або карткою за посиланням plata by mono."
+            : "Pay online by card: Visa, Mastercard, Apple Pay, Google Pay. B2B: by invoice or by card via a plata by mono link."}
         </span>
       </Fact>
       <Fact icon={<RotateCcw className={iconClassName} />}>
