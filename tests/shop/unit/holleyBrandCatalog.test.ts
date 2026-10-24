@@ -126,37 +126,20 @@ test("Dinan/APR price starts from MAP; MSRP only when the price list has no MAP"
     competitorUsd: [],
   });
   assert.equal(noMap.priceUsd, 3947);
-  assert.equal(noMap.floorUsd, null);
 });
 
-test("competitor prices cap the formula but never go under MAP plus shipping", () => {
-  const formula = decideHolleyPriceUsd({
-    retailUsd: 2081.95,
-    mapUsd: 1849.95,
-    weightLb: 15,
-    competitorUsd: [],
-  });
-  assert.equal(formula.rule, "formula");
-  assert.equal(formula.priceUsd, 2210);
-
-  const capped = decideHolleyPriceUsd({
+test("competitor prices never change the formula price (Ігор, 24.10.2026)", () => {
+  // Dinan D760-0063: MAP 1849.95, 15 lb; Adrenalin Drive ≈ $2160.
+  // 1849.95 × 1.15 + 12 × 15 × 0.45359237 = 2209.11
+  const price = decideHolleyPriceUsd({
     retailUsd: 2081.95,
     mapUsd: 1849.95,
     weightLb: 15,
     competitorUsd: [2160.6, 2300],
   });
-  assert.equal(capped.rule, "competitor");
-  assert.equal(capped.priceUsd, 2160);
-
-  const floored = decideHolleyPriceUsd({
-    retailUsd: 1857,
-    mapUsd: 1650,
-    weightLb: 45,
-    competitorUsd: [1336],
-  });
-  assert.equal(floored.rule, "floor");
-  // 1650 + 12 × 45 × 0.45359237 = 1894.94 → 1895
-  assert.equal(floored.priceUsd, 1895);
+  assert.equal(price.rule, "formula");
+  assert.equal(price.priceUsd, 2210);
+  assert.equal(price.competitorUsd, 2160.6);
 });
 
 test("versions offered on the brand page become one product with variants", () => {

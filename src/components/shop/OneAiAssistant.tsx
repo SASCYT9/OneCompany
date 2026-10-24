@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { trackOneAi } from "@/lib/analytics";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -17,7 +18,7 @@ import { motion, useReducedMotion } from "framer-motion";
 
 import { oneAiPriceAmount } from "@/lib/shopAiAgent/catalogQuery";
 import type { OneAiCard, OneAiComparison, OneAiContext, OneAiEvent } from "@/lib/shopAiAgent/types";
-import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
+import { formatShopMoneyWithSign, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 
 import { OneAiText } from "./oneAiText";
 
@@ -149,14 +150,14 @@ function ProductCard({ card, context }: { card: OneAiCard; context: OneAiContext
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[13px] font-semibold tabular-nums text-foreground">
               {price
-                ? formatShopMoney(context.locale, price, context.currency)
+                ? formatShopMoneyWithSign(context.locale, price, context.currency)
                 : isUa
                   ? "Ціна за запитом"
                   : "Price on request"}
             </span>
             {showOld && oldPrice ? (
               <span className="text-[11px] tabular-nums text-foreground/40 line-through">
-                {formatShopMoney(context.locale, oldPrice, context.currency)}
+                {formatShopMoneyWithSign(context.locale, oldPrice, context.currency)}
               </span>
             ) : null}
             <span
@@ -497,6 +498,7 @@ export function OneAiAssistant(props: Props) {
     };
 
     try {
+      trackOneAi("ask", "agent");
       const response = await fetch("/api/shop/stock/assistant/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -564,7 +566,10 @@ export function OneAiAssistant(props: Props) {
         ref={launcherRef}
         type="button"
         data-testid="one-ai-launcher"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          trackOneAi("open", "agent");
+        }}
         whileHover={reducedMotion ? undefined : { y: -2 }}
         whileTap={reducedMotion ? undefined : { scale: 0.97 }}
         className="group inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-[8px] border border-foreground/25 bg-foreground px-2.5 text-background shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-colors hover:border-foreground hover:brightness-110 sm:h-10 sm:px-3"

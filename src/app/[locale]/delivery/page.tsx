@@ -61,8 +61,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
                   {l === "ua" ? "Банківський переказ:" : "Bank Transfer:"}
                 </strong>{" "}
                 {l === "ua"
-                  ? "Можлива оплата безготівковим розрахунком згідно з виставленим інвойсом для B2B партнерів."
-                  : "Bank transfers can be made for B2B partners based on an issued invoice."}
+                  ? "B2B партнери можуть оплатити безготівково за виставленим інвойсом або карткою за посиланням plata by mono, яке надсилає менеджер."
+                  : "B2B partners can pay by bank transfer against an issued invoice, or by card via a plata by mono link sent by the manager."}
               </li>
             </ul>
             <p className="mt-4">
@@ -94,8 +94,8 @@ export default async function DeliveryPage({ params }: { params: Promise<{ local
               <li>
                 <strong className="text-foreground">
                   {l === "ua"
-                    ? "DHL Express (міжнародна доставка):"
-                    : "DHL Express (international delivery):"}
+                    ? "DHL Express, FedEx, UPS, Air Cargo (міжнародна доставка):"
+                    : "DHL Express, FedEx, UPS, air cargo (international delivery):"}
                 </strong>{" "}
                 {l === "ua"
                   ? "Для доставки за межі України спочатку залиште замовлення-запит. Менеджер зв’яжеться з вами протягом 24 годин, вручну розрахує доставку й погодить загальну суму перед оплатою. Під час оформлення потрібна згода на цей порядок."

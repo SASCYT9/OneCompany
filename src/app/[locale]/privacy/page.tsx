@@ -109,8 +109,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
               </li>
               <li>
                 {l === "ua"
-                  ? "Одного нагадування про незавершене замовлення — лише якщо ви погодилися на це під час оформлення. Відписатися можна за посиланням у листі."
-                  : "One reminder about an unfinished order — only if you agreed to it at checkout. You can unsubscribe with the link in the email."}
+                  ? "Одного нагадування про незавершене замовлення. Email, який ви ввели під час оформлення, ми зберігаємо одразу, навіть якщо замовлення не завершене, і використовуємо лише для цього листа (підстава — наш законний інтерес допомогти вам завершити покупку). Лист один на кошик; відписатися можна за посиланням у листі, після чого нагадувань більше не буде. Незавершені кошики старші за 7 днів не нагадуємо."
+                  : "One reminder about an unfinished order. The email you enter at checkout is kept right away, even if the order is not completed, and is used only for this email (legal basis: our legitimate interest in helping you finish your purchase). One email per cart; you can unsubscribe with the link in the email, and no further reminders will be sent. Carts older than 7 days are never reminded."}
               </li>
               <li>
                 {l === "ua"

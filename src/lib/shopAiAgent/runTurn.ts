@@ -11,7 +11,7 @@ import {
 } from "@google/genai";
 
 import { resolveShopAiProviderApiKey } from "@/lib/shopAiProviderPolicy";
-import { formatShopMoney } from "@/lib/shopMoneyFormat";
+import { formatShopMoneyWithSign } from "@/lib/shopMoneyFormat";
 
 import { oneAiPriceAmount } from "./catalogQuery";
 import {
@@ -88,7 +88,9 @@ export function buildOneAiHistoryContents(
       .map((product) => {
         const price = oneAiPriceAmount(product.priceSet, context.currency);
         return `${product.ref} ${product.brand} ${product.sku} "${product.name}" ${
-          price ? formatShopMoney(context.locale, price, context.currency) : "price on request"
+          price
+            ? formatShopMoneyWithSign(context.locale, price, context.currency)
+            : "price on request"
         } ${product.availability}`;
       });
     const text = [entry.text, shown.length ? `${ONE_AI_SHOWN_MARKER} ${shown.join("; ")}` : ""]

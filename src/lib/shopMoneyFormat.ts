@@ -102,6 +102,20 @@ export function convertShopMoney(
   return 0;
 }
 
+const SHOP_CURRENCY_SIGN: Record<ShopCurrencyCode, string> = { UAH: "₴", EUR: "€", USD: "$" };
+
+/** One AI style: the currency sign in front of the amount (₴98 280, €1 895, $2 160). */
+export function formatShopMoneyWithSign(
+  locale: SupportedLocale,
+  amount: number,
+  currency: ShopCurrencyCode
+) {
+  const formattedAmount = new Intl.NumberFormat(locale === "ua" ? "uk-UA" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(amount);
+  return `${SHOP_CURRENCY_SIGN[currency] ?? currency}${formattedAmount}`;
+}
+
 export function formatShopMoney(
   locale: SupportedLocale,
   amount: number,

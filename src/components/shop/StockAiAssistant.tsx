@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { trackOneAi } from "@/lib/analytics";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -770,6 +771,7 @@ export function StockAiAssistant(props: Props) {
             country: assistantContext.country,
           }
         : assistantContext;
+      trackOneAi("ask", "stock");
       const response = await fetch("/api/shop/stock/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1030,7 +1032,10 @@ export function StockAiAssistant(props: Props) {
         ref={launcherRef}
         type="button"
         data-testid="stock-ai-launcher"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          trackOneAi("open", "stock");
+        }}
         whileHover={reducedMotion ? undefined : { y: -2 }}
         whileTap={reducedMotion ? undefined : { scale: 0.97 }}
         className="group inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-[8px] border border-foreground/25 bg-foreground px-2.5 text-background shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-colors hover:border-foreground hover:brightness-110 sm:h-10 sm:px-3"

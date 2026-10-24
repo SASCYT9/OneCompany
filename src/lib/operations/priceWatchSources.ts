@@ -224,7 +224,7 @@ export const PRICE_WATCH_SOURCES: readonly PriceWatchSourceDefinition[] = [
     everyHours: 7 * 24,
     site: "дилерский прайс (Excel)",
     url: "https://www.dinancars.com",
-    formula: "MAP × 1,15 + $12/кг (без MAP — MSRP); не выше конкурента, не ниже MAP + $12/кг",
+    formula: "MAP × 1,15 + $12/кг (без MAP — MSRP)",
     priceList: { label: "дилерский прайс Dinan (MSRP и MAP)", date: "2026-10-19", everyDays: 90 },
   },
   {
@@ -236,7 +236,7 @@ export const PRICE_WATCH_SOURCES: readonly PriceWatchSourceDefinition[] = [
     everyHours: 7 * 24,
     site: "дилерский прайс (Excel)",
     url: "https://www.goapr.com",
-    formula: "MAP × 1,15 + $12/кг (без MAP — MSRP); не выше конкурента, не ниже MAP + $12/кг",
+    formula: "MAP × 1,15 + $12/кг (без MAP — MSRP)",
     priceList: { label: "дилерский прайс APR (MSRP и MAP)", date: "2026-10-19", everyDays: 90 },
   },
   {

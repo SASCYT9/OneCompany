@@ -18,7 +18,6 @@ import type { SupportedLocale } from "@/lib/seo";
 import type { ShopResolvedPricing, ShopViewerPricingContext } from "@/lib/shopPricingAudience";
 import { resolveShopProductPricing } from "@/lib/shopPricingAudience";
 import { useShopViewerContext } from "@/lib/useShopViewerContext";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 
@@ -377,8 +376,7 @@ export function IpeShopProductDetailLayout({
       const next = [...prev];
       next[axisIndex] = value;
       const showDownpipeChoice =
-        !hasConditionalDownpipeAxis ||
-        systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
+        !hasConditionalDownpipeAxis || systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
       if (!showDownpipeChoice) next[2] = "";
       // If no variant matches this combo, lock other axes to a compatible
       // variant: pick the first variant that has the chosen value at this axis
@@ -713,6 +711,10 @@ export function IpeShopProductDetailLayout({
           filter: brightness(1.1);
         }
 
+        .ipe-pdp__sku.ipe-pdp__sku--title {
+          margin-top: 0.35rem;
+          margin-bottom: 0.25rem;
+        }
         .ipe-pdp__cart {
           margin-top: 1rem;
         }
@@ -849,6 +851,11 @@ export function IpeShopProductDetailLayout({
 
         <div className="ipe-pdp__config">
           <h1 className="ipe-pdp__title">{productTitle}</h1>
+          {currentVariant?.sku || product.sku ? (
+            <div className="ipe-pdp__sku ipe-pdp__sku--title">
+              {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}
+            </div>
+          ) : null}
           {productCategory ? <div className="ipe-pdp__cat">{productCategory}</div> : null}
 
           <div className="ipe-pdp__price-row">
@@ -934,9 +941,10 @@ export function IpeShopProductDetailLayout({
             </div>
             <a
               className="ipe-pdp__vin-cta"
-              href="https://t.me/onecompany_ua"
+              href="https://t.me/onecompany_global"
               target="_blank"
               rel="noreferrer"
+              data-track-label="pdp_vin_specialist"
             >
               {isUa ? "Написати спеціалісту" : "Contact specialist"}
             </a>
@@ -961,7 +969,6 @@ export function IpeShopProductDetailLayout({
             productSlug={product.slug}
             className="mt-4"
           />
-          <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="pill" className="mt-4" />
           {currentVariant?.sku || product.sku ? (
             <div className="ipe-pdp__sku">
               {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}

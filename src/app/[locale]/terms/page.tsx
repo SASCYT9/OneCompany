@@ -71,6 +71,14 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
               </li>
               <li>
                 <strong className="text-foreground">
+                  {l === "ua" ? "Нагадування про кошик:" : "Cart Reminder:"}
+                </strong>{" "}
+                {l === "ua"
+                  ? "Вводячи email під час оформлення, ви погоджуєтеся отримати один лист-нагадування, якщо замовлення не буде завершене. Відписатися можна за посиланням у листі. Деталі — у Політиці конфіденційності."
+                  : "By entering your email at checkout, you agree to receive one reminder email if the order is not completed. You can unsubscribe with the link in the email. See the Privacy Policy for details."}
+              </li>
+              <li>
+                <strong className="text-foreground">
                   {l === "ua" ? "Ціноутворення:" : "Pricing:"}
                 </strong>{" "}
                 {l === "ua"

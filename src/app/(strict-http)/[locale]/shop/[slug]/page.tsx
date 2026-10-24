@@ -38,6 +38,8 @@ import { getBrandLogoPath } from "@/lib/shopBrandLogos";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
+import { ShopProductTitleSku } from "@/app/[locale]/shop/components/ShopProductTitleSku";
+import { ShopInlineSearch } from "@/components/shop/ShopSearchForm";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
@@ -215,6 +217,9 @@ export default async function ShopProductPage({ params }: Props) {
   const showsVariantPhotos = ["dinan", "apr"].includes((product.brand || "").trim().toLowerCase());
   // The catalogue's brand logo links to the brand's products; brands without one keep the text link.
   const brandLogoPath = getBrandLogoPath(product.brand || "");
+  const defaultVariant =
+    product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0] ?? null;
+  const primaryPartNumber = (product.sku || defaultVariant?.sku || "").trim();
 
   return (
     <ShopVariantImageProvider key={product.slug} enabled={showsVariantPhotos}>
@@ -227,12 +232,15 @@ export default async function ShopProductPage({ params }: Props) {
         />
 
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
-          <Link
-            href={`/${resolvedLocale}/shop`}
-            className="inline-flex w-fit items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
-          >
-            ← {isUa ? "Назад до магазину" : "Back to shop"}
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/${resolvedLocale}/shop`}
+              className="inline-flex w-fit shrink-0 items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
+            >
+              ← {isUa ? "Назад до магазину" : "Back to shop"}
+            </Link>
+            <ShopInlineSearch locale={resolvedLocale} />
+          </div>
 
           <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <div className="min-w-0 lg:sticky lg:top-32">
@@ -267,6 +275,9 @@ export default async function ShopProductPage({ params }: Props) {
               <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
                 {productTitle}
               </h1>
+              {primaryPartNumber ? (
+                <ShopProductTitleSku sku={primaryPartNumber} isUa={isUa} />
+              ) : null}
 
               {descriptionHtml || shortDescription ? (
                 <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>

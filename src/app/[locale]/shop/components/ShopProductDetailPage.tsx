@@ -79,6 +79,8 @@ import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
+import { ShopProductTitleSku } from "./ShopProductTitleSku";
+import { ShopInlineSearch } from "@/components/shop/ShopSearchForm";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
@@ -934,6 +936,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 label={backLinkLabel}
                 className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
               />
+              <ShopInlineSearch locale={resolvedLocale} className="sm:order-last" />
 
               {contextLinkHref && contextLinkLabel ? (
                 <Link
@@ -1017,14 +1020,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                   {productTitle}
                 </h1>
                 {primaryPartNumber ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-foreground/65 dark:text-foreground/45">
-                      {isUa ? "Артикул" : "Part number"}
-                    </span>
-                    <span className="min-w-0 break-all rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 font-mono text-xs tracking-[0.04em] text-foreground/85">
-                      <ShopVariantSkuText fallbackSku={primaryPartNumber} />
-                    </span>
-                  </div>
+                  <ShopProductTitleSku sku={primaryPartNumber} isUa={isUa} />
                 ) : null}
 
                 {isDo88Mode && do88CompatibleVehicles.length > 0 ? (

@@ -3,7 +3,7 @@
  * spelling, catalog URLs and the compact product view the model reads.
  * Kept free of server imports so the rules are unit-testable.
  */
-import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
+import { formatShopMoneyWithSign, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import { SHOP_STOCK_CATEGORY_GROUPS } from "@/lib/shopStockTaxonomy";
 import type { StockItem } from "@/lib/shopStockSearchTypes";
 import { resolveShopCatalogProductHref } from "@/lib/shopStorefrontRouting";
@@ -470,10 +470,12 @@ export function describeOneAiProductForModel(
     brand: product.brand,
     title: product.name,
     sku: product.sku || undefined,
-    price: price ? formatShopMoney(context.locale, price, context.currency) : "price on request",
+    price: price
+      ? formatShopMoneyWithSign(context.locale, price, context.currency)
+      : "price on request",
     old_price:
       was && price && was > price
-        ? formatShopMoney(context.locale, was, context.currency)
+        ? formatShopMoneyWithSign(context.locale, was, context.currency)
         : undefined,
     availability: AVAILABILITY_FOR_MODEL[product.availability],
     category: product.category ?? undefined,

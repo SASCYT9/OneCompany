@@ -16,7 +16,6 @@ import { useRouter } from "next/navigation";
 import { sanitizeRichTextHtml } from "@/lib/sanitizeRichTextHtml";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { MobileProductDisclosure } from "./MobileProductDisclosure";
-import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
 import { ShopBrandLink } from "@/components/shop/ShopBrandLink";
@@ -78,6 +77,7 @@ export default function RacechipShopProductDetailLayout({
   const makeTag = product.tags?.find((t) => t.startsWith("car_make:"))?.slice(9);
   const modelTag = product.tags?.find((t) => t.startsWith("car_model:"))?.slice(10);
   const engineTag = product.tags?.find((t) => t.startsWith("car_engine:"))?.slice(11);
+  const racechipSku = (product.sku || product.variants?.[0]?.sku || "").trim();
 
   const formattedMake = makeTag ? makeTag.charAt(0).toUpperCase() + makeTag.slice(1) : "RaceChip";
   const formattedModel = modelTag ? modelTag.toUpperCase().replace("-", " ") : "";
@@ -216,6 +216,11 @@ export default function RacechipShopProductDetailLayout({
               <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4 break-words">
                 {productTitle}
               </h1>
+              {racechipSku ? (
+                <p className="mb-2 font-mono text-xs uppercase tracking-[0.12em] text-foreground/60 dark:text-zinc-500">
+                  {isUa ? "Артикул" : "SKU"}: {racechipSku}
+                </p>
+              ) : null}
               {engineTag && (
                 <p className="text-sm md:text-base lg:text-lg text-foreground/70 dark:text-zinc-400 font-medium break-words">
                   Engine Spec: {engineTag.replace(/-/g, " ").toUpperCase()}
@@ -333,7 +338,6 @@ export default function RacechipShopProductDetailLayout({
                 productSlug={product.slug}
                 className="mt-4"
               />
-              <ProductAiOpinionPanel locale={locale} product={product} shape="rounded" className="mt-4" />
 
               <p className="text-center text-[10px] sm:text-[11px] text-foreground/55 dark:text-zinc-500 mt-4 sm:mt-6 tracking-wide leading-relaxed">
                 {isUa

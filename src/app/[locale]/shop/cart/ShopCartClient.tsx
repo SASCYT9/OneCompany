@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupportedLocale } from "@/lib/seo";
 import { localizeShopText } from "@/lib/shopText";
 import { trackViewCart } from "@/lib/analytics";
@@ -130,10 +130,22 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
     0
   );
 
+  // Once per visit to the cart, not on every quantity change.
+  const cartViewTracked = useRef(false);
   useEffect(() => {
-    if (!cart) return;
-    trackViewCart(items.length, subtotal);
-  }, [cart, items.length, subtotal]);
+    if (!cart || cartViewTracked.current) return;
+    cartViewTracked.current = true;
+    trackViewCart(
+      items.map((i) => ({
+        item_id: i.slug,
+        item_name: localize(locale, i.title) || undefined,
+        quantity: i.quantity,
+        ...(i.price && { price: convertShopMoney(i.price, currency, rates) }),
+      })),
+      subtotal,
+      currency
+    );
+  }, [cart, items, subtotal, currency, rates, locale]);
 
   if (loading) {
     return (
@@ -183,86 +195,117 @@ export default function ShopCartClient({ locale }: { locale: SupportedLocale }) 
               {items.map((i) => {
                 const packSize = Math.max(1, Math.floor(i.packSize ?? 1));
                 const invalidLegacyPack = packSize > 1 && i.quantity % packSize !== 0;
-                const displayedQuantity = packSize > 1 && !invalidLegacyPack ? i.quantity / packSize : i.quantity;
+                const displayedQuantity =
+                  packSize > 1 && !invalidLegacyPack ? i.quantity / packSize : i.quantity;
                 const unitPrice = i.price ? convertShopMoney(i.price, currency, rates) : 0;
                 return (
-                <li
-                  key={i.id}
-                  className="flex flex-col gap-4 rounded-3xl border border-foreground/10 bg-card/70 dark:bg-black/40 p-5 shadow-2xl backdrop-blur-xl transition hover:border-primary/30 sm:flex-row sm:items-center sm:gap-6"
-                >
-                  <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-2xl border border-foreground/5 bg-card dark:bg-zinc-950 sm:h-24 sm:w-24">
-                    <CartItemImage
-                      src={i.image || ""}
-                      fallbackSrc={i.fallbackImage}
-                      alt={localize(locale, i.title)}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-light text-lg text-foreground truncate">
-                      {localize(locale, i.title)}
-                    </p>
-                    {i.variantTitle ? (
-                      <p className="mt-1 text-xs text-primary/80 uppercase tracking-widest truncate">
-                        {i.variantTitle}
-                      </p>
-                    ) : null}
-                    <p className="mt-2 text-sm text-foreground/70 dark:text-foreground/55">
-                      {i.price
-                        ? formatPrice(locale, invalidLegacyPack ? unitPrice : unitPrice * packSize, currency)
-                        : ""}{" "}
-                      {invalidLegacyPack
-                        ? `× ${i.quantity}`
-                        : packSize > 1
-                          ? isUa ? `за комплект із ${packSize} дисків × ${displayedQuantity}` : `per ${packSize}-wheel set × ${displayedQuantity}`
-                          : `× ${i.quantity}`}
-                    </p>
-                    {invalidLegacyPack ? (
-                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                        {isUa
-                          ? "Диски WheelForce продаються комплектом із 4. Видаліть цю позицію й додайте комплект заново."
-                          : "WheelForce wheels are sold in sets of 4. Remove this item and add the set again."}
-                      </p>
-                    ) : null}
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(i.id, Math.max(packSize, i.quantity - packSize))}
-                        disabled={updating === i.id || invalidLegacyPack || i.quantity <= packSize}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 bg-foreground/5 text-foreground/80 dark:text-foreground/70 transition hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50"
-                        aria-label={isUa ? packSize > 1 ? "Зменшити кількість комплектів" : "Зменшити кількість" : packSize > 1 ? "Decrease set quantity" : "Decrease quantity"}
-                      >
-                        −
-                      </button>
-                      <span className="w-8 text-center text-sm tabular-nums">{displayedQuantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(i.id, i.quantity + packSize)}
-                        disabled={updating === i.id || invalidLegacyPack || i.quantity + packSize > 20}
-                        className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 bg-foreground/5 text-foreground/80 dark:text-foreground/70 transition hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50"
-                        aria-label={isUa ? packSize > 1 ? "Збільшити кількість комплектів" : "Збільшити кількість" : packSize > 1 ? "Increase set quantity" : "Increase quantity"}
-                      >
-                        +
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(i.id, 0)}
-                        disabled={updating === i.id}
-                        className="ml-4 text-[10px] uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40 transition hover:text-primary"
-                      >
-                        {isUa ? "Видалити" : "Remove"}
-                      </button>
+                  <li
+                    key={i.id}
+                    className="flex flex-col gap-4 rounded-3xl border border-foreground/10 bg-card/70 dark:bg-black/40 p-5 shadow-2xl backdrop-blur-xl transition hover:border-primary/30 sm:flex-row sm:items-center sm:gap-6"
+                  >
+                    <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-2xl border border-foreground/5 bg-card dark:bg-zinc-950 sm:h-24 sm:w-24">
+                      <CartItemImage
+                        src={i.image || ""}
+                        fallbackSrc={i.fallbackImage}
+                        alt={localize(locale, i.title)}
+                      />
                     </div>
-                  </div>
-                  <div className="text-left text-lg font-light text-foreground sm:text-right sm:shrink-0">
-                    {i.price
-                      ? formatPrice(
-                          locale,
-                          convertShopMoney(i.price, currency, rates) * i.quantity,
-                          currency
-                        )
-                      : "—"}
-                  </div>
-                </li>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-light text-lg text-foreground truncate">
+                        {localize(locale, i.title)}
+                      </p>
+                      {i.variantTitle ? (
+                        <p className="mt-1 text-xs text-primary/80 uppercase tracking-widest truncate">
+                          {i.variantTitle}
+                        </p>
+                      ) : null}
+                      <p className="mt-2 text-sm text-foreground/70 dark:text-foreground/55">
+                        {i.price
+                          ? formatPrice(
+                              locale,
+                              invalidLegacyPack ? unitPrice : unitPrice * packSize,
+                              currency
+                            )
+                          : ""}{" "}
+                        {invalidLegacyPack
+                          ? `× ${i.quantity}`
+                          : packSize > 1
+                            ? isUa
+                              ? `за комплект із ${packSize} дисків × ${displayedQuantity}`
+                              : `per ${packSize}-wheel set × ${displayedQuantity}`
+                            : `× ${i.quantity}`}
+                      </p>
+                      {invalidLegacyPack ? (
+                        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                          {isUa
+                            ? "Диски WheelForce продаються комплектом із 4. Видаліть цю позицію й додайте комплект заново."
+                            : "WheelForce wheels are sold in sets of 4. Remove this item and add the set again."}
+                        </p>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setQuantity(i.id, Math.max(packSize, i.quantity - packSize))
+                          }
+                          disabled={
+                            updating === i.id || invalidLegacyPack || i.quantity <= packSize
+                          }
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 bg-foreground/5 text-foreground/80 dark:text-foreground/70 transition hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50"
+                          aria-label={
+                            isUa
+                              ? packSize > 1
+                                ? "Зменшити кількість комплектів"
+                                : "Зменшити кількість"
+                              : packSize > 1
+                                ? "Decrease set quantity"
+                                : "Decrease quantity"
+                          }
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center text-sm tabular-nums">
+                          {displayedQuantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(i.id, i.quantity + packSize)}
+                          disabled={
+                            updating === i.id || invalidLegacyPack || i.quantity + packSize > 20
+                          }
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/15 bg-foreground/5 text-foreground/80 dark:text-foreground/70 transition hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-50"
+                          aria-label={
+                            isUa
+                              ? packSize > 1
+                                ? "Збільшити кількість комплектів"
+                                : "Збільшити кількість"
+                              : packSize > 1
+                                ? "Increase set quantity"
+                                : "Increase quantity"
+                          }
+                        >
+                          +
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(i.id, 0)}
+                          disabled={updating === i.id}
+                          className="ml-4 text-[10px] uppercase tracking-[0.2em] text-foreground/60 dark:text-foreground/40 transition hover:text-primary"
+                        >
+                          {isUa ? "Видалити" : "Remove"}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-left text-lg font-light text-foreground sm:text-right sm:shrink-0">
+                      {i.price
+                        ? formatPrice(
+                            locale,
+                            convertShopMoney(i.price, currency, rates) * i.quantity,
+                            currency
+                          )
+                        : "—"}
+                    </div>
+                  </li>
                 );
               })}
             </ul>

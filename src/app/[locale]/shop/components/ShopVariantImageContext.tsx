@@ -26,23 +26,20 @@ export function ShopVariantImageProvider({
     },
     [enabled]
   );
-  const setVariantSku = useCallback(
-    (sku: string | null) => {
-      if (enabled) setSelectedVariantSku(sku);
-    },
-    [enabled]
-  );
   const value = useMemo<ShopVariantImageContextValue>(
     () => ({
       selectedVariantImage: enabled ? selectedVariantImage : null,
       setSelectedVariantImage: setVariantImage,
-      selectedVariantSku: enabled ? selectedVariantSku : null,
-      setSelectedVariantSku: setVariantSku,
+      // The part number always follows the chosen variant; only photos are per-brand.
+      selectedVariantSku,
+      setSelectedVariantSku,
     }),
-    [enabled, selectedVariantImage, setVariantImage, selectedVariantSku, setVariantSku]
+    [enabled, selectedVariantImage, setVariantImage, selectedVariantSku]
   );
 
-  return <ShopVariantImageContext.Provider value={value}>{children}</ShopVariantImageContext.Provider>;
+  return (
+    <ShopVariantImageContext.Provider value={value}>{children}</ShopVariantImageContext.Provider>
+  );
 }
 
 export function useShopVariantImage() {
