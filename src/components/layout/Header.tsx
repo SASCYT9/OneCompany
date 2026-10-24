@@ -11,6 +11,7 @@ import { LocaleSwitcher } from "@/components/ui/LocaleSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { CartIconLink } from "./CartIconLink";
+import { HeaderShopSearch } from "./HeaderShopSearch";
 import { DesktopShopMenu } from "./DesktopShopMenu";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { ShopCountrySearchList } from "@/components/shop/ShopCountryCombobox";
@@ -262,6 +263,10 @@ export function Header() {
             ) : null}
           </nav>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            {/* Outside the catalog (which has its own field) shop pages get a search button. */}
+            {segments[0] === "shop" && !isCatalogSearchPage ? (
+              <HeaderShopSearch locale={locale} />
+            ) : null}
             {segments[0] === "shop" ? <CartIconLink locale={locale} /> : null}
             {segments[0] === "shop" ? (
               <div ref={shopSelectorRef} className="relative hidden md:block">

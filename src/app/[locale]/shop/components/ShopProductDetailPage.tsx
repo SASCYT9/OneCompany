@@ -80,6 +80,7 @@ import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopF
 import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
 import { ShopProductTitleSku } from "./ShopProductTitleSku";
+import { ShopInlineSearch } from "@/components/shop/ShopSearchForm";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
 import { getPublicShopSettingsRuntime } from "@/lib/shopPublicSettings";
 
@@ -935,6 +936,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
                 label={backLinkLabel}
                 className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
               />
+              <ShopInlineSearch locale={resolvedLocale} className="sm:order-last" />
 
               {contextLinkHref && contextLinkLabel ? (
                 <Link
