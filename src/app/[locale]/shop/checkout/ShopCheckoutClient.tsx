@@ -20,8 +20,6 @@ import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import ShopCheckoutShell from "./ShopCheckoutShell";
 import styles from "./ShopCheckout.module.css";
 
-const CART_REMINDER_OPT_OUT_KEY = "oc-cart-reminder-opt-out";
-
 type CartItem = {
   id: string;
   slug: string;
@@ -199,12 +197,10 @@ export default function ShopCheckoutClient({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [internationalConsent, setInternationalConsent] = useState(false);
-  // One reminder email if this cart is left behind: on by default, so the address is kept
-  // as soon as it is typed. Unticking is remembered on this device.
-  const [reminderOptIn, setReminderOptIn] = useState(true);
+  // One reminder email if this cart is left behind: the address is kept as soon as it is
+  // typed (the note under the field says so; every reminder carries an unsubscribe link).
   const emailTracked = useRef(false);
   const reminderSaved = useRef<string | null>(null);
-  const reminderToggled = useRef(false);
   const [error, setError] = useState("");
   const [accountLoaded, setAccountLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -290,21 +286,15 @@ export default function ShopCheckoutClient({
   );
   const quoteCurrency = (quote?.currency || form.currency) as ShopCurrencyCode;
 
-  // After a reload the box shows the consent the server still holds for this cart.
+  // After a reload the email the server already keeps for this cart refills the field.
   useEffect(() => {
     if (preview) return;
-    try {
-      if (window.localStorage.getItem(CART_REMINDER_OPT_OUT_KEY)) setReminderOptIn(false);
-    } catch {
-      // storage blocked: keep the default
-    }
     let cancelled = false;
     fetch("/api/shop/cart/reminder", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((state: { consent?: boolean; email?: string } | null) => {
         if (cancelled || !state?.consent) return;
         reminderSaved.current = "server";
-        setReminderOptIn(true);
         const saved = state.email;
         if (saved)
           setForm((current) => (current.email.trim() ? current : { ...current, email: saved }));
@@ -315,21 +305,18 @@ export default function ShopCheckoutClient({
     };
   }, [preview]);
 
-  // Saves the reminder consent for this cart (or withdraws it) once the email is valid.
+  // Keeps the email for this cart's reminder once it is valid (cleared again if it is erased).
   useEffect(() => {
     if (preview) return;
-    const toggled = reminderToggled.current;
-    reminderToggled.current = false;
     const email = form.email.trim();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
     if (emailValid && !emailTracked.current) {
       emailTracked.current = true;
       trackCheckoutEmail();
     }
-    const wanted =
-      reminderOptIn && emailValid
-        ? JSON.stringify([email, form.firstName.trim(), quoteCurrency, form.country])
-        : "off";
+    const wanted = emailValid
+      ? JSON.stringify([email, form.firstName.trim(), quoteCurrency, form.country])
+      : "off";
     if (wanted === (reminderSaved.current ?? "off")) return;
     let sent = false;
     const send = () => {
@@ -339,7 +326,7 @@ export default function ShopCheckoutClient({
       void fetch("/api/shop/cart/reminder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Still delivered when the tab closes right after the click.
+        // Still delivered when the tab closes right after typing.
         keepalive: true,
         body: JSON.stringify({
           consent: wanted !== "off",
@@ -357,18 +344,14 @@ export default function ShopCheckoutClient({
           reminderSaved.current = null;
         });
     };
-    // A click on the box is saved at once; typing waits a moment but is flushed on leaving.
-    if (toggled) {
-      send();
-      return;
-    }
+    // Typing waits a moment but is flushed on leaving the page.
     const timer = setTimeout(send, 800);
     window.addEventListener("pagehide", send);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("pagehide", send);
     };
-  }, [preview, reminderOptIn, form.email, form.firstName, form.country, quoteCurrency, locale]);
+  }, [preview, form.email, form.firstName, form.country, quoteCurrency, locale]);
   const showRegionalAdjustment =
     Boolean(quote?.regionalPricingRule) || hasMoneyAmount(quote?.regionalAdjustmentAmount);
   const showVatLine =
@@ -778,29 +761,14 @@ export default function ShopCheckoutClient({
                   }
                 />
               </label>
-              <label className={styles.reminderOptIn}>
-                <input
-                  type="checkbox"
-                  name="cartReminder"
-                  checked={reminderOptIn}
-                  onChange={(event) => {
-                    reminderToggled.current = true;
-                    setReminderOptIn(event.target.checked);
-                    try {
-                      if (event.target.checked)
-                        window.localStorage.removeItem(CART_REMINDER_OPT_OUT_KEY);
-                      else window.localStorage.setItem(CART_REMINDER_OPT_OUT_KEY, "1");
-                    } catch {
-                      // storage blocked: the choice still holds for this visit
-                    }
-                  }}
-                />
-                <span>
-                  {isUa
-                    ? "Нагадати мені на email, якщо я не завершу замовлення. Один лист; зніміть галочку, якщо не потрібно."
-                    : "Remind me by email if I don't finish my order. One email; untick if you'd rather not."}
-                </span>
-              </label>
+              <p className={styles.reminderNote}>
+                {isUa
+                  ? "Якщо не завершите замовлення, надішлемо на цей email одне нагадування про кошик. Відписатися можна в листі. "
+                  : "If you don't finish your order, we'll send one cart reminder to this email. Unsubscribe in the email. "}
+                <Link href={"/" + locale + "/privacy"}>
+                  {isUa ? "Конфіденційність" : "Privacy"}
+                </Link>
+              </p>
               <div className={styles.fieldPair}>
                 <label className={styles.field}>
                   <span>{isUa ? "Ім’я" : "First name"}</span>
