@@ -111,7 +111,7 @@ export default function BrandLogosGrid({
                           >
                             <Image
                               src={brand.logoSrc}
-                              alt={`${brand.name} Україна - купити ${brand.name} тюнінг Київ, офіційний дилер`}
+                              alt={`${brand.name} Україна - купити ${brand.name} тюнінг Київ`}
                               fill
                               className={`object-contain ${
                                 isLightBg

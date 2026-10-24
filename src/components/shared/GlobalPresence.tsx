@@ -10,6 +10,8 @@ const countries = [
   { code: "PL", ua: "Польща", en: "Poland", x: 518, y: 99 },
   { code: "ES", ua: "Іспанія", en: "Spain", x: 461, y: 141 },
   { code: "US", ua: "США", en: "USA", x: 204, y: 149 },
+  { code: "KZ", ua: "Казахстан", en: "Kazakhstan", x: 652, y: 112 },
+  { code: "AE", ua: "ОАЕ", en: "UAE", x: 615, y: 168 },
 ] as const;
 
 const routes = countries.flatMap((from, index) =>
@@ -65,8 +67,10 @@ export default function GlobalPresence({ locale }: { locale: string }) {
         <br />
         <span>{ua ? "по всьому світу" : "worldwide"}</span>
       </h2>
-      <h3 className={styles.officesHeading}>{ua ? "Наші офіси" : "Our offices"}</h3>
-      <svg viewBox="150 15 440 205" className={styles.map} aria-hidden="true">
+      <h3 className={styles.officesHeading}>
+        {ua ? "Наш офіс і партнери" : "Our office and partners"}
+      </h3>
+      <svg viewBox="150 15 540 205" className={styles.map} aria-hidden="true">
         <defs>
           <radialGradient id="global-map-light">
             <stop offset="0" stopColor="#8dbce5" stopOpacity=".14" />
@@ -77,7 +81,7 @@ export default function GlobalPresence({ locale }: { locale: string }) {
             <stop offset="1" stopColor="black" />
           </radialGradient>
           <mask id="global-map-edges">
-            <ellipse cx="370" cy="116" rx="265" ry="140" fill="url(#global-map-fade)" />
+            <ellipse cx="420" cy="116" rx="315" ry="140" fill="url(#global-map-fade)" />
           </mask>
           <filter id="global-route-glow" x="-40%" y="-100%" width="180%" height="300%">
             <feGaussianBlur stdDeviation="1.5" />
@@ -89,7 +93,7 @@ export default function GlobalPresence({ locale }: { locale: string }) {
             <image href="/world-map.svg" width="1000" height="556.16" />
           </mask>
         </defs>
-        <ellipse cx="440" cy="113" rx="185" ry="105" fill="url(#global-map-light)" />
+        <ellipse cx="480" cy="113" rx="225" ry="105" fill="url(#global-map-light)" />
         <g mask="url(#global-map-edges)">
           <g mask="url(#global-map-mask)">
             <rect width="1000" height="557" fill="currentColor" opacity=".045" />
@@ -139,7 +143,7 @@ export default function GlobalPresence({ locale }: { locale: string }) {
         className={styles.countries}
         role="group"
         aria-label={
-          ua ? "Країни, де розташовані наші офіси" : "Countries where our offices are located"
+          ua ? "Наш офіс і країни наших партнерів" : "Our office and partner countries"
         }
       >
         {countries.map((country, index) => (

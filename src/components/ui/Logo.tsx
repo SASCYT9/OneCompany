@@ -20,7 +20,7 @@ const LOGO_DIMENSIONS: Record<LogoSize, { width: number; height: number }> = {
 };
 
 const ALT =
-  "OneCompany - преміум тюнінг авто мото Київ Україна, офіційний дилер Akrapovic Brabus Mansory";
+  "OneCompany - преміум тюнінг авто мото Київ Україна, оригінальна продукція Akrapovic Brabus Eventuri";
 
 const LOGO_IMAGE_CLASS =
   "pointer-events-none block h-auto w-full select-none [-webkit-user-drag:none] [-webkit-user-select:none]";

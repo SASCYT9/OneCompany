@@ -161,6 +161,11 @@ function isTitleSku(sku: string): boolean {
 
 /** Importers appended the site name to stored titles; product titles do not carry it. */
 const SITE_NAME_SUFFIX = /\s*[|–—-]\s*one\s*company(?:\s+(?:global|shop))?\s*$/i;
+/**
+ * Titles copied from former brand storefronts end with a shop name such as
+ * "| KW Suspension Ukraine"; it reads as the brand's own Ukrainian office.
+ */
+const COUNTRY_SHOP_SUFFIX = /\s*\|\s*[^|]*?\s(?:ukraine|україна)\s*$/i;
 const SITE_NAME_TOKENS = ["onecompanyglobal", "onecompanyshop", "onecompany"];
 
 /**
@@ -214,7 +219,9 @@ export function buildProductSeoTitle(input: {
   const compose = (base: string) => withBrand(withSku(base));
   const fits = (limit: number) => (title: string) => title.length <= limit;
 
-  const explicit = usableExplicit(input.explicitTitle).replace(SITE_NAME_SUFFIX, "");
+  const explicit = usableExplicit(input.explicitTitle)
+    .replace(SITE_NAME_SUFFIX, "")
+    .replace(COUNTRY_SHOP_SUFFIX, "");
   const curated =
     Boolean(explicit) &&
     !isNameWithLabels(explicit, name, [rawSku, brand, brandLabel]) &&
@@ -346,8 +353,8 @@ export function buildProductSeoDescription(input: {
     const brandPart = brand ? (isUa ? ` — ${brand}` : ` by ${brand}`) : "";
     const categoryPart = category ? ` ${category}.` : "";
     return isUa
-      ? `${title}${skuPart}${brandPart}.${categoryPart} Купити в Україні: підбір за авто, офіційне постачання, доставка по Україні та світу. One Company.`
-      : `${title}${skuPart}${brandPart}.${categoryPart} Fitment check, official supply and worldwide delivery from One Company.`;
+      ? `${title}${skuPart}${brandPart}.${categoryPart} Купити в Україні: підбір за авто, оригінальна продукція, доставка по Україні та світу. One Company.`
+      : `${title}${skuPart}${brandPart}.${categoryPart} Fitment check, genuine products and worldwide delivery from One Company.`;
   }
 
   if (description.length >= THIN_DESCRIPTION_LENGTH && !skuMissing) return description;

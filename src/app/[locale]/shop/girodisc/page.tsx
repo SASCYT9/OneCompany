@@ -32,8 +32,8 @@ export default async function GiroDiscSkinPage({ params }: Props) {
   const availableVehicles = buildGirodiscHeroVehicleTree(girodiscProducts);
   const description =
     resolvedLocale === "ua"
-      ? "Ексклюзивні 2-складові гальмівні диски GiroDisc, гоночні колодки та титанові щитки. Замовляйте з доставкою. OneCompany — офіційний дилер."
-      : "Exclusive 2-piece high-performance brake rotors by GiroDisc, racing pads, and titanium heat shields. Buy with worldwide shipping. OneCompany — official dealer.";
+      ? "Ексклюзивні 2-складові гальмівні диски GiroDisc, гоночні колодки та титанові щитки. Замовляйте з доставкою. Оригінальна продукція з гарантією виробника."
+      : "Exclusive 2-piece high-performance brake rotors by GiroDisc, racing pads, and titanium heat shields. Buy with worldwide shipping. Genuine products with manufacturer warranty.";
 
   return (
     <>

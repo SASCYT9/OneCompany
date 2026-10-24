@@ -37,7 +37,7 @@ export const defaultFAQs = {
   en: [
     {
       question: 'What brands does OneCompany offer?',
-      answer: 'OneCompany is an official distributor of 200+ premium tuning brands including Akrapovic, Brabus, Mansory, HRE Wheels, KW Suspension, Brembo, and many more.',
+      answer: 'OneCompany supplies genuine parts from 200+ premium tuning brands including Akrapovic, Brabus, Eventuri, KW Suspension, Öhlins and many more, in stock or to order.',
     },
     {
       question: 'Do you ship internationally?',
@@ -45,7 +45,7 @@ export const defaultFAQs = {
     },
     {
       question: 'Are the products original?',
-      answer: 'Yes, all products are 100% original and come with official manufacturer warranty. We are an authorized distributor for all our brands.',
+      answer: 'Yes, all products are 100% original and come with the manufacturer\'s warranty. We supply them directly from our suppliers.',
     },
     {
       question: 'How long does shipping take?',
@@ -59,7 +59,7 @@ export const defaultFAQs = {
   ua: [
     {
       question: 'Які бренди пропонує OneCompany?',
-      answer: 'OneCompany є офіційним дистриб\'ютором 200+ преміум брендів тюнінгу, включаючи Akrapovic, Brabus, Mansory, HRE Wheels, KW Suspension, Brembo та багато інших.',
+      answer: 'OneCompany постачає оригінальну продукцію 200+ преміум брендів тюнінгу, зокрема Akrapovic, Brabus, Eventuri, KW Suspension, Öhlins та багато інших — з наявності або під замовлення.',
     },
     {
       question: 'Чи здійснюєте ви міжнародну доставку?',
@@ -67,7 +67,7 @@ export const defaultFAQs = {
     },
     {
       question: 'Чи продукція оригінальна?',
-      answer: 'Так, вся продукція є 100% оригінальною та має офіційну гарантію виробника. Ми є авторизованим дистриб\'ютором усіх наших брендів.',
+      answer: 'Так, вся продукція є 100% оригінальною та має гарантію виробника. Ми отримуємо її напряму від наших постачальників.',
     },
     {
       question: 'Скільки часу займає доставка?',
