@@ -38,6 +38,7 @@ import { getBrandLogoPath } from "@/lib/shopBrandLogos";
 import { ShopProductGallery } from "@/app/[locale]/shop/components/ShopProductGallery";
 import { ShopProductVideos } from "@/app/[locale]/shop/components/ShopProductVideos";
 import { MobileProductDisclosure } from "@/app/[locale]/shop/components/MobileProductDisclosure";
+import { ShopProductTitleSku } from "@/app/[locale]/shop/components/ShopProductTitleSku";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import { ShopProductViewTracker } from "@/components/shop/ShopProductViewTracker";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
@@ -215,6 +216,9 @@ export default async function ShopProductPage({ params }: Props) {
   const showsVariantPhotos = ["dinan", "apr"].includes((product.brand || "").trim().toLowerCase());
   // The catalogue's brand logo links to the brand's products; brands without one keep the text link.
   const brandLogoPath = getBrandLogoPath(product.brand || "");
+  const defaultVariant =
+    product.variants?.find((variant) => variant.isDefault) ?? product.variants?.[0] ?? null;
+  const primaryPartNumber = (product.sku || defaultVariant?.sku || "").trim();
 
   return (
     <ShopVariantImageProvider key={product.slug} enabled={showsVariantPhotos}>
@@ -267,6 +271,9 @@ export default async function ShopProductPage({ params }: Props) {
               <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
                 {productTitle}
               </h1>
+              {primaryPartNumber ? (
+                <ShopProductTitleSku sku={primaryPartNumber} isUa={isUa} />
+              ) : null}
 
               {descriptionHtml || shortDescription ? (
                 <MobileProductDisclosure title={isUa ? "Опис товару" : "Product description"}>

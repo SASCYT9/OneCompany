@@ -712,6 +712,10 @@ export function IpeShopProductDetailLayout({
           filter: brightness(1.1);
         }
 
+        .ipe-pdp__sku.ipe-pdp__sku--title {
+          margin-top: 0.35rem;
+          margin-bottom: 0.25rem;
+        }
         .ipe-pdp__cart {
           margin-top: 1rem;
         }
@@ -848,6 +852,11 @@ export function IpeShopProductDetailLayout({
 
         <div className="ipe-pdp__config">
           <h1 className="ipe-pdp__title">{productTitle}</h1>
+          {currentVariant?.sku || product.sku ? (
+            <div className="ipe-pdp__sku ipe-pdp__sku--title">
+              {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}
+            </div>
+          ) : null}
           {productCategory ? <div className="ipe-pdp__cat">{productCategory}</div> : null}
 
           <div className="ipe-pdp__price-row">
