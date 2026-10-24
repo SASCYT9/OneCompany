@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
-import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
+import { trackFormSubmission } from "@/lib/analytics";
 
 type PartnershipType = "sto" | "dealer" | "detailing" | "tuning" | "other";
 type FormState = "idle" | "loading" | "success" | "error";
@@ -156,7 +156,6 @@ export default function PartnershipPageClient() {
                 href="https://t.me/onecompany_global"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackCTAClick("click_telegram", "https://t.me/onecompany_global")}
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all hover:scale-[1.02] text-foreground group w-fit"
               >
                 <div className="p-2 rounded-xl bg-foreground/5 group-hover:bg-foreground/10 transition-colors">
@@ -167,7 +166,6 @@ export default function PartnershipPageClient() {
 
               <a
                 href="mailto:info@onecompany.global"
-                onClick={() => trackCTAClick("click_email", "mailto:info@onecompany.global")}
                 className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 hover:bg-foreground/10 transition-all hover:scale-[1.02] text-foreground group w-fit"
               >
                 <div className="p-2 rounded-xl bg-foreground/5 group-hover:bg-foreground/10 transition-colors">

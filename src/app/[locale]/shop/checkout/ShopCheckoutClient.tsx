@@ -12,13 +12,15 @@ import { ArrowRight, ChevronDown, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import type { SupportedLocale } from "@/lib/seo";
-import { trackBeginCheckout } from "@/lib/analytics";
+import { trackBeginCheckout, trackCheckoutEmail } from "@/lib/analytics";
 import { formatShopMoney, type ShopCurrencyCode } from "@/lib/shopMoneyFormat";
 import { useShopCurrency } from "@/components/shop/CurrencyContext";
 import { ShopCountryCombobox } from "@/components/shop/ShopCountryCombobox";
 import { ShopProductImage } from "@/components/shop/ShopProductImage";
 import ShopCheckoutShell from "./ShopCheckoutShell";
 import styles from "./ShopCheckout.module.css";
+
+const CART_REMINDER_OPT_OUT_KEY = "oc-cart-reminder-opt-out";
 
 type CartItem = {
   id: string;
@@ -197,8 +199,10 @@ export default function ShopCheckoutClient({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [internationalConsent, setInternationalConsent] = useState(false);
-  // Opt-in (unchecked by default) for one reminder email if this cart is left behind.
-  const [reminderOptIn, setReminderOptIn] = useState(false);
+  // One reminder email if this cart is left behind: on by default, so the address is kept
+  // as soon as it is typed. Unticking is remembered on this device.
+  const [reminderOptIn, setReminderOptIn] = useState(true);
+  const emailTracked = useRef(false);
   const reminderSaved = useRef<string | null>(null);
   const reminderToggled = useRef(false);
   const [error, setError] = useState("");
@@ -239,7 +243,8 @@ export default function ShopCheckoutClient({
     fetch(`/api/shop/regions?country=${countryCode}&locale=${locale}`)
       .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
       .then((data: { regions?: Array<{ code: string; name: string }> }) => {
-        if (!cancelled) setRegionLists((lists) => ({ ...lists, [regionListKey]: data.regions ?? [] }));
+        if (!cancelled)
+          setRegionLists((lists) => ({ ...lists, [regionListKey]: data.regions ?? [] }));
       })
       .catch(() => {
         if (!cancelled) setRegionListFailed(regionListKey);
@@ -288,6 +293,11 @@ export default function ShopCheckoutClient({
   // After a reload the box shows the consent the server still holds for this cart.
   useEffect(() => {
     if (preview) return;
+    try {
+      if (window.localStorage.getItem(CART_REMINDER_OPT_OUT_KEY)) setReminderOptIn(false);
+    } catch {
+      // storage blocked: keep the default
+    }
     let cancelled = false;
     fetch("/api/shop/cart/reminder", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
@@ -311,8 +321,13 @@ export default function ShopCheckoutClient({
     const toggled = reminderToggled.current;
     reminderToggled.current = false;
     const email = form.email.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    if (emailValid && !emailTracked.current) {
+      emailTracked.current = true;
+      trackCheckoutEmail();
+    }
     const wanted =
-      reminderOptIn && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+      reminderOptIn && emailValid
         ? JSON.stringify([email, form.firstName.trim(), quoteCurrency, form.country])
         : "off";
     if (wanted === (reminderSaved.current ?? "off")) return;
@@ -409,14 +424,21 @@ export default function ShopCheckoutClient({
         if (!cartData.items?.length) setError(isUa ? "Кошик порожній" : "Cart is empty");
         else if (!checkoutTrackedRef.current) {
           checkoutTrackedRef.current = true;
-          const total = (cartData.items ?? []).reduce(
-            (
-              s: number,
-              i: { price?: { eur?: number; usd?: number; uah?: number }; quantity: number }
-            ) => s + (i.price?.eur ?? 0) * (i.quantity ?? 1),
-            0
-          );
-          trackBeginCheckout((cartData.items ?? []).length, total);
+          const trackedItems = (
+            (cartData.items ?? []) as Array<{
+              slug: string;
+              title?: { ua: string; en: string };
+              price?: { eur?: number };
+              quantity: number;
+            }>
+          ).map((i) => ({
+            item_id: i.slug,
+            item_name: i.title ? (isUa ? i.title.ua : i.title.en) : undefined,
+            quantity: i.quantity ?? 1,
+            price: i.price?.eur ?? 0,
+          }));
+          const total = trackedItems.reduce((s, i) => s + i.price * i.quantity, 0);
+          trackBeginCheckout(trackedItems, total, "EUR");
         }
       })
       .catch(() => setError(isUa ? "Помилка завантаження" : "Failed to load"))
@@ -764,12 +786,19 @@ export default function ShopCheckoutClient({
                   onChange={(event) => {
                     reminderToggled.current = true;
                     setReminderOptIn(event.target.checked);
+                    try {
+                      if (event.target.checked)
+                        window.localStorage.removeItem(CART_REMINDER_OPT_OUT_KEY);
+                      else window.localStorage.setItem(CART_REMINDER_OPT_OUT_KEY, "1");
+                    } catch {
+                      // storage blocked: the choice still holds for this visit
+                    }
                   }}
                 />
                 <span>
                   {isUa
-                    ? "Нагадати мені на email, якщо я не завершу замовлення. Один лист, відписатися можна будь-коли."
-                    : "Remind me by email if I don't finish my order. One email; unsubscribe anytime."}
+                    ? "Нагадати мені на email, якщо я не завершу замовлення. Один лист; зніміть галочку, якщо не потрібно."
+                    : "Remind me by email if I don't finish my order. One email; untick if you'd rather not."}
                 </span>
               </label>
               <div className={styles.fieldPair}>

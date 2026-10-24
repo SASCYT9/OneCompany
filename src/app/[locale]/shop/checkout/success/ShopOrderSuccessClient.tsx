@@ -99,10 +99,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
     : 0;
   const showVatLine = Boolean(
     order &&
-    !shippingAwaitsAgreement &&
-    !order.landedCost &&
-    (hasMoneyAmount(order.taxAmount) ||
-      (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
+      !shippingAwaitsAgreement &&
+      !order.landedCost &&
+      (hasMoneyAmount(order.taxAmount) ||
+        (order.showTaxesIncludedNotice && hasMoneyAmount(order.taxableSubtotal)))
   );
 
   useEffect(() => {
@@ -114,36 +114,64 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
     let disposed = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let polls = 0;
-    const loadOrder = () => fetch(`/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`, { cache: "no-store" })
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
-      .then((data) => {
-        if (disposed) return;
-        setOrder(data);
-        setError("");
-        if (!trackedRef.current) {
-          trackedRef.current = true;
-          trackOrderPlaced(data.orderNumber, data.total, data.currency);
-        }
-        if (data.paymentMethod === "MONOBANK" &&
-            !["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "FAILED"].includes(data.paymentStatus) && polls++ < 12) {
-          timer = setTimeout(loadOrder, 5000);
-        }
-        if (data.paymentMethod === "FOP") {
-          return fetch("/api/shop/checkout/payment-options")
-            .then((r) => r.json())
-            .then((opts: { fopDetails: FopDetails | null }) =>
-              setFopDetails(opts.fopDetails ?? null)
-            )
-            .catch(() => {});
-        }
-      })
-      .catch(() => { if (!disposed && polls === 0) setError(isUa ? "Замовлення не знайдено." : "Order not found."); })
-      .finally(() => { if (!disposed) setLoading(false); });
+    const loadOrder = () =>
+      fetch(
+        `/api/shop/orders/${encodeURIComponent(orderNumber)}?token=${encodeURIComponent(token)}`,
+        { cache: "no-store" }
+      )
+        .then((r) => {
+          if (!r.ok) throw new Error("Not found");
+          return r.json();
+        })
+        .then((data: OrderData) => {
+          if (disposed) return;
+          setOrder(data);
+          setError("");
+          if (!trackedRef.current) {
+            trackedRef.current = true;
+            trackOrderPlaced(
+              data.orderNumber,
+              data.total,
+              data.currency,
+              data.items.map((i) => ({
+                item_id: i.productSlug || i.sku || i.title,
+                item_name: i.title,
+                ...(i.brand && { item_brand: i.brand }),
+                price: i.price,
+                quantity: i.quantity,
+              }))
+            );
+          }
+          if (
+            data.paymentMethod === "MONOBANK" &&
+            !["PAID", "REFUNDED", "PARTIALLY_REFUNDED", "FAILED"].includes(
+              data.paymentStatus ?? ""
+            ) &&
+            polls++ < 12
+          ) {
+            timer = setTimeout(loadOrder, 5000);
+          }
+          if (data.paymentMethod === "FOP") {
+            return fetch("/api/shop/checkout/payment-options")
+              .then((r) => r.json())
+              .then((opts: { fopDetails: FopDetails | null }) =>
+                setFopDetails(opts.fopDetails ?? null)
+              )
+              .catch(() => {});
+          }
+        })
+        .catch(() => {
+          if (!disposed && polls === 0)
+            setError(isUa ? "Замовлення не знайдено." : "Order not found.");
+        })
+        .finally(() => {
+          if (!disposed) setLoading(false);
+        });
     void loadOrder();
-    return () => { disposed = true; if (timer) clearTimeout(timer); };
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [orderNumber, token, isUa, refreshKey]);
 
   const resumePayment = async () => {
@@ -160,7 +188,11 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       if (!response.ok || !data.redirectUrl) throw new Error("Payment unavailable");
       window.location.assign(data.redirectUrl);
     } catch {
-      setPaymentError(isUa ? "Оплата зараз недоступна. Оновіть статус або зверніться до менеджера з номером замовлення." : "Payment is currently unavailable. Refresh the status or contact us with your order number.");
+      setPaymentError(
+        isUa
+          ? "Оплата зараз недоступна. Оновіть статус або зверніться до менеджера з номером замовлення."
+          : "Payment is currently unavailable. Refresh the status or contact us with your order number."
+      );
       setRefreshKey((value) => value + 1);
     } finally {
       setPaying(false);
@@ -224,39 +256,79 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
           </p>
           {order.paymentMethod === "MANAGER_QUOTE" && (
             <p className="mt-6 rounded-2xl border border-foreground/10 p-5 text-sm" role="status">
-              {isUa ? "Менеджер зв’яжеться з вами протягом 24 годин, щоб погодити вартість доставки та загальну суму перед оплатою." : "A manager will contact you within 24 hours to agree shipping and the final total before payment."}
+              {isUa
+                ? "Менеджер зв’яжеться з вами протягом 24 годин, щоб погодити вартість доставки та загальну суму перед оплатою."
+                : "A manager will contact you within 24 hours to agree shipping and the final total before payment."}
             </p>
           )}
           {order.paymentMethod === "MONOBANK" && (
-            <div className="mt-6 rounded-2xl border border-foreground/10 bg-card/40 p-5 text-left" aria-live="polite">
+            <div
+              className="mt-6 rounded-2xl border border-foreground/10 bg-card/40 p-5 text-left"
+              aria-live="polite"
+            >
               <p className="text-sm font-medium">
                 {order.paymentStatus === "PAID"
-                  ? isUa ? "Оплату підтверджено" : "Payment confirmed"
+                  ? isUa
+                    ? "Оплату підтверджено"
+                    : "Payment confirmed"
                   : order.paymentStatus === "REFUNDED"
-                    ? isUa ? "Кошти повернено" : "Payment refunded"
+                    ? isUa
+                      ? "Кошти повернено"
+                      : "Payment refunded"
                     : order.paymentStatus === "PARTIALLY_REFUNDED"
-                      ? isUa ? "Кошти частково повернено" : "Payment partially refunded"
+                      ? isUa
+                        ? "Кошти частково повернено"
+                        : "Payment partially refunded"
                       : order.paymentStatus === "FAILED"
-                        ? isUa ? "Оплату не завершено" : "Payment not completed"
-                        : isUa ? "Очікуємо підтвердження оплати" : "Awaiting payment confirmation"}
+                        ? isUa
+                          ? "Оплату не завершено"
+                          : "Payment not completed"
+                        : isUa
+                          ? "Очікуємо підтвердження оплати"
+                          : "Awaiting payment confirmation"}
               </p>
-              <p className="mt-1 text-xs text-foreground/70">plata by mono · Apple Pay · Google Pay</p>
+              <p className="mt-1 text-xs text-foreground/70">
+                plata by mono · Apple Pay · Google Pay
+              </p>
               {order.monobankPayment?.canPay && (
-                <button type="button" disabled={paying} onClick={resumePayment} className="mt-4 rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-50">
-                  {paying ? isUa ? "Завантаження…" : "Loading…" : isUa ? "Продовжити оплату" : "Continue payment"}
+                <button
+                  type="button"
+                  disabled={paying}
+                  onClick={resumePayment}
+                  className="mt-4 rounded-full bg-primary px-5 py-3 text-sm text-primary-foreground disabled:opacity-50"
+                >
+                  {paying
+                    ? isUa
+                      ? "Завантаження…"
+                      : "Loading…"
+                    : isUa
+                      ? "Продовжити оплату"
+                      : "Continue payment"}
                 </button>
               )}
               {!["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus ?? "") && (
-                <button type="button" onClick={() => setRefreshKey((value) => value + 1)} className="ml-4 mt-4 text-sm underline">
+                <button
+                  type="button"
+                  onClick={() => setRefreshKey((value) => value + 1)}
+                  className="ml-4 mt-4 text-sm underline"
+                >
                   {isUa ? "Оновити статус" : "Refresh status"}
                 </button>
               )}
-              {order.monobankPayment && !order.monobankPayment.canPay && !["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus ?? "") && (
-                <p className="mt-3 text-xs text-foreground/70">
-                  {isUa ? "Якщо статус не оновлюється, зверніться до менеджера з номером цього замовлення." : "If the status does not update, contact us with this order number."}
+              {order.monobankPayment &&
+                !order.monobankPayment.canPay &&
+                !["PAID", "REFUNDED", "PARTIALLY_REFUNDED"].includes(order.paymentStatus ?? "") && (
+                  <p className="mt-3 text-xs text-foreground/70">
+                    {isUa
+                      ? "Якщо статус не оновлюється, зверніться до менеджера з номером цього замовлення."
+                      : "If the status does not update, contact us with this order number."}
+                  </p>
+                )}
+              {paymentError && (
+                <p role="alert" className="mt-3 text-sm text-red-500">
+                  {paymentError}
                 </p>
               )}
-              {paymentError && <p role="alert" className="mt-3 text-sm text-red-500">{paymentError}</p>}
             </div>
           )}
           <div className="mt-6 border-t border-foreground/10 pt-6 text-left">
@@ -427,8 +499,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
                 : isUa
                   ? "Разом"
                   : "Total"}
-              :{" "}
-              {formatShopMoney(locale, totalShown, order.currency as ShopCurrencyCode)}
+              : {formatShopMoney(locale, totalShown, order.currency as ShopCurrencyCode)}
             </p>
           </div>
           {order.paymentMethod === "FOP" &&

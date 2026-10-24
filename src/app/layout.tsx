@@ -11,6 +11,7 @@ import {
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import MicrosoftClarity from "@/components/analytics/MicrosoftClarity";
 import MetaPixel from "@/components/analytics/MetaPixel";
+import ContactClickTracker from "@/components/analytics/ContactClickTracker";
 import { Analytics } from "@vercel/analytics/react";
 import { siteConfig } from "@/lib/seo";
 import SuppressAutomaticInstallPrompt from "@/components/pwa/SuppressAutomaticInstallPrompt";
@@ -200,6 +201,7 @@ export default function RootLayout({
         )}
 
         <Analytics />
+        <ContactClickTracker />
 
         {/* Optional: Plausible analytics if NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured */}
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchShopStockSearch } from "@/lib/shopStockSearchRequest";
+import { trackSearch, trackSelectVehicle } from "@/lib/analytics";
 import { getShopStockItemCompareAtSet, getShopStockItemPriceSet } from "@/lib/shopStockItemPricing";
 import { matchesShopSearchQuery } from "@/lib/shopSearch";
 
@@ -1222,6 +1223,23 @@ function StockPageContent({
   const [make, setMake] = useState(searchParams.get("make") || "");
   const [model, setModel] = useState(searchParams.get("model") || "");
   const [chassis, setChassis] = useState(searchParams.get("chassis") || "");
+  // Analytics: one event per finished search and per vehicle picked. The first results
+  // (landing / shared link) are what the visitor arrived with, so they are not counted.
+  const trackedSearchRef = useRef(query.trim());
+  const trackedVehicleRef = useRef([make, model, chassis].join("|"));
+  useEffect(() => {
+    if (loading || error) return;
+    const term = query.trim();
+    if (term !== trackedSearchRef.current) {
+      trackedSearchRef.current = term;
+      if (term) trackSearch(term, totalItems);
+    }
+    const vehicleKey = [make, model, chassis].join("|");
+    if (vehicleKey !== trackedVehicleRef.current) {
+      trackedVehicleRef.current = vehicleKey;
+      if (make) trackSelectVehicle(make, model, chassis, totalItems);
+    }
+  }, [loading, error, query, make, model, chassis, totalItems]);
   // "My vehicle": the last make+model a customer picked, remembered on this
   // device so a returning visitor can restore it with one tap. It is offered,
   // never auto-applied, so shared catalog links keep their exact filters.

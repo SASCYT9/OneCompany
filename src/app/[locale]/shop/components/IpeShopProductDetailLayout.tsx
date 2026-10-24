@@ -21,7 +21,6 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
-import { trackCTAClick } from "@/lib/analytics";
 
 type Props = {
   locale: string;
@@ -378,8 +377,7 @@ export function IpeShopProductDetailLayout({
       const next = [...prev];
       next[axisIndex] = value;
       const showDownpipeChoice =
-        !hasConditionalDownpipeAxis ||
-        systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
+        !hasConditionalDownpipeAxis || systemUsesDownpipeOption(axisIndex === 1 ? value : next[1]);
       if (!showDownpipeChoice) next[2] = "";
       // If no variant matches this combo, lock other axes to a compatible
       // variant: pick the first variant that has the chosen value at this axis
@@ -938,7 +936,7 @@ export function IpeShopProductDetailLayout({
               href="https://t.me/onecompany_global"
               target="_blank"
               rel="noreferrer"
-              onClick={() => trackCTAClick("pdp_vin_specialist", "https://t.me/onecompany_global")}
+              data-track-label="pdp_vin_specialist"
             >
               {isUa ? "Написати спеціалісту" : "Contact specialist"}
             </a>
@@ -963,7 +961,12 @@ export function IpeShopProductDetailLayout({
             productSlug={product.slug}
             className="mt-4"
           />
-          <ProductAiOpinionPanel locale={resolvedLocale} product={product} shape="pill" className="mt-4" />
+          <ProductAiOpinionPanel
+            locale={resolvedLocale}
+            product={product}
+            shape="pill"
+            className="mt-4"
+          />
           {currentVariant?.sku || product.sku ? (
             <div className="ipe-pdp__sku">
               {isUa ? "Артикул" : "SKU"}: {currentVariant?.sku ?? product.sku}

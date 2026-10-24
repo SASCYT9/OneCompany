@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader, Mail, Phone, MapPin } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { getTypography, resolveLocale } from "@/lib/typography";
-import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
+import { trackFormSubmission } from "@/lib/analytics";
 import type { ShopAiManagerContext } from "@/lib/shopAiAssistantTypes";
 import type { ShopProduct } from "@/lib/shopCatalog";
 import { resolveProductInquiry } from "@/lib/shopProductInquiry";
@@ -167,7 +167,9 @@ export default function ContactPageContent() {
   const aiSource = searchParams.get("source") === "one-ai";
   const inquirySlug = searchParams.get("product");
   const inquiryVariant = searchParams.get("variant");
-  const [productInquiry, setProductInquiry] = useState<ReturnType<typeof resolveProductInquiry> | null>(null);
+  const [productInquiry, setProductInquiry] = useState<ReturnType<
+    typeof resolveProductInquiry
+  > | null>(null);
   const [productInquiryError, setProductInquiryError] = useState("");
 
   useEffect(() => {
@@ -182,12 +184,21 @@ export default function ContactPageContent() {
       })
       .then((product) => {
         if (controller.signal.aborted) return;
-        const context = resolveProductInquiry(product, locale === "ua" ? "ua" : "en", inquiryVariant);
+        const context = resolveProductInquiry(
+          product,
+          locale === "ua" ? "ua" : "en",
+          inquiryVariant
+        );
         setProductInquiry(context);
         setType(context.scope === "moto" ? "moto" : "auto");
       })
       .catch(() => {
-        if (!controller.signal.aborted) setProductInquiryError(locale === "ua" ? "Не вдалося завантажити товар. Поверніться до картки та повторіть запит." : "Could not load the product. Return to its page and try again.");
+        if (!controller.signal.aborted)
+          setProductInquiryError(
+            locale === "ua"
+              ? "Не вдалося завантажити товар. Поверніться до картки та повторіть запит."
+              : "Could not load the product. Return to its page and try again."
+          );
       });
     return () => controller.abort();
   }, [inquirySlug, inquiryVariant, locale]);
@@ -352,7 +363,9 @@ export default function ContactPageContent() {
       phone: formData.phone,
       telegramUsername: formData.telegramUsername,
       contactMethod: formData.contactMethod,
-      ...(productInquiry ? { productSlug: productInquiry.slug, variantId: productInquiry.variantId, locale } : {}),
+      ...(productInquiry
+        ? { productSlug: productInquiry.slug, variantId: productInquiry.variantId, locale }
+        : {}),
     };
 
     try {
@@ -431,9 +444,15 @@ export default function ContactPageContent() {
                     {productInquiry ? (
                       <>
                         <p className="text-sm font-medium">{productInquiry.title}</p>
-                        <p className="mt-1 text-xs text-foreground/65">SKU: {productInquiry.sku || "—"}{productInquiry.variantTitle ? ` · ${productInquiry.variantTitle}` : ""}</p>
+                        <p className="mt-1 text-xs text-foreground/65">
+                          SKU: {productInquiry.sku || "—"}
+                          {productInquiry.variantTitle ? ` · ${productInquiry.variantTitle}` : ""}
+                        </p>
                       </>
-                    ) : productInquiryError || (locale === "ua" ? "Завантажуємо товар…" : "Loading product…")}
+                    ) : (
+                      productInquiryError ||
+                      (locale === "ua" ? "Завантажуємо товар…" : "Loading product…")
+                    )}
                   </div>
                 )}
                 {/* Progress bar */}
@@ -690,7 +709,6 @@ export default function ContactPageContent() {
                     </h3>
                     <a
                       href="mailto:info@onecompany.global"
-                      onClick={() => trackCTAClick("click_email", "mailto:info@onecompany.global")}
                       className="text-lg font-light text-foreground transition-colors hover:text-foreground/90 dark:text-foreground/65"
                     >
                       info@onecompany.global
@@ -710,7 +728,6 @@ export default function ContactPageContent() {
                     </h3>
                     <a
                       href="tel:+380660771700"
-                      onClick={() => trackCTAClick("click_phone", "tel:+380660771700")}
                       className="text-lg font-light text-foreground transition-colors hover:text-foreground/90 dark:text-foreground/65"
                     >
                       +380 66 077 17 00
