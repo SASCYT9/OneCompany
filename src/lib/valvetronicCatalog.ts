@@ -114,13 +114,47 @@ export function valvetronicVariantSkus(product: Pick<ValvetronicSourceProduct, "
   );
 }
 
+/** Choices that change the finish, not the box: tips and material ship in the same carton. */
+const SAME_BOX_AXES = new Set(["Tips", "Material", "Finish"]);
+
+/**
+ * Shipping weight per variant. valvetronic.com gives titanium and some tip finishes a lower
+ * weight than the same system in steel (owner, 24.10.2026: the M5 G90 titanium system ships
+ * at 45 kg, the feed said 27.7), so every variant of one configuration gets the heaviest
+ * weight of that configuration. Small parts and tips keep their own weights.
+ */
+export function valvetronicShippingWeightsKg(
+  product: Pick<ValvetronicSourceProduct, "title" | "optionNames" | "variants">,
+  overrides: ValvetronicWeightOverrides = {}
+): Array<number | null> {
+  const own = product.variants.map((variant) => valvetronicWeightKg(variant, overrides));
+  const type = valvetronicProductType(product);
+  if (type === "Exhaust Accessories" || type === "Exhaust Tips") return own;
+  const boxAxes = product.optionNames
+    .map((name, axis) => (SAME_BOX_AXES.has(name) ? -1 : axis))
+    .filter((axis) => axis >= 0);
+  const configuration = (variant: ValvetronicSourceVariant) =>
+    boxAxes.map((axis) => variant.options[axis] ?? "").join(" / ");
+  const heaviest = new Map<string, number>();
+  product.variants.forEach((variant, index) => {
+    const weight = own[index];
+    if (weight === null) return;
+    const key = configuration(variant);
+    heaviest.set(key, Math.max(heaviest.get(key) ?? 0, weight));
+  });
+  return product.variants.map((variant, index) =>
+    own[index] === null ? null : (heaviest.get(configuration(variant)) ?? own[index])
+  );
+}
+
 export function priceValvetronicProduct(
   product: ValvetronicSourceProduct,
   overrides: ValvetronicWeightOverrides = {}
 ): ValvetronicPricedVariant[] {
   const skus = valvetronicVariantSkus(product);
+  const weights = valvetronicShippingWeightsKg(product, overrides);
   return product.variants.map((variant, index) => {
-    const weightKg = valvetronicWeightKg(variant, overrides);
+    const weightKg = weights[index];
     if (weightKg === null) {
       throw new Error(`${product.handle}: ${variant.sku ?? variant.title} has no shipping weight`);
     }
