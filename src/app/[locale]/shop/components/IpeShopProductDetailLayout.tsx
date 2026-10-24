@@ -21,6 +21,7 @@ import { useShopViewerContext } from "@/lib/useShopViewerContext";
 import { ProductAiOpinionPanel } from "@/components/shop/ProductAiOpinionPanel";
 import { ShopProductPurchaseFacts } from "@/components/shop/ShopProductPurchaseFacts";
 import { getShopConfirmedAvailability } from "@/lib/shopWarehouseInventory";
+import { trackCTAClick } from "@/lib/analytics";
 
 type Props = {
   locale: string;
@@ -934,9 +935,10 @@ export function IpeShopProductDetailLayout({
             </div>
             <a
               className="ipe-pdp__vin-cta"
-              href="https://t.me/onecompany_ua"
+              href="https://t.me/onecompany_global"
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackCTAClick("pdp_vin_specialist", "https://t.me/onecompany_global")}
             >
               {isUa ? "Написати спеціалісту" : "Contact specialist"}
             </a>
