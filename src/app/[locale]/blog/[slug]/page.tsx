@@ -103,8 +103,8 @@ const toExcerpt = (value: string, fallback: string, max = 170, avoid?: string) =
 const buildCommercialSnippet = (locale: SupportedLocale, caption: string, title: string) => {
   const base = toExcerpt(caption, title, 138, title);
   return locale === "ua"
-    ? `${base} Офіційні поставки та підбір під замовлення від OneCompany.`
-    : `${base} Official supply and tailored sourcing by OneCompany.`;
+    ? `${base} Оригінальна продукція та підбір під замовлення від OneCompany.`
+    : `${base} Genuine products and tailored sourcing by OneCompany.`;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

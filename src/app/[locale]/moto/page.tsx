@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : "Motorcycle Tuning: Exhaust, Suspension, ECU | OneCompany";
     
   const description = resolvedLocale === "ua"
-    ? "Мото тюнінг для дороги й треку: вихлоп, підвіска, гальма, електроніка та OEM рішення. Офіційні поставки і професійний підбір."
-    : "Motorcycle tuning for street and track: exhaust, suspension, brakes, electronics and OEM solutions. Official supply and expert selection.";
+    ? "Мото тюнінг для дороги й треку: вихлоп, підвіска, гальма, електроніка та OEM рішення. Оригінальна продукція і професійний підбір."
+    : "Motorcycle tuning for street and track: exhaust, suspension, brakes, electronics and OEM solutions. Genuine products and expert selection.";
 
   return buildPageMetadata(resolvedLocale, "/moto", {
     title,

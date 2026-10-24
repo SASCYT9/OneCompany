@@ -154,7 +154,6 @@ export const translations = {
       deliveryAndPayment: "Доставка та оплата",
       refundPolicy: "Повернення коштів",
       weDoNotSell: "Ми не продаємо товари і не надаємо послуги жителям росії та білорусі.",
-      companyRequisites: "ТОВ \"One Company\", ЄДРПОУ: XXXXXXXX",
       description: "B2B оптовий імпортер з 2007 року. Працюємо зі СТО, дітейлінг студіями та магазинами тюнінгу в 30+ країн з оптовими цінами, техпідтримкою та white-label логістикою."
     },
   },
@@ -314,7 +313,6 @@ export const translations = {
       deliveryAndPayment: "Delivery & Payment",
       refundPolicy: "Refund Policy",
       weDoNotSell: "We do not sell goods or provide services to residents of Russia and Belarus.",
-      companyRequisites: "One Company LLC, Reg No: XXXXXXXX",
       description: "B2B wholesale importer since 2007. Serving workshops, detailing studios, and tuning shops across 30+ countries with volume pricing, technical support, and white-label logistics."
     },
   },

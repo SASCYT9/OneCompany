@@ -471,7 +471,7 @@ export function LocalBusinessSchema({ locale = "ua" }: LocalBusinessSchemaProps)
     ],
     description:
       locale === "ua"
-        ? "Тюнінг авто та мото в Києві: OEM і performance деталі, офіційні поставки, логістика та технічна підтримка."
+        ? "Тюнінг авто та мото в Києві: OEM і performance деталі, оригінальна продукція, логістика та технічна підтримка."
         : "Auto and moto tuning in Kyiv: OEM and performance parts, genuine products, logistics and technical support.",
   };
 

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : "Auto Tuning & Performance Parts | OneCompany";
     
   const description = resolvedLocale === "ua"
-    ? "Тюнінг авто в Україні: вихлопні системи, підвіска, гальма, OEM деталі та електрика. Комерційний підбір, гарантія, офіційні поставки."
+    ? "Тюнінг авто в Україні: вихлопні системи, підвіска, гальма, OEM деталі та електрика. Комерційний підбір, гарантія, оригінальна продукція."
     : "Auto tuning in Ukraine: exhaust systems, suspension, brakes, OEM parts and electronics. Commercial sourcing, warranty, genuine products.";
 
   return buildPageMetadata(resolvedLocale, "/auto", {

@@ -86,7 +86,7 @@ export const translations: Translations = {
     // Catalog
     catalogIntro: `📚 <b>Каталог брендів OneCompany</b>
 
-Ми є офіційним дистриб'ютором 200+ преміум брендів.`,
+Оригінальна продукція 200+ преміум брендів — з наявності або під замовлення.`,
     autoBrands: '🚗 Бренди для авто',
     motoBrands: '🏍️ Бренди для мото',
     searchBrand: '🔍 Пошук бренду',
@@ -175,7 +175,7 @@ Thank you for your interest in cooperation! 🤝`,
     // Catalog
     catalogIntro: `📚 <b>OneCompany Brand Catalog</b>
 
-We are official distributors of 200+ premium brands.`,
+Genuine parts from 200+ premium brands, in stock or to order.`,
     autoBrands: '🚗 Auto Brands',
     motoBrands: '🏍️ Moto Brands',
     searchBrand: '🔍 Search Brand',
