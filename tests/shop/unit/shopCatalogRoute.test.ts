@@ -52,13 +52,12 @@ test("rewritten catalog resolves public catalog metadata at the stock destinatio
   }
 });
 
-test("live Eventuri and Ilmberger entry pages are discoverable in both sitemap locales", () => {
-  for (const slug of [
-    "/shop/eventuri",
-    "/shop/ilmberger",
-    "/shop/ilmberger/collections",
-  ] as const) {
-    assert.equal(localizedStaticSlugs.filter((entry) => entry === slug).length, 1);
+test("the catalog is the shop's sitemap entry; old storefront homes are not listed", () => {
+  assert.equal(localizedStaticSlugs.filter((entry) => entry === "/shop/catalog").length, 1);
+  for (const slug of ["/shop", "/shop/eventuri", "/shop/ilmberger", "/shop/ipe"]) {
+    assert.equal((localizedStaticSlugs as readonly string[]).includes(slug), false, slug);
+  }
+  for (const slug of ["/shop/catalog"] as const) {
     for (const locale of ["ua", "en"]) {
       assert.equal(isIndexablePath(`/${locale}${slug}`), true);
       assert.equal(isNoindexPath(`/${locale}${slug}`), false);
@@ -72,8 +71,8 @@ test("legacy brand routes redirect to localized canonical storefront destination
   assert.equal(resolveLegacyBrandRedirectPath("/ua/fi/"), "/ua/shop/brand/fi-exhaust");
   assert.equal(resolveLegacyBrandRedirectPath("/shop/kw"), "/ua/shop/brand/kw");
   assert.equal(resolveLegacyBrandRedirectPath("/en/shop/fi/"), "/en/shop/brand/fi-exhaust");
-  assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/eventuri");
-  assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/eventuri");
+  assert.equal(resolveLegacyBrandRedirectPath("/eventuri"), "/ua/shop/brand/eventuri");
+  assert.equal(resolveLegacyBrandRedirectPath("/en/eventuri"), "/en/shop/brand/eventuri");
   assert.equal(resolveLegacyBrandRedirectPath("/ua/shop/eventuri"), null);
 });
 
@@ -107,7 +106,7 @@ test("next redirects cover localized legacy brand routes before middleware", asy
       },
       {
         source: "/:locale(ua|en)/eventuri",
-        destination: "/:locale/shop/eventuri",
+        destination: "/:locale/shop/brand/eventuri",
         permanent: true,
       },
       {
@@ -122,7 +121,7 @@ test("next redirects cover localized legacy brand routes before middleware", asy
       },
       {
         source: "/:locale(ua|en)/brands/eventuri",
-        destination: "/:locale/shop/eventuri",
+        destination: "/:locale/shop/brand/eventuri",
         permanent: true,
       },
     ]

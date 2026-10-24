@@ -405,7 +405,7 @@ export function ShopProductStructuredData({
     })
     .filter((o): o is NonNullable<typeof o> => Boolean(o));
 
-  const shopRoot = absoluteUrl(`/${locale}/shop`);
+  const shopRoot = absoluteUrl(`/${locale}/shop/catalog`);
   const storefrontSegment = resolveShopStorefrontSegment(product);
   const brandShopHref = storefrontSegment
     ? absoluteUrl(buildShopStorefrontRootPath(locale, storefrontSegment))

@@ -1882,6 +1882,85 @@
     "count": 34
   },
   {
+    "kind": "brand",
+    "path": "brand/akrapovic",
+    "brand": "AKRAPOVIC",
+    "count": 340
+  },
+  {
+    "kind": "brand",
+    "path": "brand/ohlins",
+    "brand": "OHLINS",
+    "count": 486
+  },
+  {
+    "kind": "brand",
+    "path": "brand/do88",
+    "brand": "DO88",
+    "count": 413
+  },
+  {
+    "kind": "brand",
+    "path": "brand/ipe",
+    "brand": "iPE exhaust",
+    "count": 111
+  },
+  {
+    "kind": "brand",
+    "path": "brand/burger",
+    "brand": "Burger Motorsports",
+    "count": 722
+  },
+  {
+    "kind": "brand",
+    "path": "brand/urban",
+    "brand": "Urban Automotive",
+    "count": 259
+  },
+  {
+    "kind": "brand",
+    "path": "brand/brabus",
+    "brand": "Brabus",
+    "count": 977
+  },
+  {
+    "kind": "brand",
+    "path": "brand/racechip",
+    "brand": "RaceChip",
+    "count": 5181
+  },
+  {
+    "kind": "brand",
+    "path": "brand/girodisc",
+    "brand": "GiroDisc",
+    "count": 958
+  },
+  {
+    "kind": "brand",
+    "path": "brand/adro",
+    "brand": "ADRO",
+    "count": 241
+  },
+  {
+    "kind": "brand",
+    "path": "brand/csf",
+    "brand": "CSF",
+    "count": 289
+  },
+  {
+    "kind": "brand",
+    "path": "brand/eventuri",
+    "brand": "Eventuri",
+    "count": 112
+  },
+  {
+    "kind": "brand",
+    "path": "brand/ilmberger",
+    "brand": "Ilmberger Carbon",
+    "scope": "moto",
+    "count": 339
+  },
+  {
     "kind": "brandMake",
     "path": "brand/remus/bmw",
     "make": "BMW",

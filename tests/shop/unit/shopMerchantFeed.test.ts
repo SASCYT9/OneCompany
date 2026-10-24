@@ -49,7 +49,7 @@ test("feed link is the canonical storefront URL used by the sitemap and page", (
   );
   assert.match(
     racechip,
-    /<link>https:\/\/onecompany\.global\/ua\/shop\/racechip\/products\/racechip-gts5-audi-a4<\/link>/
+    /<link>https:\/\/onecompany\.global\/ua\/shop\/racechip-gts5-audi-a4<\/link>/
   );
 });
 

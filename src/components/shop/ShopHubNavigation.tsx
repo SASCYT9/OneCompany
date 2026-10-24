@@ -21,7 +21,7 @@ const ICONS = {
 export function ShopHubNavigation({ locale, active, className }: ShopHubNavigationProps) {
   const isUa = locale === "ua";
   const destinations = getShopNavigationDestinations(locale).filter(
-    (destination): destination is { key: "brands" | "catalog"; href: string } =>
+    (destination): destination is { key: "catalog"; href: string } =>
       destination.key !== "selection"
   );
   const copy = {
@@ -47,7 +47,7 @@ export function ShopHubNavigation({ locale, active, className }: ShopHubNavigati
         const Icon = ICONS[destination.key];
         const isActive = active === destination.key;
         const isCatalog = destination.key === "catalog";
-        const scrollsToBrands = destination.key === "brands" && isActive;
+        const scrollsToBrands = false;
         const DirectionIcon = scrollsToBrands ? ArrowDown : ArrowUpRight;
 
         return (

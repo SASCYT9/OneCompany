@@ -212,7 +212,10 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
       <div className="min-h-screen bg-background px-4 py-24">
         <div className="mx-auto max-w-lg text-center">
           <p className="text-foreground/75 dark:text-foreground/60">{error}</p>
-          <Link href={`/${locale}/shop`} className="mt-4 inline-block text-foreground underline">
+          <Link
+            href={`/${locale}/shop/catalog`}
+            className="mt-4 inline-block text-foreground underline"
+          >
             {isUa ? "Повернутися до каталогу" : "Return to catalog"}
           </Link>
         </div>
@@ -528,7 +531,7 @@ export default function ShopOrderSuccessClient({ locale, orderNumber, token }: P
               </div>
             )}
           <Link
-            href={`/${locale}/shop`}
+            href={`/${locale}/shop/catalog`}
             className="mt-8 inline-block rounded-full border border-primary bg-primary px-6 py-2 text-sm text-primary-foreground transition hover:bg-primary/90"
           >
             {isUa ? "Повернутися до каталогу" : "Return to catalog"}

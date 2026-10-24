@@ -76,13 +76,12 @@ export function resolveShopStorefrontSegment(
   return legacySegment;
 }
 
+/**
+ * Every product lives at `/{locale}/shop/{slug}`, in one product-page design.
+ * The old brand storefront URLs (`/shop/{brand}/products/{slug}`) answer with a
+ * permanent redirect here (see `next.config.ts`).
+ */
 export function buildShopStorefrontProductPath(locale: string, input: StorefrontRouteInput) {
-  const segment = resolveShopStorefrontSegment(input);
-
-  if (segment) {
-    return `/${locale}/shop/${segment}/products/${input.slug}`;
-  }
-
   return `/${locale}/shop/${input.slug}`;
 }
 
@@ -93,31 +92,22 @@ export function buildShopStorefrontProductPathForProduct(
   return buildShopStorefrontProductPath(locale, product);
 }
 
+/** The old storefront home of a brand segment now resolves to its catalog landing page. */
 export function buildShopStorefrontRootPath(locale: string, segment: StorefrontSegment) {
-  return `/${locale}/shop/${segment}`;
+  return `/${locale}/shop/brand/${segment}`;
 }
 
 /**
- * Build the storefront destination for a product's brand label.
- *
- * Brands with a dedicated storefront use its full catalog surface. Eventuri
- * has a curated landing page that contains the complete brand line, while
- * every other valid brand stays in the main catalog with a brand filter.
+ * Build the destination for a product's brand label: the brand's catalog
+ * landing page (`/shop/brand/{slug}`) when it has one, otherwise the main
+ * catalog with a brand filter. The old brand storefronts redirect to these
+ * landing pages.
  */
 export function buildShopStorefrontBrandPath(locale: string, brand: string | null | undefined) {
-  const normalizedBrand = normalizeStorefrontKey(brand);
   const normalizedLabel = brand?.trim();
 
-  if (!normalizedLabel) return `/${locale}/shop`;
-  if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
+  if (!normalizedLabel) return `/${locale}/shop/catalog`;
 
-  const segment = STOREFRONT_SEGMENT_BY_BRAND.get(normalizedBrand);
-  if (segment) {
-    const route = STOREFRONT_ROUTE_REGISTRY.find((item) => item.segment === segment);
-    return `/${locale}/shop/${segment}/${route?.listingSurface ?? "catalog"}`;
-  }
-
-  // Brands without a storefront link to their catalog landing page when it exists.
   const hub = resolveCatalogLandingBrandHub(normalizedLabel);
   if (hub) return `/${locale}/shop/brand/${hub}`;
 
@@ -125,24 +115,19 @@ export function buildShopStorefrontBrandPath(locale: string, brand: string | nul
 }
 
 /**
- * Indexable landing page of a brand that has its own storefront (or the
- * curated Eventuri page), or `null` for every other brand.
+ * Indexable catalog landing page of a brand (`/shop/brand/{slug}`), or `null`
+ * when the brand has none.
  *
  * Brand tiles on `/brands` and category pages are modal triggers, so their
- * crawlable link is a hidden anchor. Pointing it at a storefront gives each
- * store internal links from the brand hubs; brands without a storefront keep
+ * crawlable link is a hidden anchor. Pointing it at the brand landing gives
+ * each brand internal links from the brand hubs; brands without a landing keep
  * their current target instead of a noindex `?brand=` catalog filter.
  */
 export function resolveShopStorefrontBrandLandingPath(
   locale: string,
   brand: string | null | undefined
 ): string | null {
-  const normalizedBrand = normalizeStorefrontKey(brand);
-  if (!normalizedBrand) return null;
-  if (normalizedBrand === "eventuri") return `/${locale}/shop/eventuri`;
-  if (STOREFRONT_SEGMENT_BY_BRAND.has(normalizedBrand)) {
-    return buildShopStorefrontBrandPath(locale, brand);
-  }
+  if (!normalizeStorefrontKey(brand)) return null;
   const hub = resolveCatalogLandingBrandHub(brand);
   return hub ? `/${locale}/shop/brand/${hub}` : null;
 }
@@ -173,5 +158,5 @@ export function resolveShopCatalogProductHref(
   const normalizedSlug = slug.trim();
   return normalizedSlug
     ? `${shopPrefix}${encodeURIComponent(normalizedSlug)}`
-    : `/${resolvedLocale}/shop`;
+    : `/${resolvedLocale}/shop/catalog`;
 }

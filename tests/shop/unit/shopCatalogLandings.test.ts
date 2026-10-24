@@ -47,7 +47,8 @@ test("every landing page is a clean, unique, sufficiently stocked URL", () => {
       assert.ok(findShopCatalogLanding(item.path.split("/").slice(0, 2).join("/")), item.path);
     }
     if (item.kind === "brand") {
-      assert.ok(item.brand && !SHOP_CATALOG_LANDING_BRANDS[item.brand]?.storefront, item.path);
+      // Every brand landing names a brand the copy knows (storefront brands included).
+      assert.ok(item.brand && SHOP_CATALOG_LANDING_BRANDS[item.brand], item.path);
     }
     if (item.kind === "brandMake") assert.ok(item.brand && item.make, item.path);
   }
@@ -173,8 +174,11 @@ test("landing copy is built from live counts and fits search result titles", () 
   assert.equal(remusBmw.title, "Remus для BMW — вихлоп | One Company");
   assert.deepEqual(remusBmw.breadcrumbs[1], { name: "Remus", href: "/ua/shop/brand/remus" });
   const akrapovic = buildShopCatalogLandingCopy("ua", landing("brand/akrapovic/bmw"), null);
-  // A storefront brand links to its storefront, not to a second brand page.
-  assert.deepEqual(akrapovic.breadcrumbs[1], { name: "Akrapovič", href: "/ua/shop/akrapovic" });
+  // Former storefront brands have their own brand landing page now.
+  assert.deepEqual(akrapovic.breadcrumbs[1], {
+    name: "Akrapovič",
+    href: "/ua/shop/brand/akrapovic",
+  });
   assert.equal(akrapovic.title, "Akrapovič для BMW | One Company");
 
   for (const item of SHOP_CATALOG_LANDINGS) {
@@ -203,7 +207,7 @@ test("Ukrainian counts agree with the number", () => {
 test("brand links and old KW/Fi URLs lead to the brand landing pages", () => {
   assert.equal(buildShopStorefrontBrandPath("ua", "KW Suspensions"), "/ua/shop/brand/kw");
   assert.equal(buildShopStorefrontBrandPath("en", "Fi EXHAUST"), "/en/shop/brand/fi-exhaust");
-  assert.equal(buildShopStorefrontBrandPath("ua", "AKRAPOVIC"), "/ua/shop/akrapovic/collections");
+  assert.equal(buildShopStorefrontBrandPath("ua", "AKRAPOVIC"), "/ua/shop/brand/akrapovic");
   assert.equal(slugifyCatalogLandingSegment("RS5 Coupé"), "rs5-coupe");
   assert.equal(slugifyCatalogLandingSegment("Škoda"), "skoda");
 });
@@ -234,7 +238,8 @@ test("catalog filters that match a landing page use its address", () => {
   assert.equal(find("brand=KW Suspensions"), "/ua/shop/brand/kw");
   assert.equal(find("brand=Remus&make=BMW"), "/ua/shop/brand/remus/bmw");
   assert.equal(find("make=BMW&sort=price_asc"), null);
-  assert.equal(find("brand=AKRAPOVIC"), null);
+  assert.equal(find("brand=AKRAPOVIC"), "/ua/shop/brand/akrapovic");
+  assert.equal(find("brand=Setrab"), null);
   assert.equal(find("make=BMW&make=Audi"), null);
 
   const redirect = (path: string, query: string) =>

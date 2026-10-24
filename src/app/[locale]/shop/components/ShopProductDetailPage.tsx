@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { DeferredCrossShopFitment } from "@/components/shop/DeferredCrossShopFitment";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,14 +13,7 @@ import { resolveLegacyProductPath } from "@/lib/legacyProductSlugs.server";
 import { getBrandLogo } from "@/lib/brandLogos";
 import { getBrandLogoSurfaceClass } from "@/lib/brandLogoPresentation";
 import { resolveShopConfirmedStock } from "@/lib/shopWarehouseInventory";
-import {
-  getShopProductBySlugServer,
-  getShopProductsServer,
-  getShopProductsByBrandServer,
-  getUrbanProductsServer,
-  getDo88ProductsServer,
-  getBrabusProductsServer,
-} from "@/lib/shopCatalogServer";
+import { getShopProductBySlugServer, getDo88ProductsServer } from "@/lib/shopCatalogServer";
 import {
   localizeShopDescription,
   localizeShopProductTitle,
@@ -30,34 +24,39 @@ import {
   buildShopViewerPricingContext,
   resolveShopProductPricing,
 } from "@/lib/shopPricingAudience";
-import { extractShopProductDescriptionSections } from "@/lib/shopProductDescription";
+import {
+  buildShopProductDescriptionHtml,
+  extractShopProductDescriptionSections,
+} from "@/lib/shopProductDescription";
 import {
   buildDo88EnrichedDescription,
   sanitizeDo88StoredDescription,
 } from "@/lib/do88DescriptionEnricher";
 import {
   buildShopStorefrontProductPathForProduct,
+  resolveShopStorefrontBrandLandingPath,
   resolveShopStorefrontSegment,
 } from "@/lib/shopStorefrontRouting";
-import { BurgerShopProductDetailLayout } from "./BurgerShopProductDetailLayout";
-import { BrabusShopProductDetailLayout } from "./BrabusShopProductDetailLayout";
+import { buildRacechipSeoMeta } from "@/lib/seoProductMeta";
+import { getRacechipNoindexSlugs } from "@/lib/seoRacechipConsolidation.server";
+import { catalogLandingBrandName } from "@/lib/shopCatalogLandings";
+import { ShopRelatedProductsSection } from "./ShopRelatedProductsSection";
 import { isFactoryOnlyProduct } from "@/lib/brabusFactoryOnly";
+import { resolveBrabusFallbackImage } from "@/lib/brabusImageFallbacks";
 import {
-  getProductsForDo88Collection,
-  getDo88CollectionHandleForProduct,
-} from "@/lib/do88CollectionMatcher";
-import { DO88_COLLECTION_CARDS } from "../data/do88CollectionsList";
+  extractOpfWarning,
+  isIpeBrand,
+  normalizeIpeUaCopy,
+  stripIpeCrossPromoLinks,
+} from "@/lib/ipeProductPresentation";
+import { getDo88CollectionHandleForProduct } from "@/lib/do88CollectionMatcher";
 import {
   extractDo88CategoryLeafToken,
   findDo88ClampKitFitmentParent,
   resolveCompatibleVehiclesForDo88Product,
   type CompatibleVehicle,
 } from "../do88/do88FitmentData";
-import {
-  getProductsForUrbanCollection,
-  getUrbanCollectionHandleForProduct,
-} from "@/lib/urbanCollectionMatcher";
-import { URBAN_COLLECTION_CARDS } from "../data/urbanCollectionsList";
+import { getUrbanCollectionHandleForProduct } from "@/lib/urbanCollectionMatcher";
 import {
   buildUrbanCollectionImagePool,
   resolveUrbanCollectionCardImage,
@@ -75,10 +74,10 @@ import { Do88VehicleCompatibilityAlert } from "./Do88VehicleCompatibilityAlert";
 import { ShopBackToCatalogLink } from "@/components/shop/ShopBackToCatalogLink";
 import { ShopProductStructuredData } from "@/components/seo/StructuredData";
 import { getUrbanCollectionPageConfig } from "../data/urbanCollectionPages.server";
-import { findRelatedProducts } from "@/lib/shopRelatedProducts";
 import { extractProductFitment, isExcludedFromCrossShop } from "@/lib/crossShopFitment";
 import { loadCrossShopRecommendationsSafely } from "@/lib/crossShopRecommendations.server";
 import { ShopProductVariantPurchaseSection } from "./ShopProductVariantPurchaseSection";
+import { displayPartNumber } from "@/lib/shopPartNumber";
 import { ShopProductTitleSku } from "./ShopProductTitleSku";
 import { ShopInlineSearch } from "@/components/shop/ShopSearchForm";
 import AkrapovicSoundPlayer from "./AkrapovicSoundPlayer";
@@ -127,31 +126,10 @@ export async function requireCanonicalStorefrontProduct({
     notFound();
   }
 
-  const expectedSegment = mode === "default" ? null : mode;
-  const actualSegment = resolveShopStorefrontSegment(product);
-  if (actualSegment !== expectedSegment) {
-    permanentRedirect(buildShopStorefrontProductPathForProduct(resolveLocale(locale), product));
-  }
-
+  // Every product has one address, /shop/{slug}; `mode` only picks the
+  // brand-specific content (do88, Urban, Akrapovič…) inside the one design.
+  void mode;
   return product;
-}
-
-/**
- * Pick the right brand-scoped fetcher for the related-product pool. Avoids
- * loading the full ~30k cross-brand catalog when we only need products from
- * the same brand for `findRelatedProducts` / `getProductsForUrbanCollection`
- * / `getProductsForDo88Collection`.
- *
- * Cross-shop fitment (which requires cross-brand) is deferred to a streaming
- * Suspense boundary at the bottom of the page.
- */
-async function pickRelatedProductsPool(mode: ProductPageMode, brand: string) {
-  if (mode === "urban") return getUrbanProductsServer();
-  if (mode === "do88") return getDo88ProductsServer();
-  if (mode === "brabus") return getBrabusProductsServer();
-  const brandKey = (brand ?? "").trim();
-  if (!brandKey) return getShopProductsServer();
-  return getShopProductsByBrandServer(brandKey);
 }
 
 function formatPrice(locale: SupportedLocale, amount: number, currency: "EUR" | "USD" | "UAH") {
@@ -278,53 +256,6 @@ function isPartNumberSpecLabel(label: string) {
   return /^(артикул|парт[\s-]?номер|part number|sku|article no\.?)$/i.test(label.trim());
 }
 
-function isWheelProduct(product: Pick<ShopProduct, "category" | "productType" | "tags">) {
-  const values = [
-    product.category.en,
-    product.category.ua,
-    product.productType ?? "",
-    ...(product.tags ?? []),
-  ].map((value) => value.toLowerCase());
-
-  return values.some((value) =>
-    /\b(wheel|wheels|tyre|tyres|tire|tires|диск|диски|шини)\b/i.test(value)
-  );
-}
-
-function isKitProduct(
-  product: Pick<ShopProduct, "category" | "productType" | "tags" | "bundle" | "title">
-) {
-  if (isWheelProduct(product)) {
-    return false;
-  }
-
-  const kitHaystack = [
-    product.title.en,
-    product.title.ua,
-    product.category.en,
-    product.category.ua,
-    product.productType ?? "",
-    ...(product.tags ?? []),
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return (
-    Boolean(product.bundle) ||
-    /\b(body\s?kit|bodykits|bodykit|full kit|complete kit|carbon fibre v2 kit|kit package|replacement bumper package|комплект обвісу|обвіси|повний комплект|пакет urban|пакет заміни бамперів)\b/i.test(
-      kitHaystack
-    )
-  );
-}
-
-function isStandaloneUrbanComponent(product: Pick<ShopProduct, "title">) {
-  const titleValue = `${product.title.en} ${product.title.ua}`.toLowerCase();
-
-  return /(d-pillar|spoiler|roof|light bar|exhaust|tailpipe|bonnet|hood|mirror|trim|intake|насадк|спойлер|дахов|світлов|капот|оздоблен|повітрозабірник)/i.test(
-    titleValue
-  );
-}
-
 function isAkrapovicTailpipeAccessory(
   product: Pick<ShopProduct, "brand" | "vendor" | "title" | "category" | "productType" | "tags">
 ) {
@@ -343,56 +274,6 @@ function isAkrapovicTailpipeAccessory(
   ].join(" ");
 
   return /(tailpipe|exhaust tips?|насадк|наконечник|наконечників)/i.test(haystack);
-}
-
-function isSameVehicleFamily(
-  product: Pick<ShopProduct, "brand" | "vendor" | "title" | "collection" | "tags">,
-  current: Pick<ShopProduct, "brand" | "vendor" | "title" | "collection" | "tags">
-) {
-  const currentHaystack = [
-    current.brand,
-    current.vendor,
-    current.title.en,
-    current.title.ua,
-    current.collection.en,
-    current.collection.ua,
-    ...(current.tags ?? []),
-  ]
-    .join(" ")
-    .toLowerCase();
-  const productHaystack = [
-    product.brand,
-    product.vendor,
-    product.title.en,
-    product.title.ua,
-    product.collection.en,
-    product.collection.ua,
-    ...(product.tags ?? []),
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  if (/(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(currentHaystack)) {
-    return /(mercedes|g-wagon|g wagon|g-class|g class|g63|w465)/i.test(productHaystack);
-  }
-
-  const chassisFamilies = [
-    ["range rover l460", "l460"],
-    ["range rover sport l461", "sport l461", "l461"],
-    ["range rover sport l494", "sport l494", "l494", "svr 2018"],
-    ["discovery 5"],
-    ["defender 90"],
-    ["defender 110"],
-    ["defender 130"],
-  ];
-  const currentFamily = chassisFamilies.find((markers) =>
-    markers.some((marker) => currentHaystack.includes(marker))
-  );
-  if (currentFamily) {
-    return currentFamily.some((marker) => productHaystack.includes(marker));
-  }
-
-  return product.brand.toLowerCase() === current.brand.toLowerCase();
 }
 
 function getFirstExternalProductImage(product: Pick<ShopProduct, "image" | "gallery">) {
@@ -417,14 +298,7 @@ export async function getShopProductPageMetadata({
   const resolvedLocale = resolveLocale(locale);
   const product = await requireCanonicalStorefrontProduct({ locale, slug, mode });
 
-  let pageSlug = `shop/${slug}`;
-  if (mode === "urban") pageSlug = `shop/urban/products/${slug}`;
-  if (mode === "do88") pageSlug = `shop/do88/products/${slug}`;
-  if (mode === "burger") pageSlug = `shop/burger/products/${slug}`;
-  if (mode === "ipe") pageSlug = `shop/ipe/products/${slug}`;
-  if (mode === "adro") pageSlug = `shop/adro/products/${slug}`;
-
-  pageSlug = buildShopStorefrontProductPathForProduct(resolvedLocale, product).replace(
+  const pageSlug = buildShopStorefrontProductPathForProduct(resolvedLocale, product).replace(
     `/${resolvedLocale}/`,
     ""
   );
@@ -440,6 +314,32 @@ export async function getShopProductPageMetadata({
     category: product.category?.[resolvedLocale] || product.category?.en,
   });
   const metadataTitle = buildLocalizedProductSeoTitle(resolvedLocale, product, localizedTitle);
+
+  // RaceChip variants of one car differ only by engine output, which the name
+  // omits: the title gets hp/kW/Nm from the slug, and near-duplicate engine
+  // variants stay out of the index (one per make/model is indexed).
+  if (resolveShopStorefrontSegment(product) === "racechip") {
+    const seo = buildRacechipSeoMeta({
+      locale: resolvedLocale,
+      slug: product.slug,
+      title: localizedTitle,
+      description: localizedDescription,
+      sku: product.sku,
+    });
+    const metadata = buildPageMetadata(resolvedLocale, pageSlug, {
+      title: seo.title,
+      description: seo.description,
+      image: product.image || undefined,
+      type: "product",
+    });
+    const noindexSlugs = await getRacechipNoindexSlugs();
+    return noindexSlugs.has(product.slug)
+      ? {
+          ...metadata,
+          robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
+        }
+      : metadata;
+  }
 
   // Drop the trailing "| One Company Shop" — siteName already carries it in
   // og:site_name, and the suffix used to push titles past the truncation
@@ -457,14 +357,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const isUa = resolvedLocale === "ua";
 
   const product = await requireCanonicalStorefrontProduct({ locale, slug, mode });
-
-  // Only Brabus renders same-brand related products. Burger's layout does
-  // not consume them; fetching its entire brand catalog blocked the PDP.
-  const isBrabusMode = mode === "brabus" || product.brand === "Brabus";
-  const needsRelated = isBrabusMode;
-  const allProducts: ShopProduct[] = needsRelated
-    ? await pickRelatedProductsPool(mode, product.brand)
-    : [];
 
   const settingsRuntime = await getPublicShopSettingsRuntime();
   const rates = settingsRuntime.currencyRates;
@@ -511,19 +403,24 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   const urbanCollectionHandle = getUrbanCollectionHandleForProduct(product);
   const do88CollectionHandle = getDo88CollectionHandleForProduct(product);
 
-  const urbanCollectionCard = urbanCollectionHandle
-    ? URBAN_COLLECTION_CARDS.find((item) => item.collectionHandle === urbanCollectionHandle)
-    : null;
   const urbanCollectionConfig = urbanCollectionHandle
     ? getUrbanCollectionPageConfig(urbanCollectionHandle)
-    : null;
-  const do88CollectionCard = do88CollectionHandle
-    ? DO88_COLLECTION_CARDS.find((item) => item.categoryHandle === do88CollectionHandle)
     : null;
 
   const isUrbanMode = mode === "urban" || Boolean(urbanCollectionHandle);
   const isDo88Mode = mode === "do88" || Boolean(do88CollectionHandle);
   const productBrandLc = (product.brand || "").toLowerCase();
+  // Burger's variants (stage, fitment) each carry their own photo.
+  const isBurgerProduct = productBrandLc.startsWith("burger motorsports");
+  const isIpeProduct = isIpeBrand(product.brand);
+  const racechipEngine =
+    productBrandLc === "racechip"
+      ? product.tags
+          ?.find((tag) => tag.startsWith("car_engine:"))
+          ?.slice(11)
+          .replace(/-/g, " ")
+          .toUpperCase()
+      : undefined;
   const isStopflexProduct =
     productBrandLc.includes("stopflex") ||
     product.vendor?.toLowerCase().includes("stopflex") === true;
@@ -531,7 +428,8 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   const productTitle = localizeShopProductTitle(resolvedLocale, product);
   const productCategory = localizeShopText(resolvedLocale, product.category);
-  const primaryPartNumber = (product.sku || defaultVariant?.sku || "").trim();
+  const primaryPartNumber =
+    displayPartNumber(product.sku) ?? displayPartNumber(defaultVariant?.sku) ?? "";
 
   // Use Do88 enrichment only when the product has a source-backed SKU entry.
   // Otherwise preserve stored copy instead of adding category-level assumptions.
@@ -580,6 +478,22 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     } else if (descriptionSections.features.length === 0) {
       descriptionSections.features = [...do88Enriched.bullets];
     }
+  }
+  // Brands whose old pages showed the whole supplier description (Brabus,
+  // Burger, iPE, RaceChip) keep it whole and in order: section extraction
+  // would move or drop their lists. iPE also gets its UA wording fixes and
+  // loses the banners that advertise other iPE products.
+  const showsWholeDescription =
+    isIpeProduct || isBurgerProduct || productBrandLc === "brabus" || productBrandLc === "racechip";
+  if (showsWholeDescription) {
+    const source = supplierLongDescription || shortDescription || "";
+    const prepared = isIpeProduct
+      ? extractOpfWarning(stripIpeCrossPromoLinks(isUa ? normalizeIpeUaCopy(source) : source), isUa)
+          .body
+      : source;
+    descriptionSections.introHtml = buildShopProductDescriptionHtml(prepared);
+    descriptionSections.features = [];
+    descriptionSections.specs = [];
   }
   const fallbackSpecs: Array<{ label: string; value: string }> = [];
   const pushFallbackSpec = (label: string, value?: string | null) => {
@@ -739,55 +653,6 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           urbanCollectionConfig
         )
       : gallery.filter((img) => img.length > 0);
-  let categoryRelatedProducts: ShopProduct[] = [];
-  const isUrbanBodyKitPage =
-    isUrbanMode && (product.slug === "urb-bun-25358207-v1" || isKitProduct(product));
-
-  if (isUrbanMode && urbanCollectionHandle && urbanCollectionCard) {
-    categoryRelatedProducts = getProductsForUrbanCollection(
-      allProducts.filter((item) => item.slug !== product.slug),
-      urbanCollectionHandle,
-      urbanCollectionCard.title,
-      urbanCollectionCard.brand
-    );
-
-    if (isUrbanBodyKitPage) {
-      categoryRelatedProducts = [];
-    } else if (!isWheelProduct(product)) {
-      categoryRelatedProducts = categoryRelatedProducts.filter((item) => !isWheelProduct(item));
-    }
-  } else if (isDo88Mode && do88CollectionHandle && do88CollectionCard) {
-    categoryRelatedProducts = getProductsForDo88Collection(
-      allProducts.filter((item) => item.slug !== product.slug),
-      do88CollectionHandle,
-      do88CollectionCard.title
-    );
-  }
-
-  const urbanKitRelatedFallback = isUrbanBodyKitPage
-    ? findRelatedProducts(
-        product,
-        allProducts.filter(
-          (item) =>
-            item.slug !== product.slug &&
-            isSameVehicleFamily(item, product) &&
-            isKitProduct(item) &&
-            !isStandaloneUrbanComponent(item)
-        ),
-        3
-      )
-    : [];
-  const relatedProductsRaw = isUrbanBodyKitPage
-    ? []
-    : isUrbanMode
-      ? categoryRelatedProducts.length
-        ? categoryRelatedProducts.slice(0, 3)
-        : urbanKitRelatedFallback
-      : categoryRelatedProducts.length
-        ? categoryRelatedProducts.slice(0, 3)
-        : findRelatedProducts(product, allProducts, 3);
-  const relatedProducts = relatedProductsRaw;
-
   // Recommendations load near the viewport, outside the ISR render.
   const crossShopFitment = isExcludedFromCrossShop(product) ? null : extractProductFitment(product);
 
@@ -795,8 +660,14 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
     process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://onecompany.global");
 
+  // Brabus items without their own photo keep the model photo their old page showed.
   const rawImageStr =
-    resolvedGallery[0] ?? (product.image ? product.image.replace(/^["']|["']$/g, "").trim() : "");
+    resolvedGallery[0] ??
+    (product.image
+      ? product.image.replace(/^["']|["']$/g, "").trim()
+      : productBrandLc === "brabus"
+        ? (resolveBrabusFallbackImage(product) ?? "")
+        : "");
   const resolvedImageStr =
     isUrbanMode && urbanModelHandles.length > 0
       ? resolveUrbanProductImage(
@@ -816,38 +687,15 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
 
   const priceValidUntil = new Date();
   priceValidUntil.setDate(priceValidUntil.getDate() + 30);
-  let backLinkHref = `/${resolvedLocale}/shop`;
-  let backLinkLabel = `← ${isUa ? "Назад до магазину" : "Back to shop"}`;
-  let contextLinkHref: string | null = null;
-  let contextLinkLabel: string | null = null;
-  let continueShoppingHref = `/${resolvedLocale}/shop`;
-
-  if (isUrbanMode) {
-    backLinkHref = `/${resolvedLocale}/shop/urban/collections`;
-    backLinkLabel = `← ${isUa ? "Назад до каталогу Urban" : "Back to Urban catalog"}`;
-    contextLinkHref = urbanCollectionHandle
-      ? `/${resolvedLocale}/shop/urban/collections/${urbanCollectionHandle}`
-      : null;
-    contextLinkLabel = urbanCollectionCard
-      ? `${isUa ? "Колекція" : "Collection"}: ${urbanCollectionCard.title}`
-      : null;
-    continueShoppingHref = `/${resolvedLocale}/shop/urban/collections`;
-  } else if (isDo88Mode) {
-    backLinkHref = `/${resolvedLocale}/shop/do88/collections`;
-    backLinkLabel = `← ${isUa ? "Назад до каталогу do88" : "Back to do88 catalog"}`;
-    contextLinkHref = do88CollectionHandle
-      ? `/${resolvedLocale}/shop/do88/collections/${do88CollectionHandle}`
-      : null;
-    contextLinkLabel = do88CollectionCard
-      ? `${isUa ? "Категорія" : "Category"}: ${do88CollectionCard.title}`
-      : null;
-    continueShoppingHref = `/${resolvedLocale}/shop/do88/collections`;
-  } else if (mode === "akrapovic" || product.brand === "AKRAPOVIC") {
-    const scopeQuery = product.scope === "moto" ? "?scope=moto" : "";
-    backLinkHref = `/${resolvedLocale}/shop/akrapovic${scopeQuery}`;
-    backLinkLabel = `← ${isUa ? "Назад до каталогу Akrapovič" : "Back to Akrapovič catalog"}`;
-    continueShoppingHref = `/${resolvedLocale}/shop/akrapovic${scopeQuery}`;
-  }
+  // One shop: back to the catalog, and a link to all of the brand's products.
+  const backLinkHref = `/${resolvedLocale}/shop/catalog`;
+  const backLinkLabel = `← ${isUa ? "Назад до магазину" : "Back to shop"}`;
+  const brandLandingHref = resolveShopStorefrontBrandLandingPath(resolvedLocale, product.brand);
+  const contextLinkHref: string | null = brandLandingHref;
+  const contextLinkLabel: string | null = brandLandingHref
+    ? `${isUa ? "Усі товари" : "All products"} ${catalogLandingBrandName(product.brand)}`
+    : null;
+  const continueShoppingHref = `/${resolvedLocale}/shop/catalog`;
 
   const purchaseSection = (
     <ShopProductVariantPurchaseSection
@@ -898,7 +746,7 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
   );
 
   return (
-    <ShopVariantImageProvider key={product.slug} enabled={isDo88Mode}>
+    <ShopVariantImageProvider key={product.slug} enabled={isDo88Mode || isBurgerProduct}>
       <div className="min-h-screen bg-background text-foreground dark:bg-linear-to-b dark:from-black dark:via-zinc-950 dark:to-background">
         <ShopProductStructuredData product={product} locale={resolvedLocale} rates={rates} />
         <ShopProductViewTracker
@@ -907,235 +755,227 @@ export default async function ShopProductDetailPage({ locale, slug, mode = "defa
           priceEur={computeCrossPrices(pricing.effectivePrice).eur}
         />
 
-        {product.brand === "Brabus" || mode === "brabus" ? (
-          <BrabusShopProductDetailLayout
-            locale={locale}
-            resolvedLocale={resolvedLocale}
-            product={product}
-            pricing={pricing}
-            viewerContext={viewerContext}
-            rates={rates}
-            defaultVariant={defaultVariant}
-            relatedProducts={relatedProducts}
-          />
-        ) : mode === "burger" || product.brand === "Burger Motorsports" ? (
-          <BurgerShopProductDetailLayout
-            locale={locale}
-            resolvedLocale={resolvedLocale}
-            product={product}
-            pricing={pricing}
-            viewerContext={viewerContext}
-            rates={rates}
-            defaultVariant={defaultVariant}
-          />
-        ) : (
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
-            <div className="flex flex-wrap items-center gap-3">
-              <ShopBackToCatalogLink
-                fallbackHref={backLinkHref}
-                label={backLinkLabel}
-                className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
+        {/* One product-page design for every brand. */}
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-20 pt-28 sm:px-6 lg:px-8 lg:pt-32">
+          <div className="flex flex-wrap items-center gap-3">
+            <ShopBackToCatalogLink
+              fallbackHref={backLinkHref}
+              label={backLinkLabel}
+              className="inline-flex items-center gap-2.5 rounded-full border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-foreground/85 transition hover:border-foreground/45 hover:bg-foreground/10 hover:text-foreground"
+            />
+            <ShopInlineSearch locale={resolvedLocale} className="sm:order-last" />
+
+            {contextLinkHref && contextLinkLabel ? (
+              <Link
+                href={contextLinkHref}
+                className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground/72 transition hover:border-foreground/35 hover:text-foreground"
+              >
+                {contextLinkLabel}
+              </Link>
+            ) : null}
+
+            <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/65">
+              {product.scope === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
+            </span>
+          </div>
+
+          <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="min-w-0 lg:sticky lg:top-32">
+              <ShopProductGallery
+                images={[
+                  safeImageUrl,
+                  ...resolvedGallery.filter((img) => img !== safeImageUrl && img && img.length > 0),
+                ]}
+                productTitle={productTitle}
+                category={productCategory}
+                isInStock={isInStock}
+                isUa={isUa}
+                compatibleVehicles={do88CompatibleVehicles}
               />
-              <ShopInlineSearch locale={resolvedLocale} className="sm:order-last" />
-
-              {contextLinkHref && contextLinkLabel ? (
-                <Link
-                  href={contextLinkHref}
-                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-foreground/72 transition hover:border-foreground/35 hover:text-foreground"
-                >
-                  {contextLinkLabel}
-                </Link>
-              ) : null}
-
-              {isUrbanMode ? (
-                <Link
-                  href={`/${resolvedLocale}/shop/urban`}
-                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
-                >
-                  {isUa ? "Urban Home" : "Urban home"}
-                </Link>
-              ) : null}
-
-              {isDo88Mode ? (
-                <Link
-                  href={`/${resolvedLocale}/shop/do88`}
-                  className="inline-flex items-center gap-2 rounded-full border border-foreground/20 bg-foreground/5 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-foreground/75 dark:text-foreground/60 transition hover:border-foreground/40 hover:text-foreground"
-                >
-                  {isUa ? "DO88 Home" : "DO88 home"}
-                </Link>
-              ) : null}
-
-              <span className="rounded-full border border-foreground/20 bg-foreground/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-foreground/65">
-                {product.scope === "auto" ? (isUa ? "Авто" : "Auto") : isUa ? "Мото" : "Moto"}
-              </span>
             </div>
 
-            <section className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              <div className="min-w-0 lg:sticky lg:top-32">
-                <ShopProductGallery
-                  images={[
-                    safeImageUrl,
-                    ...resolvedGallery.filter(
-                      (img) => img !== safeImageUrl && img && img.length > 0
-                    ),
-                  ]}
-                  productTitle={productTitle}
-                  category={productCategory}
-                  isInStock={isInStock}
-                  isUa={isUa}
-                  compatibleVehicles={do88CompatibleVehicles}
-                />
+            <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getBrandLogo(product.brand)}
+                    alt={product.brand}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <ShopBrandLink
+                    brand={product.brand}
+                    locale={resolvedLocale}
+                    className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
+                  />
+                  {product.vendor &&
+                  (!isDo88Mode ||
+                    product.vendor.trim().toLowerCase() !== product.brand.trim().toLowerCase()) ? (
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
+                      {product.vendor}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="min-w-0 space-y-6 rounded-3xl border border-foreground/18 bg-card p-6 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] sm:p-7">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg border border-foreground/20 bg-foreground/8 p-1.5 ${getBrandLogoSurfaceClass(product.brand)}`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={getBrandLogo(product.brand)}
-                      alt={product.brand}
-                      className="h-full w-full object-contain"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <ShopBrandLink
-                      brand={product.brand}
-                      locale={resolvedLocale}
-                      className="inline-flex w-fit text-xs uppercase tracking-[0.18em] text-foreground/75 underline decoration-foreground/25 underline-offset-4 transition hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 dark:text-foreground/60"
-                    />
-                    {product.vendor &&
-                    (!isDo88Mode ||
-                      product.vendor.trim().toLowerCase() !==
-                        product.brand.trim().toLowerCase()) ? (
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/55 dark:text-foreground/35">
-                        {product.vendor}
-                      </p>
-                    ) : null}
+              <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
+                {productTitle}
+              </h1>
+              {primaryPartNumber ? (
+                <ShopProductTitleSku sku={primaryPartNumber} isUa={isUa} />
+              ) : null}
+              {racechipEngine ? (
+                <p className="text-sm text-foreground/70">
+                  {isUa ? "Двигун" : "Engine"}: {racechipEngine}
+                </p>
+              ) : null}
+
+              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
+              ) : null}
+
+              {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
+                <Do88CompatibleVehiclesBlock
+                  vehicles={do88CompatibleVehicles}
+                  locale={locale}
+                  isUa={isUa}
+                />
+              ) : null}
+
+              {isDo88Mode ? purchaseSection : null}
+
+              {product.sounds && product.sounds.length > 0 ? (
+                <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/85 dark:text-white/80">
+                    {isUa ? "Звук вихлопної системи" : "Exhaust Sound"}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {product.sounds.map((sound) => {
+                      const title = sound.Title || "";
+
+                      // Split by semicolon (e.g. "Stock exhaust; BMW S 1000 RR")
+                      const parts = title.split(";").map((p) => p.trim());
+                      const hasSemicolon = parts.length > 1;
+                      const exhaustName = parts[0];
+                      const bikeModel = hasSemicolon ? parts[1] : "";
+
+                      const isStock = /stock/i.test(exhaustName);
+
+                      const bikeMake = bikeModel ? bikeModel.split(" ")[0].toUpperCase() : "";
+                      const makeLabel = isStock
+                        ? bikeMake || (isUa ? "СТАНДАРТНИЙ ВИХЛОП" : "STOCK EXHAUST")
+                        : "AKRAPOVIČ";
+
+                      const modelLabel = isStock
+                        ? isUa
+                          ? "Стандартний вихлоп"
+                          : "Stock exhaust"
+                        : isUa
+                          ? exhaustName
+                              .replace(/Complete/i, "Повний вихлоп")
+                              .replace(/Evolution Line/i, "Evolution Line")
+                              .replace(/Slip-On/i, "Slip-On Line")
+                              .replace(/Racing Line/i, "Racing Line")
+                          : exhaustName;
+
+                      const subLabel =
+                        bikeModel || product.title[resolvedLocale as "en" | "ua"] || "";
+
+                      return (
+                        <AkrapovicSoundPlayer
+                          key={`product-sound-${sound.Id}`}
+                          entry={{
+                            id: `product-sound-${sound.Id}`,
+                            make: makeLabel,
+                            model: modelLabel,
+                            image: product.image,
+                            exhaustType: subLabel,
+                            exhaustTypeUk: subLabel,
+                            soundUrl: sound.Url,
+                          }}
+                          isUa={isUa}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
+              ) : null}
 
-                <h1 className="text-balance text-2xl font-light leading-tight sm:text-3xl">
-                  {productTitle}
-                </h1>
-                {primaryPartNumber ? (
-                  <ShopProductTitleSku sku={primaryPartNumber} isUa={isUa} />
-                ) : null}
+              {isStopflexProduct ||
+              descriptionSections.introHtml ||
+              detailFeatureItems.length > 0 ||
+              detailSpecs.length > 0 ? (
+                <MobileProductDisclosure
+                  title={isUa ? "Опис і характеристики" : "Description & specs"}
+                  contentClassName="space-y-4"
+                >
+                  {isStopflexProduct ? (
+                    <StopflexDescriptionCallout isUa={isUa} isLongFiber={isStopflexLongFiber} />
+                  ) : null}
+                  {descriptionSections.introHtml ? (
+                    <div
+                      className={`product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] ${showsWholeDescription ? "[&_h2]:mt-6 [&_h2]:text-sm [&_h2]:font-medium [&_h2]:uppercase [&_h2]:tracking-[0.18em] [&_h2]:text-foreground" : "[&_h2]:hidden"} [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70`}
+                      dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
+                    />
+                  ) : null}
+                  {detailFeatureItems.length > 0 ? (
+                    <DetailListPanel title={detailListTitle} items={detailFeatureItems} />
+                  ) : null}
+                  {detailSpecs.length > 0 ? (
+                    <DetailSpecPanel
+                      title={isDo88Mode ? undefined : isUa ? "Характеристики" : "Specifications"}
+                      specs={detailSpecs}
+                    />
+                  ) : null}
+                </MobileProductDisclosure>
+              ) : null}
 
-                {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                  <Do88VehicleCompatibilityAlert vehicles={do88CompatibleVehicles} isUa={isUa} />
-                ) : null}
+              {product.externalVideos?.length ? (
+                <ShopProductVideos
+                  videos={product.externalVideos}
+                  title={productTitle}
+                  isUa={isUa}
+                />
+              ) : null}
 
-                {isDo88Mode && do88CompatibleVehicles.length > 0 ? (
-                  <Do88CompatibleVehiclesBlock
-                    vehicles={do88CompatibleVehicles}
-                    locale={locale}
-                    isUa={isUa}
-                  />
-                ) : null}
+              {!isDo88Mode ? purchaseSection : null}
 
-                {isDo88Mode ? purchaseSection : null}
-
-                {product.sounds && product.sounds.length > 0 ? (
-                  <div className="space-y-4 rounded-2xl border border-foreground/12 bg-foreground/[0.02] p-5 dark:border-white/12 dark:bg-white/[0.02]">
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/85 dark:text-white/80">
-                      {isUa ? "Звук вихлопної системи" : "Exhaust Sound"}
-                    </h3>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {product.sounds.map((sound) => {
-                        const title = sound.Title || "";
-
-                        // Split by semicolon (e.g. "Stock exhaust; BMW S 1000 RR")
-                        const parts = title.split(";").map((p) => p.trim());
-                        const hasSemicolon = parts.length > 1;
-                        const exhaustName = parts[0];
-                        const bikeModel = hasSemicolon ? parts[1] : "";
-
-                        const isStock = /stock/i.test(exhaustName);
-
-                        const bikeMake = bikeModel ? bikeModel.split(" ")[0].toUpperCase() : "";
-                        const makeLabel = isStock
-                          ? bikeMake || (isUa ? "СТАНДАРТНИЙ ВИХЛОП" : "STOCK EXHAUST")
-                          : "AKRAPOVIČ";
-
-                        const modelLabel = isStock
-                          ? isUa
-                            ? "Стандартний вихлоп"
-                            : "Stock exhaust"
-                          : isUa
-                            ? exhaustName
-                                .replace(/Complete/i, "Повний вихлоп")
-                                .replace(/Evolution Line/i, "Evolution Line")
-                                .replace(/Slip-On/i, "Slip-On Line")
-                                .replace(/Racing Line/i, "Racing Line")
-                            : exhaustName;
-
-                        const subLabel =
-                          bikeModel || product.title[resolvedLocale as "en" | "ua"] || "";
-
-                        return (
-                          <AkrapovicSoundPlayer
-                            key={`product-sound-${sound.Id}`}
-                            entry={{
-                              id: `product-sound-${sound.Id}`,
-                              make: makeLabel,
-                              model: modelLabel,
-                              image: product.image,
-                              exhaustType: subLabel,
-                              exhaustTypeUk: subLabel,
-                              soundUrl: sound.Url,
-                            }}
-                            isUa={isUa}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                {isStopflexProduct ||
-                descriptionSections.introHtml ||
-                detailFeatureItems.length > 0 ||
-                detailSpecs.length > 0 ? (
-                  <MobileProductDisclosure
-                    title={isUa ? "Опис і характеристики" : "Description & specs"}
-                    contentClassName="space-y-4"
+              {isIpeProduct ? (
+                <div className="space-y-3 rounded-2xl border border-foreground/15 bg-foreground/[0.04] p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                    {isUa ? "Не впевнені у комплектації?" : "Not sure about your spec?"}
+                  </p>
+                  <p className="text-sm leading-relaxed text-foreground/80">
+                    {isUa
+                      ? "Надайте VIN код нашому спеціалісту — підтвердимо точну сумісність вашого автомобіля і допоможемо обрати правильну версію (OPF / Non-OPF, Catted / Catless)."
+                      : "Share your VIN with our specialist — we'll confirm exact fitment for your vehicle and help you pick the right spec (OPF / Non-OPF, Catted / Catless)."}
+                  </p>
+                  <a
+                    href="https://t.me/onecompany_global"
+                    target="_blank"
+                    rel="noreferrer"
+                    data-track-label="pdp_vin_specialist"
+                    className="inline-flex items-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
                   >
-                    {isStopflexProduct ? (
-                      <StopflexDescriptionCallout isUa={isUa} isLongFiber={isStopflexLongFiber} />
-                    ) : null}
-                    {descriptionSections.introHtml ? (
-                      <div
-                        className="product-description max-w-none space-y-4 text-sm leading-[1.85] tracking-wide text-foreground/85 dark:text-foreground/70 sm:text-[15px] [&_h2]:hidden [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:text-xs [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_h3]:text-foreground [&_p]:text-pretty [&_strong]:font-medium [&_strong]:text-foreground dark:text-foreground/90 [&_ul]:mt-3 [&_ul]:space-y-2 [&_ul]:pl-0 [&_li]:flex [&_li]:items-start [&_li]:gap-2.5 [&_li]:list-none [&_li]:before:mt-[9px] [&_li]:before:block [&_li]:before:h-1 [&_li]:before:w-1 [&_li]:before:shrink-0 [&_li]:before:rounded-full [&_li]:before:bg-[hsl(var(--primary))]/70"
-                        dangerouslySetInnerHTML={{ __html: descriptionSections.introHtml }}
-                      />
-                    ) : null}
-                    {detailFeatureItems.length > 0 ? (
-                      <DetailListPanel title={detailListTitle} items={detailFeatureItems} />
-                    ) : null}
-                    {detailSpecs.length > 0 ? (
-                      <DetailSpecPanel
-                        title={isDo88Mode ? undefined : isUa ? "Характеристики" : "Specifications"}
-                        specs={detailSpecs}
-                      />
-                    ) : null}
-                  </MobileProductDisclosure>
-                ) : null}
+                    {isUa ? "Написати спеціалісту" : "Contact specialist"}
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          </section>
 
-                {product.externalVideos?.length ? (
-                  <ShopProductVideos
-                    videos={product.externalVideos}
-                    title={productTitle}
-                    isUa={isUa}
-                  />
-                ) : null}
-
-                {!isDo88Mode ? purchaseSection : null}
-              </div>
-            </section>
-          </div>
-        )}
+          <Suspense fallback={null}>
+            <ShopRelatedProductsSection
+              product={product}
+              locale={resolvedLocale}
+              viewerContext={viewerContext}
+            />
+          </Suspense>
+        </div>
 
         {crossShopFitment ? (
           <CrossShopFitmentDeferredSection product={product} locale={resolvedLocale} />

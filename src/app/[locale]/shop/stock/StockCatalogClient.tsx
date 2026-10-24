@@ -4548,7 +4548,7 @@ function StockPageContent({
                     <div className="min-w-0">
                       <div className="hidden items-center gap-2 text-[9px] font-light text-foreground/48 sm:flex">
                         <Link
-                          href={`/${locale}/shop`}
+                          href={`/${locale}/shop/catalog`}
                           prefetch={false}
                           className="transition hover:text-foreground"
                         >

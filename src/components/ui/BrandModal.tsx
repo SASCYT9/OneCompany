@@ -186,7 +186,7 @@ export function BrandModal({ brand, isOpen, onClose }: BrandModalProps) {
                 {/* Primary Button: Our Shop (if shop page exists) or Order Form (otherwise) */}
                 {shopSegment ? (
                   <Link
-                    href={`/shop/${shopSegment}`}
+                    href={`/shop/brand/${shopSegment}`}
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary/90 rounded-xl text-primary-foreground text-sm font-bold transition-all shadow-[0_0_20px_rgba(213,0,28,0.25)] dark:shadow-[0_0_20px_rgba(194,157,89,0.25)] hover:shadow-[0_0_30px_rgba(213,0,28,0.35)] dark:hover:shadow-[0_0_30px_rgba(194,157,89,0.35)] uppercase tracking-wider group"
                   >
                     <span>{locale === "ua" ? "Наш магазин" : "Our Shop"}</span>

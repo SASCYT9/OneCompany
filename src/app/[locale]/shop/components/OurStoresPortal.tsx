@@ -228,7 +228,7 @@ export default function OurStoresPortal({ locale }: OurStoresPortalProps) {
       <section className="relative z-10 mx-auto w-full max-w-[1720px] px-4 pb-20 sm:px-6 lg:px-8 xl:px-16">
         <ShopHubNavigation
           locale={locale}
-          active="brands"
+          active="catalog"
           className="relative z-20 -mt-12 mb-4 sm:-mt-14 sm:mb-5"
         />
 

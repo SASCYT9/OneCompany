@@ -133,7 +133,7 @@ export default async function LocalizedHomePage({ params }: LocalizedHomePagePro
 
   const structureLinks = [
     `/${locale}`,
-    `/${locale}/shop`,
+    `/${locale}/shop/catalog`,
     `/${locale}/auto`,
     `/${locale}/moto`,
     `/${locale}/brands`,

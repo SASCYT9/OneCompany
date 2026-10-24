@@ -43,7 +43,8 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
   const prisma = {
     shopCart: {
       findFirst: async () => null,
-      findUnique: async ({ where }: { where: { token: string } }) => (where.token === "tok" ? guestCart : null),
+      findUnique: async ({ where }: { where: { token: string } }) =>
+        where.token === "tok" ? guestCart : null,
     },
     shopCartReminder: {
       findUnique: async ({ where }: { where: { cartId?: string } }) =>
@@ -59,7 +60,10 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
     "@/lib/localStorefront": { isLocalStorefrontMode: () => false },
     "@/lib/shopCart": { SHOP_CART_COOKIE: "oc_cart_token" },
     "@/lib/shopCustomerSession": { getCurrentShopCustomerSession: async () => null },
-    "@/lib/shopPublicRateLimit": { consumeRateLimit: async () => allowed, getRequestIp: () => "203.0.113.7" },
+    "@/lib/shopPublicRateLimit": {
+      consumeRateLimit: async () => allowed,
+      getRequestIp: () => "203.0.113.7",
+    },
   });
   const post = (body: unknown, cookie = "oc_cart_token=tok") =>
     POST!(
@@ -71,16 +75,27 @@ test("checkout consent needs a valid email, a cart and stays rate limited", asyn
     );
 
   assert.equal((await post({ consent: true, email: "not-an-email" })).status, 400);
-  const ok = await post({ consent: true, email: "Buyer@Example.com", currency: "eur", country: "Germany", locale: "en" });
+  const ok = await post({
+    consent: true,
+    email: "Buyer@Example.com",
+    currency: "eur",
+    country: "Germany",
+    locale: "en",
+  });
   assert.equal(ok.status, 200);
-  const upsert = saved[0] as { where: { cartId: string }; create: { email: string; currency: string; locale: string } };
+  const upsert = saved[0] as {
+    where: { cartId: string };
+    create: { email: string; currency: string; locale: string };
+  };
   assert.equal(upsert.where.cartId, "cart-guest");
   assert.equal(upsert.create.email, "buyer@example.com");
   assert.equal(upsert.create.currency, "EUR");
   assert.equal(upsert.create.locale, "en");
   // After a reload, checkout learns the consent is still on.
   const state = await GET!(
-    new NextRequest("https://onecompany.global/api/shop/cart/reminder", { headers: { cookie: "oc_cart_token=tok" } })
+    new NextRequest("https://onecompany.global/api/shop/cart/reminder", {
+      headers: { cookie: "oc_cart_token=tok" },
+    })
   );
   assert.deepEqual(await state.json(), { consent: true, email: "buyer@example.com" });
 
@@ -102,7 +117,11 @@ test("the email link restores that cart in any browser; unsubscribe works by lin
     shopCartReminder: {
       findUnique: async ({ where }: { where: { token: string } }) =>
         where.token === "good"
-          ? { email: "buyer@example.com", locale: "ua", cart: { token: "cart-token", _count: { items: 2 } } }
+          ? {
+              email: "buyer@example.com",
+              locale: "ua",
+              cart: { token: "cart-token", _count: { items: 2 } },
+            }
           : null,
       updateMany: async () => ({ count: 1 }),
     },
@@ -112,7 +131,12 @@ test("the email link restores that cart in any browser; unsubscribe works by lin
     shopOrder: {
       findUnique: async ({ where }: { where: { orderNumber: string } }) =>
         where.orderNumber === "OC-1"
-          ? { email: "reviewer@example.com", viewToken: "view-1", shippingAddress: { country: "Germany" }, customer: null }
+          ? {
+              email: "reviewer@example.com",
+              viewToken: "view-1",
+              shippingAddress: { country: "Germany" },
+              customer: null,
+            }
           : null,
     },
     $transaction: async (work: Promise<unknown>[]) => Promise.all(work),
@@ -124,19 +148,29 @@ test("the email link restores that cart in any browser; unsubscribe works by lin
         response.headers.append("set-cookie", `oc_cart_token=${token}; Path=/`),
     },
   });
-  const back = await restore.GET!(new NextRequest("https://onecompany.global/api/shop/cart/reminder/good"), {
-    params: Promise.resolve({ token: "good" }),
-  });
+  const back = await restore.GET!(
+    new NextRequest("https://onecompany.global/api/shop/cart/reminder/good"),
+    {
+      params: Promise.resolve({ token: "good" }),
+    }
+  );
   assert.equal(back.headers.get("location"), "https://onecompany.global/ua/shop/cart");
   assert.match(String(back.headers.get("set-cookie")), /oc_cart_token=cart-token/);
-  const unknown = await restore.GET!(new NextRequest("https://onecompany.global/api/shop/cart/reminder/x"), {
-    params: Promise.resolve({ token: "x" }),
-  });
-  assert.equal(unknown.headers.get("location"), "https://onecompany.global/ua/shop");
+  const unknown = await restore.GET!(
+    new NextRequest("https://onecompany.global/api/shop/cart/reminder/x"),
+    {
+      params: Promise.resolve({ token: "x" }),
+    }
+  );
+  assert.equal(unknown.headers.get("location"), "https://onecompany.global/ua/shop/catalog");
   assert.equal(unknown.headers.get("set-cookie"), null);
 
-  const unsubscribe = await route("src/app/api/shop/email/unsubscribe/route.ts", { "@/lib/prisma": { prisma } });
-  const page = await unsubscribe.GET!(new NextRequest("https://onecompany.global/api/shop/email/unsubscribe?t=good"));
+  const unsubscribe = await route("src/app/api/shop/email/unsubscribe/route.ts", {
+    "@/lib/prisma": { prisma },
+  });
+  const page = await unsubscribe.GET!(
+    new NextRequest("https://onecompany.global/api/shop/email/unsubscribe?t=good")
+  );
   assert.equal(page.status, 200);
   assert.match(await page.text(), /Ви відписалися/);
   const oneClick = await unsubscribe.POST!(
@@ -147,7 +181,9 @@ test("the email link restores that cart in any browser; unsubscribe works by lin
   );
   assert.deepEqual(await oneClick.json(), { ok: true });
   assert.deepEqual(suppressed, ["buyer@example.com", "buyer@example.com"]);
-  const stale = await unsubscribe.GET!(new NextRequest("https://onecompany.global/api/shop/email/unsubscribe?t=nope"));
+  const stale = await unsubscribe.GET!(
+    new NextRequest("https://onecompany.global/api/shop/email/unsubscribe?t=nope")
+  );
   assert.match(await stale.text(), /застаріло/);
   // The review email unsubscribes by order number plus the order's private token.
   const review = await unsubscribe.GET!(
@@ -181,7 +217,9 @@ test("the customer-emails cron runs cart reminders and review requests, with the
         return { window: true, considered: 0, outcomes: {} };
       },
     },
-    "@/lib/shopPublicSettings": { getPublicShopSettingsRuntime: async () => ({ currencyRates: {} }) },
+    "@/lib/shopPublicSettings": {
+      getPublicShopSettingsRuntime: async () => ({ currencyRates: {} }),
+    },
     "@/lib/shopPricingContext.server": { buildShopViewerPricingContextServer: async () => ({}) },
   });
   const call = (auth?: string, query = "") =>
@@ -194,5 +232,8 @@ test("the customer-emails cron runs cart reminders and review requests, with the
   assert.equal((await call("Bearer wrong")).status, 401);
   const dry = await call("Bearer cron-secret", "?dryRun=1");
   assert.equal(dry.status, 200);
-  assert.deepEqual(runs, [["carts", true], ["reviews", true]]);
+  assert.deepEqual(runs, [
+    ["carts", true],
+    ["reviews", true],
+  ]);
 });

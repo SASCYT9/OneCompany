@@ -1,13 +1,10 @@
-import { STOREFRONT_ROUTE_REGISTRY } from "@/lib/storefrontRouteRegistry";
-
-export type ShopNavigationDestinationKey = "brands" | "catalog" | "selection";
+export type ShopNavigationDestinationKey = "catalog" | "selection";
 
 export type ShopNavigationDestination = {
   key: ShopNavigationDestinationKey;
   href: string;
 };
 
-const STOREFRONT_SEGMENTS = new Set(STOREFRONT_ROUTE_REGISTRY.map((route) => route.segment));
 const SHOP_UTILITY_SEGMENTS = new Set(["account", "cart", "checkout"]);
 
 function isPathOrDescendant(pathname: string, basePath: string) {
@@ -17,10 +14,9 @@ function isPathOrDescendant(pathname: string, basePath: string) {
 export function getShopNavigationDestinations(locale: string): ShopNavigationDestination[] {
   const localeRoot = `/${locale}`;
 
+  // One shop: the catalog (brand pages are catalog landings inside it).
   return [
-    // The catalog comes first: most visitors search for a part, not a brand.
     { key: "catalog", href: `${localeRoot}/shop/catalog` },
-    { key: "brands", href: `${localeRoot}/shop` },
     { key: "selection", href: `${localeRoot}/contact#selection-form` },
   ];
 }
@@ -42,14 +38,10 @@ export function getShopNavigationActiveKey(
     return "catalog";
   }
 
-  if (pathname === shopRoot || pathname === `${shopRoot}/`) return "brands";
-
   if (isPathOrDescendant(pathname, shopRoot)) {
     const segment = pathname.slice(shopRoot.length + 1).split("/")[0];
-    if (!segment || SHOP_UTILITY_SEGMENTS.has(segment)) return null;
-    return STOREFRONT_SEGMENTS.has(segment as (typeof STOREFRONT_ROUTE_REGISTRY)[number]["segment"])
-      ? "brands"
-      : "catalog";
+    if (SHOP_UTILITY_SEGMENTS.has(segment)) return null;
+    return "catalog";
   }
 
   return null;

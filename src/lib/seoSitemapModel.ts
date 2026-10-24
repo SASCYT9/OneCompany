@@ -1,8 +1,4 @@
 import type { MetadataRoute } from "next";
-import { ADRO_PRODUCT_LINES } from "@/app/[locale]/shop/data/adroHomeData";
-import { BRABUS_COLLECTION_CARDS } from "@/app/[locale]/shop/data/brabusCollectionsList";
-import { DO88_COLLECTION_CARDS } from "@/app/[locale]/shop/data/do88CollectionsList";
-import { URBAN_COLLECTION_CARDS } from "@/app/[locale]/shop/data/urbanCollectionsList";
 import { categoryData } from "@/lib/categoryData";
 import { EVENTURI_SHARED_V8_INTAKE_LEGACY_SLUGS } from "@/lib/eventuriSharedIntake";
 import { absoluteUrl, buildAlternateLinks, buildLocalizedPath, siteConfig } from "@/lib/seo";
@@ -198,19 +194,13 @@ export function buildStaticSitemapEntries(): MetadataRoute.Sitemap {
 }
 
 /**
- * Brand collection hubs (Urban, Brabus and do88 collections, ADRO model
- * lines): indexable, self-canonical landing pages. The slugs come from the
- * lists their routes are generated from, so a new collection is listed here
- * as soon as its page exists.
+ * Brand collection hubs. The brand storefronts (Urban, Brabus and do88
+ * collections, ADRO model lines) were folded into the catalog: their URLs
+ * redirect to the brand landing pages, which the catalog landing sitemap
+ * lists. Nothing is listed here any more.
  */
 export function brandHubSitemapSlugs(): string[] {
-  return [
-    ...URBAN_COLLECTION_CARDS.map((card) => `/shop/urban/collections/${card.collectionHandle}`),
-    ...BRABUS_COLLECTION_CARDS.map((card) => `/shop/brabus/collections/${card.collectionHandle}`),
-    "/shop/do88/collections/all",
-    ...DO88_COLLECTION_CARDS.map((card) => `/shop/do88/collections/${card.categoryHandle}`),
-    ...ADRO_PRODUCT_LINES.map((line) => `/shop/adro/collections/${line.id}`),
-  ];
+  return [];
 }
 
 export function buildBrandHubSitemapEntries(): MetadataRoute.Sitemap {
